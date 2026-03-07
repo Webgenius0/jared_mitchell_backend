@@ -38,9 +38,6 @@ trait ApiResponse
 
     /**
      * Error Response
-     * @param mixed $errors - Error details (array or string)
-     * @param string|null $message - Error message
-     * @param int $code - HTTP status code
      */
     protected function error(
         mixed $errors = null,
