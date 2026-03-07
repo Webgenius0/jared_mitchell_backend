@@ -14,3 +14,7 @@ Route::get('/chat', function () {
 Route::get('/mail', function () {
     return view('pages.messaging.mail.index');
 });
+
+Route::get('/login', function(){
+    return view('pages.auth.login');
+});
