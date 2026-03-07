@@ -5,7 +5,7 @@ use App\Http\Controllers\Web\Admin\Auth\SignInController;
 use App\Http\Controllers\Web\Admin\Dashboard\AdminDashboardController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('show.admin.dashboard'); // show admin dashboard
+Route::get('/', [AdminDashboardController::class, 'index'])->name('show.admin.dashboard'); // show admin dashboard
 
 Route::get('/login', [SignInController::class, 'index'])->name('show.admin.login'); // show admin login
 Route::post('/login', [SignInController::class, 'login'])->name('admin.login'); // admin login
