@@ -17,6 +17,9 @@
 
     {{-- all css links --}}
     @include('assets.styles')
+
+    {{-- custom styles --}}
+    @stack('styles')
 </head>
 
 <body>
@@ -33,6 +36,9 @@
     <script src=" {{ asset('admin/assets/js/pages/particles.app.js') }} "></script>
     <!-- password-addon init -->
     <script src=" {{ asset('admin/assets/js/pages/password-addon.init.js') }} "></script>
+
+    {{-- Custom js --}}
+    @stack('scripts')
 </body>
 
 </html>

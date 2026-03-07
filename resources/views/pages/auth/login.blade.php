@@ -23,8 +23,8 @@
                     <div class="col-lg-12">
                         <div class="text-center mt-sm-5 mb-4 text-white-50">
                             <div>
-                                <a href="index.html" class="d-inline-block auth-logo">
-                                    <img src="assets/images/logo-light.png" alt="" height="20">
+                                <a href="/" class="d-inline-block auth-logo">
+                                    <img src="" alt="" height="20">
                                 </a>
                             </div>
                             <p class="mt-3 fs-15 fw-medium"></p>
@@ -53,7 +53,7 @@
 
                                         <div class="mb-3">
                                             <div class="float-end">
-                                                <a href="auth-pass-reset-basic.html" class="text-muted">Forgot
+                                                <a href="{{ route('show.forgot-password') }}" class="text-muted">Forgot
                                                     password?</a>
                                             </div>
                                             <label class="form-label" for="password-input">Password</label>
@@ -83,12 +83,6 @@
                             <!-- end card body -->
                         </div>
                         <!-- end card -->
-
-                        <div class="mt-4 text-center">
-                            <p class="mb-0">Don't have an account ? <a href="auth-signup-basic.html"
-                                    class="fw-semibold text-primary text-decoration-underline"> Signup </a> </p>
-                        </div>
-
                     </div>
                 </div>
                 <!-- end row -->
