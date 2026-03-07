@@ -1,8 +1,5 @@
 # Jared Mitchell Website
 
-![Project Banner](https://via.placeholder.com/1200x400/111827/ffffff?text=Jared+Mitchell+Website)  
-*(Replace with a real screenshot of the homepage once built)*
-
 ## Project Description
 
 This is a custom web application/website built for **Jared Mitchell** (Client reference: FO836552F8F08).
@@ -36,5 +33,3 @@ The project is developed using **Laravel** as the backend framework, following m
   - Laravel Mail (for contact form)
 - **Styling**: Tailwind CSS v3+
 - **Deployment Ready**: Forge / Vapor / traditional server support
-
-## Project Structure Overview
