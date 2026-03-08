@@ -4,22 +4,25 @@ namespace App\Http\Controllers\Web\Admin\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Traits\AdminApiResponse;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\View\View;
 
 class SignInController extends Controller
 {
+    use AdminApiResponse;
+
     /*
-    |----------------------------------------------------------------------
+    |--------------------------------------------------------------------------
     | Show Login Page
-    |----------------------------------------------------------------------
+    |--------------------------------------------------------------------------
     */
 
-    public function index()
+    public function index(): View|RedirectResponse
     {
-        // If already authenticated, redirect to dashboard
         if ($this->isAdminAuthenticated()) {
             return redirect()->route('show.admin.dashboard');
         }
@@ -28,14 +31,14 @@ class SignInController extends Controller
     }
 
     /*
-    |----------------------------------------------------------------------
-    | Handle Login — returns JSON (consumed by Axios)
-    |----------------------------------------------------------------------
+    |--------------------------------------------------------------------------
+    | Handle Login  (Axios → JSON)
+    |--------------------------------------------------------------------------
     */
 
     public function login(Request $request): JsonResponse
     {
-        // 1. Validate input
+        // ── 1. Validate ────────────────────────────────────────────────────
         $validator = Validator::make($request->all(), [
             'email'    => ['required', 'email'],
             'password' => ['required', 'string', 'min:6'],
@@ -47,120 +50,88 @@ class SignInController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'errors'  => $validator->errors(),
-            ], 422);
+            return $this->validationError($validator);
         }
 
-        // 2. Check user exists
+        // ── 2. User exists? ────────────────────────────────────────────────
         $user = User::where('email', $request->email)->first();
 
         if (! $user) {
-            return response()->json([
-                'success' => false,
-                'errors'  => ['email' => ['No account found with this email address.']],
+            return $this->error('No account found with this email address.', [
+                'email' => ['No account found with this email address.'],
             ], 401);
         }
 
-        // 3. Check account status
+        // ── 3. Account active? ─────────────────────────────────────────────
         if ($user->status !== 'active') {
-            return response()->json([
-                'success' => false,
-                'errors'  => ['email' => ['Your account has been deactivated. Contact support.']],
+            return $this->error('Your account has been deactivated. Contact support.', [
+                'email' => ['Your account has been deactivated. Contact support.'],
             ], 403);
         }
 
-        // 4. Check admin role (spatie)
+        // ── 4. Admin role? (Spatie) ────────────────────────────────────────
         if (! $user->hasRole('admin')) {
-            return response()->json([
-                'success' => false,
-                'errors'  => ['email' => ['You are not authorized to access the admin panel.']],
+            return $this->error('You are not authorized to access the admin panel.', [
+                'email' => ['You are not authorized to access the admin panel.'],
             ], 403);
         }
 
-        // 5. Attempt JWT authentication
+        // ── 5. Attempt session login ───────────────────────────────────────
         $credentials = $request->only('email', 'password');
+        $remember    = (bool) $request->input('remember', false);
 
-        if (! $token = auth('admin')->attempt($credentials)) {
-            return response()->json([
-                'success' => false,
-                'errors'  => ['password' => ['Incorrect password. Please try again.']],
+        if (! auth('admin')->attempt($credentials, $remember)) {
+            return $this->error('Incorrect password. Please try again.', [
+                'password' => ['Incorrect password. Please try again.'],
             ], 401);
         }
 
-        // 6. Return response with HttpOnly cookie
-        return $this->respondWithToken($token, 'Login successful. Redirecting…');
+        // ── 6. Regenerate session (prevents fixation) ─────────────────────
+        $request->session()->regenerate();
+
+        return $this->success(
+            'Login successful. Redirecting…',
+            [],
+            route('show.admin.dashboard')
+        );
     }
 
     /*
-    |----------------------------------------------------------------------
+    |--------------------------------------------------------------------------
     | Logout
-    |----------------------------------------------------------------------
+    |--------------------------------------------------------------------------
     */
 
     public function logout(Request $request): JsonResponse
     {
-        try {
-            auth('admin')->logout();
-        } catch (\Exception) {
-            // token already invalid — fine
-        }
+        auth('admin')->logout();
 
-        return response()->json([
-            'success'  => true,
-            'message'  => 'Logged out successfully.',
-            'redirect' => route('show.admin.login'),
-        ])->withoutCookie('admin_token');
-    }
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
-    /*
-    |----------------------------------------------------------------------
-    | Private Helpers
-    |----------------------------------------------------------------------
-    */
-
-    /**
-     * Build JSON response and attach JWT as an HttpOnly cookie.
-     */
-    private function respondWithToken(string $token, string $message): JsonResponse
-    {
-        $ttlMinutes = config('jwt.ttl', 60); // default 60 min
-
-        return response()->json([
-            'success'  => true,
-            'message'  => $message,
-            'redirect' => route('show.admin.dashboard'),
-        ])->cookie(
-            'admin_token',  // name
-            $token,         // value
-            $ttlMinutes,    // minutes
-            '/',            // path
-            null,           // domain
-            true,           // secure (HTTPS only — set false in local dev if needed)
-            true,           // httpOnly — JS cannot read this cookie
-            false,          // raw
-            'Strict'        // sameSite
+        return $this->success(
+            'Logged out successfully.',
+            [],
+            route('show.admin.login')
         );
     }
 
-    /**
-     * Check if a valid admin JWT cookie already exists.
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | Private Helpers
+    |--------------------------------------------------------------------------
+    */
+
     private function isAdminAuthenticated(): bool
     {
-        $token = request()->cookie('admin_token');
-
-        if (! $token) {
+        if (! auth('admin')->check()) {
             return false;
         }
 
-        try {
-            $user = JWTAuth::setToken($token)->authenticate();
+        $user = auth('admin')->user();
 
-            return $user && $user->hasRole('admin') && $user->status === 'active';
-        } catch (\Exception) {
-            return false;
-        }
+        return $user
+            && $user->status === 'active'
+            && $user->hasRole('admin');
     }
 }

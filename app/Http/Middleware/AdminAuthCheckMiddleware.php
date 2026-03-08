@@ -4,79 +4,75 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Tymon\JWTAuth\Facades\JWTAuth;
-use Tymon\JWTAuth\Exceptions\JWTException;
-use Tymon\JWTAuth\Exceptions\TokenExpiredException;
+use Symfony\Component\HttpFoundation\Response;
 
 class AdminAuthCheckMiddleware
 {
     /**
-     * Protect admin routes — only active admins with a valid JWT may pass.
+     * Handle an incoming request.
      */
-    public function handle(Request $request, Closure $next): mixed
+    public function handle(Request $request, Closure $next): Response
     {
-        $token = $request->cookie('admin_token');
-
-        // 1. No token at all
-        if (! $token) {
-            return $this->unauthorized($request);
-        }
-
-        try {
-            // 2. Parse and authenticate from cookie token
-            $user = JWTAuth::setToken($token)->authenticate();
-
-            if (! $user) {
-                return $this->unauthorized($request);
+        // ── Not authenticated ──────────────────────────────────────────────
+        if (! auth('admin')->check()) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success'  => false,
+                    'message'  => 'Your session has expired. Please log in again.',
+                    'redirect' => route('show.admin.login'),
+                ], 401);
             }
 
-            // 3. Role check (Spatie)
-            if (! $user->hasRole('admin')) {
-                return $this->forbidden($request, 'You do not have admin privileges.');
+            return redirect()
+                ->route('show.admin.login')
+                ->with('error', 'Please log in to continue.');
+        }
+
+        $user = auth('admin')->user();
+
+        // ── Account deactivated ────────────────────────────────────────────
+        if ($user->status !== 'active') {
+            auth('admin')->logout();
+            $request->session()->invalidate();
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success'  => false,
+                    'message'  => 'Your account has been deactivated.',
+                    'redirect' => route('show.admin.login'),
+                ], 403);
             }
 
-            // 4. Status check
-            if ($user->status !== 'active') {
-                return $this->forbidden($request, 'Your admin account has been deactivated.');
+            return redirect()
+                ->route('show.admin.login')
+                ->with('error', 'Your account has been deactivated.');
+        }
+
+        // ── Not admin role ─────────────────────────────────────────────────
+        if (! $user->hasRole('admin')) {
+            auth('admin')->logout();
+            $request->session()->invalidate();
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success'  => false,
+                    'message'  => 'Access denied.',
+                    'redirect' => route('show.admin.login'),
+                ], 403);
             }
 
-            // 5. Bind authenticated user to request so controllers can use auth()->user()
-            auth()->setUser($user);
-
-        } catch (TokenExpiredException) {
-            return $this->unauthorized($request, 'Session expired. Please log in again.');
-        } catch (JWTException) {
-            return $this->unauthorized($request, 'Invalid session. Please log in again.');
+            return redirect()
+                ->route('show.admin.login')
+                ->with('error', 'Access denied.');
         }
 
-        return $next($request);
-    }
+        // ── Authenticated — disable browser caching on all protected pages ─
+        $response = $next($request);
 
-    /*
-    |----------------------------------------------------------------------
-    | Helpers
-    |----------------------------------------------------------------------
-    */
-
-    private function unauthorized(Request $request, string $message = 'Unauthenticated.'): mixed
-    {
-        if ($request->expectsJson()) {
-            return response()->json(['success' => false, 'message' => $message], 401);
-        }
-
-        return redirect()->route('show.admin.login')
-                         ->withErrors(['auth' => $message])
-                         ->withoutCookie('admin_token');
-    }
-
-    private function forbidden(Request $request, string $message): mixed
-    {
-        if ($request->expectsJson()) {
-            return response()->json(['success' => false, 'message' => $message], 403);
-        }
-
-        return redirect()->route('show.admin.login')
-                         ->withErrors(['auth' => $message])
-                         ->withoutCookie('admin_token');
+        return $response->withHeaders([
+            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma'        => 'no-cache',
+            'Expires'       => 'Fri, 01 Jan 1990 00:00:00 GMT',
+        ]);
     }
 }
