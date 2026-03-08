@@ -10,21 +10,6 @@
     <meta name="format-detection" content="telephone=no,address=no,email=no,date=no,url=no">
     <title>{{ $subject ?? config('app.name') }}</title>
 
-    <!--[if mso]>
-    <noscript>
-        <xml>
-            <o:OfficeDocumentSettings>
-                <o:PixelsPerInch>96</o:PixelsPerInch>
-            </o:OfficeDocumentSettings>
-        </xml>
-    </noscript>
-    <![endif]-->
-
-    {{--
-        Gmail strips <style> from <head> but keeps media queries in some clients.
-        We keep only critical resets + mobile responsive here.
-        All visual styles are inline.
-    --}}
     <style type="text/css">
         /* ── Reset ─────────────────────────────────── */
         * {
@@ -108,11 +93,6 @@
         <tr>
             <td align="center" style="padding:40px 16px;">
 
-                <!--[if mso]>
-                <table role="presentation" width="600" align="center" cellpadding="0" cellspacing="0" border="0">
-                <tr><td>
-                <![endif]-->
-
                 {{-- Email card --}}
                 <table role="presentation" class="email-wrapper" width="600" cellpadding="0" cellspacing="0"
                     border="0"
@@ -125,7 +105,7 @@
 
                             {{-- Logo --}}
                             <a href="{{ config('app.url') }}" style="display:inline-block;text-decoration:none;">
-                                <img src="{{ config('app.url') }}/admin/assets/images/default/logo-light.png"
+                                <img src="{{ config('app.url') }}/admin/default/logo.png"
                                     alt="{{ config('app.name') }}" width="140" height="auto"
                                     style="display:block;max-width:140px;height:auto;border:0;outline:none;">
                             </a>
@@ -181,15 +161,7 @@
 
                         </td>
                     </tr>
-
                 </table>
-                {{-- /email card --}}
-
-                <!--[if mso]>
-                </td></tr>
-                </table>
-                <![endif]-->
-
             </td>
         </tr>
     </table>
