@@ -16,19 +16,27 @@
             NProgress.done();
         });
 
-        // Start bar on any page navigation (non-Axios link clicks)
+        // Start bar on real page navigations only — skip Bootstrap toggles, hash links, etc.
         document.addEventListener('click', function(e) {
             const anchor = e.target.closest('a');
+            if (!anchor) return;
+
+            const href = anchor.getAttribute('href');
+
             if (
-                anchor &&
-                anchor.href &&
-                !anchor.target &&
-                !anchor.href.startsWith('#') &&
-                !anchor.href.startsWith('javascript') &&
-                anchor.href.startsWith(window.location.origin)
-            ) {
-                NProgress.start();
-            }
+                !href ||
+                href === '#' ||
+                href.startsWith('#') ||
+                href.startsWith('javascript') ||
+                anchor.dataset.bsToggle || // Bootstrap collapse / dropdown / tab / modal
+                anchor.dataset.bsTarget ||
+                anchor.dataset.bsDismiss ||
+                anchor.target === '_blank' ||
+                anchor.hasAttribute('download') ||
+                !anchor.href.startsWith(window.location.origin)
+            ) return;
+
+            NProgress.start();
         });
 
         window.addEventListener('beforeunload', function() {
