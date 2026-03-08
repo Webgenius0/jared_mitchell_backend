@@ -6,38 +6,51 @@ use App\Http\Controllers\Controller;
 use App\Mail\Admin\AdminOtpMail;
 use App\Models\User;
 use App\Models\UserSecurityToken;
+use App\Traits\AdminApiResponse;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\View\View;
 
 class ForgotPasswordController extends Controller
 {
+    use AdminApiResponse;
+
     /*
     |----------------------------------------------------------------------
     | PAGE VIEWS
     |----------------------------------------------------------------------
     */
 
-    public function index()
+    public function index(): View|RedirectResponse
     {
+        // Already logged in — no need to reset
+        if (auth('admin')->check()) {
+            return redirect()->route('show.admin.dashboard');
+        }
+
         return view('pages.auth.forgot_password');
     }
 
-    public function showVerifyOtp()
+    public function showVerifyOtp(): View|RedirectResponse
     {
         if (! session()->has('otp_email')) {
-            return redirect()->route('show.forgot-password');
+            return redirect()->route('show.forgot-password')
+                ->with('error', 'Please enter your email first.');
         }
 
         return view('pages.auth.verify_otp');
     }
 
-    public function showSetNewPassword()
+    public function showSetNewPassword(): View|RedirectResponse
     {
         if (! session()->has('otp_verified_email')) {
-            return redirect()->route('show.forgot-password');
+            return redirect()->route('show.forgot-password')
+                ->with('error', 'Please complete OTP verification first.');
         }
 
         return view('pages.auth.set_new_password');
@@ -51,6 +64,7 @@ class ForgotPasswordController extends Controller
 
     public function sendOtp(Request $request): JsonResponse
     {
+        // ── 1. Validate ────────────────────────────────────────────────────
         $validator = Validator::make($request->all(), [
             'email' => ['required', 'email'],
         ], [
@@ -59,22 +73,34 @@ class ForgotPasswordController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+            return $this->validationError($validator);
         }
 
-        // Verify active admin exists
+        // ── 2. Check active admin exists ───────────────────────────────────
         $user = User::where('email', $request->email)
             ->where('status', 'active')
             ->first();
 
         if (! $user || ! $user->hasRole('admin')) {
-            return response()->json([
-                'success' => false,
-                'errors'  => ['email' => ['No active admin account found with this email.']],
+            return $this->error('No active admin account found with this email.', [
+                'email' => ['No active admin account found with this email.'],
             ], 404);
         }
 
-        // Throttle: block re-send within 60 seconds
+        // ── 3. Throttle: max 3 OTP requests per 5 minutes ─────────────────
+        $throttleKey = 'otp-send:' . $request->email;
+
+        if (RateLimiter::tooManyAttempts($throttleKey, 3)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+
+            return $this->error(
+                "Too many OTP requests. Please wait {$seconds} seconds before trying again.",
+                ['email' => ["Too many OTP requests. Please wait {$seconds} seconds."]],
+                429
+            );
+        }
+
+        // ── 4. Block re-send within 60 seconds ────────────────────────────
         $recentExists = UserSecurityToken::recentlySent(
             $request->email,
             UserSecurityToken::TYPE_PASSWORD_RESET,
@@ -82,19 +108,19 @@ class ForgotPasswordController extends Controller
         )->exists();
 
         if ($recentExists) {
-            return response()->json([
-                'success' => false,
-                'errors'  => ['email' => ['Please wait 60 seconds before requesting a new OTP.']],
-            ], 429);
+            return $this->error(
+                'Please wait 60 seconds before requesting a new OTP.',
+                ['email' => ['Please wait 60 seconds before requesting a new OTP.']],
+                429
+            );
         }
 
-        // Invalidate all previous password_reset tokens for this email
+        // ── 5. Invalidate previous tokens & create new one ─────────────────
         UserSecurityToken::invalidatePrevious(
             $request->email,
             UserSecurityToken::TYPE_PASSWORD_RESET
         );
 
-        // Generate + hash OTP
         $plainOtp = (string) random_int(100000, 999999);
 
         UserSecurityToken::create([
@@ -106,15 +132,20 @@ class ForgotPasswordController extends Controller
             'used_at'    => null,
         ]);
 
-        Mail::to($user->email)->send(new AdminOtpMail($plainOtp));
+        // ── 6. Send OTP email ──────────────────────────────────────────────
+        Mail::to($user->email)->send(
+            new AdminOtpMail($plainOtp, $user->name ?? 'Admin')
+        );
+
+        RateLimiter::hit($throttleKey, 300); // 5-minute window
 
         session(['otp_email' => $request->email]);
 
-        return response()->json([
-            'success'  => true,
-            'message'  => 'OTP sent to your email. Please check your inbox.',
-            'redirect' => route('show.otp.verification'),
-        ]);
+        return $this->success(
+            'OTP sent to your email. Please check your inbox.',
+            [],
+            route('show.otp.verification')
+        );
     }
 
     /*
@@ -125,6 +156,7 @@ class ForgotPasswordController extends Controller
 
     public function verifyOtp(Request $request): JsonResponse
     {
+        // ── 1. Validate ────────────────────────────────────────────────────
         $validator = Validator::make($request->all(), [
             'otp' => ['required', 'digits:6'],
         ], [
@@ -133,41 +165,60 @@ class ForgotPasswordController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+            return $this->validationError($validator);
         }
 
-        $email = session('otp_email');
+        // ── 2. Brute-force protection: max 5 attempts per email ────────────
+        $email       = session('otp_email');
+        $throttleKey = 'otp-verify:' . ($email ?? $request->ip());
 
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+
+            return $this->error(
+                "Too many failed attempts. Please wait {$seconds} seconds.",
+                ['otp' => ["Too many attempts. Please wait {$seconds} seconds."]],
+                429
+            );
+        }
+
+        // ── 3. Session check ───────────────────────────────────────────────
         if (! $email) {
-            return response()->json([
-                'success'  => false,
-                'message'  => 'Session expired. Please restart the password reset process.',
-                'redirect' => route('show.forgot-password'),
-            ], 403);
+            return $this->error(
+                'Session expired. Please restart the password reset process.',
+                [],
+                403,
+            );
         }
 
-        // Find latest valid (non-expired, non-used) token record
+        // ── 4. Find latest valid token ─────────────────────────────────────
         $tokenRecord = UserSecurityToken::valid(
             $email,
             UserSecurityToken::TYPE_PASSWORD_RESET
         )->latest()->first();
 
         if (! $tokenRecord) {
-            return response()->json([
-                'success' => false,
-                'errors'  => ['otp' => ['OTP has expired or is invalid. Please request a new one.']],
-            ], 422);
+            return $this->error(
+                'OTP has expired or is invalid. Please request a new one.',
+                ['otp' => ['OTP has expired or is invalid. Please request a new one.']],
+                422
+            );
         }
 
+        // ── 5. Check OTP hash ──────────────────────────────────────────────
         if (! Hash::check($request->otp, $tokenRecord->token_hash)) {
-            return response()->json([
-                'success' => false,
-                'errors'  => ['otp' => ['Incorrect OTP. Please try again.']],
-            ], 422);
+            RateLimiter::hit($throttleKey, 300); // count this failed attempt
+
+            return $this->error(
+                'Incorrect OTP. Please try again.',
+                ['otp' => ['Incorrect OTP. Please try again.']],
+                422
+            );
         }
 
-        // Mark as used (consumed)
+        // ── 6. OTP correct — mark used, advance session ────────────────────
         $tokenRecord->markUsed();
+        RateLimiter::clear($throttleKey);
 
         session()->forget('otp_email');
         session([
@@ -175,11 +226,11 @@ class ForgotPasswordController extends Controller
             'otp_verified_at'    => now()->timestamp,
         ]);
 
-        return response()->json([
-            'success'  => true,
-            'message'  => 'OTP verified successfully.',
-            'redirect' => route('show.set.new.password'),
-        ]);
+        return $this->success(
+            'OTP verified successfully.',
+            [],
+            route('show.set.new.password')
+        );
     }
 
     /*
@@ -190,6 +241,7 @@ class ForgotPasswordController extends Controller
 
     public function setNewPassword(Request $request): JsonResponse
     {
+        // ── 1. Validate ────────────────────────────────────────────────────
         $validator = Validator::make($request->all(), [
             'password' => [
                 'required',
@@ -208,47 +260,60 @@ class ForgotPasswordController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+            return $this->validationError($validator);
         }
 
+        // ── 2. Session check ───────────────────────────────────────────────
         $email      = session('otp_verified_email');
         $verifiedAt = session('otp_verified_at');
 
         if (! $email || ! $verifiedAt) {
-            return response()->json([
-                'success'  => false,
-                'message'  => 'Session expired. Please restart the password reset process.',
-                'redirect' => route('show.forgot-password'),
-            ], 403);
+            return $this->error(
+                'Session expired. Please restart the password reset process.',
+                [],
+                403
+            );
         }
 
-        // 15-minute window after OTP verification
+        // ── 3. 15-minute window after OTP verification ─────────────────────
         if (now()->timestamp - $verifiedAt > 900) {
             session()->forget(['otp_verified_email', 'otp_verified_at']);
 
-            return response()->json([
-                'success'  => false,
-                'message'  => 'Your session has timed out. Please start over.',
-                'redirect' => route('show.forgot-password'),
-            ], 403);
+            return $this->error(
+                'Your session has timed out. Please start over.',
+                [],
+                403
+            );
         }
 
-        $user = User::where('email', $email)->where('status', 'active')->first();
+        // ── 4. Find user ───────────────────────────────────────────────────
+        $user = User::where('email', $email)
+            ->where('status', 'active')
+            ->first();
 
         if (! $user) {
-            return response()->json(['success' => false, 'message' => 'Account not found.'], 404);
+            return $this->error('Account not found.', [], 404);
         }
 
+        // ── 5. Prevent reusing the same password ───────────────────────────
+        if (Hash::check($request->password, $user->password)) {
+            return $this->error(
+                'New password cannot be the same as your current password.',
+                ['password' => ['New password cannot be the same as your current password.']],
+                422
+            );
+        }
+
+        // ── 6. Update password & cleanup ───────────────────────────────────
         $user->update(['password' => Hash::make($request->password)]);
 
-        // Cleanup
         UserSecurityToken::invalidatePrevious($email, UserSecurityToken::TYPE_PASSWORD_RESET);
         session()->forget(['otp_verified_email', 'otp_verified_at']);
 
-        return response()->json([
-            'success'  => true,
-            'message'  => 'Password reset successfully. You can now log in.',
-            'redirect' => route('show.admin.login'),
-        ]);
+        return $this->success(
+            'Password reset successfully. You can now log in.',
+            [],
+            route('show.admin.login')
+        );
     }
 }

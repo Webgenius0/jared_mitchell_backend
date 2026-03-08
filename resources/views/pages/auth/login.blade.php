@@ -23,7 +23,7 @@
                     <div class="col-lg-12">
                         <div class="text-center mt-sm-5 mb-4 text-white-50">
                             <a href="/" class="d-inline-block auth-logo">
-                                <img src="{{ asset('admin/assets/images/default/logo-light.png') }}" alt="{{ config('app.name') }}" height="20">
+                                <img src="{{ asset('admin/default/logo.png') }}" alt="{{ config('app.name') }}" height="20">
                             </a>
                             <p class="mt-3 fs-15 fw-medium">Admin Panel</p>
                         </div>

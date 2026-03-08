@@ -126,6 +126,9 @@
 
             /**
              * Map shorthand type → CSS class on the confirm button.
+             * Note: SweetAlert2 replaces the confirm button's className entirely
+             * with whatever is in customClass.confirmButton, so we must NOT
+             * include 'swal2-confirm' here — SweetAlert2 adds that itself.
              */
             function _confirmClass(type) {
                 var map = {
@@ -133,7 +136,7 @@
                     danger: 'swal-btn-danger',
                     warning: 'swal-btn-warning',
                 };
-                return 'swal2-confirm ' + (map[type] || map.confirm);
+                return map[type] || map.confirm;
             }
 
             /**
@@ -233,6 +236,15 @@
                         Toast.error(error.response.data.message || 'Session expired.');
                         setTimeout(function() {
                             window.location.href = redirect;
+                        }, 1500);
+                    }
+                } else if (status === 403) {
+                    // Forbidden — session expired mid-flow (OTP, etc.)
+                    const data = error.response?.data;
+                    if (data?.redirect) {
+                        Toast.error(data.message || 'Access denied. Redirecting…');
+                        setTimeout(function() {
+                            window.location.href = data.redirect;
                         }, 1500);
                     }
                 } else if (status === 419) {
