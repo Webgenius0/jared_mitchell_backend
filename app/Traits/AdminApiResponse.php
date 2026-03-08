@@ -10,7 +10,8 @@ trait AdminApiResponse
     /**
      * 200 / 201 success response.
      */
-    protected function success(string $message, array $data = [], ?string $redirect = null, int $status = 200): JsonResponse {
+    protected function success(string $message, array $data = [], ?string $redirect = null, int $status = 200): JsonResponse
+    {
         $payload = [
             'success' => true,
             'message' => $message,
@@ -30,7 +31,8 @@ trait AdminApiResponse
     /**
      * Validation / business-logic error response.
      */
-    protected function error(string $message,array $errors = [],int $status = 422): JsonResponse {
+    protected function error(string $message, array $errors = [], int $status = 422): JsonResponse
+    {
         $payload = [
             'success' => false,
             'message' => $message,

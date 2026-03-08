@@ -179,11 +179,13 @@
                         data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <span class="d-flex align-items-center">
                             <img class="rounded-circle header-profile-user"
-                                src="{{ asset('admin/assets/images/default/user.jpg') }}"
-                                alt="{{ auth('admin')->user()->name ?? 'Admin' }}">
+                                src="{{ auth('admin')->user()->profile?->avatar
+                                    ? asset('storage/' . auth('admin')->user()->profile->avatar)
+                                    : asset('admin/default/user.jpg') }}"
+                                alt="{{ auth('admin')->user()->profile?->name ?? 'Admin' }}">
                             <span class="text-start ms-xl-2">
                                 <span class="d-none d-xl-inline-block ms-1 fw-medium user-name-text">
-                                    {{ auth('admin')->user()->name ?? 'Admin' }}
+                                    {{ auth('admin')->user()->profile->name ?? 'Admin' }}
                                 </span>
                                 <span class="d-none d-xl-block ms-1 fs-12 user-name-sub-text">
                                     {{ auth('admin')->user()?->getRoleNames()?->first() ?? 'Administrator' }}
@@ -197,7 +199,7 @@
                             Welcome {{ auth('admin')->user()->name ?? 'Admin' }}!
                         </h6>
 
-                        <a class="dropdown-item" href="#">
+                        <a class="dropdown-item" href="{{ route('admin.profile.index') }}">
                             <i class="mdi mdi-account-circle text-muted fs-16 align-middle me-1"></i>
                             <span class="align-middle">Profile</span>
                         </a>

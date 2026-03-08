@@ -47,7 +47,6 @@
             @include('navigations.footer')
 
         </div>
-
     </div>
 
     {{-- Back to top --}}
