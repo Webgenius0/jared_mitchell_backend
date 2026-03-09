@@ -70,7 +70,7 @@ class SignInController extends Controller
         }
 
         // ── 4. Admin role? (Spatie) ────────────────────────────────────────
-        if (! $user->hasRole('admin')) {
+        if (! $user->hasAnyRole(['admin', 'super-admin'])) {
             return $this->error('You are not authorized to access the admin panel.', [
                 'email' => ['You are not authorized to access the admin panel.'],
             ], 403);

@@ -20,11 +20,17 @@ return Application::configure(basePath: dirname(__DIR__))
             // ── Protected admin routes (dashboard, etc.)
             Route::middleware(['web', 'admin.auth'])->group(base_path('routes/admin.php'));
             Route::middleware(['web', 'admin.auth'])->group(base_path('routes/settings.php'));
+
+            // ── User Management routes (requires manage users permission or super-admin)
+            Route::middleware(['web', 'admin.auth'])->group(base_path('routes/user_management.php'));
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'admin.auth' => AdminAuthCheckMiddleware::class,
+            'role'       => \Spatie\Permission\Middleware\RoleMiddleware::class,
+            'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+            'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

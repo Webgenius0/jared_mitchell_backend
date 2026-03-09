@@ -49,7 +49,7 @@ class AdminAuthCheckMiddleware
         }
 
         // ── Not admin role ─────────────────────────────────────────────────
-        if (! $user->hasRole('admin')) {
+        if (! $user->hasAnyRole(['admin', 'super-admin'])) {
             auth('admin')->logout();
             $request->session()->invalidate();
 
