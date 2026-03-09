@@ -9,7 +9,7 @@
                 <div class="row justify-content-center">
                     <div class="col-xl-7 col-lg-8">
                         <div class="text-center">
-                            <img src="{{ asset('admin/assets/images/error400-cover.png') }}" alt="error img" class="img-fluid">
+                            <img src="{{ asset('admin/assets/images/errors/404.png') }}" alt="error img" class="img-fluid">
                             <div class="mt-3">
                                 <h3 class="text-uppercase">Sorry, Page not Found</h3>
                                 <p class="text-muted mb-4">The page you are looking for not available!</p>
