@@ -19,3 +19,9 @@ Route::prefix('profile')->name('admin.profile.')->group(function () {
     Route::post('/password', [AdminProfileController::class, 'updatePassword'])->name('password.update'); // Change password
     Route::post('/cover', [AdminProfileController::class, 'updateCover'])->name('cover.update');  // Upload cover photo
 });
+
+/*
+|--------------------------------------------------------------------------
+| Chatting
+|--------------------------------------------------------------------------
+*/

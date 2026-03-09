@@ -4,7 +4,6 @@
 
 @section('content')
     <div class="auth-page-wrapper pt-5">
-
         <div class="auth-one-bg-position auth-one-bg" id="auth-particles">
             <div class="bg-overlay"></div>
             <div class="shape">
