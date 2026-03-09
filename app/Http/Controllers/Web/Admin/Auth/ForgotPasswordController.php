@@ -33,7 +33,7 @@ class ForgotPasswordController extends Controller
             return redirect()->route('show.admin.dashboard');
         }
 
-        return view('pages.auth.forgot_password');
+        return view('web.auth.forgot_password');
     }
 
     public function showVerifyOtp(): View|RedirectResponse
@@ -43,7 +43,7 @@ class ForgotPasswordController extends Controller
                 ->with('error', 'Please enter your email first.');
         }
 
-        return view('pages.auth.verify_otp');
+        return view('web.auth.verify_otp');
     }
 
     public function showSetNewPassword(): View|RedirectResponse
@@ -53,7 +53,7 @@ class ForgotPasswordController extends Controller
                 ->with('error', 'Please complete OTP verification first.');
         }
 
-        return view('pages.auth.set_new_password');
+        return view('web.auth.set_new_password');
     }
 
     /*

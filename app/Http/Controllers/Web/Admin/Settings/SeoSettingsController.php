@@ -21,7 +21,7 @@ class SeoSettingsController extends Controller
     */
     public function seo(): View
     {
-        return view('pages.admin.settings.seo', ['s' => Setting::first()]);
+        return view('web.admin.settings.seo', ['s' => Setting::first()]);
     }
 
 

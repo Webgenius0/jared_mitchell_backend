@@ -21,7 +21,7 @@ class MaintenanceSettingsController extends Controller
     */
     public function maintenance(): View
     {
-        return view('pages.admin.settings.maintenance',['s' => Setting::first()]);
+        return view('web.admin.settings.maintenance',['s' => Setting::first()]);
     }
 
     /*

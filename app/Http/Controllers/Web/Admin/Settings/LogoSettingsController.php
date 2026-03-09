@@ -23,7 +23,7 @@ class LogoSettingsController extends Controller
 
     public function logo(): View
     {
-        return view('pages.admin.settings.logo',        ['s' => Setting::first()]);
+        return view('web.admin.settings.logo',        ['s' => Setting::first()]);
     }
 
     /*

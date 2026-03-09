@@ -11,6 +11,6 @@ class AdminDashboardController extends Controller
      * Show Admin Dashboard
      */
     public function index(){
-        return view('pages.dashboard.dashboard');
+        return view('web.dashboard.dashboard');
     }
 }

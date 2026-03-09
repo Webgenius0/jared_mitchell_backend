@@ -17,6 +17,6 @@ class AdminChattingController extends Controller
         // $user = auth('admin')->user();
         // $profile = $user->profile;
 
-        return view('pages.messaging.chat.index');
+        return view('web.messaging.chat.index');
     }
 }

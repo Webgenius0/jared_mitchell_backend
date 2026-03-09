@@ -27,7 +27,7 @@ class SignInController extends Controller
             return redirect()->route('show.admin.dashboard');
         }
 
-        return view('pages.auth.login');
+        return view('web.auth.login');
     }
 
     /*

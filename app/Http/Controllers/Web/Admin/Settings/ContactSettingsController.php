@@ -21,7 +21,7 @@ class ContactSettingsController extends Controller
     */
     public function contact(): View
     {
-        return view('pages.admin.settings.contact',     ['s' => Setting::first()]);
+        return view('web.admin.settings.contact',     ['s' => Setting::first()]);
     }
 
     /*

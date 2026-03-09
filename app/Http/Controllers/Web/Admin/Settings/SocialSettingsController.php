@@ -21,7 +21,7 @@ class SocialSettingsController extends Controller
     */
     public function social(): View
     {
-        return view('pages.admin.settings.social',      ['s' => Setting::first()]);
+        return view('web.admin.settings.social',      ['s' => Setting::first()]);
     }
 
     /*

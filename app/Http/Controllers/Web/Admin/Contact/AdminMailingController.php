@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Web\Admin\Contact;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class AdminMailingController extends Controller
@@ -18,6 +17,6 @@ class AdminMailingController extends Controller
         // $user = auth('admin')->user();
         // $profile = $user->profile;
 
-        return view('pages.messaging.mail.index');
+        return view('web.messaging.mail.index');
     }
 }

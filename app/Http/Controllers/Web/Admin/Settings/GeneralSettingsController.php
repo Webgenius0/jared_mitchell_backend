@@ -19,7 +19,7 @@ class GeneralSettingsController extends Controller
      */
     public function general(): View
     {
-        return view('pages.admin.settings.general',['s' => Setting::first()]);
+        return view('web.admin.settings.general',['s' => Setting::first()]);
     }
 
     /*

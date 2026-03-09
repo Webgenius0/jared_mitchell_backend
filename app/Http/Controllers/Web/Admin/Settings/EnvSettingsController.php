@@ -21,19 +21,19 @@ class EnvSettingsController extends Controller
     */
     public function stripe(): View
     {
-        return view('pages.admin.settings.stripe');
+        return view('web.admin.settings.stripe');
     }
     public function reverb(): View
     {
-        return view('pages.admin.settings.reverb');
+        return view('web.admin.settings.reverb');
     }
     public function aws(): View
     {
-        return view('pages.admin.settings.aws');
+        return view('web.admin.settings.aws');
     }
     public function imap(): View
     {
-        return view('pages.admin.settings.imap');
+        return view('web.admin.settings.imap');
     }
 
     /*

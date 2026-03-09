@@ -25,7 +25,7 @@ class AdminProfileController extends Controller
         $user    = auth('admin')->user();
         $profile = $user->profile;
 
-        return view('pages.admin.profile.index', compact('user', 'profile'));
+        return view('web.admin.profile.index', compact('user', 'profile'));
     }
 
     /*

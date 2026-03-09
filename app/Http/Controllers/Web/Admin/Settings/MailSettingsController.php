@@ -23,7 +23,7 @@ class MailSettingsController extends Controller
     */
     public function mail(): View
     {
-        return view('pages.admin.settings.mail', ['s' => Setting::first()]);
+        return view('web.admin.settings.mail', ['s' => Setting::first()]);
     }
 
     /*
