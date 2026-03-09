@@ -134,7 +134,7 @@
                             </li>
 
                             <li class="nav-item">
-                                <a href="#"
+                                <a href="{{ route('admin.settings.seo') }}"
                                     class="nav-link {{ request()->routeIs('admin.settings.seo') ? 'active' : '' }}">
                                     <i class="ri-search-eye-line"></i> SEO Settings
                                 </a>
@@ -144,6 +144,34 @@
                                 <a href="{{ route('admin.settings.mail') }}"
                                     class="nav-link {{ request()->routeIs('admin.settings.mail') ? 'active' : '' }}">
                                     <i class="ri-mail-settings-line"></i> Mail Settings
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a href="{{ route('admin.settings.stripe') }}"
+                                    class="nav-link {{ request()->routeIs('admin.settings.stripe') ? 'active' : '' }}">
+                                    <i class="ri-bank-card-line"></i> Stripe Settings
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a href="{{ route('admin.settings.reverb') }}"
+                                    class="nav-link {{ request()->routeIs('admin.settings.reverb') ? 'active' : '' }}">
+                                    <i class="ri-broadcast-line"></i> Reverb Settings
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a href="{{ route('admin.settings.aws') }}"
+                                    class="nav-link {{ request()->routeIs('admin.settings.aws') ? 'active' : '' }}">
+                                    <i class="ri-cloud-line"></i> AWS Settings
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a href="{{ route('admin.settings.imap') }}"
+                                    class="nav-link {{ request()->routeIs('admin.settings.imap') ? 'active' : '' }}">
+                                    <i class="ri-mail-send-line"></i> IMAP Settings
                                 </a>
                             </li>
 

@@ -6,7 +6,6 @@ use App\Helpers\EnvHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use App\Traits\AdminApiResponse;
-use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;

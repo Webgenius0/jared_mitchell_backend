@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\View\View;
 
-class StripeSettingsController extends Controller
+class SeoSettingsController extends Controller
 {
     use AdminApiResponse;
 
