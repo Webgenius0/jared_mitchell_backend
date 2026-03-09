@@ -1,16 +1,16 @@
-<footer class="footer">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-sm-6">
-                <script>
-                    document.write(new Date().getFullYear())
-                </script> © Velzon.
-            </div>
-            <div class="col-sm-6">
-                <div class="text-sm-end d-none d-sm-block">
-                    Design & Develop by Themesbrand
-                </div>
-            </div>
-        </div>
-    </div>
-</footer>
+ <footer class="footer">
+     <div class="container">
+         <div class="row">
+             <div class="col-lg-12">
+                 <div class="text-center">
+                     <p class="mb-0 text-muted">&copy;
+                         <script>
+                             document.write(new Date().getFullYear())
+                         </script> <span class="text-primary">{{ config('app.name') }}</span> || All right
+                         reserverd
+                     </p>
+                 </div>
+             </div>
+         </div>
+     </div>
+ </footer>

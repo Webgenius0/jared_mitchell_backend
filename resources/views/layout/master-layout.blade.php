@@ -3,62 +3,71 @@
     data-sidebar-image="none" data-preloader="disable" data-theme="default" data-theme-colors="default">
 
 <head>
-
     <meta charset="utf-8" />
-    <title> @yield('title') || Stack Master </title>
+    <title>@yield('title') | {{ config('app.name') }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta content="Premium Multipurpose Admin & Dashboard Template" name="description" />
-    <meta content="Themesbrand" name="author" />
+    <meta name="description" content="Premium Multipurpose Admin & Dashboard Template">
+    <meta name="author" content="Themesbrand">
+
+    {{-- CSRF token — consumed by Axios globally --}}
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     {{-- App favicon --}}
     <link rel="shortcut icon" href="{{ asset('admin/assets/images/default/favicon.png') }}">
 
-    {{-- all css links --}}
+    {{-- All CSS (Bootstrap, Icons, App, custom, NProgress, Toastify) --}}
     @include('assets.styles')
 
-    <!-- Layout config Js -->
+    {{-- Layout config --}}
     <script src="{{ asset('admin/assets/js/layout.js') }}"></script>
+
+    {{-- Page-level styles --}}
+    @stack('styles')
 </head>
 
 <body>
+
     <div id="layout-wrapper">
 
-        {{-- Include Header --}}
+        {{-- Header --}}
         @include('navigations.header')
 
-
-        {{-- Include Sidebar --}}
+        {{-- Sidebar --}}
         @include('navigations.sidebar')
 
-        {{-- Vertical Overlay --}}
+        {{-- Vertical overlay --}}
         <div class="vertical-overlay"></div>
 
-        {{-- All page content will be populated here --}}
+        {{-- Page content --}}
         <div class="main-content">
 
             @yield('content')
 
-            {{-- Footer include --}}
+            {{-- Footer --}}
             @include('navigations.footer')
-        </div>
 
+        </div>
     </div>
 
-
-    {{-- start back-to-top --}}
+    {{-- Back to top --}}
     @include('partials.back-to-top')
 
-    {{-- preloader --}}
+    {{-- Preloader --}}
     @include('partials.loader')
 
-    {{-- seetings icon for theme changing --}}
+    {{-- Theme settings --}}
     @include('partials.setting')
-
-    {{-- Theme Settings --}}
     @include('partials.themes')
 
-    {{-- JAVASCRIPT --}}
+    {{-- Core scripts (Bootstrap, Axios, NProgress, Toastify, etc.) --}}
     @include('assets.scripts')
+
+    {{-- Global app bootstrap: NProgress + Toast + Axios interceptors --}}
+    @include('partials.app-init')
+
+    {{-- Page-level scripts --}}
+    @stack('scripts')
+
 </body>
 
 </html>
