@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Web\Admin\Auth\AdminProfileController;
+use App\Http\Controllers\Web\Admin\Contact\AdminChattingController;
+use App\Http\Controllers\Web\Admin\Contact\AdminMailingController;
 use App\Http\Controllers\Web\Admin\Dashboard\AdminDashboardController;
 use Illuminate\Support\Facades\Route;
 
@@ -25,3 +27,15 @@ Route::prefix('profile')->name('admin.profile.')->group(function () {
 | Chatting
 |--------------------------------------------------------------------------
 */
+Route::prefix('chat')->name('admin.chat.')->group(function () {
+    Route::get('/', [AdminChattingController::class, 'index'])->name('index');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Mainling
+|--------------------------------------------------------------------------
+*/
+Route::prefix('mail')->name('admin.mail.')->group(function () {
+    Route::get('/', [AdminMailingController::class, 'index'])->name('index');
+});

@@ -44,8 +44,9 @@
 
                                 {{-- Avatar with upload + delete --}}
                                 <div class="profile-user position-relative d-inline-block mx-auto mb-4">
-                                    <img id="avatarPreview" src="{{ $profile?->avatar_url }}"
-                                        class="rounded-circle avatar-xl img-thumbnail user-profile-image material-shadow"
+                                    <img id="avatarPreview"
+                                        src="{{ $profile?->avatar_url ?? asset('admin/default/user.jpg') }}"
+                                        class="rounded-circle avatar-xl img-thumbnail user-profile-image"
                                         alt="Profile Avatar">
 
                                     <div class="avatar-xs p-0 rounded-circle profile-photo-edit">

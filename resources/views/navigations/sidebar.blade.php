@@ -74,6 +74,39 @@
                     </a>
                 </li>
 
+                {{-- Contact --}}
+                @php
+                    // System Settings dropdown is open when any child route is active
+                    $contactOpen = request()->routeIs('admin.chat.index', 'admin.chat.*');
+                @endphp
+
+                <li class="nav-item">
+                    <a class="nav-link menu-link {{ $contactOpen ? 'active' : '' }}" href="#sidebarMessaging"
+                        data-bs-toggle="collapse" role="button" aria-expanded="{{ $contactOpen ? 'true' : 'false' }}"
+                        aria-controls="sidebarMessaging">
+                        <i class="ri-kakao-talk-line"></i>
+                        <span>Messaging</span>
+                    </a>
+
+                    <div class="collapse menu-dropdown {{ $contactOpen ? 'show' : '' }}" id="sidebarMessaging">
+                        <ul class="nav nav-sm flex-column">
+                            <li class="nav-item">
+                                <a href="{{ route('admin.profile.index') }}"
+                                    class="nav-link {{ request()->routeIs('admin.profile.index') ? 'active' : '' }}">
+                                    <i class="ri-wechat-line"></i> Chat
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a href="{{ route('admin.mail.index') }}"
+                                    class="nav-link {{ request()->routeIs('admin.mail.index') ? 'active' : '' }}">
+                                    <i class="ri-wechat-line"></i> Mail
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+
                 {{-- ── Settings group ───────────────────────────────────── --}}
                 <li class="menu-title">
                     <i class="ri-more-fill"></i>
@@ -185,7 +218,6 @@
                         </ul>
                     </div>
                 </li>
-
             </ul>
         </div>
     </div>

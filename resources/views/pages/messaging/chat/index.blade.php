@@ -1,4 +1,4 @@
-@extends('layout.app')
+@extends('layout.master-layout')
 
 @section('title', 'Chat')
 
