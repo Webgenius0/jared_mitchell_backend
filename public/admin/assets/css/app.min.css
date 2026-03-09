@@ -3374,17 +3374,18 @@
     padding: .55rem 1.5rem !important;
     color: var(--vz-vertical-menu-sub-item-color);
     white-space: none;
+    position: relative;
     font-size: var(--vz-vertical-menu-sub-item-font-size);
     font-family: var(--vz-vertical-menu-sub-item-font-family)
 }
 
 .navbar-menu .navbar-nav .nav-sm .nav-link:before {
-    content: "";
+    /* content: ""; */
     width: 6px;
     height: 1.5px;
     background-color: var(--vz-vertical-menu-sub-item-color);
-    position: absolute;
-    left: 2px;
+    /* position: absolute; */
+    left: 1px;
     top: 16.5px;
     -webkit-transition: all .4s ease-in-out;
     transition: all .4s ease-in-out;

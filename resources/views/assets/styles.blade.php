@@ -20,6 +20,10 @@
 <!-- SweetAlert2 -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
 
+<link href="{{ asset('admin/assets/libs/quill/quill.core.css') }} " rel="stylesheet" type="text/css" />
+<link href="{{ asset('admin/assets/libs/quill/quill.bubble.css') }}" rel="stylesheet" type="text/css" />
+<link href="{{ asset('admin/assets/libs/quill/quill.snow.css') }}" rel="stylesheet" type="text/css" />
+
 <style>
     /* ── NProgress bar ─────────────────────────────────────────────────── */
     #nprogress .bar {

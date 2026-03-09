@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             // ── Protected admin routes (dashboard, etc.)
             Route::middleware(['web', 'admin.auth'])->group(base_path('routes/admin.php'));
+            Route::middleware(['web', 'admin.auth'])->group(base_path('routes/settings.php'));
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {

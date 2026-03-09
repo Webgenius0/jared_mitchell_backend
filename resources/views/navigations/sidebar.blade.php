@@ -106,28 +106,28 @@
                             </li>
 
                             <li class="nav-item">
-                                <a href="#"
+                                <a href="{{ route('admin.settings.general') }}"
                                     class="nav-link {{ request()->routeIs('admin.settings.general') ? 'active' : '' }}">
                                     <i class="ri-settings-3-line"></i> General Settings
                                 </a>
                             </li>
 
                             <li class="nav-item">
-                                <a href="#"
+                                <a href="{{ route('admin.settings.contact') }}"
                                     class="nav-link {{ request()->routeIs('admin.settings.contact') ? 'active' : '' }}">
                                     <i class="ri-contacts-line"></i> Contact Settings
                                 </a>
                             </li>
 
                             <li class="nav-item">
-                                <a href="#"
+                                <a href="{{ route('admin.settings.logo') }}"
                                     class="nav-link {{ request()->routeIs('admin.settings.logo') ? 'active' : '' }}">
                                     <i class="ri-image-line"></i> Logo Settings
                                 </a>
                             </li>
 
                             <li class="nav-item">
-                                <a href="#"
+                                <a href="{{ route('admin.settings.social') }}"
                                     class="nav-link {{ request()->routeIs('admin.settings.social') ? 'active' : '' }}">
                                     <i class="ri-share-line"></i> Social Settings
                                 </a>
@@ -141,14 +141,14 @@
                             </li>
 
                             <li class="nav-item">
-                                <a href="#"
+                                <a href="{{ route('admin.settings.mail') }}"
                                     class="nav-link {{ request()->routeIs('admin.settings.mail') ? 'active' : '' }}">
                                     <i class="ri-mail-settings-line"></i> Mail Settings
                                 </a>
                             </li>
 
                             <li class="nav-item">
-                                <a href="#"
+                                <a href="{{ route('admin.settings.maintenance') }}"
                                     class="nav-link {{ request()->routeIs('admin.settings.maintenance') ? 'active' : '' }}">
                                     <i class="ri-tools-line"></i> Maintenance
                                 </a>

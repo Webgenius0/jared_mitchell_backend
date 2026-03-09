@@ -80,9 +80,10 @@
                                     </div>
 
                                     {{-- Quill: About field --}}
+                                    {{-- snow-editor class = theme loads Quill JS automatically --}}
                                     <div class="col-12">
                                         <label class="form-label">About</label>
-                                        <div id="aboutEditor" style="height: 220px;"></div>
+                                        <div id="aboutEditor" class="snow-editor" style="height: 220px;"></div>
                                         <input type="hidden" id="about" name="about" value="{{ $s->about }}">
                                         <div class="text-danger small mt-1 field-error" id="error-about"></div>
                                     </div>
@@ -114,32 +115,32 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
 
-            // ── Quill editor ────────────────────────────────────────────
-            const aboutEditor = new Quill('#aboutEditor', {
-                theme: 'snow',
-                placeholder: 'Write a short description about your application…',
-            });
+            // ── Quill editor ─────────────────────────────────────────────
+            // Theme initializes Quill on .snow-editor elements automatically.
+            // Quill.find() is the official API to get the instance from a DOM element.
+            const editorEl = document.getElementById('aboutEditor');
+            const aboutInput = document.getElementById('about');
+            const aboutEditor = Quill.find(editorEl);
 
             // Load existing content
-            const aboutInput = document.getElementById('about');
-            if (aboutInput.value) {
+            if (aboutEditor && aboutInput.value) {
                 aboutEditor.clipboard.dangerouslyPasteHTML(aboutInput.value);
             }
 
             // Keep hidden input in sync
-            aboutEditor.on('text-change', function() {
-                aboutInput.value = aboutEditor.getSemanticHTML();
-            });
+            if (aboutEditor) {
+                aboutEditor.on('text-change', function() {
+                    aboutInput.value = aboutEditor.getSemanticHTML();
+                });
+            }
 
-            // ── Form submit ─────────────────────────────────────────────
+            // ── Form submit ──────────────────────────────────────────────
             document.getElementById('settingsForm').addEventListener('submit', function(e) {
                 e.preventDefault();
 
-                // Clear previous errors
                 document.querySelectorAll('.field-error').forEach(el => el.textContent = '');
                 document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
 
-                // Loading state
                 const btn = document.getElementById('saveBtn');
                 btn.disabled = true;
                 btn.querySelector('.btn-text').classList.add('d-none');
@@ -154,9 +155,7 @@
                         copyright: document.getElementById('copyright').value,
                         about: document.getElementById('about').value,
                     })
-                    .then(function(res) {
-                        Toast.success(res.data.message);
-                    })
+                    .then(res => Toast.success(res.data.message))
                     .catch(function(err) {
                         const data = err.response?.data;
                         if (data?.errors) {
