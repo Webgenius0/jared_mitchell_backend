@@ -17,49 +17,132 @@ class UserController extends Controller
 
     public function __construct(protected UserService $userService) {}
 
-    public function index(Request $request)
+    public function index()
     {
-        $query = User::with(['profile', 'roles']);
-
-        // Search by name or email
-        if ($search = $request->get('search')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('email', 'like', "%{$search}%")
-                  ->orWhereHas('profile', function ($q) use ($search) {
-                      $q->where('name', 'like', "%{$search}%");
-                  });
-            });
-        }
-
-        // Filter by role
-        if ($role = $request->get('role')) {
-            $query->whereHas('roles', fn ($q) => $q->where('name', $role));
-        }
-
-        // Filter by status
-        if ($status = $request->get('status')) {
-            $query->where('status', $status);
-        }
-
-        $users = $query->latest()->paginate(15)->withQueryString();
-
-        // Stats
+        // Stats for the summary cards
         $totalUsers    = User::count();
         $activeUsers   = User::where('status', 'active')->count();
         $inactiveUsers = User::where('status', 'inactive')->count();
         $totalRoles    = Role::count();
 
+        // Roles for the filter dropdown
         $roles = Role::orderBy('name')->get();
 
-        return view('pages.admin.user-management.users.index', compact(
-            'users', 'roles', 'totalUsers', 'activeUsers', 'inactiveUsers', 'totalRoles'
+        return view('web.user-management.users.index', compact(
+            'roles', 'totalUsers', 'activeUsers', 'inactiveUsers', 'totalRoles'
         ));
+    }
+
+    public function getData(Request $request)
+    {
+        $query = User::with(['profile', 'roles']);
+
+        // Custom dropdown filters (passed as extra GET params from the DataTable ajax)
+        if ($role = $request->get('role')) {
+            $query->whereHas('roles', fn ($q) => $q->where('name', $role));
+        }
+
+        if ($status = $request->get('status')) {
+            $query->where('status', $status);
+        }
+
+        return datatables()->of($query)
+            ->addIndexColumn()
+
+            ->addColumn('user', function (User $user) {
+                $name     = $user->profile?->name ?? 'No name';
+                $email    = $user->email;
+                $src      = $user->profile?->avatar;
+                $initials = collect(explode(' ', $name))
+                    ->map(fn ($w) => strtoupper(mb_substr($w, 0, 1)))
+                    ->take(2)->join('');
+                $palette  = ['primary', 'success', 'info', 'warning', 'danger', 'secondary'];
+                $color    = $palette[ord(mb_substr($name, 0, 1) ?: 'A') % count($palette)];
+
+                $avatar = $src
+                    ? '<div class="avatar-sm"><img src="' . asset('storage/' . $src) . '" alt="' . e($name) . '" class="rounded-circle img-thumbnail avatar-sm"></div>'
+                    : '<div class="avatar-sm"><div class="avatar-title rounded-circle bg-' . $color . '-subtle text-' . $color . '">' . e($initials ?: '?') . '</div></div>';
+
+                return '<div class="d-flex align-items-center">'
+                    . $avatar
+                    . '<div class="ms-3">'
+                    . '<h5 class="fs-14 mb-1"><a href="' . route('admin.users.show', $user) . '" class="text-body">' . e($name) . '</a></h5>'
+                    . '<p class="text-muted mb-0 fs-12">' . e($email) . '</p>'
+                    . '</div></div>';
+            })
+
+            ->addColumn('roles', function (User $user) {
+                $map = [
+                    'super-admin' => 'danger',
+                    'admin'       => 'primary',
+                    'manager'     => 'warning',
+                    'user'        => 'info',
+                ];
+                return $user->roles->map(function ($role) use ($map) {
+                    $c = $map[$role->name] ?? 'secondary';
+                    return '<span class="badge bg-' . $c . '-subtle text-' . $c . '">' . e(ucfirst($role->name)) . '</span>';
+                })->join(' ') ?: '<span class="text-muted fst-italic">No roles</span>';
+            })
+
+            ->addColumn('status', function (User $user) {
+                /** @var User $authUser */
+                $authUser = auth('admin')->user();
+                $checked  = $user->status === 'active' ? 'checked' : '';
+                $disabled = ($user->id === $authUser->id
+                    || ($user->hasRole('super-admin') && ! $authUser->hasRole('super-admin')))
+                    ? 'disabled' : '';
+
+                return '<div class="form-check form-switch form-switch-md d-flex justify-content-center">'
+                    . '<input class="form-check-input status-toggle" type="checkbox"'
+                    . ' data-user-id="' . $user->id . '"'
+                    . ' data-url="' . route('admin.users.toggle-status', $user) . '"'
+                    . ' ' . $checked . ' ' . $disabled . '>'
+                    . '</div>';
+            })
+
+            ->addColumn('action', function (User $user) {
+                /** @var User $authUser */
+                $authUser  = auth('admin')->user();
+                $deletable = ! $user->hasRole('super-admin') && $user->id !== $authUser->id;
+                $name      = e($user->profile?->name ?? $user->email);
+
+                $html = '<div class="d-flex gap-2 justify-content-center">'
+                    . '<a href="' . route('admin.users.show', $user) . '" class="btn btn-sm btn-soft-info" title="View"><i class="ri-eye-line"></i></a>'
+                    . '<a href="' . route('admin.users.edit', $user) . '" class="btn btn-sm btn-soft-primary" title="Edit"><i class="ri-pencil-line"></i></a>';
+
+                if ($deletable) {
+                    $html .= '<button type="button" class="btn btn-sm btn-soft-danger btn-delete"'
+                        . ' data-url="' . route('admin.users.destroy', $user) . '"'
+                        . ' data-name="' . $name . '"'
+                        . ' title="Delete"><i class="ri-delete-bin-line"></i></button>';
+                }
+
+                return $html . '</div>';
+            })
+
+            // Allow full-text search on the virtual "user" column
+            ->filterColumn('user', function ($query, $keyword) {
+                $query->where(function ($q) use ($keyword) {
+                    $q->where('email', 'like', "%{$keyword}%")
+                      ->orWhereHas('profile', fn ($q) => $q->where('name', 'like', "%{$keyword}%"));
+                });
+            })
+
+            // Allow ordering by profile name when clicking the User column header
+            ->orderColumn('user', function ($query, $order) {
+                $query->leftJoin('profiles', 'users.id', '=', 'profiles.user_id')
+                      ->orderBy('profiles.name', $order)
+                      ->select('users.*');
+            })
+
+            ->rawColumns(['user', 'roles', 'status', 'action'])
+            ->make(true);
     }
 
     public function create()
     {
         $roles = Role::orderBy('name')->get();
-        return view('pages.admin.user-management.users.create', compact('roles'));
+        return view('web.user-management.users.create', compact('roles'));
     }
 
     public function store(StoreUserRequest $request)
@@ -76,7 +159,7 @@ class UserController extends Controller
             ->orderBy('name')->get();
         $userPermissions = $user->getAllPermissions()->pluck('name')->toArray();
 
-        return view('pages.admin.user-management.users.show', compact('user', 'allPermissions', 'userPermissions'));
+        return view('web.user-management.users.show', compact('user', 'allPermissions', 'userPermissions'));
     }
 
     public function edit(User $user)
@@ -87,7 +170,7 @@ class UserController extends Controller
             ->orderBy('name')->get();
         $userPermissions = $user->getAllPermissions()->pluck('name')->toArray();
 
-        return view('pages.admin.user-management.users.edit', compact('user', 'roles', 'allPermissions', 'userPermissions'));
+        return view('web.user-management.users.edit', compact('user', 'roles', 'allPermissions', 'userPermissions'));
     }
 
     public function update(UpdateUserRequest $request, User $user)
