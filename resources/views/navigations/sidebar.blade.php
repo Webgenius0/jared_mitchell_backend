@@ -1,3 +1,7 @@
+@php
+    $settings = App\Models\Setting::first();
+@endphp
+
 <div class="app-menu navbar-menu">
     <div class="navbar-brand-box">
         <a href="{{ route('show.admin.dashboard') }}" class="logo logo-dark">
@@ -13,7 +17,8 @@
                 <img src="{{ asset('admin/assets/images/default/logo-sm.png') }}" alt="" height="22">
             </span>
             <span class="logo-lg">
-                <img src="{{ asset('admin/assets/images/default/logo.png') }}" alt="" height="50">
+                <img src="{{ $settings?->logo ? asset('storage/' . $settings?->logo) : asset('admin/assets/images/default/logo.png') }}" alt="" height="50" width="">
+                {{-- {{ $profile?->cover ? asset('storage/' . $profile?->cover) : asset('admin/assets/images/default/profile-bg.jpg') }} --}}
             </span>
         </a>
         <button type="button" class="btn btn-sm p-0 fs-20 header-item float-end btn-vertical-sm-hover"
@@ -77,7 +82,7 @@
                 {{-- Contact --}}
                 @php
                     // System Settings dropdown is open when any child route is active
-                    $contactOpen = request()->routeIs('admin.chat.index', 'admin.chat.*');
+                    $contactOpen = request()->routeIs('admin.chat.index', 'admin.mail.index');
                 @endphp
 
                 <li class="nav-item">
@@ -91,8 +96,8 @@
                     <div class="collapse menu-dropdown {{ $contactOpen ? 'show' : '' }}" id="sidebarMessaging">
                         <ul class="nav nav-sm flex-column">
                             <li class="nav-item">
-                                <a href="{{ route('admin.profile.index') }}"
-                                    class="nav-link {{ request()->routeIs('admin.profile.index') ? 'active' : '' }}">
+                                <a href="{{ route('admin.chat.index') }}"
+                                    class="nav-link {{ request()->routeIs('admin.chat.index') ? 'active' : '' }}">
                                     <i class="ri-wechat-line"></i> Chat
                                 </a>
                             </li>
@@ -100,7 +105,7 @@
                             <li class="nav-item">
                                 <a href="{{ route('admin.mail.index') }}"
                                     class="nav-link {{ request()->routeIs('admin.mail.index') ? 'active' : '' }}">
-                                    <i class="ri-wechat-line"></i> Mail
+                                    <i class="ri-mail-unread-line"></i> Mail
                                 </a>
                             </li>
                         </ul>

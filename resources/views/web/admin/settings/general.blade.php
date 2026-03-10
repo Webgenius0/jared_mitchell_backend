@@ -21,7 +21,7 @@
             <div class="row">
 
                 {{-- Settings Sidebar --}}
-                @include('pages.admin.settings._settings-nav')
+                @include('web.admin.settings._settings-nav')
 
                 {{-- Content --}}
                 <div class="col-lg-9 col-xxl-10">

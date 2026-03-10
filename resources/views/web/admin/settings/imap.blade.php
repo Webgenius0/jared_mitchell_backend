@@ -17,7 +17,7 @@
             </div>
 
             <div class="row">
-                @include('pages.admin.settings._settings-nav')
+                @include('web.admin.settings._settings-nav')
 
                 <div class="col-lg-9 col-xxl-10">
                     <div class="card">
