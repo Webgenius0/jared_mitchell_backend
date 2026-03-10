@@ -90,5 +90,10 @@ class RolesAndPermissionsSeeder extends Seeder
                 'slug'     => FileHandle::generateSlug('Super'),
             ]);
         }
+
+        Role::create(['name' => 'artist', 'guard_name' => 'api']);
+        Role::create(['name' => 'member', 'guard_name' => 'api']);
+        Role::create(['name' => 'sponsor', 'guard_name' => 'api']);
+        Role::create(['name' => 'boss', 'guard_name' => 'api']);
     }
 }
