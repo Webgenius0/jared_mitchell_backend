@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('slug')->unique();
 
             $table->text('biography')->nullable();
+            $table->string('tagline')->nullable();
             $table->string('address')->nullable();
             $table->string('avatar')->nullable();
             $table->string('cover')->nullable();

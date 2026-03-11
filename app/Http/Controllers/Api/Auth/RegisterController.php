@@ -24,20 +24,12 @@ class RegisterController extends Controller
 
     /**
      * Register a new user
-     * Flow:
-     * 1. Validate input
-     * 2. Create user + profile
-     * 3. Assign role
-     * 4. Generate OTP token
-     * 5. Notify admins
-     * 6. Send OTP email
      */
     public function register(Request $request)
     {
-        // dd($request->all());
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:100',
-            'email' => 'required|string|email|max:150|unique:users',
+            'email' => 'required|string|email|max:150',
             'password' => 'required|string|min:6|confirmed',
             'role' => 'required|in:2,3,4,5',
         ]);
@@ -53,35 +45,67 @@ class RegisterController extends Controller
         DB::beginTransaction();
 
         try {
-            // Create User
+
+            $existingUser = User::where('email', $request->email)->first();
+
+            // email exists
+            if ($existingUser) {
+
+                // already verified
+                if ($existingUser->email_verified_at) {
+                    return $this->error('Email already registered.', 'Email already registered. please login', 409);
+                }
+
+                // resend OTP
+                $otp = rand(1000, 9999);
+
+                UserSecurityToken::create([
+                    'user_id' => $existingUser->id,
+                    'identifier' => $existingUser->email,
+                    'token_hash' => Hash::make($otp),
+                    'type' => 'email_verification',
+                    'expires_at' => now()->addMinutes(60),
+                ]);
+
+                // Mail::to($user->email)->send(new RegistrationOtpMail($otp, $user, 'Verify Your Email Address'));
+
+                DB::commit();
+
+                return $this->success(
+                    'Email already registered but not verified. OTP resent.',
+                    [
+                        'user' => new UserResource($existingUser),
+                        'otp' => $otp,
+                        'verification_required' => true
+                    ]
+                );
+            }
+
+            // Create new user
             $user = User::create([
                 'email' => strtolower($request->email),
                 'password' => Hash::make($request->password),
-                'is_agreed' => true,
-                'status' => 'active',
+                'status' => 'inactive',
             ]);
 
-            // Generate unique username and slug
             $slug = Helper::generateSlug($request->name);
             $username = Helper::generateUsername($request->name);
 
-            // Create Profile
             Profile::create([
-                'user_id'    => $user->id,
+                'user_id' => $user->id,
                 'name' => $request->name,
-                'username'   => $username,
-                'slug'       => $slug,
+                'username' => $username,
+                'slug' => $slug,
             ]);
 
-            // Assign role
             DB::table('model_has_roles')->insert([
-                'role_id'    => $request->role,
+                'role_id' => $request->role,
                 'model_type' => User::class,
-                'model_id'   => $user->id,
+                'model_id' => $user->id,
             ]);
 
-            // Create OTP token for email verification
             $otp = rand(1000, 9999);
+
             UserSecurityToken::create([
                 'user_id' => $user->id,
                 'identifier' => $user->email,
@@ -90,22 +114,28 @@ class RegisterController extends Controller
                 'expires_at' => now()->addMinutes(60),
             ]);
 
-            // // Send OTP email
             // Mail::to($user->email)->send(new RegistrationOtpMail($otp, $user, 'Verify Your Email Address'));
 
             DB::commit();
 
             return $this->success(
-                'User registered successfully. Please verify your email using the OTP sent.',
+                'User registered successfully. Verify your email.',
                 [
                     'user' => new UserResource($user),
-                    'otp' => $otp
+                    'otp' => $otp,
+                    'verification_required' => true
                 ],
                 201
             );
         } catch (Exception $e) {
+
             DB::rollBack();
-            return $this->error('User registration failed: ' . $e->getMessage(), 500);
+
+            return $this->error(
+                'User registration failed',
+                $e->getMessage(),
+                500
+            );
         }
     }
 
@@ -145,6 +175,7 @@ class RegisterController extends Controller
 
             // Update user verification
             $user->email_verified_at = now();
+            $user->status = 'active';
             $user->save();
 
             // Send Welcome Email
@@ -162,7 +193,7 @@ class RegisterController extends Controller
             return $this->success(
                 'Email verified successfully.',
                 [
-                    'user' => $user->only(['id', 'email', 'username', 'name']),
+                    'user' => new UserResource($user),
                     'token' => $tokenJwt,
                     'token_type' => 'bearer',
                     'expires_in' => $expires_in
@@ -199,7 +230,7 @@ class RegisterController extends Controller
                 'expires_at' => now()->addMinutes(60),
             ]);
 
-            Mail::to($user->email)->queue(new OtpMail($otp, $user, 'Verify Your Email Address'));
+            // Mail::to($user->email)->queue(new OtpMail($otp, $user, 'Verify Your Email Address'));
 
             return $this->success(
                 'A new OTP has been sent to your email.',
