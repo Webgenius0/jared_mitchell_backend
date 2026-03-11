@@ -2,9 +2,8 @@
 
 use App\Http\Controllers\Api\Auth\LoginController;
 use App\Http\Controllers\Api\Auth\RegisterController;
-use App\Http\Controllers\Api\Auth\ResetPasswordController;
+use App\Http\Controllers\Api\Auth\ForgotPasswordController;
 use App\Http\Controllers\Api\Auth\UserProfileController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // health check
@@ -36,9 +35,9 @@ Route::group(['prefix' => 'v1'], function ($router) {
         Route::post('/login', [LoginController::class, 'login']); // DONE: user login
 
         //forgot password
-        Route::post('/forgot-password', [ResetPasswordController::class, 'sendOtp']);
-        Route::post('/verify-otp', [ResetPasswordController::class, 'verifyOtp']);
-        Route::post('/reset-password', [ResetPasswordController::class, 'resetPassword']);
+        Route::post('/forgot-password', [ForgotPasswordController::class, 'sendOtp']); // DONE: send forgot password otp
+        Route::post('/verify-otp', [ForgotPasswordController::class, 'verifyOtp']); // DONE: verify forgot password otp
+        Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword']); // DONE: Reset password
     });
 
     /*
@@ -51,9 +50,9 @@ Route::group(['prefix' => 'v1'], function ($router) {
         Route::post('/logout', [LoginController::class, 'logout']); // DONE: logout
 
         Route::get('/profile', [UserProfileController::class, 'profile']); // DONE: user profile
-        Route::post('/update-profile', [UserProfileController::class, 'updateProfile']); // done
-        Route::post('/update-avatar', [UserProfileController::class, 'updateAvatar']); // done
-        Route::delete('/delete-profile', [UserProfileController::class, 'destroy']); // done
-        Route::post('/change-password', [UserProfileController::class, 'changePassword']); // done
+        Route::post('/update-profile', [UserProfileController::class, 'updateProfile']); // DONE: update profile
+        Route::post('/update-avatar', [UserProfileController::class, 'updateAvatar']); // DONE: update avatar
+        Route::delete('/delete-profile', [UserProfileController::class, 'destroy']); // DONE: delete profile
+        Route::post('/change-password', [UserProfileController::class, 'changePassword']); // DONE: change password
     });
 });

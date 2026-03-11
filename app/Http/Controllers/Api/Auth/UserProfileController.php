@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Auth;
 
+use App\Helpers\FileHandle;
 use App\Helpers\Helper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
@@ -204,11 +205,11 @@ class UserProfileController extends Controller
 
             // Delete old avatar if exists
             if (!empty($user->profile->avatar) && file_exists(public_path($user->profile->avatar))) {
-                Helper::fileDelete(public_path($user->profile->avatar));
+                FileHandle::fileDelete(public_path($user->profile->avatar));
             }
 
             // Upload new avatar
-            $avatarPath = Helper::fileUpload($request->file('avatar'), 'user/avatar');
+            $avatarPath = FileHandle::fileUpload($request->file('avatar'), 'user/avatar');
 
             // Update profile avatar
             $user->profile->update(['avatar' => $avatarPath]);
@@ -256,7 +257,7 @@ class UserProfileController extends Controller
 
             // Delete avatar from storage
             if ($user->profile?->avatar) {
-                Helper::fileDelete($user->profile->avatar);
+                FileHandle::fileDelete($user->profile->avatar);
             }
 
             // Logout user
@@ -336,49 +337,5 @@ class UserProfileController extends Controller
                 500
             );
         }
-    }
-
-    /**
-     * Generate unique username
-     */
-    private function generateUsername($firstName)
-    {
-        $baseUsername = strtolower(str_replace(' ', '_', $firstName));
-        $username = $baseUsername . '_' . $this->randomAlphaNum(4);
-
-        // Check if username exists, regenerate if needed
-        while (\App\Models\Profile::where('username', $username)->exists()) {
-            $username = $baseUsername . '_' . $this->randomAlphaNum(4);
-        }
-
-        return $username;
-    }
-
-    /**
-     * Generate unique slug
-     */
-    private function generateSlug($firstName)
-    {
-        $baseSlug = strtolower(str_replace(' ', '-', $firstName));
-        $slug = $baseSlug . '-' . $this->randomAlphaNum(6);
-
-        // Check if slug exists, regenerate if needed
-        while (\App\Models\Profile::where('slug', $slug)->exists()) {
-            $slug = $baseSlug . '-' . $this->randomAlphaNum(6);
-        }
-
-        return $slug;
-    }
-
-    /**
-     * Generate random alphanumeric strings
-     */
-    private function randomAlphaNum($length = 4)
-    {
-        return substr(
-            str_shuffle('abcdefghijklmnopqrstuvwxyz0123456789'),
-            0,
-            $length
-        );
     }
 }
