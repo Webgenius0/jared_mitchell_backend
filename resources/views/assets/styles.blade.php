@@ -11,6 +11,9 @@
 <!-- Custom Css -->
 <link href="{{ asset('admin/assets/css/custom.min.css') }}" rel="stylesheet" type="text/css" />
 
+{{-- DataTables --}}
+<link href="{{ asset('admin/assets/libs/DataTables/datatables.min.css') }}" rel="stylesheet" type="text/css" />
+
 <!-- NProgress — top progress bar -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.css" />
 

@@ -19,18 +19,76 @@ class RoleController extends Controller
 
     public function index()
     {
-        $roles = Role::where('guard_name', 'admin')
-            ->withCount(['permissions', 'users'])
-            ->orderBy('name')
-            ->paginate(15);
+        return view('web.user-management.roles.index');
+    }
 
-        return view('pages.admin.user-management.roles.index', compact('roles'));
+    public function getData(Request $request)
+    {
+        $query = Role::where('guard_name', 'admin')
+            ->withCount(['permissions', 'users']);
+
+        return datatables()->of($query)
+            ->addIndexColumn()
+
+            ->addColumn('role', function (Role $role) {
+                $map = [
+                    'super-admin' => 'danger',
+                    'admin'       => 'primary',
+                    'manager'     => 'warning',
+                    'user'        => 'info',
+                ];
+                $color  = $map[$role->name] ?? 'secondary';
+                $lock   = $role->name === 'super-admin'
+                    ? '<i class="ri-lock-line text-danger me-1"></i>'
+                    : '';
+                $badge  = '<span class="badge bg-' . $color . '-subtle text-' . $color . '">' . e(ucfirst($role->name)) . '</span>';
+
+                return '<div class="d-flex align-items-center gap-2">' . $lock . $badge . '</div>';
+            })
+
+            ->addColumn('permissions', function (Role $role) {
+                return '<span class="badge bg-info-subtle text-info">' . $role->permissions_count . ' permissions</span>';
+            })
+
+            ->addColumn('users', function (Role $role) {
+                return '<span class="badge bg-primary-subtle text-primary">' . $role->users_count . ' users</span>';
+            })
+
+            ->addColumn('guard', function (Role $role) {
+                return '<span class="text-muted">' . e($role->guard_name) . '</span>';
+            })
+
+            ->addColumn('action', function (Role $role) {
+                $deletable = $role->name !== 'super-admin';
+                $name      = e($role->name);
+
+                $html = '<div class="d-flex gap-2 justify-content-center">'
+                    . '<a href="' . route('admin.roles.edit', $role) . '" class="btn btn-sm btn-soft-primary" title="Edit"><i class="ri-pencil-line"></i></a>';
+
+                if ($deletable) {
+                    $html .= '<button type="button" class="btn btn-sm btn-soft-danger btn-delete"'
+                        . ' data-url="' . route('admin.roles.destroy', $role) . '"'
+                        . ' data-name="' . $name . '"'
+                        . ' title="Delete"><i class="ri-delete-bin-line"></i></button>';
+                }
+
+                return $html . '</div>';
+            })
+
+            ->filterColumn('role', function ($query, $keyword) {
+                $query->where('name', 'like', "%{$keyword}%");
+            })
+
+            ->orderColumn('role', fn ($query, $order) => $query->orderBy('name', $order))
+
+            ->rawColumns(['role', 'permissions', 'users', 'guard', 'action'])
+            ->make(true);
     }
 
     public function create()
     {
         $groupedPermissions = $this->roleService->getPermissionsGrouped();
-        return view('pages.admin.user-management.roles.create', compact('groupedPermissions'));
+        return view('web.user-management.roles.create', compact('groupedPermissions'));
     }
 
     public function store(StoreRoleRequest $request)
@@ -46,7 +104,7 @@ class RoleController extends Controller
         $groupedPermissions = $this->roleService->getPermissionsGrouped();
         $rolePermissions = $role->permissions->pluck('name')->toArray();
 
-        return view('pages.admin.user-management.roles.edit', compact('role', 'groupedPermissions', 'rolePermissions'));
+        return view('web.user-management.roles.edit', compact('role', 'groupedPermissions', 'rolePermissions'));
     }
 
     public function update(UpdateRoleRequest $request, Role $role)

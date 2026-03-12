@@ -6,6 +6,9 @@
 <script src="{{ asset('admin/assets/js/pages/plugins/lord-icon-2.1.0.js') }}"></script>
 <script src="{{ asset('admin/assets/js/plugins.js') }}"></script>
 
+<!-- DataTables -->
+<script src="{{ asset('admin/assets/libs/DataTables/datatables.min.js') }}"></script>
+
 <!-- Apexcharts -->
 <script src="{{ asset('admin/assets/libs/apexcharts/apexcharts.min.js') }}"></script>
 

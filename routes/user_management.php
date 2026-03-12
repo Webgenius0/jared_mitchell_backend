@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Route;
 // ── Users ────────────────────────────────────────────────────────────────
 Route::prefix('admin/users')->name('admin.users.')->middleware('permission:manage users')->group(function () {
     Route::get('/',             [UserController::class, 'index'])->name('index');
+    Route::get('/getdata',      [UserController::class, 'getData'])->name('getdata');
     Route::get('/create',       [UserController::class, 'create'])->name('create');
     Route::post('/',            [UserController::class, 'store'])->name('store');
     Route::get('/{user}',       [UserController::class, 'show'])->name('show');
@@ -32,6 +33,7 @@ Route::prefix('admin/users')->name('admin.users.')->middleware('permission:manag
 // ── Roles ────────────────────────────────────────────────────────────────
 Route::prefix('admin/roles')->name('admin.roles.')->middleware('permission:manage roles|manage users')->group(function () {
     Route::get('/',                      [RoleController::class, 'index'])->name('index');
+    Route::get('/getdata',               [RoleController::class, 'getData'])->name('getdata');
     Route::get('/create',                [RoleController::class, 'create'])->name('create');
     Route::post('/',                     [RoleController::class, 'store'])->name('store');
     Route::get('/{role}/edit',           [RoleController::class, 'edit'])->name('edit');
@@ -43,6 +45,7 @@ Route::prefix('admin/roles')->name('admin.roles.')->middleware('permission:manag
 // ── Permissions ──────────────────────────────────────────────────────────
 Route::prefix('admin/permissions')->name('admin.permissions.')->middleware('permission:manage permissions|manage users')->group(function () {
     Route::get('/',             [PermissionController::class, 'index'])->name('index');
+    Route::get('/getdata',      [PermissionController::class, 'getData'])->name('getdata');
     Route::get('/create',       [PermissionController::class, 'create'])->name('create');
     Route::post('/',            [PermissionController::class, 'store'])->name('store');
     Route::get('/{permission}/edit', [PermissionController::class, 'edit'])->name('edit');

@@ -23,7 +23,7 @@ class PermissionController extends Controller
         // Load role counts for each permission
         $permissions->load('roles');
 
-        return view('pages.admin.user-management.permissions.index', compact('grouped', 'permissions'));
+        return view('web.user-management.permissions.index', compact('grouped', 'permissions'));
     }
 
     public function create()
@@ -35,7 +35,7 @@ class PermissionController extends Controller
             return end($words);
         })->unique()->values();
 
-        return view('pages.admin.user-management.permissions.create', compact('existingGroups'));
+        return view('web.user-management.permissions.create', compact('existingGroups'));
     }
 
     public function store(StorePermissionRequest $request)
@@ -57,7 +57,7 @@ class PermissionController extends Controller
             return end($words);
         })->unique()->values();
 
-        return view('pages.admin.user-management.permissions.edit', compact('permission', 'existingGroups'));
+        return view('web.user-management.permissions.edit', compact('permission', 'existingGroups'));
     }
 
     public function update(Request $request, Permission $permission)
