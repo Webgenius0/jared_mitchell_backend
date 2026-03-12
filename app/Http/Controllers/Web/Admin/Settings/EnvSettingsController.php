@@ -19,6 +19,10 @@ class EnvSettingsController extends Controller
     | Page Views
     |--------------------------------------------------------------------------
     */
+    public function app(): View
+    {
+        return view('web.admin.settings.app');
+    }
     public function stripe(): View
     {
         return view('web.admin.settings.stripe');
@@ -34,6 +38,47 @@ class EnvSettingsController extends Controller
     public function imap(): View
     {
         return view('web.admin.settings.imap');
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | PATCH /admin/settings/app
+    |--------------------------------------------------------------------------
+    */
+    public function updateApp(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'app_name'      => ['required', 'string', 'max:255'],
+            'app_env'       => ['required', 'string', 'max:50'],
+            'app_debug'     => ['required', 'in:true,false'],
+            'app_url'       => ['required', 'url', 'max:500'],
+            'frontend_url'  => ['nullable', 'url', 'max:500'],
+            'app_timezone'  => ['nullable', 'string', 'max:255'],
+        ], [
+            'app_name.required'  => 'Application name is required.',
+            'app_env.required'   => 'Application environment is required.',
+            'app_debug.required' => 'Debug mode value is required.',
+            'app_url.required'   => 'Application URL is required.',
+            'app_url.url'        => 'App URL must be a valid URL.',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $this->writeEnv([
+            'APP_NAME'      => $request->app_name,
+            'APP_ENV'       => $request->app_env,
+            'APP_DEBUG'     => $request->app_debug,
+            'APP_URL'       => $request->app_url,
+            'FRONTEND_URL'  => $request->frontend_url ?? '',
+            'APP_TIMEZONE'  => $request->app_timezone ?? '',
+        ]);
+
+        Artisan::call('config:clear');
+
+        return $this->success('App environment settings updated successfully.');
     }
 
     /*

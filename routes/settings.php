@@ -37,6 +37,10 @@ Route::prefix('settings')->name('admin.settings.')->group(function () {
     Route::get('/seo', [SeoSettingsController::class, 'seo'])->name('seo');
     Route::patch('/seo', [SeoSettingsController::class, 'updateSeo'])->name('seo.update');
 
+    // // App
+    Route::get('/app', [EnvSettingsController::class, 'app'])->name('app');
+    Route::patch('/app', [EnvSettingsController::class, 'updateApp'])->name('app.update');
+
     // // Mail
     Route::get('/mail', [MailSettingsController::class, 'mail'])->name('mail');
     Route::patch('/mail', [MailSettingsController::class, 'updateMail'])->name('mail.update');

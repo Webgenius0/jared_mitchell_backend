@@ -232,6 +232,13 @@
                             </li>
 
                             <li class="nav-item">
+                                <a href="{{ route('admin.settings.app') }}"
+                                    class="nav-link {{ request()->routeIs('admin.settings.app') ? 'active' : '' }}">
+                                    <i class="ri-apps-line"></i> App Setting
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
                                 <a href="{{ route('admin.settings.mail') }}"
                                     class="nav-link {{ request()->routeIs('admin.settings.mail') ? 'active' : '' }}">
                                     <i class="ri-mail-settings-line"></i> Mail Settings
