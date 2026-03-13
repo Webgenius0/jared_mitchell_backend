@@ -79,6 +79,14 @@
                     </a>
                 </li>
 
+                <li class="nav-item">
+                    <a class="nav-link menu-link {{ request()->routeIs('admin.cms.pages.*') ? 'active' : '' }}"
+                        href="{{ route('admin.cms.pages.index') }}">
+                        <i class="ri-layout-5-line"></i>
+                        <span>CMS Pages</span>
+                    </a>
+                </li>
+
                 {{-- Contact --}}
                 @php
                     // System Settings dropdown is open when any child route is active

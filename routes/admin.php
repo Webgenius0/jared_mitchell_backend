@@ -3,6 +3,7 @@
 use App\Http\Controllers\Web\Admin\Auth\AdminProfileController;
 use App\Http\Controllers\Web\Admin\Contact\AdminChattingController;
 use App\Http\Controllers\Web\Admin\Contact\AdminMailingController;
+use App\Http\Controllers\Web\Admin\Cms\PageSectionController;
 use App\Http\Controllers\Web\Admin\Dashboard\AdminDashboardController;
 use Illuminate\Support\Facades\Route;
 
@@ -38,4 +39,25 @@ Route::prefix('chat')->name('admin.chat.')->group(function () {
 */
 Route::prefix('mail')->name('admin.mail.')->group(function () {
     Route::get('/', [AdminMailingController::class, 'index'])->name('index');
+});
+
+/*
+|--------------------------------------------------------------------------
+| CMS Pages
+|--------------------------------------------------------------------------
+*/
+Route::prefix('cms/pages')->name('admin.cms.pages.')->group(function () {
+    Route::get('/', [PageSectionController::class, 'index'])->name('index');
+    Route::post('/', [PageSectionController::class, 'storePage'])->name('store');
+    Route::patch('/{page}', [PageSectionController::class, 'updatePage'])->name('update');
+    Route::delete('/{page}', [PageSectionController::class, 'destroyPage'])->name('destroy');
+    Route::post('/{page}/sections', [PageSectionController::class, 'storeSection'])->name('sections.store');
+    Route::patch('/{page}/sections/reorder', [PageSectionController::class, 'reorderSections'])->name('sections.reorder');
+    Route::delete('/sections/{section}', [PageSectionController::class, 'destroySection'])->name('sections.destroy');
+    Route::patch('/sections/{section}', [PageSectionController::class, 'updateSection'])->name('sections.update');
+    Route::post('/sections/{section}/contents', [PageSectionController::class, 'storeContentField'])->name('sections.contents.store');
+    Route::patch('/sections/{section}/contents', [PageSectionController::class, 'updateContents'])->name('sections.contents.update');
+    Route::delete('/sections/{section}/contents/{content}', [PageSectionController::class, 'destroyContentField'])->name('sections.contents.destroy');
+    Route::post('/sections/{section}/media', [PageSectionController::class, 'uploadMedia'])->name('sections.media.upload');
+    Route::put('/sections/{section}/items', [PageSectionController::class, 'updateItems'])->name('sections.items.update');
 });

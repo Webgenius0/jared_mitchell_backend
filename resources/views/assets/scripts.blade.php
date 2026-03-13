@@ -1,4 +1,5 @@
 <!-- Bootstrap Bundle -->
+<script src="{{ asset('admin/assets/js/jquery-3.7.1.min.js')}}"></script>
 <script src="{{ asset('admin/assets/libs/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
 <script src="{{ asset('admin/assets/libs/simplebar/simplebar.min.js') }}"></script>
 <script src="{{ asset('admin/assets/libs/node-waves/waves.min.js') }}"></script>
@@ -47,3 +48,4 @@
 
 <!-- init js -->
 <script src="{{ asset('admin/assets/js/pages/form-editor.init.js') }}"></script>
+

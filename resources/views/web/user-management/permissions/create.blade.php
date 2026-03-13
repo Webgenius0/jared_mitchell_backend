@@ -74,48 +74,47 @@
 
 @push('scripts')
 <script>
-(function() {
+(function($) {
     'use strict';
 
-    const nameInput = document.getElementById('name');
-    const preview = document.getElementById('namePreview');
+    const $nameInput = $('#name');
+    const $preview   = $('#namePreview');
 
     // ── Live preview ──
-    nameInput.addEventListener('input', function() {
-        const val = this.value.toLowerCase().trim();
+    $(document).on('input', '#name', function() {
+        const val = $(this).val().toLowerCase().trim();
         if (val) {
-            preview.innerHTML = '<span class="badge bg-light text-body fs-12">' + val + '</span>';
+            $preview.html('<span class="badge bg-light text-body fs-12">' + val + '</span>');
         } else {
-            preview.innerHTML = '<span class="text-muted">Enter a name above...</span>';
+            $preview.html('<span class="text-muted">Enter a name above...</span>');
         }
     });
 
     // ── Group auto-fill ──
-    document.querySelectorAll('.group-suggest').forEach(function(badge) {
-        badge.addEventListener('click', function() {
-            const group = this.dataset.group;
-            const current = nameInput.value.trim();
-            const parts = current.split(' ');
-            if (parts.length > 1) {
-                nameInput.value = parts[0] + ' ' + group;
-            } else if (current) {
-                nameInput.value = current + ' ' + group;
-            } else {
-                nameInput.value = group;
-            }
-            nameInput.dispatchEvent(new Event('input'));
-            nameInput.focus();
-        });
+    $(document).on('click', '.group-suggest', function() {
+        const group   = $(this).data('group');
+        const current = $nameInput.val().trim();
+        const parts   = current.split(' ');
+
+        if (parts.length > 1) {
+            $nameInput.val(parts[0] + ' ' + group);
+        } else if (current) {
+            $nameInput.val(current + ' ' + group);
+        } else {
+            $nameInput.val(group);
+        }
+
+        $nameInput.trigger('input').trigger('focus');
     });
 
     // ── Form Submit ──
-    document.getElementById('createPermissionForm').addEventListener('submit', function(e) {
+    $(document).on('submit', '#createPermissionForm', function(e) {
         e.preventDefault();
         clearErrors();
 
-        const btn = document.getElementById('submitBtn');
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
+        const $btn = $('#submitBtn');
+        $btn.prop('disabled', true)
+            .html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
 
         axios.post('{{ route("admin.permissions.store") }}', new FormData(this))
             .then(function(res) {
@@ -130,23 +129,23 @@
                 Toast.error(data?.message || 'Failed to create permission.');
             })
             .finally(function() {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="ri-save-line me-1"></i> Save Permission';
+                $btn.prop('disabled', false)
+                    .html('<i class="ri-save-line me-1"></i> Save Permission');
             });
     });
 
     function clearErrors() {
-        document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-        document.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
+        $('.is-invalid').removeClass('is-invalid');
+        $('.invalid-feedback').text('');
     }
+
     function showErrors(errors) {
-        Object.keys(errors).forEach(function(field) {
-            const input = document.querySelector('[name="' + field + '"]');
-            const errorDiv = document.getElementById('error-' + field);
-            if (input) input.classList.add('is-invalid');
-            if (errorDiv) errorDiv.textContent = errors[field][0];
+        $.each(errors, function(field, messages) {
+            $('[name="' + field + '"]').addClass('is-invalid');
+            $('#error-' + field).text(messages[0]);
         });
     }
-})();
+
+})(jQuery);
 </script>
 @endpush

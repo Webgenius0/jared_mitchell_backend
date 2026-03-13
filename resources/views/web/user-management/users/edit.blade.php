@@ -54,7 +54,7 @@
                                         </div>
                                         <div class="col-md-6">
                                             <label class="form-label">Status</label>
-                                            <select class="form-select" name="status" id="status">
+                                            <select class="form-select form-control" name="status" id="status1">
                                                 <option value="active" {{ $user->status === 'active' ? 'selected' : '' }}>Active</option>
                                                 <option value="inactive" {{ $user->status === 'inactive' ? 'selected' : '' }}>Inactive</option>
                                             </select>

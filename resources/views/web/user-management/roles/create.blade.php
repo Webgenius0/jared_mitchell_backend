@@ -33,6 +33,16 @@
                                     <div class="invalid-feedback" id="error-name"></div>
                                     <small class="text-muted">Use lowercase letters and hyphens (e.g., content-manager)</small>
                                 </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Select a Guard <span class="text-danger">*</span></label>
+                                    <select class="form-control" name="guard_name" id="guard_name">
+                                        <option value="">Select a Guard</option>
+                                        <option value="admin">Admin</option>
+                                        <option value="api">Api</option>
+                                        <option value="web">Web</option>
+                                    </select>
+                                    <div class="invalid-feedback" id="error-guard_name"></div>
+                                </div>
                             </div>
 
                             {{-- Permissions Panel --}}
@@ -94,50 +104,44 @@
 
 @push('scripts')
 <script>
-(function() {
+(function($) {
     'use strict';
 
     // ── Select All ──
-    document.getElementById('selectAllPermissions').addEventListener('change', function() {
-        document.querySelectorAll('.permission-checkbox').forEach(cb => cb.checked = this.checked);
-        document.querySelectorAll('.select-group').forEach(cb => cb.checked = this.checked);
+    $(document).on('change', '#selectAllPermissions', function() {
+        const isChecked = $(this).is(':checked');
+        $('.permission-checkbox, .select-group').prop('checked', isChecked);
     });
 
     // ── Group Select All ──
-    document.querySelectorAll('.select-group').forEach(function(groupCb) {
-        groupCb.addEventListener('change', function() {
-            const group = this.dataset.group;
-            document.querySelectorAll('.permission-checkbox[data-group="' + group + '"]').forEach(cb => {
-                cb.checked = groupCb.checked;
-            });
-            updateSelectAll();
-        });
+    $(document).on('change', '.select-group', function() {
+        const group = $(this).data('group');
+        $('.permission-checkbox[data-group="' + group + '"]').prop('checked', $(this).is(':checked'));
+        updateSelectAll();
     });
 
     // ── Individual checkbox → update group & master toggles ──
-    document.querySelectorAll('.permission-checkbox').forEach(function(cb) {
-        cb.addEventListener('change', function() {
-            const group = this.dataset.group;
-            const groupCheckboxes = document.querySelectorAll('.permission-checkbox[data-group="' + group + '"]');
-            const groupToggle = document.querySelector('.select-group[data-group="' + group + '"]');
-            groupToggle.checked = Array.from(groupCheckboxes).every(c => c.checked);
-            updateSelectAll();
-        });
+    $(document).on('change', '.permission-checkbox', function() {
+        const group = $(this).data('group');
+        const allInGroup = $('.permission-checkbox[data-group="' + group + '"]');
+        const allChecked = allInGroup.length === allInGroup.filter(':checked').length;
+        $('.select-group[data-group="' + group + '"]').prop('checked', allChecked);
+        updateSelectAll();
     });
 
     function updateSelectAll() {
-        const all = document.querySelectorAll('.permission-checkbox');
-        document.getElementById('selectAllPermissions').checked = Array.from(all).every(c => c.checked);
+        const all = $('.permission-checkbox');
+        $('#selectAllPermissions').prop('checked', all.length === all.filter(':checked').length);
     }
 
     // ── Form Submit ──
-    document.getElementById('createRoleForm').addEventListener('submit', function(e) {
+    $(document).on('submit', '#createRoleForm', function(e) {
         e.preventDefault();
         clearErrors();
 
-        const btn = document.getElementById('submitBtn');
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
+        const $btn = $('#submitBtn');
+        $btn.prop('disabled', true)
+            .html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
 
         const formData = new FormData(this);
 
@@ -145,6 +149,7 @@
             .then(function(res) {
                 Toast.fromResponse(res.data);
                 if (res.data.redirect) {
+                    // $('#rolesTable').DataTable().ajax.reload(null, false);
                     setTimeout(() => window.location.href = res.data.redirect, 800);
                 }
             })
@@ -154,23 +159,23 @@
                 Toast.error(data?.message || 'Failed to create role.');
             })
             .finally(function() {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="ri-save-line me-1"></i> Save Role';
+                $btn.prop('disabled', false)
+                    .html('<i class="ri-save-line me-1"></i> Save Role');
             });
     });
 
     function clearErrors() {
-        document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-        document.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
+        $('.is-invalid').removeClass('is-invalid');
+        $('.invalid-feedback').text('');
     }
+
     function showErrors(errors) {
-        Object.keys(errors).forEach(function(field) {
-            const input = document.querySelector('[name="' + field + '"]');
-            const errorDiv = document.getElementById('error-' + field);
-            if (input) input.classList.add('is-invalid');
-            if (errorDiv) errorDiv.textContent = errors[field][0];
+        $.each(errors, function(field, messages) {
+            $('[name="' + field + '"]').addClass('is-invalid');
+            $('#error-' + field).text(messages[0]);
         });
     }
-})();
+
+})(jQuery);
 </script>
 @endpush
