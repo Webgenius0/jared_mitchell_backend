@@ -32,6 +32,10 @@
                 <div class="list-group-item py-2 px-3 bg-light">
                     <span class="text-muted text-uppercase fw-semibold fs-11">Integrations</span>
                 </div>
+                <a href="{{ route('admin.settings.app') }}"
+                    class="list-group-item list-group-item-action d-flex align-items-center gap-2 px-3 py-2 {{ request()->routeIs('admin.settings.app') ? 'active' : '' }}">
+                    <i class="ri-apps-line"></i> App (.env)
+                </a>
                 <a href="{{ route('admin.settings.mail') }}"
                     class="list-group-item list-group-item-action d-flex align-items-center gap-2 px-3 py-2 {{ request()->routeIs('admin.settings.mail') ? 'active' : '' }}">
                     <i class="ri-mail-settings-line fs-15"></i> Mail (SMTP)

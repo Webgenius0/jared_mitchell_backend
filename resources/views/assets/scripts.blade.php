@@ -39,6 +39,8 @@
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 
+{{-- select2 --}}
+<script src="{{ asset('admin/assets/js/pages/select2.init.js') }}"></script>
 
 <!-- quill js -->
 <script src="{{ asset('admin/assets/libs/quill/quill.min.js') }}"></script>
