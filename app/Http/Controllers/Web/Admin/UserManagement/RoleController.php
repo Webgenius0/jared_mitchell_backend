@@ -24,8 +24,7 @@ class RoleController extends Controller
 
     public function getData(Request $request)
     {
-        $query = Role::where('guard_name', 'admin')
-            ->withCount(['permissions', 'users']);
+        $query = Role::withCount(['permissions', 'users']);
 
         return datatables()->of($query)
             ->addIndexColumn()

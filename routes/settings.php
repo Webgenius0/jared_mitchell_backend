@@ -63,4 +63,8 @@ Route::prefix('settings')->name('admin.settings.')->group(function () {
     // IMAP — writes to .env
     Route::get('/imap',      [EnvSettingsController::class, 'imap'])->name('imap');
     Route::patch('/imap',    [EnvSettingsController::class, 'updateImap'])->name('imap.update');
+
+    // AI Platform — writes to .env
+    Route::get('/ai',        [EnvSettingsController::class, 'ai'])->name('ai');
+    Route::patch('/ai',      [EnvSettingsController::class, 'updateAi'])->name('ai.update');
 });

@@ -52,6 +52,10 @@
                     class="list-group-item list-group-item-action d-flex align-items-center gap-2 px-3 py-2 {{ request()->routeIs('admin.settings.imap') ? 'active' : '' }}">
                     <i class="ri-inbox-line fs-15"></i> IMAP
                 </a>
+                <a href="{{ route('admin.settings.ai') }}"
+                    class="list-group-item list-group-item-action d-flex align-items-center gap-2 px-3 py-2 {{ request()->routeIs('admin.settings.ai') ? 'active' : '' }}">
+                    <i class="ri-robot-line fs-15"></i> AI Platform
+                </a>
 
                 {{-- System --}}
                 <div class="list-group-item py-2 px-3 bg-light">
