@@ -1,11 +1,14 @@
 <?php
 
+use App\Http\Controllers\Api\Auth\ForgotPasswordController;
 use App\Http\Controllers\Api\Auth\LoginController;
 use App\Http\Controllers\Api\Auth\RegisterController;
-use App\Http\Controllers\Api\Auth\ForgotPasswordController;
 use App\Http\Controllers\Api\Auth\UserProfileController;
 use App\Http\Controllers\Api\Auth\V2\ForgotPasswordController as V2ForgotPasswordController;
 use App\Http\Controllers\Api\Auth\V2\RegisterController as V2RegisterController;
+use App\Http\Controllers\Api\Chat\ConversationController;
+use App\Http\Controllers\Api\Chat\MessageController;
+use App\Http\Controllers\Api\Chat\TypingController;
 use Illuminate\Support\Facades\Route;
 
 // health check
@@ -57,6 +60,47 @@ Route::group(['prefix' => 'v1'], function ($router) {
         Route::delete('/delete-profile', [UserProfileController::class, 'destroy']); // DONE: delete profile
         Route::post('/change-password', [UserProfileController::class, 'changePassword']); // DONE: change password
     });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Messaging/Conversation
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('conversations')->group(function () {
+        Route::get('/', [ConversationController::class, 'index']);
+        Route::post('/', [ConversationController::class, 'store']);
+        Route::get('/{conversation}', [ConversationController::class, 'show']);
+        Route::post('/{conversation}', [ConversationController::class, 'update']);
+        Route::delete('/{conversation}', [ConversationController::class, 'destroy']);
+
+        // Group management
+        Route::post('/{conversation}/add-user', [ConversationController::class, 'addUser']);
+        Route::post('/{conversation}/remove-user', [ConversationController::class, 'removeUser']);
+        Route::post('/{conversation}/make-admin', [ConversationController::class, 'makeAdmin']);
+
+        // Conversation settings
+        Route::post('/{conversation}/toggle-mute', [ConversationController::class, 'toggleMute']);
+        Route::post('/{conversation}/toggle-archive', [ConversationController::class, 'toggleArchive']);
+
+        // Messages in conversation
+        Route::get('/{conversation}/messages', [MessageController::class, 'index']);
+
+        // Typing indicators
+        Route::post('/{conversation}/typing', [TypingController::class, 'typing']);
+        Route::post('/{conversation}/stop-typing', [TypingController::class, 'stopTyping']);
+        Route::get('/{conversation}/typing-users', [TypingController::class, 'getCurrentlyTyping']);
+    });
+
+    // Message routes
+    Route::prefix('messages')->group(function () {
+        Route::post('/', [MessageController::class, 'store']);
+        Route::get('/unread-count', [MessageController::class, 'unreadCount']);
+        Route::post('/mark-as-read', [MessageController::class, 'markAsRead']);
+        Route::get('/{message}', [MessageController::class, 'show']);
+        Route::put('/{message}', [MessageController::class, 'update']);
+        Route::delete('/{message}', [MessageController::class, 'destroy']);
+        Route::post('/{message}/reaction', [MessageController::class, 'toggleReaction']);
+    });
 });
 
 
@@ -84,7 +128,7 @@ Route::group(['prefix' => 'v2'], function () {
 
     Route::group(['middleware' => 'auth:api'], function () {
         // Reuse v1 protected routes as-is or add v2-specific ones here
-        Route::post('/refresh-token',[LoginController::class, 'refreshToken']); // DONE: refresh token
-        Route::post('/logout',[LoginController::class, 'logout']); // DONE: logout
+        Route::post('/refresh-token', [LoginController::class, 'refreshToken']); // DONE: refresh token
+        Route::post('/logout', [LoginController::class, 'logout']); // DONE: logout
     });
 });
