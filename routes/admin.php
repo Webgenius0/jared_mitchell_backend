@@ -1,9 +1,10 @@
 <?php
 
 use App\Http\Controllers\Web\Admin\Auth\AdminProfileController;
+use App\Http\Controllers\Web\Admin\Cms\PageSectionController;
+use App\Http\Controllers\Web\Admin\Cms\PricingController;
 use App\Http\Controllers\Web\Admin\Contact\AdminChattingController;
 use App\Http\Controllers\Web\Admin\Contact\AdminMailingController;
-use App\Http\Controllers\Web\Admin\Cms\PageSectionController;
 use App\Http\Controllers\Web\Admin\Dashboard\AdminDashboardController;
 use Illuminate\Support\Facades\Route;
 
@@ -60,4 +61,16 @@ Route::prefix('cms/pages')->name('admin.cms.pages.')->group(function () {
     Route::delete('/sections/{section}/contents/{content}', [PageSectionController::class, 'destroyContentField'])->name('sections.contents.destroy');
     Route::post('/sections/{section}/media', [PageSectionController::class, 'uploadMedia'])->name('sections.media.upload');
     Route::put('/sections/{section}/items', [PageSectionController::class, 'updateItems'])->name('sections.items.update');
+});
+
+// routes/web.php
+Route::prefix('cms/pricing')->name('admin.cms.pricing.')->group(function () {
+    Route::get('/',                     [PricingController::class, 'index'])->name('index');
+    Route::get('/create',               [PricingController::class, 'create'])->name('create');
+    Route::post('/',                    [PricingController::class, 'store'])->name('store');
+    Route::get('/{plan}/edit',          [PricingController::class, 'edit'])->name('edit');
+    Route::put('/{plan}',               [PricingController::class, 'update'])->name('update');
+    Route::delete('/{plan}',            [PricingController::class, 'destroy'])->name('destroy');
+    Route::post('/reorder',             [PricingController::class, 'reorder'])->name('reorder');
+    Route::patch('/{plan}/toggle',      [PricingController::class, 'toggle'])->name('toggle');
 });

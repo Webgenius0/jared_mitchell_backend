@@ -10,6 +10,7 @@ use App\Models\SectionContent;
 use App\Traits\AdminApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -62,6 +63,8 @@ class PageSectionController extends Controller
 
         $page->update($payload);
 
+        $this->bustPageCache($page->slug);
+
         return $this->success('Page updated successfully.', [
             'page' => $page->fresh(),
         ]);
@@ -98,6 +101,8 @@ class PageSectionController extends Controller
             'meta_description' => null,
             'is_published' => $request->boolean('is_published', true),
         ]);
+
+        Cache::forget('api:cms:pages:index');
 
         return $this->success('Page created successfully.', [
             'page' => $page,
@@ -140,6 +145,8 @@ class PageSectionController extends Controller
             'order' => $nextOrder,
             'is_visible' => $request->boolean('is_visible', true),
         ]);
+
+        $this->bustPageCache($page->slug);
 
         return $this->success('Section created successfully.', [
             'section' => $section,
@@ -191,6 +198,8 @@ class PageSectionController extends Controller
             $section->update($payload);
         }
 
+        $this->bustPageCache($section->page->slug);
+
         return $this->success('Section updated successfully.', [
             'section' => $section->fresh(['contents', 'items']),
         ]);
@@ -224,6 +233,8 @@ class PageSectionController extends Controller
                 ]
             );
         }
+
+        $this->bustPageCache($section->page->slug);
 
         return $this->success('Section content saved.');
     }
@@ -283,6 +294,8 @@ class PageSectionController extends Controller
         $content->value = $path;
         $content->save();
 
+        $this->bustPageCache($section->page->slug);
+
         return $this->success(ucfirst($fieldType) . ' uploaded successfully.', [
             'path' => $path,
             'url' => asset('storage/' . $path),
@@ -330,6 +343,8 @@ class PageSectionController extends Controller
             'locale' => $locale,
         ]);
 
+        $this->bustPageCache($section->page->slug);
+
         return $this->success('Section field added successfully.', [
             'content' => $content,
         ]);
@@ -347,6 +362,8 @@ class PageSectionController extends Controller
 
         $content->delete();
 
+        $this->bustPageCache($section->page->slug);
+
         return $this->success('Section field removed successfully.');
     }
 
@@ -356,22 +373,59 @@ class PageSectionController extends Controller
             'items' => ['required', 'array'],
             'items.*.order' => ['nullable', 'integer', 'min:0'],
             'items.*.data' => ['required', 'array'],
+            'items.*.data.image' => ['nullable', 'string', 'max:2048'],
+            'items.*.data.image_file' => ['nullable', 'file', 'image', 'max:10240'],
         ]);
 
         if ($validator->fails()) {
             return $this->validationError($validator);
         }
 
+        $oldImagePaths = $section->items()
+            ->get()
+            ->map(fn ($item) => (string) data_get($item->data, 'image', ''))
+            ->filter(fn ($path) => $path !== '' && Str::startsWith($path, 'uploads/'))
+            ->unique()
+            ->values()
+            ->all();
+
         DB::transaction(function () use ($request, $section): void {
             $section->items()->delete();
 
             foreach ((array) $request->input('items', []) as $index => $item) {
+
+                $data = (array) ($item['data'] ?? []);
+                $uploadedFile = $request->file("items.$index.data.image_file");
+
+                if ($uploadedFile) {
+                    $path = FileHandle::fileUpload($uploadedFile, 'cms/section_items');
+                    if ($path) {
+                        $data['image'] = $path;
+                    }
+                }
+
+                unset($data['image_file']);
+
                 $section->items()->create([
                     'order' => $item['order'] ?? ($index + 1),
-                    'data' => $item['data'],
+                    'data' => $data,
                 ]);
             }
         });
+
+        $newImagePaths = $section->items()
+            ->get()
+            ->map(fn ($item) => (string) data_get($item->data, 'image', ''))
+            ->filter(fn ($path) => $path !== '' && Str::startsWith($path, 'uploads/'))
+            ->unique()
+            ->values()
+            ->all();
+
+        foreach (array_diff($oldImagePaths, $newImagePaths) as $obsoletePath) {
+            FileHandle::fileDelete($obsoletePath);
+        }
+
+        $this->bustPageCache($section->page->slug);
 
         return $this->success('Section items saved.');
     }
@@ -382,8 +436,12 @@ class PageSectionController extends Controller
             return $this->error('Only non-visible sections can be removed.', [], 422);
         }
 
+        $slug = $section->page->slug;
+
         $this->cleanupSectionMedia($section);
         $section->delete();
+
+        $this->bustPageCache($slug);
 
         return $this->success('Section removed successfully.');
     }
@@ -394,6 +452,7 @@ class PageSectionController extends Controller
             return $this->error('Only non-visible (draft) pages can be removed.', [], 422);
         }
 
+        $slug = $page->slug;
         $page->load(['sections.contents']);
 
         foreach ($page->sections as $section) {
@@ -401,6 +460,8 @@ class PageSectionController extends Controller
         }
 
         $page->delete();
+
+        $this->bustPageCache($slug);
 
         return $this->success('Page removed successfully.', [
             'redirect' => route('admin.cms.pages.index'),
@@ -432,7 +493,15 @@ class PageSectionController extends Controller
             }
         });
 
+        $this->bustPageCache($page->slug);
+
         return $this->success('Section order updated.');
+    }
+
+    private function bustPageCache(string $slug): void
+    {
+        Cache::forget('api:cms:pages:index');
+        Cache::forget('api:cms:page:' . $slug . ':en');
     }
 
     private function cleanupSectionMedia(Section $section): void

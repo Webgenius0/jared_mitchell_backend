@@ -80,11 +80,31 @@
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link menu-link {{ request()->routeIs('admin.cms.pages.*') ? 'active' : '' }}"
-                        href="{{ route('admin.cms.pages.index') }}">
+                    
+                    <a class="nav-link menu-link {{ request()->routeIs('admin.cms.pages.*') ? 'active' : '' }}" href="#sidebarCmsPage"
+                        data-bs-toggle="collapse" role="button" aria-expanded="{{ request()->routeIs('admin.cms.*') ? 'true' : 'false' }}"
+                        aria-controls="sidebarCmsPage">
                         <i class="ri-layout-5-line"></i>
-                        <span>CMS Pages</span>
+                        <span>CMS</span>
                     </a>
+
+                    <div class="collapse menu-dropdown {{ request()->routeIs('admin.cms.pages.index', 'admin.cms.pricing.index') ? 'show' : '' }}" id="sidebarCmsPage">
+                        <ul class="nav nav-sm flex-column">
+                            <li class="nav-item">
+                                <a href="{{ route('admin.cms.pages.index') }}"
+                                    class="nav-link {{ request()->routeIs('admin.cms.pages.index') ? 'active' : '' }}">
+                                    <i class="ri-wechat-line"></i> CMS Pages
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a href="{{ route('admin.cms.pricing.index') }}"
+                                    class="nav-link {{ request()->routeIs('admin.cms.pricing.index') ? 'active' : '' }}">
+                                    <i class="ri-mail-unread-line"></i> Price Plan
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
                 </li>
 
                 {{-- Contact --}}
