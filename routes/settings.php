@@ -71,4 +71,8 @@ Route::prefix('settings')->name('admin.settings.')->group(function () {
     // AI Platform — writes to .env
     Route::get('/ai',        [EnvSettingsController::class, 'ai'])->name('ai');
     Route::patch('/ai',      [EnvSettingsController::class, 'updateAi'])->name('ai.update');
+
+    // HubSpot CRM — writes to .env
+    Route::get('/hubspot',   [EnvSettingsController::class, 'hubspot'])->name('hubspot');
+    Route::patch('/hubspot', [EnvSettingsController::class, 'updateHubspot'])->name('hubspot.update');
 });

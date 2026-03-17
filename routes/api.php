@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\Auth\V2\ForgotPasswordController as V2ForgotPasswor
 use App\Http\Controllers\Api\Auth\V2\RegisterController as V2RegisterController;
 use App\Http\Controllers\Api\Cms\CmsPageController;
 use App\Http\Controllers\Api\Cms\CmsPricingController;
+use App\Http\Controllers\Api\HubSpotController;
 use Illuminate\Support\Facades\Route;
 
 // health check
@@ -104,3 +105,22 @@ Route::group(['prefix' => 'v2'], function () {
 
 // Legacy alias — now delegates to the proper CMS controller
 Route::get('/pricing-plans', [CmsPricingController::class, 'index']);
+
+/*
+|--------------------------------------------------------------------------
+| HubSpot — CRM, Forms & Newsletter (public, no auth required)
+|--------------------------------------------------------------------------
+*/
+Route::group(['prefix' => 'v1/hubspot'], function () {
+    // CRM contacts
+    Route::post('/contact',  [HubSpotController::class, 'upsertContact']);
+    Route::get('/contact',   [HubSpotController::class, 'findContact']);
+
+    // Form submissions
+    Route::post('/form/{formGuid}', [HubSpotController::class, 'submitForm'])
+        ->where('formGuid', '[0-9a-fA-F\-]{36}');
+
+    // Newsletter
+    Route::post('/newsletter/subscribe',   [HubSpotController::class, 'newsletterSubscribe']);
+    Route::post('/newsletter/unsubscribe', [HubSpotController::class, 'newsletterUnsubscribe']);
+});

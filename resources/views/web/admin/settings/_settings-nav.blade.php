@@ -60,6 +60,10 @@
                     class="list-group-item list-group-item-action d-flex align-items-center gap-2 px-3 py-2 {{ request()->routeIs('admin.settings.ai') ? 'active' : '' }}">
                     <i class="ri-robot-line fs-15"></i> AI Platform
                 </a>
+                <a href="{{ route('admin.settings.hubspot') }}"
+                    class="list-group-item list-group-item-action d-flex align-items-center gap-2 px-3 py-2 {{ request()->routeIs('admin.settings.hubspot') ? 'active' : '' }}">
+                    <i class="ri-contacts-line fs-15"></i> HubSpot (CRM)
+                </a>
 
                 {{-- System --}}
                 <div class="list-group-item py-2 px-3 bg-light">

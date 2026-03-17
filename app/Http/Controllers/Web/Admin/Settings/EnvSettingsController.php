@@ -43,6 +43,10 @@ class EnvSettingsController extends Controller
     {
         return view('web.admin.settings.ai');
     }
+    public function hubspot(): View
+    {
+        return view('web.admin.settings.hubspot');
+    }
 
 
     /*
@@ -310,6 +314,36 @@ class EnvSettingsController extends Controller
         Artisan::call('config:clear');
 
         return $this->success('AI platform settings updated successfully.');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | PATCH /admin/settings/hubspot
+    |--------------------------------------------------------------------------
+    */
+    public function updateHubspot(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'hubspot_access_token'        => ['nullable', 'string', 'max:255'],
+            'hubspot_portal_id'           => ['nullable', 'string', 'max:100'],
+            'hubspot_newsletter_form_guid' => ['nullable', 'string', 'max:100'],
+        ], [
+            'hubspot_access_token.max'         => 'Access token must not exceed 255 characters.',
+            'hubspot_portal_id.max'            => 'Portal ID must not exceed 100 characters.',
+            'hubspot_newsletter_form_guid.max' => 'Newsletter form GUID must not exceed 100 characters.',
+        ]);
+
+        if ($validator->fails()) return $this->validationError($validator);
+
+        $this->writeEnv([
+            'HUBSPOT_ACCESS_TOKEN'        => $request->hubspot_access_token ?? '',
+            'HUBSPOT_PORTAL_ID'           => $request->hubspot_portal_id ?? '',
+            'HUBSPOT_NEWSLETTER_FORM_GUID' => $request->hubspot_newsletter_form_guid ?? '',
+        ]);
+
+        Artisan::call('config:clear');
+
+        return $this->success('HubSpot settings updated successfully.');
     }
 
     /*
