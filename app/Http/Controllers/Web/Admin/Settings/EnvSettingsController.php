@@ -39,6 +39,10 @@ class EnvSettingsController extends Controller
     {
         return view('web.admin.settings.imap');
     }
+    public function ai(): View
+    {
+        return view('web.admin.settings.ai');
+    }
 
 
     /*
@@ -273,6 +277,39 @@ class EnvSettingsController extends Controller
         } catch (\Throwable $e) {
             return $this->error('Command failed: ' . $e->getMessage(), [], 500);
         }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | PATCH /admin/settings/ai
+    |--------------------------------------------------------------------------
+    */
+    public function updateAi(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'ai_provider'        => ['required', 'in:openai,anthropic,gemini'],
+            'openai_api_key'     => ['nullable', 'string', 'max:255'],
+            'openai_organization'=> ['nullable', 'string', 'max:255'],
+            'anthropic_api_key'  => ['nullable', 'string', 'max:255'],
+            'gemini_api_key'     => ['nullable', 'string', 'max:255'],
+        ], [
+            'ai_provider.required' => 'Please select an active AI provider.',
+            'ai_provider.in'       => 'Invalid AI provider selected.',
+        ]);
+
+        if ($validator->fails()) return $this->validationError($validator);
+
+        $this->writeEnv([
+            'AI_PROVIDER'         => $request->ai_provider,
+            'OPENAI_API_KEY'      => $request->openai_api_key ?? '',
+            'OPENAI_ORGANIZATION' => $request->openai_organization ?? '',
+            'ANTHROPIC_API_KEY'   => $request->anthropic_api_key ?? '',
+            'GEMINI_API_KEY'      => $request->gemini_api_key ?? '',
+        ]);
+
+        Artisan::call('config:clear');
+
+        return $this->success('AI platform settings updated successfully.');
     }
 
     /*

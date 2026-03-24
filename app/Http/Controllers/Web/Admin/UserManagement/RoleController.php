@@ -24,8 +24,7 @@ class RoleController extends Controller
 
     public function getData(Request $request)
     {
-        $query = Role::where('guard_name', 'admin')
-            ->withCount(['permissions', 'users']);
+        $query = Role::withCount(['permissions', 'users']);
 
         return datatables()->of($query)
             ->addIndexColumn()
@@ -93,6 +92,7 @@ class RoleController extends Controller
 
     public function store(StoreRoleRequest $request)
     {
+        
         $role = $this->roleService->createRole($request->validated());
 
         return $this->success('Role created successfully.', [], route('admin.roles.index'));

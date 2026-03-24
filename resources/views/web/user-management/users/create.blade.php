@@ -51,7 +51,7 @@
                                         </div>
                                         <div class="col-md-6">
                                             <label class="form-label">Status</label>
-                                            <select class="form-select" name="status" id="status">
+                                            <select class="form-select form-control" name="status" id="status1">
                                                 <option value="active">Active</option>
                                                 <option value="inactive">Inactive</option>
                                             </select>
@@ -158,61 +158,60 @@
 
 @push('scripts')
 <script>
-(function() {
+(function($) {
     'use strict';
 
     // ── Role permissions mapping ──
     const rolePermissions = @json($roles->mapWithKeys(fn($r) => [$r->name => $r->permissions->pluck('name')]));
 
     // ── Show inherited permissions when role checkboxes change ──
-    document.querySelectorAll('.role-checkbox').forEach(function(cb) {
-        cb.addEventListener('change', updateInheritedPermissions);
-    });
+    $(document).on('change', '.role-checkbox', updateInheritedPermissions);
 
     function updateInheritedPermissions() {
-        const container = document.getElementById('inheritedPermissions');
-        const checked = Array.from(document.querySelectorAll('.role-checkbox:checked')).map(c => c.value);
+        const $container = $('#inheritedPermissions');
+        const checked = $('.role-checkbox:checked').map(function() {
+            return $(this).val();
+        }).get();
 
         if (checked.length === 0) {
-            container.innerHTML = '<span class="text-muted fs-12">Select a role to see inherited permissions.</span>';
+            $container.html('<span class="text-muted fs-12">Select a role to see inherited permissions.</span>');
             return;
         }
 
         const perms = new Set();
-        checked.forEach(role => {
+        checked.forEach(function(role) {
             (rolePermissions[role] || []).forEach(p => perms.add(p));
         });
 
-        container.innerHTML = Array.from(perms).sort().map(p =>
-            '<span class="badge bg-light text-body fs-12">' + p + '</span>'
-        ).join('');
+        $container.html(
+            Array.from(perms).sort().map(p =>
+                '<span class="badge bg-light text-body fs-12">' + p + '</span>'
+            ).join('')
+        );
     }
 
     // ── Avatar Preview ──
-    document.getElementById('avatar').addEventListener('change', function(e) {
+    $(document).on('change', '#avatar', function(e) {
         const file = e.target.files[0];
         if (!file) return;
 
         const reader = new FileReader();
         reader.onload = function(ev) {
-            const preview = document.getElementById('avatarPreview');
-            const container = document.getElementById('avatarPreviewContainer');
-            preview.src = ev.target.result;
-            preview.classList.remove('d-none');
-            container.classList.add('d-none');
+            $('#avatarPreview').attr('src', ev.target.result).removeClass('d-none');
+            $('#avatarPreviewContainer').addClass('d-none');
         };
         reader.readAsDataURL(file);
     });
 
     // ── Password Strength ──
-    document.getElementById('password').addEventListener('input', function() {
-        const bar = document.getElementById('passwordStrengthBar');
-        const barEl = document.getElementById('strengthBar');
-        const textEl = document.getElementById('strengthText');
-        const val = this.value;
+    $(document).on('input', '#password', function() {
+        const $bar = $('#passwordStrengthBar');
+        const $barEl = $('#strengthBar');
+        const $textEl = $('#strengthText');
+        const val = $(this).val();
 
-        if (!val) { bar.style.display = 'none'; return; }
-        bar.style.display = 'block';
+        if (!val) { $bar.hide(); return; }
+        $bar.show();
 
         let score = 0;
         if (val.length >= 8) score++;
@@ -222,54 +221,52 @@
         if (/[^a-zA-Z0-9]/.test(val)) score++;
 
         const levels = [
-            { width: '20%', color: 'bg-danger', text: 'Very Weak' },
-            { width: '40%', color: 'bg-warning', text: 'Weak' },
-            { width: '60%', color: 'bg-info', text: 'Fair' },
-            { width: '80%', color: 'bg-primary', text: 'Strong' },
-            { width: '100%', color: 'bg-success', text: 'Very Strong' },
+            { width: '20%', color: 'bg-danger',  text: 'Very Weak'  },
+            { width: '40%', color: 'bg-warning',  text: 'Weak'       },
+            { width: '60%', color: 'bg-info',     text: 'Fair'       },
+            { width: '80%', color: 'bg-primary',  text: 'Strong'     },
+            { width: '100%',color: 'bg-success',  text: 'Very Strong'},
         ];
         const level = levels[Math.min(score, 5) - 1] || levels[0];
-        barEl.style.width = level.width;
-        barEl.className = 'progress-bar ' + level.color;
-        textEl.textContent = level.text;
+
+        $barEl.css('width', level.width)
+              .attr('class', 'progress-bar ' + level.color);
+        $textEl.text(level.text);
     });
 
     // ── Password Toggle ──
-    document.querySelectorAll('.password-toggle').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-            const target = document.getElementById(this.dataset.target);
-            const icon = this.querySelector('i');
-            if (target.type === 'password') {
-                target.type = 'text';
-                icon.classList.replace('ri-eye-off-line', 'ri-eye-line');
-            } else {
-                target.type = 'password';
-                icon.classList.replace('ri-eye-line', 'ri-eye-off-line');
-            }
-        });
+    $(document).on('click', '.password-toggle', function() {
+        const $target = $('#' + $(this).data('target'));
+        const $icon = $(this).find('i');
+
+        if ($target.attr('type') === 'password') {
+            $target.attr('type', 'text');
+            $icon.removeClass('ri-eye-off-line').addClass('ri-eye-line');
+        } else {
+            $target.attr('type', 'password');
+            $icon.removeClass('ri-eye-line').addClass('ri-eye-off-line');
+        }
     });
 
     // ── Tab Memory (localStorage) ──
     const TAB_KEY = 'user_create_tab';
     const savedTab = localStorage.getItem(TAB_KEY);
     if (savedTab) {
-        const tabEl = document.querySelector('[data-tab-key="' + savedTab + '"]');
-        if (tabEl) new bootstrap.Tab(tabEl).show();
+        const $tabEl = $('[data-tab-key="' + savedTab + '"]');
+        if ($tabEl.length) new bootstrap.Tab($tabEl[0]).show();
     }
-    document.querySelectorAll('[data-tab-key]').forEach(function(tab) {
-        tab.addEventListener('shown.bs.tab', function() {
-            localStorage.setItem(TAB_KEY, this.dataset.tabKey);
-        });
+    $(document).on('shown.bs.tab', '[data-tab-key]', function() {
+        localStorage.setItem(TAB_KEY, $(this).data('tabKey'));
     });
 
     // ── Form Submit ──
-    document.getElementById('createUserForm').addEventListener('submit', function(e) {
+    $(document).on('submit', '#createUserForm', function(e) {
         e.preventDefault();
         clearErrors();
 
-        const btn = document.getElementById('submitBtn');
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
+        const $btn = $('#submitBtn');
+        $btn.prop('disabled', true)
+            .html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
 
         const formData = new FormData(this);
 
@@ -285,30 +282,27 @@
         })
         .catch(function(err) {
             const data = err.response?.data;
-            if (data?.errors) {
-                showErrors(data.errors);
-            }
+            if (data?.errors) showErrors(data.errors);
             Toast.error(data?.message || 'Failed to create user.');
         })
         .finally(function() {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="ri-save-line me-1"></i> Save User';
+            $btn.prop('disabled', false)
+                .html('<i class="ri-save-line me-1"></i> Save User');
         });
     });
 
     function clearErrors() {
-        document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-        document.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
+        $('.is-invalid').removeClass('is-invalid');
+        $('.invalid-feedback').text('');
     }
 
     function showErrors(errors) {
-        Object.keys(errors).forEach(function(field) {
-            const input = document.querySelector('[name="' + field + '"]');
-            const errorDiv = document.getElementById('error-' + field);
-            if (input) input.classList.add('is-invalid');
-            if (errorDiv) errorDiv.textContent = errors[field][0];
+        $.each(errors, function(field, messages) {
+            $('[name="' + field + '"]').addClass('is-invalid');
+            $('#error-' + field).text(messages[0]);
         });
     }
-})();
+
+})(jQuery);
 </script>
 @endpush

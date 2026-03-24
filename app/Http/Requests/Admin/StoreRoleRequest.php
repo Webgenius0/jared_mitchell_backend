@@ -15,6 +15,7 @@ class StoreRoleRequest extends FormRequest
     {
         return [
             'name'           => ['required', 'string', 'max:100', 'unique:roles,name'],
+            'guard_name'     => ['required', 'string', 'max:100'],
             'permissions'    => ['nullable', 'array'],
             'permissions.*'  => ['exists:permissions,name'],
         ];
@@ -24,6 +25,7 @@ class StoreRoleRequest extends FormRequest
     {
         return [
             'name.unique' => 'A role with this name already exists.',
+            'guard_name.required' => 'The guard name is required.',
         ];
     }
 }

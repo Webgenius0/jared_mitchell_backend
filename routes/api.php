@@ -9,6 +9,8 @@ use App\Http\Controllers\Api\Auth\V2\RegisterController as V2RegisterController;
 use App\Http\Controllers\Api\Chat\ConversationController;
 use App\Http\Controllers\Api\Chat\MessageController;
 use App\Http\Controllers\Api\Chat\TypingController;
+use App\Http\Controllers\Api\Cms\CmsPageController;
+use App\Http\Controllers\Api\Cms\CmsPricingController;
 use Illuminate\Support\Facades\Route;
 
 // health check
@@ -43,6 +45,17 @@ Route::group(['prefix' => 'v1'], function ($router) {
         Route::post('/forgot-password', [ForgotPasswordController::class, 'sendOtp']); // DONE: send forgot password otp
         Route::post('/verify-otp', [ForgotPasswordController::class, 'verifyOtp']); // DONE: verify forgot password otp
         Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword']); // DONE: Reset password
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | CMS — Public read-only routes (no auth required)
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('cms')->group(function () {
+        Route::get('/pages',        [CmsPageController::class,    'index']); // All published pages
+        Route::get('/pages/{slug}', [CmsPageController::class,    'show']);  // Single page + visible sections + content
+        Route::get('/pricing',      [CmsPricingController::class, 'index']); // Visible pricing plans with feature groups
     });
 
     /*
@@ -132,3 +145,6 @@ Route::group(['prefix' => 'v2'], function () {
         Route::post('/logout', [LoginController::class, 'logout']); // DONE: logout
     });
 });
+
+// Legacy alias — now delegates to the proper CMS controller
+Route::get('/pricing-plans', [CmsPricingController::class, 'index']);
