@@ -80,7 +80,7 @@
                 </li>
 
                 <li class="nav-item">
-                    
+
                     <a class="nav-link menu-link {{ request()->routeIs('admin.cms.pages.*') ? 'active' : '' }}" href="#sidebarCmsPage"
                         data-bs-toggle="collapse" role="button" aria-expanded="{{ request()->routeIs('admin.cms.*') ? 'true' : 'false' }}"
                         aria-controls="sidebarCmsPage">
@@ -262,7 +262,7 @@
                             <li class="nav-item">
                                 <a href="{{ route('admin.settings.app') }}"
                                     class="nav-link {{ request()->routeIs('admin.settings.app') ? 'active' : '' }}">
-                                    <i class="ri-apps-line"></i> App Setting
+                                    <i class="ri-apps-line"></i> App Settings
                                 </a>
                             </li>
 
