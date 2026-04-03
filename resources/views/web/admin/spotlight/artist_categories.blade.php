@@ -34,44 +34,18 @@
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table class="table table-bordered align-middle">
+                            <table id="categoriesTable" class="table table-bordered align-middle table-nowrap">
                                 <thead class="table-light">
                                     <tr>
-                                        <th style="width: 50px;">Order</th>
+                                        <th style="width: 50px;">#</th>
+                                        <th style="width: 80px;">Order</th>
                                         <th>Name</th>
                                         <th>Slug</th>
                                         <th>Status</th>
                                         <th class="text-center" style="width: 150px;">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    @forelse($categories as $category)
-                                        <tr>
-                                            <td>{{ $category->sort_order }}</td>
-                                            <td>{{ $category->name }}</td>
-                                            <td><code>{{ $category->slug }}</code></td>
-                                            <td>
-                                                <span class="badge {{ $category->is_active ? 'bg-success' : 'bg-danger' }}">
-                                                    {{ $category->is_active ? 'Active' : 'Inactive' }}
-                                                </span>
-                                            </td>
-                                            <td class="text-center">
-                                                <div class="d-flex gap-2 justify-content-center">
-                                                    <button class="btn btn-sm btn-soft-info" onclick="editCategory({{ json_encode($category) }})">
-                                                        <i class="ri-pencil-line"></i>
-                                                    </button>
-                                                    <button class="btn btn-sm btn-soft-danger" onclick="deleteCategory({{ $category->id }})">
-                                                        <i class="ri-delete-bin-line"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="5" class="text-center py-4 text-muted">No categories found.</td>
-                                        </tr>
-                                    @endforelse
-                                </tbody>
+                                <tbody></tbody>
                             </table>
                         </div>
                     </div>
@@ -131,73 +105,95 @@
 
 @push('scripts')
 <script>
-    const categoryForm = document.getElementById('categoryForm');
-    const categoryModal = new bootstrap.Modal(document.getElementById('categoryModal'));
-    
-    function resetForm() {
-        categoryForm.reset();
-        document.getElementById('categoryId').value = '';
-        document.getElementById('modalTitle').innerText = 'Add Artist Category';
-        document.getElementById('saveBtn').innerText = 'Save Category';
-    }
+    (function () {
+        'use strict';
 
-    function editCategory(cat) {
-        resetForm();
-        document.getElementById('categoryId').value = cat.id;
-        document.getElementById('categoryName').value = cat.name;
-        document.getElementById('categorySlug').value = cat.slug;
-        document.getElementById('categoryDescription').value = cat.description;
-        document.getElementById('categoryOrder').value = cat.sort_order;
-        document.getElementById('categoryStatus').checked = !!cat.is_active;
-        document.getElementById('modalTitle').innerText = 'Edit Category';
-        document.getElementById('saveBtn').innerText = 'Update Category';
-        categoryModal.show();
-    }
+        // ── DataTable Initialisation ──────────────────────────────────────────
+        const table = $('#categoriesTable').DataTable({
+            processing: true,
+            serverSide: true,
+            ajax: '{{ route('admin.artist-categories.data') }}',
+            columns: [
+                { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
+                { data: 'sort_order', name: 'sort_order' },
+                { data: 'name', name: 'name' },
+                { data: 'slug', name: 'slug', render: d => `<code>${d}</code>` },
+                { data: 'is_active', name: 'is_active', className: 'text-center' },
+                { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-center' },
+            ],
+            language: {
+                processing: '<div class="spinner-border spinner-border-sm text-primary"></div>',
+            }
+        });
 
-    categoryForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const id = document.getElementById('categoryId').value;
-        const url = id ? `{{ url('admin/cms/artist-categories') }}/${id}` : `{{ route('admin.cms.artist-categories.store') }}`;
-        const method = id ? 'put' : 'post';
+        const categoryForm = document.getElementById('categoryForm');
+        const categoryModal = new bootstrap.Modal(document.getElementById('categoryModal'));
         
-        const data = {
-            name: document.getElementById('categoryName').value,
-            slug: document.getElementById('categorySlug').value,
-            description: document.getElementById('categoryDescription').value,
-            sort_order: document.getElementById('categoryOrder').value,
-            is_active: document.getElementById('categoryStatus').checked,
+        window.resetForm = function() {
+            categoryForm.reset();
+            document.getElementById('categoryId').value = '';
+            document.getElementById('modalTitle').innerText = 'Add Artist Category';
+            document.getElementById('saveBtn').innerText = 'Save Category';
         };
 
-        axios[method](url, data)
-            .then(res => {
-                Toast.success(res.data.message);
-                categoryModal.hide();
-                setTimeout(() => window.location.reload(), 800);
-            })
-            .catch(err => {
-                const msg = err.response?.data?.message || 'Something went wrong.';
-                Toast.error(msg);
-                if (err.response?.data?.errors) {
-                    console.error(err.response.data.errors);
-                }
-            });
-    });
+        $(document).on('click', '.edit-btn', function() {
+            const cat = $(this).data('category');
+            resetForm();
+            document.getElementById('categoryId').value = cat.id;
+            document.getElementById('categoryName').value = cat.name;
+            document.getElementById('categorySlug').value = cat.slug;
+            document.getElementById('categoryDescription').value = cat.description;
+            document.getElementById('categoryOrder').value = cat.sort_order;
+            document.getElementById('categoryStatus').checked = !!cat.is_active;
+            document.getElementById('modalTitle').innerText = 'Edit Category';
+            document.getElementById('saveBtn').innerText = 'Update Category';
+            categoryModal.show();
+        });
 
-    function deleteCategory(id) {
-        Alert.confirm('This will permanently delete the category.', {
-            type: 'danger',
-            confirmText: 'Yes, delete it'
-        }).then(confirmed => {
-            if (!confirmed) return;
-            axios.delete(`{{ url('admin/cms/artist-categories') }}/${id}`)
+        categoryForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const id = document.getElementById('categoryId').value;
+            const url = id ? `{{ url('admin/artist-categories') }}/${id}` : `{{ route('admin.artist-categories.store') }}`;
+            const method = id ? 'put' : 'post';
+            
+            const data = {
+                name: document.getElementById('categoryName').value,
+                slug: document.getElementById('categorySlug').value,
+                description: document.getElementById('categoryDescription').value,
+                sort_order: document.getElementById('categoryOrder').value,
+                is_active: document.getElementById('categoryStatus').checked,
+            };
+
+            axios[method](url, data)
                 .then(res => {
                     Toast.success(res.data.message);
-                    setTimeout(() => window.location.reload(), 800);
+                    categoryModal.hide();
+                    table.draw(false);
                 })
                 .catch(err => {
-                    Toast.error(err.response?.data?.message || 'Delete failed.');
+                    const msg = err.response?.data?.message || 'Something went wrong.';
+                    Toast.error(msg);
                 });
         });
-    }
+
+        $(document).on('click', '.delete-btn', function() {
+            const id = $(this).data('id');
+            Alert.confirm('This will permanently delete the category.', {
+                type: 'danger',
+                confirmText: 'Yes, delete it'
+            }).then(confirmed => {
+                if (!confirmed) return;
+                axios.delete(`{{ url('admin/artist-categories') }}/${id}`)
+                    .then(res => {
+                        Toast.success(res.data.message);
+                        table.draw(false);
+                    })
+                    .catch(err => {
+                        Toast.error(err.response?.data?.message || 'Delete failed.');
+                    });
+            });
+        });
+
+    })();
 </script>
 @endpush

@@ -255,7 +255,7 @@
 
     function loadArtistDetails(id) {
         $('#viewModalBody').html('<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>');
-        axios.get('{{ url('admin/artist-spotlights') }}/' + id)
+        axios.get('{{ url('artist-spotlights') }}/' + id)
             .then(res => {
                 const d = res.data.data;
                 $('#viewModalBody').html(buildDetailsHtml(d));
@@ -339,7 +339,7 @@
     $('#confirmRejectBtn').on('click', () => {
         const reason = $('#rejectReason').val().trim();
         if (!reason) return Toast.error('Reason is required.');
-        axios.post(`{{ url('admin/artist-spotlights') }}/${currentArtistId}/reject`, { reviewer_notes: reason })
+        axios.post(`{{ url('artist-spotlights') }}/${currentArtistId}/reject`, { reviewer_notes: reason })
             .then(res => {
                 Toast.success(res.data.message);
                 $('#rejectModal').modal('hide');
@@ -351,7 +351,7 @@
     function updateStatus(id, action) {
         Alert.confirm(`Are you sure to ${action.replace('-', ' ')} this?`).then(confirmed => {
             if (!confirmed) return;
-            axios.post(`{{ url('admin/artist-spotlights') }}/${id}/${action}`)
+            axios.post(`{{ url('artist-spotlights') }}/${id}/${action}`)
                 .then(res => {
                     Toast.success(res.data.message);
                     $('#viewModal').modal('hide');
@@ -367,7 +367,7 @@
         const id = $(this).data('id');
         Alert.confirm('Move to trash?', { type: 'danger' }).then(confirmed => {
             if (!confirmed) return;
-            axios.delete(`{{ url('admin/artist-spotlights') }}/${id}`)
+            axios.delete(`{{ url('artist-spotlights') }}/${id}`)
                 .then(res => { Toast.success(res.data.message); table.draw(false); })
                 .catch(err => Toast.error(err.response?.data?.message || 'Delete failed.'));
         });

@@ -8,6 +8,7 @@ use App\Traits\AdminApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Yajra\DataTables\Facades\DataTables;
 
 class AdminArtistCategoryController extends Controller
 {
@@ -18,11 +19,30 @@ class AdminArtistCategoryController extends Controller
      */
     public function index()
     {
-        $categories = ArtistCategory::orderBy('sort_order')
-            ->orderBy('name')
-            ->get();
+        return view('web.admin.spotlight.artist_categories');
+    }
 
-        return view('web.admin.spotlight.artist_categories', compact('categories'));
+    /**
+     * Get data for DataTables.
+     */
+    public function getData(Request $request)
+    {
+        $query = ArtistCategory::query()->orderBy('sort_order')->orderBy('name');
+
+        return DataTables::of($query)
+            ->addIndexColumn()
+            ->addColumn('is_active', function ($row) {
+                $status = $row->is_active ? 'Active' : 'Inactive';
+                $class = $row->is_active ? 'bg-success' : 'bg-danger';
+                return '<span class="badge ' . $class . '">' . $status . '</span>';
+            })
+            ->addColumn('action', function ($row) {
+                $editBtn = '<button class="btn btn-sm btn-soft-info edit-btn" data-category=\'' . json_encode($row) . '\' title="Edit"><i class="ri-pencil-line"></i></button>';
+                $deleteBtn = '<button class="btn btn-sm btn-soft-danger delete-btn" data-id="' . $row->id . '" title="Delete"><i class="ri-delete-bin-line"></i></button>';
+                return '<div class="d-flex gap-2 justify-content-center">' . $editBtn . $deleteBtn . '</div>';
+            })
+            ->rawColumns(['is_active', 'action'])
+            ->make(true);
     }
 
     /**

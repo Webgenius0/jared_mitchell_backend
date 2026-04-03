@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\FileHandle;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ArtistSpotlightRequest;
 use App\Http\Resources\ArtistSpotlightResource;
@@ -16,6 +17,23 @@ use Illuminate\Support\Facades\Validator;
 class ArtistSpotlightController extends Controller
 {
     use ApiResponse;
+
+    public function index()
+    {
+        $spotlights = ArtistSpotlight::where('status', '!=', 'draft')
+            ->orderBy('submitted_at', 'desc')
+            ->paginate(15);
+
+        return ArtistSpotlightResource::collection($spotlights);
+    }
+
+    public function show($id)
+    {
+        $spotlight = ArtistSpotlight::where('status', '!=', 'draft')
+            ->findOrFail($id);
+
+        return new ArtistSpotlightResource($spotlight);
+    }   
 
     /**
      * Store a new artist spotlight submission.
@@ -136,34 +154,44 @@ class ArtistSpotlightController extends Controller
      */
     private function handleFileUploads(Request $request, array $data): array
     {
-        $disk = 'public';
         $basePath = 'artist-spotlights';
 
         // Headshot photo
         if ($request->hasFile('headshot')) {
-            $data['headshot_path'] = $request->file('headshot')
-                ->store("{$basePath}/headshots", $disk);
+            $path = FileHandle::fileUpload($request->file('headshot'), "{$basePath}/headshots");
+            if ($path) {
+                $data['headshot_path'] = $path;
+            }
         }
 
         // Behind-the-scenes photo
         if ($request->hasFile('behind_scenes_photo')) {
-            $data['behind_scenes_photo_path'] = $request->file('behind_scenes_photo')
-                ->store("{$basePath}/behind-scenes", $disk);
+            $path = FileHandle::fileUpload($request->file('behind_scenes_photo'), "{$basePath}/behind-scenes");
+            if ($path) {
+                $data['behind_scenes_photo_path'] = $path;
+            }
         }
 
         // Intro video
         if ($request->hasFile('intro_video')) {
-            $data['intro_video_path'] = $request->file('intro_video')
-                ->store("{$basePath}/videos", $disk);
+            $path = FileHandle::fileUpload($request->file('intro_video'), "{$basePath}/videos");
+            if ($path) {
+                $data['intro_video_path'] = $path;
+            }
         }
 
         // Artwork photos (multiple)
         if ($request->hasFile('artwork_photos')) {
             $paths = [];
             foreach ($request->file('artwork_photos') as $photo) {
-                $paths[] = $photo->store("{$basePath}/artworks", $disk);
+                $path = FileHandle::fileUpload($photo, "{$basePath}/artworks");
+                if ($path) {
+                    $paths[] = $path;
+                }
             }
-            $data['artwork_photo_paths'] = $paths;
+            if (!empty($paths)) {
+                $data['artwork_photo_paths'] = $paths;
+            }
         }
 
         return $data;

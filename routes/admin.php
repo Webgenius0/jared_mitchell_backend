@@ -117,9 +117,26 @@ Route::prefix('artist-spotlights')->name('admin.artist-spotlights.')->group(func
 | Artist Categories (CMS)
 |--------------------------------------------------------------------------
 */
-Route::prefix('cms/artist-categories')->name('admin.cms.artist-categories.')->group(function () {
+Route::prefix('admin/artist-categories')->name('admin.artist-categories.')->group(function () {
     Route::get('/',                     [\App\Http\Controllers\Web\Admin\Cms\AdminArtistCategoryController::class, 'index'])->name('index');
+    Route::get('/data',                 [\App\Http\Controllers\Web\Admin\Cms\AdminArtistCategoryController::class, 'getData'])->name('data');
     Route::post('/',                    [\App\Http\Controllers\Web\Admin\Cms\AdminArtistCategoryController::class, 'store'])->name('store');
     Route::put('/{category}',           [\App\Http\Controllers\Web\Admin\Cms\AdminArtistCategoryController::class, 'update'])->name('update');
     Route::delete('/{category}',        [\App\Http\Controllers\Web\Admin\Cms\AdminArtistCategoryController::class, 'destroy'])->name('destroy');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Events Management
+|--------------------------------------------------------------------------
+*/
+Route::prefix('events')->name('admin.events.')->group(function () {
+    Route::get('/',                     [\App\Http\Controllers\Web\Admin\Event\EventController::class, 'index'])->name('index');
+    Route::get('/data',                 [\App\Http\Controllers\Web\Admin\Event\EventController::class, 'getData'])->name('data');
+    Route::get('/create',               [\App\Http\Controllers\Web\Admin\Event\EventController::class, 'create'])->name('create');
+    Route::post('/',                    [\App\Http\Controllers\Web\Admin\Event\EventController::class, 'store'])->name('store');
+    Route::get('/{event}',              [\App\Http\Controllers\Web\Admin\Event\EventController::class, 'show'])->name('show');
+    Route::get('/{event}/edit',         [\App\Http\Controllers\Web\Admin\Event\EventController::class, 'edit'])->name('edit');
+    Route::put('/{event}',              [\App\Http\Controllers\Web\Admin\Event\EventController::class, 'update'])->name('update');
+    Route::delete('/{event}',           [\App\Http\Controllers\Web\Admin\Event\EventController::class, 'destroy'])->name('destroy');
 });

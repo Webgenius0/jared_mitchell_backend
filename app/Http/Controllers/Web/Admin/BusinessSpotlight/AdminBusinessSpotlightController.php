@@ -35,7 +35,7 @@ class AdminBusinessSpotlightController extends Controller
             'pending_review' => BusinessSpotlight::whereIn('status', ['submitted', 'under_review'])->count(),
         ];
 
-        return view('web.admin.spotlight.index', compact('stats'));
+        return view('web.admin.spotlight.business', compact('stats'));
     }
 
     /**

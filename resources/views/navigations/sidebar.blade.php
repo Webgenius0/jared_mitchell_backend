@@ -135,13 +135,21 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="{{ route('admin.cms.artist-categories.index') }}"
-                                    class="nav-link {{ request()->routeIs('admin.cms.artist-categories.*') ? 'active' : '' }}">
+                                <a href="{{ route('admin.artist-categories.index') }}"
+                                    class="nav-link {{ request()->routeIs('admin.artist-categories.*') ? 'active' : '' }}">
                                     <i class="ri-list-settings-line"></i> Artist Category
                                 </a>
                             </li>
                         </ul>
                     </div>
+                </li>
+
+                {{-- Events --}}
+                <li class="nav-item">
+                    <a class="nav-link menu-link {{ request()->routeIs('admin.events.*') ? 'active' : '' }}" href="{{ route('admin.events.index') }}">
+                        <i class="ri-calendar-event-line"></i>
+                        <span>Events</span>
+                    </a>
                 </li>
 
                 {{-- Contact --}}

@@ -62,9 +62,11 @@ Route::group(['prefix' => 'v1'], function ($router) {
     |--------------------------------------------------------------------------
     */
     Route::prefix('business-spotlight')->group(function () {
+        Route::get('/', [BusinessSpotlightController::class,'index']);
         Route::post('/',       [BusinessSpotlightController::class, 'store']);     // Submit complete form
         Route::post('/draft',  [BusinessSpotlightController::class, 'saveDraft']); // Save draft (partial)
         Route::get('/draft',   [BusinessSpotlightController::class, 'getDraft']);  // Retrieve draft by email
+        Route::get('/{id}', [BusinessSpotlightController::class, 'show']);  // Retrieve draft by email
     });
 
     /*
@@ -75,9 +77,21 @@ Route::group(['prefix' => 'v1'], function ($router) {
     */
     Route::get('/artist-categories', [\App\Http\Controllers\Api\ArtistCategoryController::class, 'index']);
     Route::prefix('artist-spotlight')->group(function () {
+        Route::get('/',       [\App\Http\Controllers\Api\ArtistSpotlightController::class, 'index']);     // Submit complete form
         Route::post('/',       [\App\Http\Controllers\Api\ArtistSpotlightController::class, 'store']);     // Submit complete form
         Route::post('/draft',  [\App\Http\Controllers\Api\ArtistSpotlightController::class, 'saveDraft']); // Save draft (partial)
         Route::get('/draft',   [\App\Http\Controllers\Api\ArtistSpotlightController::class, 'getDraft']);  // Retrieve draft by email
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Events — Public listing and registration
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('events')->group(function () {
+        Route::get('/',            [\App\Http\Controllers\Api\EventController::class, 'index']);    // List all
+        Route::get('/{slug}',      [\App\Http\Controllers\Api\EventController::class, 'show']);     // Detail
+        Route::post('/register',   [\App\Http\Controllers\Api\EventController::class, 'register']); // Register
     });
 
     /*

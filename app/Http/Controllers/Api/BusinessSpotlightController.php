@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\FileHandle;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BusinessSpotlightRequest;
 use App\Http\Resources\BusinessSpotlightResource;
@@ -11,12 +12,29 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class BusinessSpotlightController extends Controller
 {
     use ApiResponse;
+
+    public function index()
+    {
+        $spotlights = BusinessSpotlight::where('status', '!=', 'draft')
+            ->orderBy('submitted_at', 'desc')
+            ->paginate(15);
+
+        return BusinessSpotlightResource::collection($spotlights);
+    }
+
+    public function show($id)
+    {
+        $spotlight = BusinessSpotlight::with('category')
+            ->where('status', '!=', 'draft')
+            ->findOrFail($id);
+
+        return new BusinessSpotlightResource($spotlight);
+    }   
 
     /**
      * Store a new business spotlight submission.
@@ -136,34 +154,44 @@ class BusinessSpotlightController extends Controller
      */
     private function handleFileUploads(Request $request, array $data): array
     {
-        $disk = 'public';
         $basePath = 'business-spotlights';
 
         // Portrait photo
         if ($request->hasFile('portrait_photo')) {
-            $data['portrait_photo_path'] = $request->file('portrait_photo')
-                ->store("{$basePath}/portraits", $disk);
+            $path = FileHandle::fileUpload($request->file('portrait_photo'), "{$basePath}/portraits");
+            if ($path) {
+                $data['portrait_photo_path'] = $path;
+            }
         }
 
         // Storefront/workspace photo
         if ($request->hasFile('storefront_workspace_photo')) {
-            $data['storefront_workspace_photo_path'] = $request->file('storefront_workspace_photo')
-                ->store("{$basePath}/storefronts", $disk);
+            $path = FileHandle::fileUpload($request->file('storefront_workspace_photo'), "{$basePath}/storefronts");
+            if ($path) {
+                $data['storefront_workspace_photo_path'] = $path;
+            }
         }
 
         // Team photo
         if ($request->hasFile('team_photo')) {
-            $data['team_photo_path'] = $request->file('team_photo')
-                ->store("{$basePath}/teams", $disk);
+            $path = FileHandle::fileUpload($request->file('team_photo'), "{$basePath}/teams");
+            if ($path) {
+                $data['team_photo_path'] = $path;
+            }
         }
 
         // Product/service photos (multiple)
         if ($request->hasFile('product_service_photos')) {
             $paths = [];
             foreach ($request->file('product_service_photos') as $photo) {
-                $paths[] = $photo->store("{$basePath}/products", $disk);
+                $path = FileHandle::fileUpload($photo, "{$basePath}/products");
+                if ($path) {
+                    $paths[] = $path;
+                }
             }
-            $data['product_service_photo_paths'] = $paths;
+            if (!empty($paths)) {
+                $data['product_service_photo_paths'] = $paths;
+            }
         }
 
         return $data;
