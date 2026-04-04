@@ -107,6 +107,51 @@
                     </div>
                 </li>
 
+                {{-- Spotlight --}}
+                @php
+                    $spotlightOpen = request()->routeIs('admin.business-spotlights.*', 'admin.artist-spotlights.*', 'admin.cms.artist-categories.*');
+                @endphp
+
+                <li class="nav-item">
+                    <a class="nav-link menu-link {{ $spotlightOpen ? 'active' : '' }}" href="#sidebarSpotlight"
+                        data-bs-toggle="collapse" role="button" aria-expanded="{{ $spotlightOpen ? 'true' : 'false' }}"
+                        aria-controls="sidebarSpotlight">
+                        <i class="ri-star-smile-line"></i>
+                        <span>Spotlight</span>
+                    </a>
+
+                    <div class="collapse menu-dropdown {{ $spotlightOpen ? 'show' : '' }}" id="sidebarSpotlight">
+                        <ul class="nav nav-sm flex-column">
+                            <li class="nav-item">
+                                <a href="{{ route('admin.business-spotlights.index') }}"
+                                    class="nav-link {{ request()->routeIs('admin.business-spotlights.*') ? 'active' : '' }}">
+                                    <i class="ri-store-2-line"></i> Business
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('admin.artist-spotlights.index') }}"
+                                    class="nav-link {{ request()->routeIs('admin.artist-spotlights.*') ? 'active' : '' }}">
+                                    <i class="ri-user-star-line"></i> Artist
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('admin.artist-categories.index') }}"
+                                    class="nav-link {{ request()->routeIs('admin.artist-categories.*') ? 'active' : '' }}">
+                                    <i class="ri-list-settings-line"></i> Artist Category
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+
+                {{-- Events --}}
+                <li class="nav-item">
+                    <a class="nav-link menu-link {{ request()->routeIs('admin.events.*') ? 'active' : '' }}" href="{{ route('admin.events.index') }}">
+                        <i class="ri-calendar-event-line"></i>
+                        <span>Events</span>
+                    </a>
+                </li>
+
                 {{-- Contact --}}
                 @php
                     // System Settings dropdown is open when any child route is active

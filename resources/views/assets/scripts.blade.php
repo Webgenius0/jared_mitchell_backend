@@ -20,6 +20,9 @@
 <!-- Swiper -->
 <script src="{{ asset('admin/assets/libs/swiper/swiper-bundle.min.js') }}"></script>
 
+<!-- Flatpickr -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
 <!-- Dashboard init -->
 <script src="{{ asset('admin/assets/js/pages/dashboard-ecommerce.init.js') }}"></script>
 

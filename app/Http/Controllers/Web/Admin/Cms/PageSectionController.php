@@ -43,6 +43,10 @@ class PageSectionController extends Controller
         if ($request->has('slug')) {
             $slug = (string) $request->string('slug')->trim()->value();
             $payload['slug'] = $slug !== '' ? $slug : Str::slug((string) ($payload['name'] ?? $page->name));
+
+            if ($payload['slug'] !== $page->slug && Page::where('slug', $payload['slug'])->exists()) {
+                return $this->error('Slug already exists.', ['slug' => ['Slug already exists.']], 422);
+            }
         }
 
         if ($request->has('meta_title')) {
@@ -61,9 +65,14 @@ class PageSectionController extends Controller
             return $this->error('No update payload provided.', [], 422);
         }
 
+        $oldSlug = $page->slug;
+
         $page->update($payload);
 
-        $this->bustPageCache($page->slug);
+        $this->bustPageCache($oldSlug);
+        if ($oldSlug !== $page->slug) {
+            $this->bustPageCache($page->slug);
+        }
 
         return $this->success('Page updated successfully.', [
             'page' => $page->fresh(),
@@ -370,7 +379,7 @@ class PageSectionController extends Controller
     public function updateItems(Request $request, Section $section): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'items' => ['required', 'array'],
+            'items' => ['nullable', 'array'],
             'items.*.order' => ['nullable', 'integer', 'min:0'],
             'items.*.data' => ['required', 'array'],
             'items.*.data.image' => ['nullable', 'string', 'max:2048'],
