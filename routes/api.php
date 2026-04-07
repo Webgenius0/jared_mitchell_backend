@@ -92,6 +92,8 @@ Route::group(['prefix' => 'v1'], function ($router) {
         Route::get('/',            [\App\Http\Controllers\Api\EventController::class, 'index']);    // List all
         Route::get('/{slug}',      [\App\Http\Controllers\Api\EventController::class, 'show']);     // Detail
         Route::post('/register',   [\App\Http\Controllers\Api\EventController::class, 'register']); // Register
+        Route::get('/0/upcoming',    [\App\Http\Controllers\Api\EventController::class, 'upcomingEvents']); // Upcoming
+        Route::get('/0/past',        [\App\Http\Controllers\Api\EventController::class, 'pastEvents']); // Past
     });
 
     /*
