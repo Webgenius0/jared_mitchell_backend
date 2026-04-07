@@ -7,6 +7,7 @@ use App\Http\Controllers\Web\Admin\Cms\PricingController;
 use App\Http\Controllers\Web\Admin\Contact\AdminChattingController;
 use App\Http\Controllers\Web\Admin\Contact\AdminMailingController;
 use App\Http\Controllers\Web\Admin\Dashboard\AdminDashboardController;
+use App\Http\Controllers\Web\Admin\Product\ProductController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [AdminDashboardController::class, 'index'])->name('show.admin.dashboard'); // show admin dashboard
@@ -139,4 +140,19 @@ Route::prefix('events')->name('admin.events.')->group(function () {
     Route::get('/{event}/edit',         [\App\Http\Controllers\Web\Admin\Event\EventController::class, 'edit'])->name('edit');
     Route::put('/{event}',              [\App\Http\Controllers\Web\Admin\Event\EventController::class, 'update'])->name('update');
     Route::delete('/{event}',           [\App\Http\Controllers\Web\Admin\Event\EventController::class, 'destroy'])->name('destroy');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Products
+|--------------------------------------------------------------------------
+*/
+Route::prefix('products')->name('admin.products.')->group(function () {
+    Route::get('/',            [ProductController::class, 'index'])->name('index');
+    Route::get('/data',        [ProductController::class, 'getData'])->name('data');
+    Route::get('/create',      [ProductController::class, 'create'])->name('create');
+    Route::post('/',           [ProductController::class, 'store'])->name('store');
+    Route::get('/{product}/edit', [ProductController::class, 'edit'])->name('edit');
+    Route::put('/{product}',   [ProductController::class, 'update'])->name('update');
+    Route::delete('/{product}',[ProductController::class, 'destroy'])->name('destroy');
 });

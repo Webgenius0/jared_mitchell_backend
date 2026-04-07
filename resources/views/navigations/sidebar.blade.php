@@ -80,7 +80,7 @@
                 </li>
 
                 <li class="nav-item">
-                    
+
                     <a class="nav-link menu-link {{ request()->routeIs('admin.cms.pages.*') ? 'active' : '' }}" href="#sidebarCmsPage"
                         data-bs-toggle="collapse" role="button" aria-expanded="{{ request()->routeIs('admin.cms.*') ? 'true' : 'false' }}"
                         aria-controls="sidebarCmsPage">
@@ -237,6 +237,41 @@
                     </div>
                 </li>
                 @endcanany
+
+                <li class="menu-title">
+                    <i class="ri-more-fill"></i>
+                    <span>Product Management</span>
+                </li>
+
+                <li class="nav-item">
+                     <a class="nav-link menu-link {{ request()->routeIs('admin.products.*') ? 'active' : '' }}" href="#sidebarProductManagement"
+                        data-bs-toggle="collapse" role="button" aria-expanded="{{ request()->routeIs('admin.products.*') ? 'true' : 'false' }}"
+                        aria-controls="sidebarProductManagement">
+                        <i class="ri-layout-5-line"></i>
+                        <span>Products Area</span>
+                    </a>
+
+                    <div class="collapse menu-dropdown"
+                        id="sidebarProductManagement">
+                        <ul class="nav nav-sm flex-column">
+
+                            <li class="nav-item">
+                                <a href="{{ route('admin.products.index') }}"
+                                    class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+                                    <i class="ri-user-line"></i> Products
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a href="{{ route('admin.roles.index') }}"
+                                    class="nav-link {{ request()->routeIs('admin.roles.*') ? 'active' : '' }}">
+                                    <i class="ri-shield-star-line"></i> Limited Drops
+                                </a>
+                            </li>
+
+                        </ul>
+                    </div>
+                </li>
 
                 {{-- ── Settings group ───────────────────────────────────── --}}
                 <li class="menu-title">

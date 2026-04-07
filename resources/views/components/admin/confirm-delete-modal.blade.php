@@ -19,7 +19,9 @@ document.addEventListener('click', function(e) {
     }).then(function(confirmed) {
         if (!confirmed) return;
 
-        axios.delete(url)
+        const data = {_method: 'DELETE'};
+
+        axios.post(url, data)
             .then(function(res) {
                 Toast.fromResponse(res.data);
                 if (res.data.redirect) {
