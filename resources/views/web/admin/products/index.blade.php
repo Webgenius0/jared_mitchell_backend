@@ -36,11 +36,19 @@
                 <div class="card">
 
                     {{-- Card Header --}}
-                    <div class="card-header d-flex align-items-center">
-                        <h5 class="card-title mb-0 flex-grow-1">All Products</h5>
-                        <a href="{{ route('admin.products.create') }}" class="btn btn-primary btn-sm">
-                            <i class="ri-add-line align-bottom me-1"></i> Add Product
-                        </a>
+                    <div class="card-header d-flex align-items-center justify-content-between">
+                        <h5 class="card-title mb-0">All Products</h5>
+                        <div class="d-flex flex-wrap gap-2">
+                            <a href="{{ route('admin.products.create','physical') }}" class="btn btn-primary btn-sm">
+                                <i class="ri-add-line align-bottom me-1"></i> Add Physical Product
+                            </a>
+                            <a href="{{ route('admin.products.create','digital') }}" class="btn btn-primary btn-sm">
+                                <i class="ri-add-line align-bottom me-1"></i> Add Digital Product
+                            </a>
+                            <a href="{{ route('admin.products.create','vendor') }}" class="btn btn-primary btn-sm">
+                                <i class="ri-add-line align-bottom me-1"></i> Add Vendor Product
+                            </a>
+                        </div>
                     </div>
 
                     {{-- Custom Filters --}}
@@ -93,6 +101,7 @@
                                     <tr>
                                         <th style="width:50px;">#</th>
                                         <th>Product</th>
+                                        <th>Type</th>
                                         <th>Price</th>
                                         <th>Status</th>
                                         <th>Created</th>
@@ -122,7 +131,7 @@
         processing : true,
         serverSide : true,
         responsive : true,
-        order      : [[4, 'desc']],
+        order      : [[5, 'desc']],
         lengthMenu : [[10, 25, 50, 100], [10, 25, 50, 100]],
         dom        : "<'row align-items-center mb-2'<'col-sm-6'l><'col-sm-6 text-end'i>>t<'row mt-2'<'col-sm-5'i><'col-sm-7'p>>",
         language: {
@@ -142,6 +151,7 @@
         columns: [
             { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
             { data: 'product',     name: 'product',     orderable: true,  searchable: true  },
+            { data: 'type',        name: 'type',        orderable: true,  searchable: true  },
             { data: 'price',       name: 'price',       orderable: true,  searchable: false },
             { data: 'status',      name: 'status',      orderable: false, searchable: false, className: 'text-center' },
             { data: 'created_at',  name: 'created_at',  orderable: true,  searchable: false },

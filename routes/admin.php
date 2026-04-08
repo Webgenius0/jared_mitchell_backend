@@ -150,9 +150,9 @@ Route::prefix('events')->name('admin.events.')->group(function () {
 Route::prefix('products')->name('admin.products.')->group(function () {
     Route::get('/',            [ProductController::class, 'index'])->name('index');
     Route::get('/data',        [ProductController::class, 'getData'])->name('data');
-    Route::get('/create',      [ProductController::class, 'create'])->name('create');
-    Route::post('/',           [ProductController::class, 'store'])->name('store');
-    Route::get('/{product}/edit', [ProductController::class, 'edit'])->name('edit');
-    Route::put('/{product}',   [ProductController::class, 'update'])->name('update');
+    Route::get('/create/{target}',      [ProductController::class, 'create'])->name('create');
+    Route::post('/{target}',           [ProductController::class, 'store'])->name('store');
+    Route::get('/{product}/edit/{target}', [ProductController::class, 'edit'])->name('edit');
+    Route::put('/{product}/{target}',   [ProductController::class, 'update'])->name('update');
     Route::delete('/{product}',[ProductController::class, 'destroy'])->name('destroy');
 });

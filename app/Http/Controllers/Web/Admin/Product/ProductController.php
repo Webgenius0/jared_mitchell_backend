@@ -15,7 +15,23 @@ class ProductController extends Controller
 
     public function __construct()
     {
-        $this->components = ['name', 'image', 'description','price','discount_price','status','stock'];
+        $this->components = ['name', 'image', 'description', 'price', 'discount_price', 'status', 'stock'];
+    }
+
+    public static function productType($variable)
+    {
+        switch ($variable) {
+            case 'digital':
+                return ['name', 'image', 'description', 'price', 'discount_price', 'target_audience', 'status'];
+                break;
+            case 'vendor':
+                return ['name', 'image', 'description', 'price', 'status', 'target_audience', 'delivery_type'];
+                break;
+
+            default:
+                return ['name', 'image', 'description', 'price',  'category', 'status', 'stock'];
+                break;
+        }
     }
     public function index()
     {
@@ -38,17 +54,18 @@ class ProductController extends Controller
         ));
     }
 
-    public function create(Request $request)
+    public function create(Request $request,$target = null )
     {
         $type = $request->get('type', 'physical');
         $fields = ProductForm::fields($type);
+        $components = self::productType($target);
 
-        return view('web.admin.products.create', ['components' => $this->components]);
+        return view('web.admin.products.create', ['components' => $components,'target' => $target]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request,$target = null)
     {
-        $type = $request->get('type', 'physical');
+        $type = $target;
         $fields = ProductForm::fields($type);
 
         $validated = $request->validate(ProductForm::rules($fields));
@@ -59,21 +76,23 @@ class ProductController extends Controller
         $product = Product::create($validated);
 
         return redirect()
-            ->route('admin.products.create')
+            ->route('admin.products.create', $product->type)
             ->with('success', 'Product created successfully.');
     }
 
-    public function edit(Product $product, Request $request)
+    public function edit(Product $product, Request $request, $target = null)
     {
         $type = $request->get('type', $product->type ?? 'physical');
         $fields = ProductForm::fields($type);
+        $components = self::productType($target);
 
-        return view('web.admin.products.edit', compact('product', 'fields', 'type'));
+
+        return view('web.admin.products.edit', compact('product', 'fields', 'type', 'components','target'));
     }
 
-    public function update(Request $request, Product $product)
+    public function update(Request $request, Product $product, $target = null)
     {
-        $type = $request->get('type', $product->type ?? 'physical');
+        $type = $target ?? $product->type ?? 'physical';
         $fields = ProductForm::fields($type);
 
         $validated = $request->validate(ProductForm::rules($fields, $product->id));
@@ -84,7 +103,7 @@ class ProductController extends Controller
         $product->update($validated);
 
         return redirect()
-            ->route('admin.products.edit', $product)
+            ->route('admin.products.edit', [$product,$product->type])
             ->with('success', 'Product updated.');
     }
 
@@ -142,7 +161,7 @@ class ProductController extends Controller
             })
             ->addColumn('created_at', fn(Product $product) => $product->created_at?->format('M d, Y'))
             ->addColumn('action', function (Product $product) {
-                $editUrl = route('admin.products.edit', $product);
+                $editUrl = route('admin.products.edit', [$product, $product->type]);
                 $deleteUrl = route('admin.products.destroy', $product);
 
                 return '<div class="d-flex gap-2 justify-content-center">'
