@@ -11,6 +11,12 @@ use Yajra\DataTables\Facades\DataTables;
 
 class ProductController extends Controller
 {
+    public $components;
+
+    public function __construct()
+    {
+        $this->components = ['name', 'image', 'description','price','discount_price','status','stock'];
+    }
     public function index()
     {
         $totalProducts   = Product::count();
@@ -37,7 +43,7 @@ class ProductController extends Controller
         $type = $request->get('type', 'physical');
         $fields = ProductForm::fields($type);
 
-        return view('web.admin.products.create',);
+        return view('web.admin.products.create', ['components' => $this->components]);
     }
 
     public function store(Request $request)
@@ -134,7 +140,7 @@ class ProductController extends Controller
                     : 'bg-secondary-subtle text-secondary';
                 return '<span class="badge ' . $class . '">' . e(ucfirst($product->status)) . '</span>';
             })
-            ->addColumn('created_at', fn (Product $product) => $product->created_at?->format('M d, Y'))
+            ->addColumn('created_at', fn(Product $product) => $product->created_at?->format('M d, Y'))
             ->addColumn('action', function (Product $product) {
                 $editUrl = route('admin.products.edit', $product);
                 $deleteUrl = route('admin.products.destroy', $product);
