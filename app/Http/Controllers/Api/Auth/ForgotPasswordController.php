@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Api\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Mail\Api\OtpMail;
 use App\Models\User;
 use App\Models\UserSecurityToken;
 use App\Traits\ApiResponse;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -43,8 +45,8 @@ class ForgotPasswordController extends Controller
 
                 if (now()->lessThan($resendAvailableAt)) {
                     return $this->error(
-                        'OTP already sent. Please wait before requesting again.',
                         null,
+                        'OTP already sent. Please wait before requesting again.',
                         429
                     );
                 }
@@ -65,8 +67,16 @@ class ForgotPasswordController extends Controller
                 'expires_at' => now()->addMinutes(60),
             ]);
 
-            // Mail::to($user->email)
-            //     ->queue(new OtpMail($otp, $user, 'Reset Your Password - SecAAX'));
+            Mail::to($user->email)->queue(
+                (new OtpMail(
+                    otp: $otp,
+                    user: $user,
+                    mailSubject: 'Password Reset OTP',
+                    headerTitle: 'Password Reset',
+                    bodyMessage: 'Use the OTP below to reset your password.',
+                    expiresInMinutes: 60,
+                ))->afterCommit()
+            );
 
             return $this->success(
                 'OTP sent successfully.',
@@ -78,7 +88,7 @@ class ForgotPasswordController extends Controller
             );
         } catch (Exception $e) {
             Log::error('Password reset OTP failed: ' . $e->getMessage());
-            return $this->error('Failed to send OTP', null, 500);
+            return $this->error( null, 'Failed to send OTP', 500);
         }
     }
 
@@ -103,7 +113,7 @@ class ForgotPasswordController extends Controller
                 ->first();
 
             if (!$token || !Hash::check($request->otp, $token->token_hash)) {
-                return $this->error('Invalid or expired OTP', null, 422);
+                return $this->error(null, 'Invalid or expired OTP', 422);
             }
 
             // Mark OTP used
@@ -129,7 +139,7 @@ class ForgotPasswordController extends Controller
                 ]
             );
         } catch (Exception $e) {
-            return $this->error('OTP verification failed', null, 500);
+            return $this->error(null, 'OTP verification failed', 500);
         }
     }
 
@@ -166,7 +176,7 @@ class ForgotPasswordController extends Controller
 
             return $this->success('Password reset successfully.');
         } catch (Exception $e) {
-            return $this->error('Password reset failed', null, 500);
+            return $this->error(null, 'Password reset failed', 500);
         }
     }
 }

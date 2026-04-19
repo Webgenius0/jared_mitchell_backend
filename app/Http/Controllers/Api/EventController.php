@@ -146,4 +146,32 @@ class EventController extends Controller
             ], 500);
         }
     }
+
+    public function upcomingEvents()
+    {
+        $events = Event::where('status', 'published')
+            ->where('starts_at', '>', now())
+            ->orderBy('starts_at')
+            ->take(15)
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $events,
+        ]);
+    }
+
+    public function pastEvents()
+    {
+        $events = Event::where('status', 'published')
+            ->where('starts_at', '<', now())
+            ->orderBy('starts_at', 'desc')
+            ->take(15)
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $events,
+        ]);
+    }
 }

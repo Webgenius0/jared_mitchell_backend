@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api\Auth;
 use App\Helpers\Helper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
-use App\Mail\Api\RegistrationOtpMail;
+use App\Mail\Api\OtpMail;
 use App\Models\Profile;
 use App\Models\User;
 use App\Models\UserSecurityToken;
@@ -14,9 +14,9 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class RegisterController extends Controller
 {
@@ -31,7 +31,7 @@ class RegisterController extends Controller
             'name' => 'required|string|max:100',
             'email' => 'required|string|email|max:150',
             'password' => 'required|string|min:6|confirmed',
-            'role' => 'required|in:2,3,4,5',
+            'role' => 'required',
         ]);
 
         if ($validator->fails()) {
@@ -67,7 +67,18 @@ class RegisterController extends Controller
                     'expires_at' => now()->addMinutes(60),
                 ]);
 
-                // Mail::to($user->email)->send(new RegistrationOtpMail($otp, $user, 'Verify Your Email Address'));
+                if ($request->email) {
+                    Mail::to($request->email)->queue(
+                        (new OtpMail(
+                            otp: $otp,
+                            user: $existingUser,
+                            mailSubject: 'Verify Your Email Address',
+                            headerTitle: 'Email Verification',
+                            bodyMessage: 'Use the OTP below to verify your email address.',
+                            expiresInMinutes: 60,
+                        ))->afterCommit()
+                    );
+                }
 
                 DB::commit();
 
@@ -114,7 +125,18 @@ class RegisterController extends Controller
                 'expires_at' => now()->addMinutes(60),
             ]);
 
-            // Mail::to($user->email)->send(new RegistrationOtpMail($otp, $user, 'Verify Your Email Address'));
+            if ($user->email) {
+                Mail::to($user->email)->queue(
+                    (new OtpMail(
+                        otp: $otp,
+                        user: $user,
+                        mailSubject: 'Verify Your Email Address',
+                        headerTitle: 'Email Verification',
+                        bodyMessage: 'Use the OTP below to verify your email address.',
+                        expiresInMinutes: 60,
+                    ))->afterCommit()
+                );
+            }
 
             DB::commit();
 
@@ -131,11 +153,7 @@ class RegisterController extends Controller
 
             DB::rollBack();
 
-            return $this->error(
-                'User registration failed',
-                $e->getMessage(),
-                500
-            );
+            return $this->error(null, 'User registration failed', 500);
         }
     }
 
@@ -154,7 +172,9 @@ class RegisterController extends Controller
 
             // Already verified
             if ($user->email_verified_at) {
-                return $this->error('Email already verified', null, 409);
+                DB::rollBack();
+
+                return $this->error(null, 'Email already verified', 409);
             }
 
             // Fetch OTP token
@@ -166,7 +186,7 @@ class RegisterController extends Controller
                 ->first();
 
             if (!$token || !Hash::check($request->otp, $token->token_hash)) {
-                return $this->error('Invalid or expired OTP', null, 422);
+                return $this->error(null, 'Invalid or expired OTP', 422);
             }
 
             // Mark token used
@@ -187,8 +207,8 @@ class RegisterController extends Controller
             // }
 
             // Generate JWT token
-            $tokenJwt = auth('api')->login($user);
-            $expires_in = auth('api')->factory()->getTTL() * 60;
+            $tokenJwt = JWTAuth::fromUser($user);
+            $expires_in = (int) config('jwt.ttl', 60) * 60;
 
             return $this->success(
                 'Email verified successfully.',
@@ -200,7 +220,7 @@ class RegisterController extends Controller
                 ]
             );
         } catch (Exception $e) {
-            return $this->error('Verification failed', ['exception' => $e->getMessage()], 500);
+            return $this->error(null, 'Verification failed', 500);
         }
     }
 
@@ -217,7 +237,7 @@ class RegisterController extends Controller
             $user = User::where('email', $request->email)->first();
 
             if ($user->email_verified_at) {
-                return $this->error('Email already verified', null, 409);
+                return $this->error(null, 'Email already verified', 409);
             }
 
             $otp = rand(1000, 9999);
@@ -230,7 +250,16 @@ class RegisterController extends Controller
                 'expires_at' => now()->addMinutes(60),
             ]);
 
-            // Mail::to($user->email)->queue(new OtpMail($otp, $user, 'Verify Your Email Address'));
+            Mail::to($user->email)->queue(
+                (new OtpMail(
+                    otp: $otp,
+                    user: $user,
+                    mailSubject: 'Verify Your Email Address',
+                    headerTitle: 'Email Verification',
+                    bodyMessage: 'Use the OTP below to verify your email address.',
+                    expiresInMinutes: 60,
+                ))->afterCommit()
+            );
 
             return $this->success(
                 'A new OTP has been sent to your email.',
@@ -240,7 +269,7 @@ class RegisterController extends Controller
                 201
             );
         } catch (Exception $e) {
-            return $this->error('OTP resend failed', ['exception' => $e->getMessage()], 500);
+            return $this->error(null, 'OTP resend failed', 500);
         }
     }
 }
