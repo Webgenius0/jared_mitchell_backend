@@ -284,4 +284,32 @@ class BusinessSpotlightCmsController extends Controller
 
         return $this->success('Business interview section updated successfully.', ['cms' => $cms]);
     }
+
+    /**
+     * Update Why OSI Exists section
+     */
+    public function updateWhyExists(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:500'],
+            'description' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::updateOrCreate(
+            [
+                'page' => CmsPage::BUSINESS_SPOTLIGHT,
+                'section' => CmsSection::BUSINESS_SPOTLIGHT_WHY_EXISTS,
+            ],
+            [
+                'title' => $request->title,
+                'sub_title' => $request->description,
+            ]
+        );
+
+        return $this->success('Why OSI Exists section updated successfully.', ['cms' => $cms]);
+    }
 }

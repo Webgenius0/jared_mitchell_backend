@@ -63,4 +63,5 @@ enum CmsSection: string
     case BUSINESS_SPOTLIGHT_LADDER = 'business_spotlight_ladder';
     case BUSINESS_SPOTLIGHT_JOIN = 'business_spotlight_join';
     case BUSINESS_SPOTLIGHT_INTERVIEW = 'business_spotlight_interview';
+    case BUSINESS_SPOTLIGHT_WHY_EXISTS = 'business_spotlight_why_exists';
 }
