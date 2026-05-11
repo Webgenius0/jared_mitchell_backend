@@ -41,4 +41,6 @@ enum CmsSection: string
     case SERVICES_WHO_FOR = 'services_who_for';
     case SERVICES_ARTIST_SPOTLIGHT = 'services_artist_spotlight';
     case SERVICES_BUSINESS_SPOTLIGHT = 'services_business_spotlight';
+    case SERVICES_RISK_FREE = 'services_risk_free';
+    case SERVICES_NEWSLETTER = 'services_newsletter';
 }

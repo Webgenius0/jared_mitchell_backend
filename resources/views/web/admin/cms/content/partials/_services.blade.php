@@ -318,6 +318,73 @@
         </div>
     </div>
 
+
+    {{-- Risk Free Section --}}
+    @php 
+        $riskFree = $cmsData->get('services_risk_free'); 
+        $riskFreePoints = is_array($riskFree?->metadata) ? $riskFree->metadata : [];
+    @endphp
+    <div class="accordion-item card mb-3">
+        <h2 class="accordion-header" id="headingRiskFree">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseRiskFree" aria-expanded="false" aria-controls="collapseRiskFree">
+                <i class="ri-shield-check-line me-2"></i> Risk Free Section
+            </button>
+        </h2>
+        <div id="collapseRiskFree" class="accordion-collapse collapse" aria-labelledby="headingRiskFree" data-bs-parent="#serviceAccordion">
+            <div class="accordion-body">
+                <form id="riskFreeForm">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label">Section Title</label>
+                            <input type="text" name="title" class="form-control" value="{{ $riskFree?->title }}" placeholder="e.g. Try OSI Risk-Free">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Section Subtitle/Description</label>
+                            <textarea name="sub_title" class="form-control" rows="3" placeholder="Enter subtitle">{{ $riskFree?->sub_title }}</textarea>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Feature Points (One per line)</label>
+                            <textarea name="points_raw" class="form-control" rows="4" placeholder="Cancel Anytime&#10;No Penalties&#10;Flexible Plans">{{ implode("\n", $riskFreePoints) }}</textarea>
+                            <small class="text-muted">Enter each point on a new line.</small>
+                        </div>
+                        <div class="col-12 text-end mt-4">
+                            <button type="submit" class="btn btn-primary px-4" id="saveRiskFreeBtn">
+                                <i class="ri-save-line me-1"></i> Save Section
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {{-- Newsletter Section --}}
+    @php $newsletter = $cmsData->get('services_newsletter'); @endphp
+    <div class="accordion-item card mb-3">
+        <h2 class="accordion-header" id="headingNewsletter">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNewsletter" aria-expanded="false" aria-controls="collapseNewsletter">
+                <i class="ri-mail-send-line me-2"></i> Newsletter Section
+            </button>
+        </h2>
+        <div id="collapseNewsletter" class="accordion-collapse collapse" aria-labelledby="headingNewsletter" data-bs-parent="#serviceAccordion">
+            <div class="accordion-body">
+                <form id="newsletterForm">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label">Newsletter Title</label>
+                            <input type="text" name="title" class="form-control" value="{{ $newsletter?->title }}" placeholder="e.g. Sign up for the newsletter">
+                        </div>
+                        <div class="col-12 text-end mt-4">
+                            <button type="submit" class="btn btn-primary px-4" id="saveNewsletterBtn">
+                                <i class="ri-save-line me-1"></i> Save Section
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 @push('scripts')
@@ -515,6 +582,53 @@ $(function() {
         $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
         const formData = new FormData(this);
         axios.post("{{ route('admin.cms.services.update.business_spotlight') }}", formData)
+            .then(res => {
+                Toast.success(res.data.message);
+                setTimeout(() => window.location.reload(), 1000);
+            })
+            .catch(err => {
+                Toast.fromResponse(err.response?.data);
+                $btn.prop('disabled', false).html(originalText);
+            });
+    });
+
+    // Risk Free Logic
+    $('#riskFreeForm').on('submit', function(e) {
+        e.preventDefault();
+        const $btn = $('#saveRiskFreeBtn');
+        const originalText = $btn.html();
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
+        
+        const formData = new FormData(this);
+        // Convert raw points text to array
+        const pointsRaw = formData.get('points_raw');
+        const points = pointsRaw.split('\n').map(p => p.trim()).filter(p => p !== '');
+        
+        // Remove raw text and add formatted points
+        formData.delete('points_raw');
+        points.forEach((point, index) => {
+            formData.append(`points[${index}]`, point);
+        });
+
+        axios.post("{{ route('admin.cms.services.update.risk_free') }}", formData)
+            .then(res => {
+                Toast.success(res.data.message);
+                setTimeout(() => window.location.reload(), 1000);
+            })
+            .catch(err => {
+                Toast.fromResponse(err.response?.data);
+                $btn.prop('disabled', false).html(originalText);
+            });
+    });
+
+    // Newsletter Logic
+    $('#newsletterForm').on('submit', function(e) {
+        e.preventDefault();
+        const $btn = $('#saveNewsletterBtn');
+        const originalText = $btn.html();
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
+        const formData = new FormData(this);
+        axios.post("{{ route('admin.cms.services.update.newsletter') }}", formData)
             .then(res => {
                 Toast.success(res.data.message);
                 setTimeout(() => window.location.reload(), 1000);

@@ -263,4 +263,54 @@ class ServiceCmsController extends Controller
 
         return $this->success('Business spotlight section updated successfully.', ['cms' => $cms]);
     }
+
+
+    /**
+     * Update Services Newsletter section
+     */
+    public function updateNewsletter(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::updateOrCreate(
+            ['page' => CmsPage::SERVICES, 'section' => CmsSection::SERVICES_NEWSLETTER],
+            ['title' => $request->title]
+        );
+
+        return $this->success('Services newsletter section updated successfully.', ['cms' => $cms]);
+    }
+
+    /**
+     * Update Services Risk Free section
+     */
+    public function updateRiskFree(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:500'],
+            'sub_title' => ['nullable', 'string', 'max:500'],
+            'points' => ['nullable', 'array'],
+            'points.*' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::updateOrCreate(
+            ['page' => CmsPage::SERVICES, 'section' => CmsSection::SERVICES_RISK_FREE],
+            [
+                'title' => $request->title,
+                'sub_title' => $request->sub_title,
+                'metadata' => $request->points ?? []
+            ]
+        );
+
+        return $this->success('Services risk free section updated successfully.', ['cms' => $cms]);
+    }
 }
