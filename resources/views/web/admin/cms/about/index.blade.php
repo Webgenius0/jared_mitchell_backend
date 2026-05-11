@@ -631,6 +631,76 @@
                         </div>
                     </div>
 
+                    {{-- Sponsors Section --}}
+                    @php 
+                        $sponsors = $cmsData->get('about_sponsors'); 
+                        $sponsorItems = $sponsors?->metadata ?? [];
+                    @endphp
+                    <div class="accordion-item card mb-3">
+                        <h2 class="accordion-header" id="headingSponsors">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSponsors" aria-expanded="false" aria-controls="collapseSponsors">
+                                <i class="ri-medal-line me-2"></i> Our Event Sponsors Section
+                            </button>
+                        </h2>
+                        <div id="collapseSponsors" class="accordion-collapse collapse" aria-labelledby="headingSponsors" data-bs-parent="#aboutAccordion">
+                            <div class="accordion-body">
+                                <form id="sponsorsForm" enctype="multipart/form-data">
+                                    <div class="row g-3">
+                                        <div class="col-md-12">
+                                            <label class="form-label">Section Title</label>
+                                            <input type="text" name="title" class="form-control" value="{{ $sponsors?->title }}" placeholder="e.g. OUR EVENT SPONSORS">
+                                        </div>
+
+                                        <div class="col-md-12 mt-4">
+                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                <label class="form-label mb-0">Sponsor Logos</label>
+                                                <button type="button" class="btn btn-sm btn-success" id="addSponsorBtn">
+                                                    <i class="ri-add-line me-1"></i> Add Logo
+                                                </button>
+                                            </div>
+                                            <div id="sponsorsContainer" class="row g-3">
+                                                @forelse($sponsorItems as $index => $item)
+                                                    <div class="col-md-3 sponsor-item">
+                                                        <div class="card border shadow-none mb-0">
+                                                            <div class="card-body p-2">
+                                                                <div class="text-end mb-2">
+                                                                    <button type="button" class="btn btn-sm btn-soft-danger remove-sponsor-btn">
+                                                                        <i class="ri-close-line"></i>
+                                                                    </button>
+                                                                </div>
+                                                                <div class="text-center">
+                                                                    <input type="file" name="items[{{ $index }}][image_file]" class="form-control form-control-sm mb-2" accept="image/*">
+                                                                    <input type="hidden" name="items[{{ $index }}][existing_image]" value="{{ $item['image'] ?? '' }}">
+                                                                    @if($item['image'] ?? null)
+                                                                        <img src="{{ asset('storage/' . $item['image']) }}" alt="Sponsor" class="img-fluid rounded" style="max-height: 60px;">
+                                                                    @else
+                                                                        <div class="bg-light rounded py-3 text-muted" style="font-size: 10px;">No Image</div>
+                                                                    @endif
+                                                                </div>
+                                                                <div class="mt-3">
+                                                                    <label class="form-label small mb-1">Logo Link</label>
+                                                                    <input type="url" name="items[{{ $index }}][link]" class="form-control form-control-sm" value="{{ $item['link'] ?? '' }}" placeholder="https://...">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                @empty
+                                                    <div class="col-12 text-center text-muted py-3 sponsors-empty">No sponsor logos added yet.</div>
+                                                @endforelse
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12 text-end mt-4">
+                                            <button type="submit" class="btn btn-primary px-4" id="saveSponsorsBtn">
+                                                <i class="ri-save-line me-1"></i> Save Section
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
                     {{-- Newsletter Section --}}
                     @php $newsletter = $cmsData->get('about_newsletter'); @endphp
                     <div class="accordion-item card mb-3">
@@ -1098,6 +1168,62 @@ $(function() {
         $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
         const formData = new FormData(this);
         axios.post("{{ route('admin.cms.about.update.newsletter') }}", formData)
+            .then(res => {
+                Toast.success(res.data.message);
+                setTimeout(() => window.location.reload(), 1000);
+            })
+            .catch(err => {
+                Toast.fromResponse(err.response?.data);
+                $btn.prop('disabled', false).html(originalText);
+            });
+    });
+
+    // Sponsors Logic
+    let sponsorCount = {{ count($sponsorItems) }};
+    
+    $('#addSponsorBtn').on('click', function() {
+        const $container = $('#sponsorsContainer');
+        $container.find('.sponsors-empty').remove();
+        
+        const item = `
+            <div class="col-md-3 sponsor-item">
+                <div class="card border shadow-none mb-0">
+                    <div class="card-body p-2">
+                        <div class="text-end mb-2">
+                            <button type="button" class="btn btn-sm btn-soft-danger remove-sponsor-btn">
+                                <i class="ri-close-line"></i>
+                            </button>
+                        </div>
+                        <div class="text-center">
+                            <input type="file" name="items[${sponsorCount}][image_file]" class="form-control form-control-sm mb-2" accept="image/*">
+                            <div class="bg-light rounded py-3 text-muted" style="font-size: 10px;">New Logo</div>
+                        </div>
+                        <div class="mt-3">
+                            <label class="form-label small mb-1">Logo Link</label>
+                            <input type="url" name="items[${sponsorCount}][link]" class="form-control form-control-sm" placeholder="https://...">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        $container.append(item);
+        sponsorCount++;
+    });
+
+    $(document).on('click', '.remove-sponsor-btn', function() {
+        $(this).closest('.sponsor-item').remove();
+        if ($('#sponsorsContainer .sponsor-item').length === 0) {
+            $('#sponsorsContainer').append('<div class="col-12 text-center text-muted py-3 sponsors-empty">No sponsor logos added yet.</div>');
+        }
+    });
+
+    $('#sponsorsForm').on('submit', function(e) {
+        e.preventDefault();
+        const $btn = $('#saveSponsorsBtn');
+        const originalText = $btn.html();
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
+        const formData = new FormData(this);
+        axios.post("{{ route('admin.cms.about.update.sponsors') }}", formData)
             .then(res => {
                 Toast.success(res.data.message);
                 setTimeout(() => window.location.reload(), 1000);

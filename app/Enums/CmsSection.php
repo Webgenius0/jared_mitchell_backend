@@ -31,4 +31,5 @@ enum CmsSection: string
     case ABOUT_FOUNDER_MESSAGE = 'about_founder_message';
     case ABOUT_JOIN = 'about_join';
     case ABOUT_NEWSLETTER = 'about_newsletter';
+    case ABOUT_SPONSORS = 'about_sponsors';
 }

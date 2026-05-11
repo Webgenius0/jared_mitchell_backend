@@ -504,4 +504,50 @@ class AboutCmsController extends Controller
 
         return $this->success('Newsletter section updated successfully.', ['cms' => $cms]);
     }
+
+    /**
+     * Update Sponsors section
+     */
+    public function updateSponsors(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:255'],
+            'items' => ['nullable', 'array'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::firstOrNew([
+            'page' => CmsPage::ABOUT,
+            'section' => CmsSection::ABOUT_SPONSORS,
+        ]);
+
+        $cms->title = $request->title;
+        
+        $itemsData = [];
+        if ($request->has('items')) {
+            foreach ($request->items as $index => $item) {
+                $itemData = [
+                    'image' => $item['existing_image'] ?? '',
+                    'link' => $item['link'] ?? '',
+                ];
+
+                if ($request->hasFile("items.$index.image_file")) {
+                    if ($itemData['image'] && \Illuminate\Support\Str::startsWith($itemData['image'], 'uploads/')) {
+                        FileHandle::fileDelete($itemData['image']);
+                    }
+                    $itemData['image'] = FileHandle::fileUpload($request->file("items.$index.image_file"), 'cms/about');
+                }
+
+                $itemsData[] = $itemData;
+            }
+        }
+
+        $cms->metadata = $itemsData;
+        $cms->save();
+
+        return $this->success('Sponsors updated successfully.', ['cms' => $cms]);
+    }
 }

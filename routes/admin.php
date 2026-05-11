@@ -103,6 +103,7 @@ Route::prefix('cms/about')->name('admin.cms.about.')->group(function () {
     Route::post('/founder-message', [AboutCmsController::class, 'updateFounderMessage'])->name('update.founder_message');
     Route::post('/join', [AboutCmsController::class, 'updateJoin'])->name('update.join');
     Route::post('/newsletter', [AboutCmsController::class, 'updateNewsletter'])->name('update.newsletter');
+    Route::post('/sponsors', [AboutCmsController::class, 'updateSponsors'])->name('update.sponsors');
 });
 
 // routes/web.php
