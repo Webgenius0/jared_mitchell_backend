@@ -175,6 +175,87 @@
         </div>
     </div>
 
+    {{-- Who OSI Is For Section --}}
+    @php 
+        $whoFor = $cmsData->get('services_who_for'); 
+        $whoForItems = $whoFor?->metadata ?? [];
+    @endphp
+    <div class="accordion-item card mb-3">
+        <h2 class="accordion-header" id="headingWhoFor">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseWhoFor" aria-expanded="false" aria-controls="collapseWhoFor">
+                <i class="ri-user-search-line me-2"></i> Who OSI Is For Section
+            </button>
+        </h2>
+        <div id="collapseWhoFor" class="accordion-collapse collapse" aria-labelledby="headingWhoFor" data-bs-parent="#serviceAccordion">
+            <div class="accordion-body">
+                <form id="whoForForm" enctype="multipart/form-data">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Section Title</label>
+                            <input type="text" name="title" class="form-control" value="{{ $whoFor?->title }}" placeholder="e.g. Who OSI Is For">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Section Subtitle</label>
+                            <input type="text" name="sub_title" class="form-control" value="{{ $whoFor?->sub_title }}" placeholder="Enter subtitle">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Bottom Description</label>
+                            <textarea name="description" class="form-control" rows="3" placeholder="Enter bottom description">{{ $whoFor?->description }}</textarea>
+                        </div>
+                        
+                        <div class="col-md-12 mt-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <label class="form-label mb-0">Audience Cards (Icon/Image + Title)</label>
+                                <button type="button" class="btn btn-sm btn-primary" id="addWhoForBtn">
+                                    <i class="ri-add-line me-1"></i> Add Card
+                                </button>
+                            </div>
+                            <div class="row g-3" id="whoForContainer">
+                                @forelse($whoForItems as $index => $item)
+                                    <div class="col-md-4 who-for-item">
+                                        <div class="card border shadow-none mb-0">
+                                            <div class="card-body p-2">
+                                                <div class="text-end mb-2">
+                                                    <button type="button" class="btn btn-sm btn-soft-danger remove-who-for-btn">
+                                                        <i class="ri-close-line"></i>
+                                                    </button>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <label class="form-label small mb-1">Title</label>
+                                                    <input type="text" name="items[{{ $index }}][title]" class="form-control form-control-sm" value="{{ $item['title'] ?? '' }}" placeholder="e.g. CREATORS">
+                                                </div>
+                                                <div class="mb-2">
+                                                    <label class="form-label small mb-1">Icon Class (Remix Icon)</label>
+                                                    <input type="text" name="items[{{ $index }}][icon]" class="form-control form-control-sm" value="{{ $item['icon'] ?? '' }}" placeholder="ri-user-line">
+                                                </div>
+                                                <div class="text-center">
+                                                    <label class="form-label small mb-1">Or Upload Image</label>
+                                                    <input type="file" name="items[{{ $index }}][image_file]" class="form-control form-control-sm mb-2" accept="image/*">
+                                                    <input type="hidden" name="items[{{ $index }}][existing_image]" value="{{ $item['image'] ?? '' }}">
+                                                    @if($item['image'] ?? null)
+                                                        <img src="{{ asset('storage/' . $item['image']) }}" alt="Audience" class="img-fluid rounded mb-2" style="max-height: 40px;">
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @empty
+                                    <div class="col-12 text-center text-muted py-3 who-for-empty">No audience cards added yet.</div>
+                                @endforelse
+                            </div>
+                        </div>
+
+                        <div class="col-12 text-end mt-4">
+                            <button type="submit" class="btn btn-primary px-4" id="saveWhoForBtn">
+                                <i class="ri-save-line me-1"></i> Save Section
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 @push('scripts')
@@ -278,6 +359,64 @@ $(function() {
         $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
         const formData = new FormData(this);
         axios.post("{{ route('admin.cms.services.update.partners') }}", formData)
+            .then(res => {
+                Toast.success(res.data.message);
+                setTimeout(() => window.location.reload(), 1000);
+            })
+            .catch(err => {
+                Toast.fromResponse(err.response?.data);
+                $btn.prop('disabled', false).html(originalText);
+            });
+    });
+
+    // Who For Logic
+    let whoForCount = {{ count($whoForItems) }};
+    $('#addWhoForBtn').on('click', function() {
+        const $container = $('#whoForContainer');
+        $container.find('.who-for-empty').remove();
+        const item = `
+            <div class="col-md-4 who-for-item">
+                <div class="card border shadow-none mb-0">
+                    <div class="card-body p-2">
+                        <div class="text-end mb-2">
+                            <button type="button" class="btn btn-sm btn-soft-danger remove-who-for-btn">
+                                <i class="ri-close-line"></i>
+                            </button>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small mb-1">Title</label>
+                            <input type="text" name="items[${whoForCount}][title]" class="form-control form-control-sm" placeholder="e.g. CREATORS">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small mb-1">Icon Class (Remix Icon)</label>
+                            <input type="text" name="items[${whoForCount}][icon]" class="form-control form-control-sm" placeholder="ri-user-line">
+                        </div>
+                        <div class="text-center">
+                            <label class="form-label small mb-1">Or Upload Image</label>
+                            <input type="file" name="items[${whoForCount}][image_file]" class="form-control form-control-sm mb-2" accept="image/*">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        $container.append(item);
+        whoForCount++;
+    });
+
+    $(document).on('click', '.remove-who-for-btn', function() {
+        $(this).closest('.who-for-item').remove();
+        if ($('#whoForContainer .who-for-item').length === 0) {
+            $('#whoForContainer').append('<div class="col-12 text-center text-muted py-3 who-for-empty">No audience cards added yet.</div>');
+        }
+    });
+
+    $('#whoForForm').on('submit', function(e) {
+        e.preventDefault();
+        const $btn = $('#saveWhoForBtn');
+        const originalText = $btn.html();
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
+        const formData = new FormData(this);
+        axios.post("{{ route('admin.cms.services.update.who_for') }}", formData)
             .then(res => {
                 Toast.success(res.data.message);
                 setTimeout(() => window.location.reload(), 1000);

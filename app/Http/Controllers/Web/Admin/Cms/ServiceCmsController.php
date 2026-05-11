@@ -165,4 +165,58 @@ class ServiceCmsController extends Controller
 
         return $this->success('Services partners section updated successfully.', ['cms' => $cms]);
     }
+
+    /**
+     * Update Who OSI Is For section
+     */
+    public function updateWhoFor(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:500'],
+            'sub_title' => ['nullable', 'string', 'max:500'],
+            'description' => ['nullable', 'string'],
+            'items' => ['nullable', 'array'],
+            'items.*.title' => ['nullable', 'string', 'max:255'],
+            'items.*.icon' => ['nullable', 'string', 'max:255'],
+            'items.*.image_file' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::firstOrNew([
+            'page' => CmsPage::SERVICES,
+            'section' => CmsSection::SERVICES_WHO_FOR,
+        ]);
+
+        $cms->title = $request->title;
+        $cms->sub_title = $request->sub_title;
+        $cms->description = $request->description;
+
+        $items = $request->input('items', []);
+        $formattedItems = [];
+
+        foreach ($items as $index => $item) {
+            $imagePath = $item['existing_image'] ?? '';
+
+            if ($request->hasFile("items.{$index}.image_file")) {
+                if ($imagePath && Str::startsWith($imagePath, 'uploads/')) {
+                    FileHandle::fileDelete($imagePath);
+                }
+                $imagePath = FileHandle::fileUpload($request->file("items.{$index}.image_file"), 'cms/services');
+            }
+
+            $formattedItems[] = [
+                'title' => $item['title'] ?? '',
+                'icon' => $item['icon'] ?? '',
+                'image' => $imagePath,
+            ];
+        }
+
+        $cms->metadata = $formattedItems;
+        $cms->save();
+
+        return $this->success('Who OSI Is For section updated successfully.', ['cms' => $cms]);
+    }
 }
