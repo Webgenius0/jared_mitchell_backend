@@ -198,6 +198,92 @@
                             </div>
                         </div>
                     </div>
+                    {{-- Why Choose Section --}}
+                    @php 
+                        $whyChoose = $cmsData->get('why_choose'); 
+                        $whyChooseItems = $whyChoose?->metadata ?? [];
+                    @endphp
+                    <div class="accordion-item card mb-3">
+                        <h2 class="accordion-header" id="headingWhyChoose">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseWhyChoose" aria-expanded="false" aria-controls="collapseWhyChoose">
+                                <i class="ri-question-line me-2"></i> Why Choose Section
+                            </button>
+                        </h2>
+                        <div id="collapseWhyChoose" class="accordion-collapse collapse" aria-labelledby="headingWhyChoose" data-bs-parent="#cmsAccordion">
+                            <div class="accordion-body">
+                                <form id="whyChooseForm" enctype="multipart/form-data">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Main Title</label>
+                                            <input type="text" name="title" class="form-control" value="{{ $whyChoose?->title }}" placeholder="e.g. WHY CHOOSE OSI">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Main Subtitle</label>
+                                            <input type="text" name="sub_title" class="form-control" value="{{ $whyChoose?->sub_title }}" placeholder="e.g. Fostering a culture of support...">
+                                        </div>
+                                        
+                                        <div class="col-md-12 mt-4">
+                                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                                <label class="form-label mb-0">Choice Cards</label>
+                                                <button type="button" class="btn btn-sm btn-soft-primary" id="addWhyChooseBtn">
+                                                    <i class="ri-add-line me-1"></i> Add Card
+                                                </button>
+                                            </div>
+                                            
+                                            <div id="whyChooseContainer">
+                                                @forelse($whyChooseItems as $index => $item)
+                                                    <div class="card border border-dashed mb-3 why-choose-item">
+                                                        <div class="card-body">
+                                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                                <h6 class="card-title mb-0">Card #{{ $index + 1 }}</h6>
+                                                                <button type="button" class="btn btn-sm btn-soft-danger remove-why-choose-btn">
+                                                                    <i class="ri-delete-bin-line"></i>
+                                                                </button>
+                                                            </div>
+                                                            <div class="row g-3">
+                                                                <div class="col-md-4">
+                                                                    <label class="form-label">Background Image</label>
+                                                                    <input type="file" name="items[{{ $index }}][image_file]" class="form-control form-control-sm" accept="image/*">
+                                                                    <input type="hidden" name="items[{{ $index }}][existing_image]" value="{{ $item['image'] }}">
+                                                                    @if($item['image'])
+                                                                        <div class="mt-2 text-center">
+                                                                            <img src="{{ asset('storage/' . $item['image']) }}" alt="Card Image" class="rounded" style="height: 60px; width: auto;">
+                                                                        </div>
+                                                                    @endif
+                                                                </div>
+                                                                <div class="col-md-8">
+                                                                    <div class="mb-3">
+                                                                        <label class="form-label">Title</label>
+                                                                        <input type="text" name="items[{{ $index }}][title]" class="form-control form-control-sm" value="{{ $item['title'] }}" placeholder="e.g. Creators">
+                                                                    </div>
+                                                                    <div class="mb-3">
+                                                                        <label class="form-label">Subtitle</label>
+                                                                        <input type="text" name="items[{{ $index }}][sub_title]" class="form-control form-control-sm" value="{{ $item['sub_title'] }}" placeholder="e.g. Build exposure...">
+                                                                    </div>
+                                                                    <div>
+                                                                        <label class="form-label">Description</label>
+                                                                        <textarea name="items[{{ $index }}][description]" class="form-control form-control-sm" rows="2" placeholder="Enter card description">{{ $item['description'] }}</textarea>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                @empty
+                                                    <div class="text-center text-muted py-3 empty-msg">No cards added yet.</div>
+                                                @endforelse
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12 text-end mt-4">
+                                            <button type="submit" class="btn btn-primary px-4" id="saveWhyChooseBtn">
+                                                <i class="ri-save-line me-1"></i> Save Why Choose Section
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -293,6 +379,76 @@ $(function() {
         const formData = new FormData(this);
 
         axios.post("{{ route('admin.cms.content.update.features') }}", formData)
+            .then(res => {
+                Toast.success(res.data.message);
+                setTimeout(() => window.location.reload(), 1000);
+            })
+            .catch(err => {
+                Toast.fromResponse(err.response?.data);
+                $btn.prop('disabled', false).html(originalText);
+            });
+    });
+
+    // Why Choose Logic
+    let whyChooseCount = {{ count($whyChooseItems) }};
+    
+    $('#addWhyChooseBtn').on('click', function() {
+        const $container = $('#whyChooseContainer');
+        $container.find('.empty-msg').remove();
+        
+        const card = `
+            <div class="card border border-dashed mb-3 why-choose-item">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="card-title mb-0">New Card</h6>
+                        <button type="button" class="btn btn-sm btn-soft-danger remove-why-choose-btn">
+                            <i class="ri-delete-bin-line"></i>
+                        </button>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Background Image</label>
+                            <input type="file" name="items[${whyChooseCount}][image_file]" class="form-control form-control-sm" accept="image/*">
+                        </div>
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label class="form-label">Title</label>
+                                <input type="text" name="items[${whyChooseCount}][title]" class="form-control form-control-sm" placeholder="e.g. Creators">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Subtitle</label>
+                                <input type="text" name="items[${whyChooseCount}][sub_title]" class="form-control form-control-sm" placeholder="e.g. Build exposure...">
+                            </div>
+                            <div>
+                                <label class="form-label">Description</label>
+                                <textarea name="items[${whyChooseCount}][description]" class="form-control form-control-sm" rows="2" placeholder="Enter card description"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        $container.append(card);
+        whyChooseCount++;
+    });
+
+    $(document).on('click', '.remove-why-choose-btn', function() {
+        $(this).closest('.why-choose-item').remove();
+        if ($('#whyChooseContainer .why-choose-item').length === 0) {
+            $('#whyChooseContainer').append('<div class="text-center text-muted py-3 empty-msg">No cards added yet.</div>');
+        }
+    });
+
+    $('#whyChooseForm').on('submit', function(e) {
+        e.preventDefault();
+        const $btn = $('#saveWhyChooseBtn');
+        const originalText = $btn.html();
+        
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
+
+        const formData = new FormData(this);
+
+        axios.post("{{ route('admin.cms.content.update.why_choose') }}", formData)
             .then(res => {
                 Toast.success(res.data.message);
                 setTimeout(() => window.location.reload(), 1000);
