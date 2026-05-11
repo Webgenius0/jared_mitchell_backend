@@ -98,6 +98,8 @@ Route::prefix('cms/about')->name('admin.cms.about.')->group(function () {
     Route::post('/what-we-do', [AboutCmsController::class, 'updateWhatWeDo'])->name('update.what_we_do');
     Route::post('/how-it-works', [AboutCmsController::class, 'updateHowItWorks'])->name('update.how_it_works');
     Route::post('/who-we-serve', [AboutCmsController::class, 'updateWhoWeServe'])->name('update.who_we_serve');
+    Route::post('/why-exists', [AboutCmsController::class, 'updateWhyExists'])->name('update.why_exists');
+    Route::post('/our-impact', [AboutCmsController::class, 'updateOurImpact'])->name('update.our_impact');
 });
 
 // routes/web.php

@@ -26,4 +26,6 @@ enum CmsSection: string
     case ABOUT_WHAT_WE_DO = 'about_what_we_do';
     case ABOUT_HOW_IT_WORKS = 'about_how_it_works';
     case ABOUT_WHO_WE_SERVE = 'about_who_we_serve';
+    case ABOUT_WHY_EXISTS = 'about_why_exists';
+    case ABOUT_OUR_IMPACT = 'about_our_impact';
 }

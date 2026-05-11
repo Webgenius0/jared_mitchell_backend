@@ -363,4 +363,54 @@ class AboutCmsController extends Controller
 
         return $this->success('Who we serve updated successfully.', ['cms' => $cms]);
     }
+
+    /**
+     * Update Why exists section
+     */
+    public function updateWhyExists(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::updateOrCreate(
+            ['page' => CmsPage::ABOUT, 'section' => CmsSection::ABOUT_WHY_EXISTS],
+            ['title' => $request->title, 'description' => $request->description]
+        );
+
+        return $this->success('Why OSI exists updated successfully.', ['cms' => $cms]);
+    }
+
+    /**
+     * Update Our Impact section
+     */
+    public function updateOurImpact(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:255'],
+            'sub_title' => ['nullable', 'string', 'max:500'],
+            'items' => ['nullable', 'array'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::firstOrNew([
+            'page' => CmsPage::ABOUT,
+            'section' => CmsSection::ABOUT_OUR_IMPACT,
+        ]);
+
+        $cms->title = $request->title;
+        $cms->sub_title = $request->sub_title;
+        $cms->metadata = $request->items ?? [];
+        $cms->save();
+
+        return $this->success('Our impact updated successfully.', ['cms' => $cms]);
+    }
 }

@@ -427,6 +427,94 @@
                             </div>
                         </div>
                     </div>
+
+                    {{-- Why OSI Exists Section --}}
+                    @php $whyExists = $cmsData->get('about_why_exists'); @endphp
+                    <div class="accordion-item card mb-3">
+                        <h2 class="accordion-header" id="headingWhyExists">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseWhyExists" aria-expanded="false" aria-controls="collapseWhyExists">
+                                <i class="ri-question-line me-2"></i> Why OSI Exists Section
+                            </button>
+                        </h2>
+                        <div id="collapseWhyExists" class="accordion-collapse collapse" aria-labelledby="headingWhyExists" data-bs-parent="#aboutAccordion">
+                            <div class="accordion-body">
+                                <form id="whyExistsForm">
+                                    <div class="row g-3">
+                                        <div class="col-md-12">
+                                            <label class="form-label">Title</label>
+                                            <input type="text" name="title" class="form-control" value="{{ $whyExists?->title }}" placeholder="e.g. Why OSI Exists">
+                                        </div>
+                                        <div class="col-md-12">
+                                            <label class="form-label">Description</label>
+                                            <textarea name="description" class="form-control" rows="4" placeholder="Enter description">{{ $whyExists?->description }}</textarea>
+                                        </div>
+                                        <div class="col-12 text-end mt-4">
+                                            <button type="submit" class="btn btn-primary px-4" id="saveWhyExistsBtn">
+                                                <i class="ri-save-line me-1"></i> Save Section
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Our Impact Section --}}
+                    @php 
+                        $impact = $cmsData->get('about_our_impact'); 
+                        $impactItems = $impact?->metadata ?? [];
+                    @endphp
+                    <div class="accordion-item card mb-3">
+                        <h2 class="accordion-header" id="headingImpact">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseImpact" aria-expanded="false" aria-controls="collapseImpact">
+                                <i class="ri-pulse-line me-2"></i> Our Impact Section
+                            </button>
+                        </h2>
+                        <div id="collapseImpact" class="accordion-collapse collapse" aria-labelledby="headingImpact" data-bs-parent="#aboutAccordion">
+                            <div class="accordion-body">
+                                <form id="impactForm">
+                                    <div class="row g-3">
+                                        <div class="col-md-12">
+                                            <label class="form-label">Title</label>
+                                            <input type="text" name="title" class="form-control" value="{{ $impact?->title }}" placeholder="e.g. Our Impact">
+                                        </div>
+                                        <div class="col-md-12">
+                                            <label class="form-label">Subtitle</label>
+                                            <textarea name="sub_title" class="form-control" rows="2" placeholder="Enter subtitle">{{ $impact?->sub_title }}</textarea>
+                                        </div>
+                                        
+                                        <div class="col-md-12 mt-4">
+                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                <label class="form-label mb-0">Impact Items (Checklist)</label>
+                                                <button type="button" class="btn btn-sm btn-success" id="addImpactBtn">
+                                                    <i class="ri-add-line me-1"></i> Add Item
+                                                </button>
+                                            </div>
+                                            <div id="impactContainer">
+                                                @forelse($impactItems as $index => $item)
+                                                    <div class="input-group mb-2 impact-item">
+                                                        <span class="input-group-text"><i class="ri-check-line text-success"></i></span>
+                                                        <input type="text" name="items[]" class="form-control" value="{{ $item }}" placeholder="Enter impact item">
+                                                        <button type="button" class="btn btn-outline-danger remove-impact-btn">
+                                                            <i class="ri-delete-bin-line"></i>
+                                                        </button>
+                                                    </div>
+                                                @empty
+                                                    <div class="text-center text-muted py-3 impact-empty">No items added yet.</div>
+                                                @endforelse
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12 text-end mt-4">
+                                            <button type="submit" class="btn btn-primary px-4" id="saveImpactBtn">
+                                                <i class="ri-save-line me-1"></i> Save Section
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -700,6 +788,65 @@ $(function() {
         $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
         const formData = new FormData(this);
         axios.post("{{ route('admin.cms.about.update.who_we_serve') }}", formData)
+            .then(res => {
+                Toast.success(res.data.message);
+                setTimeout(() => window.location.reload(), 1000);
+            })
+            .catch(err => {
+                Toast.fromResponse(err.response?.data);
+                $btn.prop('disabled', false).html(originalText);
+            });
+    });
+
+    // Why OSI Exists Logic
+    $('#whyExistsForm').on('submit', function(e) {
+        e.preventDefault();
+        const $btn = $('#saveWhyExistsBtn');
+        const originalText = $btn.html();
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
+        const formData = new FormData(this);
+        axios.post("{{ route('admin.cms.about.update.why_exists') }}", formData)
+            .then(res => {
+                Toast.success(res.data.message);
+                setTimeout(() => window.location.reload(), 1000);
+            })
+            .catch(err => {
+                Toast.fromResponse(err.response?.data);
+                $btn.prop('disabled', false).html(originalText);
+            });
+    });
+
+    // Our Impact Logic
+    $('#addImpactBtn').on('click', function() {
+        const $container = $('#impactContainer');
+        $container.find('.impact-empty').remove();
+        
+        const item = `
+            <div class="input-group mb-2 impact-item">
+                <span class="input-group-text"><i class="ri-check-line text-success"></i></span>
+                <input type="text" name="items[]" class="form-control" placeholder="Enter impact item">
+                <button type="button" class="btn btn-outline-danger remove-impact-btn">
+                    <i class="ri-delete-bin-line"></i>
+                </button>
+            </div>
+        `;
+        $container.append(item);
+    });
+
+    $(document).on('click', '.remove-impact-btn', function() {
+        $(this).closest('.impact-item').remove();
+        if ($('#impactContainer .impact-item').length === 0) {
+            $('#impactContainer').append('<div class="text-center text-muted py-3 impact-empty">No items added yet.</div>');
+        }
+    });
+
+    $('#impactForm').on('submit', function(e) {
+        e.preventDefault();
+        const $btn = $('#saveImpactBtn');
+        const originalText = $btn.html();
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
+        const formData = new FormData(this);
+        axios.post("{{ route('admin.cms.about.update.our_impact') }}", formData)
             .then(res => {
                 Toast.success(res.data.message);
                 setTimeout(() => window.location.reload(), 1000);
