@@ -267,4 +267,69 @@ class AboutCmsController extends Controller
 
         return $this->success('What We Do section updated successfully.', ['cms' => $cms]);
     }
+
+    /**
+     * Update how it works section
+     */
+    public function updateHowItWorks(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:255'],
+            'sub_title' => ['nullable', 'string', 'max:255'],
+            'items' => ['nullable', 'array'],
+            'items.*.title' => ['nullable', 'string', 'max:255'],
+            'items.*.description' => ['nullable', 'string'],
+            'items.*.icon' => ['nullable', 'string', 'max:255'],
+            'items.*.image_file' => ['nullable', 'file', 'image', 'max:5120'],
+            'items.*.existing_image' => ['nullable', 'string'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::firstOrNew([
+            'page' => CmsPage::ABOUT,
+            'section' => CmsSection::ABOUT_HOW_IT_WORKS,
+        ]);
+
+        $cms->title = $request->title;
+        $cms->sub_title = $request->sub_title;
+
+        $itemsData = [];
+        $existingMetadata = $cms->metadata ?? [];
+        $existingImages = collect($existingMetadata)->pluck('image')->toArray();
+
+        if ($request->has('items')) {
+            foreach ($request->items as $index => $item) {
+                $imagePath = $item['existing_image'] ?? null;
+
+                if ($request->hasFile("items.$index.image_file")) {
+                    if ($imagePath && \Illuminate\Support\Str::startsWith($imagePath, 'uploads/')) {
+                        FileHandle::fileDelete($imagePath);
+                    }
+                    $imagePath = FileHandle::fileUpload($request->file("items.$index.image_file"), 'cms/about');
+                }
+
+                $itemsData[] = [
+                    'image' => $imagePath,
+                    'icon' => $item['icon'] ?? null,
+                    'title' => $item['title'] ?? null,
+                    'description' => $item['description'] ?? null,
+                ];
+            }
+        }
+
+        $newImages = collect($itemsData)->pluck('image')->toArray();
+        foreach ($existingImages as $oldImg) {
+            if ($oldImg && !in_array($oldImg, $newImages) && \Illuminate\Support\Str::startsWith($oldImg, 'uploads/')) {
+                FileHandle::fileDelete($oldImg);
+            }
+        }
+
+        $cms->metadata = $itemsData;
+        $cms->save();
+
+        return $this->success('How It Works section updated successfully.', ['cms' => $cms]);
+    }
 }
