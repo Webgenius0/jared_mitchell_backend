@@ -218,6 +218,89 @@
                             </div>
                         </div>
                     </div>
+                    {{-- What We Do Section --}}
+                    @php 
+                        $whatWeDo = $cmsData->get('about_what_we_do'); 
+                        $whatWeDoItems = $whatWeDo?->metadata ?? [];
+                    @endphp
+                    <div class="accordion-item card mb-3">
+                        <h2 class="accordion-header" id="headingWhatWeDo">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseWhatWeDo" aria-expanded="false" aria-controls="collapseWhatWeDo">
+                                <i class="ri-briefcase-line me-2"></i> What We Do Section
+                            </button>
+                        </h2>
+                        <div id="collapseWhatWeDo" class="accordion-collapse collapse" aria-labelledby="headingWhatWeDo" data-bs-parent="#aboutAccordion">
+                            <div class="accordion-body">
+                                <form id="whatWeDoForm" enctype="multipart/form-data">
+                                    <div class="row g-3">
+                                        <div class="col-md-12">
+                                            <label class="form-label">Section Title</label>
+                                            <input type="text" name="title" class="form-control" value="{{ $whatWeDo?->title }}" placeholder="e.g. What We Do">
+                                        </div>
+                                        
+                                        <div class="col-12 mt-4">
+                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                <h6 class="mb-0">Cards</h6>
+                                                <button type="button" class="btn btn-sm btn-soft-primary" id="addWhatWeDoBtn">
+                                                    <i class="ri-add-line me-1"></i> Add Card
+                                                </button>
+                                            </div>
+                                            <div id="whatWeDoContainer">
+                                                @forelse($whatWeDoItems as $index => $item)
+                                                    <div class="card border border-dashed mb-3 what-we-do-item">
+                                                        <div class="card-body">
+                                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                                <h6 class="card-title mb-0">Card #{{ $index + 1 }}</h6>
+                                                                <button type="button" class="btn btn-sm btn-soft-danger remove-what-we-do-btn">
+                                                                    <i class="ri-delete-bin-line"></i>
+                                                                </button>
+                                                            </div>
+                                                            <div class="row g-3">
+                                                                <div class="col-md-4">
+                                                                    <div class="mb-3">
+                                                                        <label class="form-label">Icon Class (Remix Icon)</label>
+                                                                        <input type="text" name="items[{{ $index }}][icon]" class="form-control form-control-sm" value="{{ $item['icon'] ?? '' }}" placeholder="e.g. ri-star-line">
+                                                                    </div>
+                                                                    <div>
+                                                                        <label class="form-label">OR Image</label>
+                                                                        <input type="file" name="items[{{ $index }}][image_file]" class="form-control form-control-sm" accept="image/*">
+                                                                        <input type="hidden" name="items[{{ $index }}][existing_image]" value="{{ $item['image'] ?? '' }}">
+                                                                        @if($item['image'] ?? null)
+                                                                            <div class="mt-2">
+                                                                                <img src="{{ asset('storage/' . $item['image']) }}" alt="Icon" class="rounded border" style="height: 50px;">
+                                                                            </div>
+                                                                        @endif
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-8">
+                                                                    <div class="mb-3">
+                                                                        <label class="form-label">Title</label>
+                                                                        <input type="text" name="items[{{ $index }}][title]" class="form-control form-control-sm" value="{{ $item['title'] ?? '' }}" placeholder="Enter title">
+                                                                    </div>
+                                                                    <div>
+                                                                        <label class="form-label">Description</label>
+                                                                        <textarea name="items[{{ $index }}][description]" class="form-control form-control-sm" rows="3" placeholder="Enter description">{{ $item['description'] ?? '' }}</textarea>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                @empty
+                                                    <div class="text-center text-muted py-3 what-we-do-empty">No cards added yet.</div>
+                                                @endforelse
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12 text-end mt-4">
+                                            <button type="submit" class="btn btn-primary px-4" id="saveWhatWeDoBtn">
+                                                <i class="ri-save-line me-1"></i> Save Section
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -335,6 +418,75 @@ $(function() {
         $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
         const formData = new FormData(this);
         axios.post("{{ route('admin.cms.about.update.mission') }}", formData)
+            .then(res => {
+                Toast.success(res.data.message);
+                setTimeout(() => window.location.reload(), 1000);
+            })
+            .catch(err => {
+                Toast.fromResponse(err.response?.data);
+                $btn.prop('disabled', false).html(originalText);
+            });
+    });
+
+    // What We Do Logic
+    let whatWeDoCount = {{ count($whatWeDoItems) }};
+    
+    $('#addWhatWeDoBtn').on('click', function() {
+        const $container = $('#whatWeDoContainer');
+        $container.find('.what-we-do-empty').remove();
+        
+        const card = `
+            <div class="card border border-dashed mb-3 what-we-do-item">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="card-title mb-0">New Card</h6>
+                        <button type="button" class="btn btn-sm btn-soft-danger remove-what-we-do-btn">
+                            <i class="ri-delete-bin-line"></i>
+                        </button>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Icon Class (Remix Icon)</label>
+                                <input type="text" name="items[${whatWeDoCount}][icon]" class="form-control form-control-sm" placeholder="e.g. ri-star-line">
+                            </div>
+                            <div>
+                                <label class="form-label">OR Image</label>
+                                <input type="file" name="items[${whatWeDoCount}][image_file]" class="form-control form-control-sm" accept="image/*">
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label class="form-label">Title</label>
+                                <input type="text" name="items[${whatWeDoCount}][title]" class="form-control form-control-sm" placeholder="Enter title">
+                            </div>
+                            <div>
+                                <label class="form-label">Description</label>
+                                <textarea name="items[${whatWeDoCount}][description]" class="form-control form-control-sm" rows="3" placeholder="Enter description"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        $container.append(card);
+        whatWeDoCount++;
+    });
+
+    $(document).on('click', '.remove-what-we-do-btn', function() {
+        $(this).closest('.what-we-do-item').remove();
+        if ($('#whatWeDoContainer .what-we-do-item').length === 0) {
+            $('#whatWeDoContainer').append('<div class="text-center text-muted py-3 what-we-do-empty">No cards added yet.</div>');
+        }
+    });
+
+    $('#whatWeDoForm').on('submit', function(e) {
+        e.preventDefault();
+        const $btn = $('#saveWhatWeDoBtn');
+        const originalText = $btn.html();
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
+        const formData = new FormData(this);
+        axios.post("{{ route('admin.cms.about.update.what_we_do') }}", formData)
             .then(res => {
                 Toast.success(res.data.message);
                 setTimeout(() => window.location.reload(), 1000);
