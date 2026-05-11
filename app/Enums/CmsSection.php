@@ -36,4 +36,6 @@ enum CmsSection: string
     // Services Page
     case SERVICES_HERO = 'services_hero';
     case SERVICES_OVERVIEW = 'services_overview';
+    case SERVICES_GROW = 'services_grow';
+    case SERVICES_PARTNERS = 'services_partners';
 }

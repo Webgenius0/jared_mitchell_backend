@@ -112,6 +112,8 @@ Route::prefix('cms/services')->name('admin.cms.services.')->group(function () {
     Route::get('/', [ServiceCmsController::class, 'index'])->name('index');
     Route::post('/hero', [ServiceCmsController::class, 'updateHero'])->name('update.hero');
     Route::post('/overview', [ServiceCmsController::class, 'updateOverview'])->name('update.overview');
+    Route::post('/grow', [ServiceCmsController::class, 'updateGrow'])->name('update.grow');
+    Route::post('/partners', [ServiceCmsController::class, 'updatePartners'])->name('update.partners');
 });
 
 // routes/web.php
