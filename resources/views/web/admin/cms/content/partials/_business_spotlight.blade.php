@@ -208,6 +208,33 @@
         </div>
     </div>
 
+    {{-- Join Section --}}
+    @php $join = $cmsData->get('business_spotlight_join'); @endphp
+    <div class="accordion-item card mb-3">
+        <h2 class="accordion-header" id="headingJoin">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseJoin" aria-expanded="false" aria-controls="collapseJoin">
+                <i class="ri-user-add-line me-2"></i> Join OSI Section
+            </button>
+        </h2>
+        <div id="collapseJoin" class="accordion-collapse collapse" aria-labelledby="headingJoin" data-bs-parent="#businessSpotlightAccordion">
+            <div class="accordion-body">
+                <form id="joinForm">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label">Section Title</label>
+                            <textarea name="title" class="form-control" rows="2" placeholder="e.g. Become part of a growing network...">{{ $join?->title }}</textarea>
+                        </div>
+                        <div class="col-12 text-end mt-4">
+                            <button type="submit" class="btn btn-primary px-4" id="saveJoinBtn">
+                                <i class="ri-save-line me-1"></i> Save Section
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 @push('scripts')
@@ -311,6 +338,24 @@ $(function() {
         $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
         const formData = new FormData(this);
         axios.post("{{ route('admin.cms.business_spotlight.update.ladder') }}", formData)
+            .then(res => {
+                Toast.success(res.data.message);
+                setTimeout(() => window.location.reload(), 1000);
+            })
+            .catch(err => {
+                Toast.fromResponse(err.response?.data);
+                $btn.prop('disabled', false).html(originalText);
+            });
+    });
+
+    // Join Logic
+    $('#joinForm').on('submit', function(e) {
+        e.preventDefault();
+        const $btn = $('#saveJoinBtn');
+        const originalText = $btn.html();
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
+        const formData = new FormData(this);
+        axios.post("{{ route('admin.cms.business_spotlight.update.join') }}", formData)
             .then(res => {
                 Toast.success(res.data.message);
                 setTimeout(() => window.location.reload(), 1000);

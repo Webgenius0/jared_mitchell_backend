@@ -217,4 +217,30 @@ class BusinessSpotlightCmsController extends Controller
 
         return $this->success('Business ladder updated successfully.', ['cms' => $cms]);
     }
+
+    /**
+     * Update Join section
+     */
+    public function updateJoin(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::updateOrCreate(
+            [
+                'page' => CmsPage::BUSINESS_SPOTLIGHT,
+                'section' => CmsSection::BUSINESS_SPOTLIGHT_JOIN,
+            ],
+            [
+                'title' => $request->title,
+            ]
+        );
+
+        return $this->success('Join section updated successfully.', ['cms' => $cms]);
+    }
 }
