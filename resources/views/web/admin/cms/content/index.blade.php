@@ -17,21 +17,7 @@
 
         <div class="row">
             <div class="col-lg-3">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Pages</h5>
-                    </div>
-                    <div class="card-body p-2">
-                        <div class="list-group list-group-flush">
-                            @foreach ($pages as $page)
-                                <a href="{{ route('admin.cms.content.index', ['page' => $page->value]) }}"
-                                    class="list-group-item list-group-item-action {{ $currentPage === $page->value ? 'active' : '' }}">
-                                    {{ ucfirst($page->value) }}
-                                </a>
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
+                @include('web.admin.cms.partials._sidebar')
             </div>
 
             <div class="col-lg-9">

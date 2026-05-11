@@ -17,4 +17,9 @@ enum CmsSection: string
     case SHOP = 'shop';
     case CTA = 'cta';
     case NEWSLETTER = 'newsletter';
+
+    // About Page
+    case ABOUT_HERO = 'about_hero';
+    case ABOUT_SOCIETY = 'about_society';
+    case ABOUT_ORIGIN = 'about_origin';
 }

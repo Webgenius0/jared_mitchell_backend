@@ -6,10 +6,11 @@ use App\Http\Controllers\Api\Auth\RegisterController;
 use App\Http\Controllers\Api\Auth\UserProfileController;
 use App\Http\Controllers\Api\Auth\V2\ForgotPasswordController as V2ForgotPasswordController;
 use App\Http\Controllers\Api\Auth\V2\RegisterController as V2RegisterController;
+use App\Http\Controllers\Api\BusinessSpotlightController;
 use App\Http\Controllers\Api\Chat\ConversationController;
 use App\Http\Controllers\Api\Chat\MessageController;
 use App\Http\Controllers\Api\Chat\TypingController;
-use App\Http\Controllers\Api\BusinessSpotlightController;
+use App\Http\Controllers\Api\Cms\CmsContentController;
 use App\Http\Controllers\Api\Cms\CmsPageController;
 use App\Http\Controllers\Api\Cms\CmsPricingController;
 use Illuminate\Support\Facades\Route;
@@ -57,7 +58,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
         Route::get('/pages',        [CmsPageController::class,    'index']); // All published pages
         Route::get('/pages/{slug}', [CmsPageController::class,    'show']);  // Single page + visible sections + content
         Route::get('/pricing',      [CmsPricingController::class, 'index']); // Visible pricing plans with feature groups
-        Route::get('/content',      [\App\Http\Controllers\Api\Cms\CmsContentController::class, 'index']); // New system
+        Route::get('/content',      [CmsContentController::class, 'index']); // New system
     });
 
     /*

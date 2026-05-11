@@ -3,6 +3,7 @@
 use App\Http\Controllers\Web\Admin\Auth\AdminProfileController;
 use App\Http\Controllers\Web\Admin\BusinessSpotlight\AdminBusinessSpotlightController;
 use App\Http\Controllers\Web\Admin\Cms\CmsContentController;
+use App\Http\Controllers\Web\Admin\Cms\AboutCmsController;
 use App\Http\Controllers\Web\Admin\Cms\PageSectionController;
 use App\Http\Controllers\Web\Admin\Cms\PricingController;
 use App\Http\Controllers\Web\Admin\Contact\AdminChattingController;
@@ -85,6 +86,14 @@ Route::prefix('cms/content')->name('admin.cms.content.')->group(function () {
     Route::post('/shop', [CmsContentController::class, 'updateShop'])->name('update.shop');
     Route::post('/cta', [CmsContentController::class, 'updateCta'])->name('update.cta');
     Route::post('/newsletter', [CmsContentController::class, 'updateNewsletter'])->name('update.newsletter');
+});
+
+// About CMS Routes
+Route::prefix('cms/about')->name('admin.cms.about.')->group(function () {
+    Route::get('/', [AboutCmsController::class, 'index'])->name('index');
+    Route::post('/hero', [AboutCmsController::class, 'updateHero'])->name('update.hero');
+    Route::post('/society', [AboutCmsController::class, 'updateSociety'])->name('update.society');
+    Route::post('/origin', [AboutCmsController::class, 'updateOrigin'])->name('update.origin');
 });
 
 // routes/web.php
