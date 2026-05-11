@@ -483,4 +483,25 @@ class AboutCmsController extends Controller
 
         return $this->success('Join section updated successfully.', ['cms' => $cms]);
     }
+
+    /**
+     * Update Newsletter section
+     */
+    public function updateNewsletter(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::updateOrCreate(
+            ['page' => CmsPage::ABOUT, 'section' => CmsSection::ABOUT_NEWSLETTER],
+            ['title' => $request->title]
+        );
+
+        return $this->success('Newsletter section updated successfully.', ['cms' => $cms]);
+    }
 }

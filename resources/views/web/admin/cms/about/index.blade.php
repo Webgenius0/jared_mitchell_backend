@@ -630,6 +630,33 @@
                             </div>
                         </div>
                     </div>
+
+                    {{-- Newsletter Section --}}
+                    @php $newsletter = $cmsData->get('about_newsletter'); @endphp
+                    <div class="accordion-item card mb-3">
+                        <h2 class="accordion-header" id="headingNewsletter">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNewsletter" aria-expanded="false" aria-controls="collapseNewsletter">
+                                <i class="ri-mail-send-line me-2"></i> Newsletter Section
+                            </button>
+                        </h2>
+                        <div id="collapseNewsletter" class="accordion-collapse collapse" aria-labelledby="headingNewsletter" data-bs-parent="#aboutAccordion">
+                            <div class="accordion-body">
+                                <form id="newsletterForm">
+                                    <div class="row g-3">
+                                        <div class="col-md-12">
+                                            <label class="form-label">Section Title</label>
+                                            <input type="text" name="title" class="form-control" value="{{ $newsletter?->title }}" placeholder="e.g. Be part of the movement...">
+                                        </div>
+                                        <div class="col-12 text-end mt-4">
+                                            <button type="submit" class="btn btn-primary px-4" id="saveNewsletterBtn">
+                                                <i class="ri-save-line me-1"></i> Save Section
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1053,6 +1080,24 @@ $(function() {
         $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
         const formData = new FormData(this);
         axios.post("{{ route('admin.cms.about.update.join') }}", formData)
+            .then(res => {
+                Toast.success(res.data.message);
+                setTimeout(() => window.location.reload(), 1000);
+            })
+            .catch(err => {
+                Toast.fromResponse(err.response?.data);
+                $btn.prop('disabled', false).html(originalText);
+            });
+    });
+
+    // Newsletter Logic
+    $('#newsletterForm').on('submit', function(e) {
+        e.preventDefault();
+        const $btn = $('#saveNewsletterBtn');
+        const originalText = $btn.html();
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
+        const formData = new FormData(this);
+        axios.post("{{ route('admin.cms.about.update.newsletter') }}", formData)
             .then(res => {
                 Toast.success(res.data.message);
                 setTimeout(() => window.location.reload(), 1000);
