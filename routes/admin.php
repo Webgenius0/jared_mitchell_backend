@@ -9,6 +9,7 @@ use App\Http\Controllers\Web\Admin\Cms\CmsContentController;
 use App\Http\Controllers\Web\Admin\Cms\PageSectionController;
 use App\Http\Controllers\Web\Admin\Cms\PricingController;
 use App\Http\Controllers\Web\Admin\Cms\ServiceCmsController;
+use App\Http\Controllers\Web\Admin\Cms\SpotlightLadderCmsController;
 use App\Http\Controllers\Web\Admin\Contact\AdminChattingController;
 use App\Http\Controllers\Web\Admin\Contact\AdminMailingController;
 use App\Http\Controllers\Web\Admin\Dashboard\AdminDashboardController;
@@ -148,6 +149,12 @@ Route::prefix('cms/business-spotlight')->name('admin.cms.business_spotlight.')->
     Route::post('/join', [BusinessSpotlightCmsController::class, 'updateJoin'])->name('update.join');
     Route::post('/interview', [BusinessSpotlightCmsController::class, 'updateInterview'])->name('update.interview');
     Route::post('/why-exists', [BusinessSpotlightCmsController::class, 'updateWhyExists'])->name('update.why_exists');
+});
+
+// Spotlight Ladder CMS Routes
+Route::prefix('cms/spotlight-ladder')->name('admin.cms.spotlight_ladder.')->group(function () {
+    Route::get('/', [SpotlightLadderCmsController::class, 'index'])->name('index');
+    Route::post('/hero', [SpotlightLadderCmsController::class, 'updateHero'])->name('update.hero');
 });
 
 // routes/web.php
