@@ -436,6 +436,49 @@
                             </div>
                         </div>
                     </div>
+                    {{-- Boss Beginnings Section --}}
+                    @php $bossBeginnings = $cmsData->get('boss_beginnings'); @endphp
+                    <div class="accordion-item card mb-3">
+                        <h2 class="accordion-header" id="headingBossBeginnings">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBossBeginnings" aria-expanded="false" aria-controls="collapseBossBeginnings">
+                                <i class="ri-lightbulb-line me-2"></i> Boss Beginnings Section
+                            </button>
+                        </h2>
+                        <div id="collapseBossBeginnings" class="accordion-collapse collapse" aria-labelledby="headingBossBeginnings" data-bs-parent="#cmsAccordion">
+                            <div class="accordion-body">
+                                <form id="bossBeginningsForm" enctype="multipart/form-data">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Title</label>
+                                            <input type="text" name="title" class="form-control" value="{{ $bossBeginnings?->title }}" placeholder="e.g. Boss Beginnings">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Subtitle</label>
+                                            <input type="text" name="sub_title" class="form-control" value="{{ $bossBeginnings?->sub_title }}" placeholder="e.g. A Business Shower">
+                                        </div>
+                                        <div class="col-md-12">
+                                            <label class="form-label">Description</label>
+                                            <textarea name="description" class="form-control" rows="4" placeholder="Enter section description">{{ $bossBeginnings?->description }}</textarea>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <label class="form-label">Main Image</label>
+                                            <input type="file" name="image_file" class="form-control" accept="image/*">
+                                            @if($bossBeginnings?->image)
+                                                <div class="mt-2">
+                                                    <img src="{{ asset('storage/' . $bossBeginnings->image) }}" alt="Boss Beginnings" class="rounded border" style="max-height: 200px; width: auto;">
+                                                </div>
+                                            @endif
+                                        </div>
+                                        <div class="col-12 text-end mt-4">
+                                            <button type="submit" class="btn btn-primary px-4" id="saveBossBeginningsBtn">
+                                                <i class="ri-save-line me-1"></i> Save Section
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -728,6 +771,27 @@ $(function() {
         const formData = new FormData(this);
 
         axios.post("{{ route('admin.cms.content.update.what_you_get') }}", formData)
+            .then(res => {
+                Toast.success(res.data.message);
+                setTimeout(() => window.location.reload(), 1000);
+            })
+            .catch(err => {
+                Toast.fromResponse(err.response?.data);
+                $btn.prop('disabled', false).html(originalText);
+            });
+    });
+
+    // Boss Beginnings Logic
+    $('#bossBeginningsForm').on('submit', function(e) {
+        e.preventDefault();
+        const $btn = $('#saveBossBeginningsBtn');
+        const originalText = $btn.html();
+        
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
+
+        const formData = new FormData(this);
+
+        axios.post("{{ route('admin.cms.content.update.boss_beginnings') }}", formData)
             .then(res => {
                 Toast.success(res.data.message);
                 setTimeout(() => window.location.reload(), 1000);

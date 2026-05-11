@@ -317,4 +317,45 @@ class CmsContentController extends Controller
             'cms' => $cms,
         ]);
     }
+
+    /**
+     * Update boss beginnings section
+     */
+    public function updateBossBeginnings(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:255'],
+            'sub_title' => ['nullable', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'image_file' => ['nullable', 'file', 'image', 'max:5120'], // 5MB
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::updateOrCreate(
+            [
+                'page' => CmsPage::HOME,
+                'section' => CmsSection::BOSS_BEGINNINGS,
+            ],
+            [
+                'title' => $request->title,
+                'sub_title' => $request->sub_title,
+                'description' => $request->description,
+            ]
+        );
+
+        if ($request->hasFile('image_file')) {
+            if ($cms->image && \Illuminate\Support\Str::startsWith($cms->image, 'uploads/')) {
+                FileHandle::fileDelete($cms->image);
+            }
+            $path = FileHandle::fileUpload($request->file('image_file'), 'cms/boss_beginnings');
+            $cms->update(['image' => $path]);
+        }
+
+        return $this->success('Boss Beginnings section updated successfully.', [
+            'cms' => $cms,
+        ]);
+    }
 }
