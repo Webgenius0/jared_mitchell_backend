@@ -146,6 +146,68 @@
         </div>
     </div>
 
+    {{-- Ladder Section --}}
+    @php $ladder = $cmsData->get('artist_spotlight_ladder'); @endphp
+    <div class="accordion-item card mb-3">
+        <h2 class="accordion-header" id="headingLadder">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseLadder" aria-expanded="false" aria-controls="collapseLadder">
+                <i class="ri-bar-chart-line me-2"></i> Ladder Header
+            </button>
+        </h2>
+        <div id="collapseLadder" class="accordion-collapse collapse" aria-labelledby="headingLadder" data-bs-parent="#artistSpotlightAccordion">
+            <div class="accordion-body">
+                <form id="ladderForm">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label">Section Title</label>
+                            <input type="text" name="title" class="form-control" value="{{ $ladder?->title }}" placeholder="e.g. Weekly Spotlight Ladder">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Section Subtitle</label>
+                            <textarea name="sub_title" class="form-control" rows="3" placeholder="Enter section description">{{ $ladder?->sub_title }}</textarea>
+                        </div>
+                        <div class="col-12 text-end mt-4">
+                            <button type="submit" class="btn btn-primary px-4" id="saveLadderBtn">
+                                <i class="ri-save-line me-1"></i> Save Section
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {{-- Join Section --}}
+    @php $join = $cmsData->get('artist_spotlight_join'); @endphp
+    <div class="accordion-item card mb-3">
+        <h2 class="accordion-header" id="headingJoin">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseJoin" aria-expanded="false" aria-controls="collapseJoin">
+                <i class="ri-user-add-line me-2"></i> Join OSI Section
+            </button>
+        </h2>
+        <div id="collapseJoin" class="accordion-collapse collapse" aria-labelledby="headingJoin" data-bs-parent="#artistSpotlightAccordion">
+            <div class="accordion-body">
+                <form id="joinForm">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label">Section Title</label>
+                            <textarea name="title" class="form-control" rows="2" placeholder="e.g. Become part of a growing network...">{{ $join?->title }}</textarea>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Section Subtitle</label>
+                            <textarea name="sub_title" class="form-control" rows="2" placeholder="Enter optional subtitle">{{ $join?->sub_title }}</textarea>
+                        </div>
+                        <div class="col-12 text-end mt-4">
+                            <button type="submit" class="btn btn-primary px-4" id="saveJoinBtn">
+                                <i class="ri-save-line me-1"></i> Save Section
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 @push('scripts')
@@ -213,6 +275,42 @@ $(function() {
         $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
         const formData = new FormData(this);
         axios.post("{{ route('admin.cms.artist_spotlight.update.highlights') }}", formData)
+            .then(res => {
+                Toast.success(res.data.message);
+                setTimeout(() => window.location.reload(), 1000);
+            })
+            .catch(err => {
+                Toast.fromResponse(err.response?.data);
+                $btn.prop('disabled', false).html(originalText);
+            });
+    });
+
+    // Ladder Logic
+    $('#ladderForm').on('submit', function(e) {
+        e.preventDefault();
+        const $btn = $('#saveLadderBtn');
+        const originalText = $btn.html();
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
+        const formData = new FormData(this);
+        axios.post("{{ route('admin.cms.artist_spotlight.update.ladder') }}", formData)
+            .then(res => {
+                Toast.success(res.data.message);
+                setTimeout(() => window.location.reload(), 1000);
+            })
+            .catch(err => {
+                Toast.fromResponse(err.response?.data);
+                $btn.prop('disabled', false).html(originalText);
+            });
+    });
+
+    // Join Logic
+    $('#joinForm').on('submit', function(e) {
+        e.preventDefault();
+        const $btn = $('#saveJoinBtn');
+        const originalText = $btn.html();
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
+        const formData = new FormData(this);
+        axios.post("{{ route('admin.cms.artist_spotlight.update.join') }}", formData)
             .then(res => {
                 Toast.success(res.data.message);
                 setTimeout(() => window.location.reload(), 1000);

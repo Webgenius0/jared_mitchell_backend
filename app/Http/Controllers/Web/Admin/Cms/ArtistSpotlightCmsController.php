@@ -140,4 +140,48 @@ class ArtistSpotlightCmsController extends Controller
 
         return $this->success('Artist spotlight highlights section updated successfully.', ['cms' => $cms]);
     }
+
+    /**
+     * Update Artist Spotlight Ladder section
+     */
+    public function updateLadder(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:500'],
+            'sub_title' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::updateOrCreate(
+            ['page' => CmsPage::ARTIST_SPOTLIGHT, 'section' => CmsSection::ARTIST_SPOTLIGHT_LADDER],
+            ['title' => $request->title, 'sub_title' => $request->sub_title]
+        );
+
+        return $this->success('Artist spotlight ladder section updated successfully.', ['cms' => $cms]);
+    }
+
+    /**
+     * Update Artist Spotlight Join section
+     */
+    public function updateJoin(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:500'],
+            'sub_title' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::updateOrCreate(
+            ['page' => CmsPage::ARTIST_SPOTLIGHT, 'section' => CmsSection::ARTIST_SPOTLIGHT_JOIN],
+            ['title' => $request->title, 'sub_title' => $request->sub_title]
+        );
+
+        return $this->success('Artist spotlight join section updated successfully.', ['cms' => $cms]);
+    }
 }

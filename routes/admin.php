@@ -129,6 +129,8 @@ Route::prefix('cms/artist-spotlight')->name('admin.cms.artist_spotlight.')->grou
     Route::post('/video', [ArtistSpotlightCmsController::class, 'updateVideo'])->name('update.video');
     Route::post('/list', [ArtistSpotlightCmsController::class, 'updateList'])->name('update.list');
     Route::post('/highlights', [ArtistSpotlightCmsController::class, 'updateHighlights'])->name('update.highlights');
+    Route::post('/ladder', [ArtistSpotlightCmsController::class, 'updateLadder'])->name('update.ladder');
+    Route::post('/join', [ArtistSpotlightCmsController::class, 'updateJoin'])->name('update.join');
 });
 
 // routes/web.php
