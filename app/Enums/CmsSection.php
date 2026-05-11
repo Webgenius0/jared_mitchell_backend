@@ -22,4 +22,5 @@ enum CmsSection: string
     case ABOUT_HERO = 'about_hero';
     case ABOUT_SOCIETY = 'about_society';
     case ABOUT_ORIGIN = 'about_origin';
+    case ABOUT_MISSION = 'about_mission';
 }

@@ -141,6 +141,83 @@
                             </div>
                         </div>
                     </div>
+                    {{-- Mission & Purpose Section --}}
+                    @php 
+                        $mission = $cmsData->get('about_mission'); 
+                        $missionItems = $mission?->metadata ?? [];
+                    @endphp
+                    <div class="accordion-item card mb-3">
+                        <h2 class="accordion-header" id="headingMission">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMission" aria-expanded="false" aria-controls="collapseMission">
+                                <i class="ri-rocket-line me-2"></i> Mission & Purpose Section
+                            </button>
+                        </h2>
+                        <div id="collapseMission" class="accordion-collapse collapse" aria-labelledby="headingMission" data-bs-parent="#aboutAccordion">
+                            <div class="accordion-body">
+                                <form id="missionForm" enctype="multipart/form-data">
+                                    <div class="row g-3">
+                                        <div class="col-md-12">
+                                            <label class="form-label">Main Title</label>
+                                            <input type="text" name="title" class="form-control" value="{{ $mission?->title }}" placeholder="e.g. Mission & Purpose">
+                                        </div>
+                                        
+                                        <div class="col-12 mt-4">
+                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                <h6 class="mb-0">Cards (Mission, Purpose, etc.)</h6>
+                                                <button type="button" class="btn btn-sm btn-soft-primary" id="addMissionBtn">
+                                                    <i class="ri-add-line me-1"></i> Add Card
+                                                </button>
+                                            </div>
+                                            <div id="missionContainer">
+                                                @forelse($missionItems as $index => $item)
+                                                    <div class="card border border-dashed mb-3 mission-item">
+                                                        <div class="card-body">
+                                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                                <h6 class="card-title mb-0">Card #{{ $index + 1 }}</h6>
+                                                                <button type="button" class="btn btn-sm btn-soft-danger remove-mission-btn">
+                                                                    <i class="ri-delete-bin-line"></i>
+                                                                </button>
+                                                            </div>
+                                                            <div class="row g-3">
+                                                                <div class="col-md-4">
+                                                                    <label class="form-label">Icon / Image</label>
+                                                                    <input type="file" name="items[{{ $index }}][image_file]" class="form-control form-control-sm" accept="image/*">
+                                                                    <input type="hidden" name="items[{{ $index }}][existing_image]" value="{{ $item['image'] ?? '' }}">
+                                                                    @if($item['image'] ?? null)
+                                                                        <div class="mt-2">
+                                                                            <img src="{{ asset('storage/' . $item['image']) }}" alt="Icon" class="rounded border" style="height: 50px;">
+                                                                        </div>
+                                                                    @endif
+                                                                </div>
+                                                                <div class="col-md-8">
+                                                                    <div class="mb-3">
+                                                                        <label class="form-label">Title</label>
+                                                                        <input type="text" name="items[{{ $index }}][title]" class="form-control form-control-sm" value="{{ $item['title'] ?? '' }}" placeholder="e.g. Mission">
+                                                                    </div>
+                                                                    <div>
+                                                                        <label class="form-label">Description</label>
+                                                                        <textarea name="items[{{ $index }}][description]" class="form-control form-control-sm" rows="3" placeholder="Enter card description">{{ $item['description'] ?? '' }}</textarea>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                @empty
+                                                    <div class="text-center text-muted py-3 mission-empty">No cards added yet.</div>
+                                                @endforelse
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12 text-end mt-4">
+                                            <button type="submit" class="btn btn-primary px-4" id="saveMissionBtn">
+                                                <i class="ri-save-line me-1"></i> Save Mission Section
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -195,6 +272,69 @@ $(function() {
         $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
         const formData = new FormData(this);
         axios.post("{{ route('admin.cms.about.update.origin') }}", formData)
+            .then(res => {
+                Toast.success(res.data.message);
+                setTimeout(() => window.location.reload(), 1000);
+            })
+            .catch(err => {
+                Toast.fromResponse(err.response?.data);
+                $btn.prop('disabled', false).html(originalText);
+            });
+    });
+
+    // Mission Logic
+    let missionCount = {{ count($missionItems) }};
+    
+    $('#addMissionBtn').on('click', function() {
+        const $container = $('#missionContainer');
+        $container.find('.mission-empty').remove();
+        
+        const card = `
+            <div class="card border border-dashed mb-3 mission-item">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="card-title mb-0">New Card</h6>
+                        <button type="button" class="btn btn-sm btn-soft-danger remove-mission-btn">
+                            <i class="ri-delete-bin-line"></i>
+                        </button>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Icon / Image</label>
+                            <input type="file" name="items[${missionCount}][image_file]" class="form-control form-control-sm" accept="image/*">
+                        </div>
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label class="form-label">Title</label>
+                                <input type="text" name="items[${missionCount}][title]" class="form-control form-control-sm" placeholder="e.g. Mission">
+                            </div>
+                            <div>
+                                <label class="form-label">Description</label>
+                                <textarea name="items[${missionCount}][description]" class="form-control form-control-sm" rows="3" placeholder="Enter card description"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        $container.append(card);
+        missionCount++;
+    });
+
+    $(document).on('click', '.remove-mission-btn', function() {
+        $(this).closest('.mission-item').remove();
+        if ($('#missionContainer .mission-item').length === 0) {
+            $('#missionContainer').append('<div class="text-center text-muted py-3 mission-empty">No cards added yet.</div>');
+        }
+    });
+
+    $('#missionForm').on('submit', function(e) {
+        e.preventDefault();
+        const $btn = $('#saveMissionBtn');
+        const originalText = $btn.html();
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
+        const formData = new FormData(this);
+        axios.post("{{ route('admin.cms.about.update.mission') }}", formData)
             .then(res => {
                 Toast.success(res.data.message);
                 setTimeout(() => window.location.reload(), 1000);
