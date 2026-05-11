@@ -118,4 +118,26 @@ class ArtistSpotlightCmsController extends Controller
 
         return $this->success('Artist spotlight list section updated successfully.', ['cms' => $cms]);
     }
+
+    /**
+     * Update Artist Spotlight Highlights section
+     */
+    public function updateHighlights(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:500'],
+            'sub_title' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::updateOrCreate(
+            ['page' => CmsPage::ARTIST_SPOTLIGHT, 'section' => CmsSection::ARTIST_SPOTLIGHT_HIGHLIGHTS],
+            ['title' => $request->title, 'sub_title' => $request->sub_title]
+        );
+
+        return $this->success('Artist spotlight highlights section updated successfully.', ['cms' => $cms]);
+    }
 }
