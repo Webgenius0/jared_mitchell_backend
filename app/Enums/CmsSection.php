@@ -52,4 +52,5 @@ enum CmsSection: string
     case ARTIST_SPOTLIGHT_LADDER = 'artist_spotlight_ladder';
     case ARTIST_SPOTLIGHT_JOIN = 'artist_spotlight_join';
     case ARTIST_SPOTLIGHT_INTERVIEW = 'artist_spotlight_interview';
+    case ARTIST_SPOTLIGHT_WHY_EXISTS = 'artist_spotlight_why_exists';
 }

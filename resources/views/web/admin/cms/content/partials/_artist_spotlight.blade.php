@@ -258,6 +258,37 @@
         </div>
     </div>
 
+    {{-- Why OSI Exists Section --}}
+    @php $whyExists = $cmsData->get('artist_spotlight_why_exists'); @endphp
+    <div class="accordion-item card mb-3">
+        <h2 class="accordion-header" id="headingWhyExists">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseWhyExists" aria-expanded="false" aria-controls="collapseWhyExists">
+                <i class="ri-question-line me-2"></i> Why OSI Exists Section
+            </button>
+        </h2>
+        <div id="collapseWhyExists" class="accordion-collapse collapse" aria-labelledby="headingWhyExists" data-bs-parent="#artistSpotlightAccordion">
+            <div class="accordion-body">
+                <form id="whyExistsForm">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label">Section Title</label>
+                            <input type="text" name="title" class="form-control" value="{{ $whyExists?->title }}" placeholder="e.g. Why OSI Exists">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Section Description</label>
+                            <textarea name="description" class="form-control" rows="4" placeholder="Enter section description">{{ $whyExists?->sub_title }}</textarea>
+                        </div>
+                        <div class="col-12 text-end mt-4">
+                            <button type="submit" class="btn btn-primary px-4" id="saveWhyExistsBtn">
+                                <i class="ri-save-line me-1"></i> Save Section
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 @push('scripts')
@@ -396,6 +427,24 @@ $(function() {
         $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
         const formData = new FormData(this);
         axios.post("{{ route('admin.cms.artist_spotlight.update.interview') }}", formData)
+            .then(res => {
+                Toast.success(res.data.message);
+                setTimeout(() => window.location.reload(), 1000);
+            })
+            .catch(err => {
+                Toast.fromResponse(err.response?.data);
+                $btn.prop('disabled', false).html(originalText);
+            });
+    });
+
+    // Why OSI Exists Logic
+    $('#whyExistsForm').on('submit', function(e) {
+        e.preventDefault();
+        const $btn = $('#saveWhyExistsBtn');
+        const originalText = $btn.html();
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
+        const formData = new FormData(this);
+        axios.post("{{ route('admin.cms.artist_spotlight.update.why_exists') }}", formData)
             .then(res => {
                 Toast.success(res.data.message);
                 setTimeout(() => window.location.reload(), 1000);

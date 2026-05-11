@@ -225,4 +225,26 @@ class ArtistSpotlightCmsController extends Controller
 
         return $this->success('Artist spotlight interview section updated successfully.', ['cms' => $cms]);
     }
+
+    /**
+     * Update Artist Spotlight Why OSI Exists section
+     */
+    public function updateWhyExists(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:500'],
+            'description' => ['nullable', 'string'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::updateOrCreate(
+            ['page' => CmsPage::ARTIST_SPOTLIGHT, 'section' => CmsSection::ARTIST_SPOTLIGHT_WHY_EXISTS],
+            ['title' => $request->title, 'sub_title' => $request->description]
+        );
+
+        return $this->success('Artist spotlight Why OSI Exists section updated successfully.', ['cms' => $cms]);
+    }
 }
