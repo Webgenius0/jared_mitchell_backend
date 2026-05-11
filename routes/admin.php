@@ -4,6 +4,7 @@ use App\Http\Controllers\Web\Admin\Auth\AdminProfileController;
 use App\Http\Controllers\Web\Admin\BusinessSpotlight\AdminBusinessSpotlightController;
 use App\Http\Controllers\Web\Admin\Cms\AboutCmsController;
 use App\Http\Controllers\Web\Admin\Cms\ArtistSpotlightCmsController;
+use App\Http\Controllers\Web\Admin\Cms\BusinessSpotlightCmsController;
 use App\Http\Controllers\Web\Admin\Cms\CmsContentController;
 use App\Http\Controllers\Web\Admin\Cms\PageSectionController;
 use App\Http\Controllers\Web\Admin\Cms\PricingController;
@@ -133,6 +134,13 @@ Route::prefix('cms/artist-spotlight')->name('admin.cms.artist_spotlight.')->grou
     Route::post('/join', [ArtistSpotlightCmsController::class, 'updateJoin'])->name('update.join');
     Route::post('/interview', [ArtistSpotlightCmsController::class, 'updateInterview'])->name('update.interview');
     Route::post('/why-exists', [ArtistSpotlightCmsController::class, 'updateWhyExists'])->name('update.why_exists');
+});
+
+// Business Spotlight CMS Routes
+Route::prefix('cms/business-spotlight')->name('admin.cms.business_spotlight.')->group(function () {
+    Route::get('/', [BusinessSpotlightCmsController::class, 'index'])->name('index');
+    Route::post('/hero', [BusinessSpotlightCmsController::class, 'updateHero'])->name('update.hero');
+    Route::post('/video', [BusinessSpotlightCmsController::class, 'updateVideo'])->name('update.video');
 });
 
 // routes/web.php
