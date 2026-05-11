@@ -73,6 +73,8 @@ Route::prefix('cms/pages')->name('admin.cms.pages.')->group(function () {
 Route::prefix('cms/content')->name('admin.cms.content.')->group(function () {
     Route::get('/', [CmsContentController::class, 'index'])->name('index');
     Route::post('/hero', [CmsContentController::class, 'updateHero'])->name('update.hero');
+    Route::post('/partners', [CmsContentController::class, 'updatePartners'])->name('update.partners');
+    Route::post('/features', [CmsContentController::class, 'updateFeatures'])->name('update.features');
 });
 
 // routes/web.php
