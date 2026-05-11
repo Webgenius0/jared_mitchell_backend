@@ -81,6 +81,7 @@ Route::prefix('cms/content')->name('admin.cms.content.')->group(function () {
     Route::post('/boss-beginnings', [CmsContentController::class, 'updateBossBeginnings'])->name('update.boss_beginnings');
     Route::post('/spotlight', [CmsContentController::class, 'updateSpotlight'])->name('update.spotlight');
     Route::post('/highlights', [CmsContentController::class, 'updateHighlights'])->name('update.highlights');
+    Route::post('/events', [CmsContentController::class, 'updateEvents'])->name('update.events');
 });
 
 // routes/web.php

@@ -418,4 +418,43 @@ class CmsContentController extends Controller
             'cms' => $cms,
         ]);
     }
+
+    /**
+     * Update events section
+     */
+    public function updateEvents(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'bg_file' => ['nullable', 'file', 'image', 'max:5120'], // 5MB
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::updateOrCreate(
+            [
+                'page' => CmsPage::HOME,
+                'section' => CmsSection::EVENTS,
+            ],
+            [
+                'title' => $request->title,
+                'description' => $request->description,
+            ]
+        );
+
+        if ($request->hasFile('bg_file')) {
+            if ($cms->bg && \Illuminate\Support\Str::startsWith($cms->bg, 'uploads/')) {
+                FileHandle::fileDelete($cms->bg);
+            }
+            $path = FileHandle::fileUpload($request->file('bg_file'), 'cms/events');
+            $cms->update(['bg' => $path]);
+        }
+
+        return $this->success('Events section updated successfully.', [
+            'cms' => $cms,
+        ]);
+    }
 }

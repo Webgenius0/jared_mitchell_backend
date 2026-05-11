@@ -13,4 +13,5 @@ enum CmsSection: string
     case WHAT_YOU_GET = 'what_you_get';
     case BOSS_BEGINNINGS = 'boss_beginnings';
     case HIGHLIGHTS = 'highlights';
+    case EVENTS = 'events';
 }
