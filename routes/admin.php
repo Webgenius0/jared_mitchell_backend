@@ -100,6 +100,8 @@ Route::prefix('cms/about')->name('admin.cms.about.')->group(function () {
     Route::post('/who-we-serve', [AboutCmsController::class, 'updateWhoWeServe'])->name('update.who_we_serve');
     Route::post('/why-exists', [AboutCmsController::class, 'updateWhyExists'])->name('update.why_exists');
     Route::post('/our-impact', [AboutCmsController::class, 'updateOurImpact'])->name('update.our_impact');
+    Route::post('/founder-message', [AboutCmsController::class, 'updateFounderMessage'])->name('update.founder_message');
+    Route::post('/join', [AboutCmsController::class, 'updateJoin'])->name('update.join');
 });
 
 // routes/web.php

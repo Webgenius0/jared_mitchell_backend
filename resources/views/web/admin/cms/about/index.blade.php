@@ -515,6 +515,121 @@
                             </div>
                         </div>
                     </div>
+
+                    {{-- Founder Message Section --}}
+                    @php 
+                        $founder = $cmsData->get('about_founder_message'); 
+                        $founderItems = $founder?->metadata ?? [];
+                    @endphp
+                    <div class="accordion-item card mb-3">
+                        <h2 class="accordion-header" id="headingFounder">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFounder" aria-expanded="false" aria-controls="collapseFounder">
+                                <i class="ri-user-voice-line me-2"></i> Founder Message Section
+                            </button>
+                        </h2>
+                        <div id="collapseFounder" class="accordion-collapse collapse" aria-labelledby="headingFounder" data-bs-parent="#aboutAccordion">
+                            <div class="accordion-body">
+                                <form id="founderForm" enctype="multipart/form-data">
+                                    <div class="row g-3">
+                                        <div class="col-md-12">
+                                            <label class="form-label">Section Title</label>
+                                            <input type="text" name="title" class="form-control" value="{{ $founder?->title }}" placeholder="e.g. A Message From the Founder">
+                                        </div>
+
+                                        <div class="col-md-12 mt-4">
+                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                <label class="form-label mb-0">Messages (Slider Items)</label>
+                                                <button type="button" class="btn btn-sm btn-success" id="addFounderBtn">
+                                                    <i class="ri-add-line me-1"></i> Add Message
+                                                </button>
+                                            </div>
+                                            <div id="founderContainer">
+                                                @forelse($founderItems as $index => $item)
+                                                    <div class="card border border-dashed mb-3 founder-item">
+                                                        <div class="card-body">
+                                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                                <h6 class="card-title mb-0">Message #{{ $index + 1 }}</h6>
+                                                                <button type="button" class="btn btn-sm btn-soft-danger remove-founder-btn">
+                                                                    <i class="ri-delete-bin-line"></i>
+                                                                </button>
+                                                            </div>
+                                                            <div class="row g-3">
+                                                                <div class="col-md-4">
+                                                                    <label class="form-label">Founder Image</label>
+                                                                    <input type="file" name="items[{{ $index }}][image_file]" class="form-control form-control-sm" accept="image/*">
+                                                                    <input type="hidden" name="items[{{ $index }}][existing_image]" value="{{ $item['image'] ?? '' }}">
+                                                                    @if($item['image'] ?? null)
+                                                                        <div class="mt-2 text-center">
+                                                                            <img src="{{ asset('storage/' . $item['image']) }}" alt="Founder" class="rounded border shadow-sm" style="height: 80px; width: 80px; object-fit: cover;">
+                                                                        </div>
+                                                                    @endif
+                                                                </div>
+                                                                <div class="col-md-8">
+                                                                    <div class="row g-2">
+                                                                        <div class="col-md-6">
+                                                                            <label class="form-label">Name</label>
+                                                                            <input type="text" name="items[{{ $index }}][name]" class="form-control form-control-sm" value="{{ $item['name'] ?? '' }}" placeholder="e.g. Jared Mitchell Sr.">
+                                                                        </div>
+                                                                        <div class="col-md-6">
+                                                                            <label class="form-label">Designation</label>
+                                                                            <input type="text" name="items[{{ $index }}][designation]" class="form-control form-control-sm" value="{{ $item['designation'] ?? '' }}" placeholder="e.g. Founder & CEO">
+                                                                        </div>
+                                                                        <div class="col-12">
+                                                                            <label class="form-label">Sub Label</label>
+                                                                            <input type="text" name="items[{{ $index }}][sub_label]" class="form-control form-control-sm" value="{{ $item['sub_label'] ?? '' }}" placeholder="e.g. Our Social Image">
+                                                                        </div>
+                                                                        <div class="col-12">
+                                                                            <label class="form-label">Message/Quote</label>
+                                                                            <textarea name="items[{{ $index }}][message]" class="form-control form-control-sm" rows="3" placeholder="Enter message text">{{ $item['message'] ?? '' }}</textarea>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                @empty
+                                                    <div class="text-center text-muted py-3 founder-empty">No messages added yet.</div>
+                                                @endforelse
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12 text-end mt-4">
+                                            <button type="submit" class="btn btn-primary px-4" id="saveFounderBtn">
+                                                <i class="ri-save-line me-1"></i> Save Section
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Join Section --}}
+                    @php $join = $cmsData->get('about_join'); @endphp
+                    <div class="accordion-item card mb-3">
+                        <h2 class="accordion-header" id="headingJoin">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseJoin" aria-expanded="false" aria-controls="collapseJoin">
+                                <i class="ri-heart-line me-2"></i> Join Section
+                            </button>
+                        </h2>
+                        <div id="collapseJoin" class="accordion-collapse collapse" aria-labelledby="headingJoin" data-bs-parent="#aboutAccordion">
+                            <div class="accordion-body">
+                                <form id="joinForm">
+                                    <div class="row g-3">
+                                        <div class="col-md-12">
+                                            <label class="form-label">Section Title</label>
+                                            <input type="text" name="title" class="form-control" value="{{ $join?->title }}" placeholder="e.g. Join our community today!">
+                                        </div>
+                                        <div class="col-12 text-end mt-4">
+                                            <button type="submit" class="btn btn-primary px-4" id="saveJoinBtn">
+                                                <i class="ri-save-line me-1"></i> Save Section
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -847,6 +962,97 @@ $(function() {
         $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
         const formData = new FormData(this);
         axios.post("{{ route('admin.cms.about.update.our_impact') }}", formData)
+            .then(res => {
+                Toast.success(res.data.message);
+                setTimeout(() => window.location.reload(), 1000);
+            })
+            .catch(err => {
+                Toast.fromResponse(err.response?.data);
+                $btn.prop('disabled', false).html(originalText);
+            });
+    });
+
+    // Founder Message Logic
+    let founderCount = {{ count($founderItems) }};
+    
+    $('#addFounderBtn').on('click', function() {
+        const $container = $('#founderContainer');
+        $container.find('.founder-empty').remove();
+        
+        const card = `
+            <div class="card border border-dashed mb-3 founder-item">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="card-title mb-0">New Message</h6>
+                        <button type="button" class="btn btn-sm btn-soft-danger remove-founder-btn">
+                            <i class="ri-delete-bin-line"></i>
+                        </button>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Founder Image</label>
+                            <input type="file" name="items[${founderCount}][image_file]" class="form-control form-control-sm" accept="image/*">
+                        </div>
+                        <div class="col-md-8">
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <label class="form-label">Name</label>
+                                    <input type="text" name="items[${founderCount}][name]" class="form-control form-control-sm" placeholder="e.g. Jared Mitchell Sr.">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Designation</label>
+                                    <input type="text" name="items[${founderCount}][designation]" class="form-control form-control-sm" placeholder="e.g. Founder & CEO">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">Sub Label</label>
+                                    <input type="text" name="items[${founderCount}][sub_label]" class="form-control form-control-sm" placeholder="e.g. Our Social Image">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">Message/Quote</label>
+                                    <textarea name="items[${founderCount}][message]" class="form-control form-control-sm" rows="3" placeholder="Enter message text"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        $container.append(card);
+        founderCount++;
+    });
+
+    $(document).on('click', '.remove-founder-btn', function() {
+        $(this).closest('.founder-item').remove();
+        if ($('#founderContainer .founder-item').length === 0) {
+            $('#founderContainer').append('<div class="text-center text-muted py-3 founder-empty">No messages added yet.</div>');
+        }
+    });
+
+    $('#founderForm').on('submit', function(e) {
+        e.preventDefault();
+        const $btn = $('#saveFounderBtn');
+        const originalText = $btn.html();
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
+        const formData = new FormData(this);
+        axios.post("{{ route('admin.cms.about.update.founder_message') }}", formData)
+            .then(res => {
+                Toast.success(res.data.message);
+                setTimeout(() => window.location.reload(), 1000);
+            })
+            .catch(err => {
+                Toast.fromResponse(err.response?.data);
+                $btn.prop('disabled', false).html(originalText);
+            });
+    });
+
+    // Join Logic
+    $('#joinForm').on('submit', function(e) {
+        e.preventDefault();
+        const $btn = $('#saveJoinBtn');
+        const originalText = $btn.html();
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
+        const formData = new FormData(this);
+        axios.post("{{ route('admin.cms.about.update.join') }}", formData)
             .then(res => {
                 Toast.success(res.data.message);
                 setTimeout(() => window.location.reload(), 1000);

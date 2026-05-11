@@ -28,4 +28,6 @@ enum CmsSection: string
     case ABOUT_WHO_WE_SERVE = 'about_who_we_serve';
     case ABOUT_WHY_EXISTS = 'about_why_exists';
     case ABOUT_OUR_IMPACT = 'about_our_impact';
+    case ABOUT_FOUNDER_MESSAGE = 'about_founder_message';
+    case ABOUT_JOIN = 'about_join';
 }

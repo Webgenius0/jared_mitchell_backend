@@ -413,4 +413,74 @@ class AboutCmsController extends Controller
 
         return $this->success('Our impact updated successfully.', ['cms' => $cms]);
     }
+
+    /**
+     * Update Founder Message section
+     */
+    public function updateFounderMessage(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:255'],
+            'items' => ['nullable', 'array'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::firstOrNew([
+            'page' => CmsPage::ABOUT,
+            'section' => CmsSection::ABOUT_FOUNDER_MESSAGE,
+        ]);
+
+        $cms->title = $request->title;
+        
+        $itemsData = [];
+        if ($request->has('items')) {
+            foreach ($request->items as $index => $item) {
+                $itemData = [
+                    'name' => $item['name'] ?? '',
+                    'designation' => $item['designation'] ?? '',
+                    'message' => $item['message'] ?? '',
+                    'sub_label' => $item['sub_label'] ?? '',
+                    'image' => $item['existing_image'] ?? '',
+                ];
+
+                if ($request->hasFile("items.$index.image_file")) {
+                    if ($itemData['image'] && \Illuminate\Support\Str::startsWith($itemData['image'], 'uploads/')) {
+                        FileHandle::fileDelete($itemData['image']);
+                    }
+                    $itemData['image'] = FileHandle::fileUpload($request->file("items.$index.image_file"), 'cms/about');
+                }
+
+                $itemsData[] = $itemData;
+            }
+        }
+
+        $cms->metadata = $itemsData;
+        $cms->save();
+
+        return $this->success('Founder messages updated successfully.', ['cms' => $cms]);
+    }
+
+    /**
+     * Update Join section
+     */
+    public function updateJoin(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::updateOrCreate(
+            ['page' => CmsPage::ABOUT, 'section' => CmsSection::ABOUT_JOIN],
+            ['title' => $request->title]
+        );
+
+        return $this->success('Join section updated successfully.', ['cms' => $cms]);
+    }
 }
