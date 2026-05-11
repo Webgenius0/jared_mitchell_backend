@@ -115,6 +115,8 @@ Route::prefix('cms/services')->name('admin.cms.services.')->group(function () {
     Route::post('/grow', [ServiceCmsController::class, 'updateGrow'])->name('update.grow');
     Route::post('/partners', [ServiceCmsController::class, 'updatePartners'])->name('update.partners');
     Route::post('/who-for', [ServiceCmsController::class, 'updateWhoFor'])->name('update.who_for');
+    Route::post('/artist-spotlight', [ServiceCmsController::class, 'updateArtistSpotlight'])->name('update.artist_spotlight');
+    Route::post('/business-spotlight', [ServiceCmsController::class, 'updateBusinessSpotlight'])->name('update.business_spotlight');
 });
 
 // routes/web.php

@@ -219,4 +219,48 @@ class ServiceCmsController extends Controller
 
         return $this->success('Who OSI Is For section updated successfully.', ['cms' => $cms]);
     }
+
+    /**
+     * Update Artist Spotlight section
+     */
+    public function updateArtistSpotlight(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:500'],
+            'sub_title' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::updateOrCreate(
+            ['page' => CmsPage::SERVICES, 'section' => CmsSection::SERVICES_ARTIST_SPOTLIGHT],
+            ['title' => $request->title, 'sub_title' => $request->sub_title]
+        );
+
+        return $this->success('Artist spotlight section updated successfully.', ['cms' => $cms]);
+    }
+
+    /**
+     * Update Business Spotlight section
+     */
+    public function updateBusinessSpotlight(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:500'],
+            'sub_title' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::updateOrCreate(
+            ['page' => CmsPage::SERVICES, 'section' => CmsSection::SERVICES_BUSINESS_SPOTLIGHT],
+            ['title' => $request->title, 'sub_title' => $request->sub_title]
+        );
+
+        return $this->success('Business spotlight section updated successfully.', ['cms' => $cms]);
+    }
 }

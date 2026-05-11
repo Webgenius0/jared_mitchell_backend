@@ -39,4 +39,6 @@ enum CmsSection: string
     case SERVICES_GROW = 'services_grow';
     case SERVICES_PARTNERS = 'services_partners';
     case SERVICES_WHO_FOR = 'services_who_for';
+    case SERVICES_ARTIST_SPOTLIGHT = 'services_artist_spotlight';
+    case SERVICES_BUSINESS_SPOTLIGHT = 'services_business_spotlight';
 }

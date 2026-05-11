@@ -256,6 +256,68 @@
         </div>
     </div>
 
+    {{-- Artist Spotlight Section --}}
+    @php $artistSpotlight = $cmsData->get('services_artist_spotlight'); @endphp
+    <div class="accordion-item card mb-3">
+        <h2 class="accordion-header" id="headingArtistSpotlight">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseArtistSpotlight" aria-expanded="false" aria-controls="collapseArtistSpotlight">
+                <i class="ri-star-line me-2"></i> Artist Spotlight Form
+            </button>
+        </h2>
+        <div id="collapseArtistSpotlight" class="accordion-collapse collapse" aria-labelledby="headingArtistSpotlight" data-bs-parent="#serviceAccordion">
+            <div class="accordion-body">
+                <form id="artistSpotlightForm">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label">Form Title</label>
+                            <input type="text" name="title" class="form-control" value="{{ $artistSpotlight?->title }}" placeholder="e.g. Artist Spotlight Submission Form">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Subtitle Text</label>
+                            <textarea name="sub_title" class="form-control" rows="3" placeholder="Enter subtitle">{{ $artistSpotlight?->sub_title }}</textarea>
+                        </div>
+                        <div class="col-12 text-end mt-4">
+                            <button type="submit" class="btn btn-primary px-4" id="saveArtistSpotlightBtn">
+                                <i class="ri-save-line me-1"></i> Save Section
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {{-- Business Spotlight Section --}}
+    @php $businessSpotlight = $cmsData->get('services_business_spotlight'); @endphp
+    <div class="accordion-item card mb-3">
+        <h2 class="accordion-header" id="headingBusinessSpotlight">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBusinessSpotlight" aria-expanded="false" aria-controls="collapseBusinessSpotlight">
+                <i class="ri-briefcase-line me-2"></i> Business Spotlight Form
+            </button>
+        </h2>
+        <div id="collapseBusinessSpotlight" class="accordion-collapse collapse" aria-labelledby="headingBusinessSpotlight" data-bs-parent="#serviceAccordion">
+            <div class="accordion-body">
+                <form id="businessSpotlightForm">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label">Form Title</label>
+                            <input type="text" name="title" class="form-control" value="{{ $businessSpotlight?->title }}" placeholder="e.g. BUSINESS SPOTLIGHT Submission Form">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Subtitle Text</label>
+                            <textarea name="sub_title" class="form-control" rows="3" placeholder="Enter subtitle">{{ $businessSpotlight?->sub_title }}</textarea>
+                        </div>
+                        <div class="col-12 text-end mt-4">
+                            <button type="submit" class="btn btn-primary px-4" id="saveBusinessSpotlightBtn">
+                                <i class="ri-save-line me-1"></i> Save Section
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 @push('scripts')
@@ -417,6 +479,42 @@ $(function() {
         $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
         const formData = new FormData(this);
         axios.post("{{ route('admin.cms.services.update.who_for') }}", formData)
+            .then(res => {
+                Toast.success(res.data.message);
+                setTimeout(() => window.location.reload(), 1000);
+            })
+            .catch(err => {
+                Toast.fromResponse(err.response?.data);
+                $btn.prop('disabled', false).html(originalText);
+            });
+    });
+
+    // Artist Spotlight Logic
+    $('#artistSpotlightForm').on('submit', function(e) {
+        e.preventDefault();
+        const $btn = $('#saveArtistSpotlightBtn');
+        const originalText = $btn.html();
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
+        const formData = new FormData(this);
+        axios.post("{{ route('admin.cms.services.update.artist_spotlight') }}", formData)
+            .then(res => {
+                Toast.success(res.data.message);
+                setTimeout(() => window.location.reload(), 1000);
+            })
+            .catch(err => {
+                Toast.fromResponse(err.response?.data);
+                $btn.prop('disabled', false).html(originalText);
+            });
+    });
+
+    // Business Spotlight Logic
+    $('#businessSpotlightForm').on('submit', function(e) {
+        e.preventDefault();
+        const $btn = $('#saveBusinessSpotlightBtn');
+        const originalText = $btn.html();
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
+        const formData = new FormData(this);
+        axios.post("{{ route('admin.cms.services.update.business_spotlight') }}", formData)
             .then(res => {
                 Toast.success(res.data.message);
                 setTimeout(() => window.location.reload(), 1000);
