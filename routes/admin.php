@@ -2,11 +2,12 @@
 
 use App\Http\Controllers\Web\Admin\Auth\AdminProfileController;
 use App\Http\Controllers\Web\Admin\BusinessSpotlight\AdminBusinessSpotlightController;
-use App\Http\Controllers\Web\Admin\Cms\CmsContentController;
 use App\Http\Controllers\Web\Admin\Cms\AboutCmsController;
-use App\Http\Controllers\Web\Admin\Cms\ServiceCmsController;
+use App\Http\Controllers\Web\Admin\Cms\ArtistSpotlightCmsController;
+use App\Http\Controllers\Web\Admin\Cms\CmsContentController;
 use App\Http\Controllers\Web\Admin\Cms\PageSectionController;
 use App\Http\Controllers\Web\Admin\Cms\PricingController;
+use App\Http\Controllers\Web\Admin\Cms\ServiceCmsController;
 use App\Http\Controllers\Web\Admin\Contact\AdminChattingController;
 use App\Http\Controllers\Web\Admin\Contact\AdminMailingController;
 use App\Http\Controllers\Web\Admin\Dashboard\AdminDashboardController;
@@ -119,6 +120,14 @@ Route::prefix('cms/services')->name('admin.cms.services.')->group(function () {
     Route::post('/business-spotlight', [ServiceCmsController::class, 'updateBusinessSpotlight'])->name('update.business_spotlight');
     Route::post('/risk-free', [ServiceCmsController::class, 'updateRiskFree'])->name('update.risk_free');
     Route::post('/newsletter', [ServiceCmsController::class, 'updateNewsletter'])->name('update.newsletter');
+});
+
+// Artist Spotlight CMS Routes
+Route::prefix('cms/artist-spotlight')->name('admin.cms.artist_spotlight.')->group(function () {
+    Route::get('/', [ArtistSpotlightCmsController::class, 'index'])->name('index');
+    Route::post('/hero', [ArtistSpotlightCmsController::class, 'updateHero'])->name('update.hero');
+    Route::post('/video', [ArtistSpotlightCmsController::class, 'updateVideo'])->name('update.video');
+    Route::post('/list', [ArtistSpotlightCmsController::class, 'updateList'])->name('update.list');
 });
 
 // routes/web.php

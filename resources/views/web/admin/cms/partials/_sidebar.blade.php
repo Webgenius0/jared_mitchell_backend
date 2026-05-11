@@ -9,7 +9,7 @@
                     class="list-group-item list-group-item-action {{ $currentPage === $page->value ? 'active' : '' }}">
                     <div class="d-flex align-items-center">
                         <i class="ri-pages-line me-2"></i>
-                        <span>{{ ucfirst($page->value) }} Page</span>
+                        <span>{{ str_replace('_', ' ', ucwords($page->value, '_')) }} Page</span>
                     </div>
                 </a>
             @endforeach

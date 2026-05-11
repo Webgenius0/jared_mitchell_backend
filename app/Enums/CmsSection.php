@@ -43,4 +43,9 @@ enum CmsSection: string
     case SERVICES_BUSINESS_SPOTLIGHT = 'services_business_spotlight';
     case SERVICES_RISK_FREE = 'services_risk_free';
     case SERVICES_NEWSLETTER = 'services_newsletter';
+
+    // Artist Spotlight Page
+    case ARTIST_SPOTLIGHT_HERO = 'artist_spotlight_hero';
+    case ARTIST_SPOTLIGHT_VIDEO = 'artist_spotlight_video';
+    case ARTIST_SPOTLIGHT_LIST = 'artist_spotlight_list';
 }

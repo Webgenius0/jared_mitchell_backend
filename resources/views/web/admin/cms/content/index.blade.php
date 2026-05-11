@@ -30,6 +30,8 @@
                     @include('web.admin.cms.content.partials._about')
                 @elseif($currentPage === 'services')
                     @include('web.admin.cms.content.partials._services')
+                @elseif($currentPage === 'artist_spotlight')
+                    @include('web.admin.cms.content.partials._artist_spotlight')
                 @else
                     <div class="alert alert-info">
                         Please select a page from the left sidebar to manage its content.
