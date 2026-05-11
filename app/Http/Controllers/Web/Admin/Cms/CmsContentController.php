@@ -457,4 +457,34 @@ class CmsContentController extends Controller
             'cms' => $cms,
         ]);
     }
+
+    /**
+     * Update shop section
+     */
+    public function updateShop(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:255'],
+            'sub_title' => ['nullable', 'string'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::updateOrCreate(
+            [
+                'page' => CmsPage::HOME,
+                'section' => CmsSection::SHOP,
+            ],
+            [
+                'title' => $request->title,
+                'sub_title' => $request->sub_title,
+            ]
+        );
+
+        return $this->success('Shop section updated successfully.', [
+            'cms' => $cms,
+        ]);
+    }
 }
