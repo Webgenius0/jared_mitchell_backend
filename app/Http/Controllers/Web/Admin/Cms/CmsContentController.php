@@ -487,4 +487,32 @@ class CmsContentController extends Controller
             'cms' => $cms,
         ]);
     }
+
+    /**
+     * Update CTA section
+     */
+    public function updateCta(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::updateOrCreate(
+            [
+                'page' => CmsPage::HOME,
+                'section' => CmsSection::CTA,
+            ],
+            [
+                'title' => $request->title,
+            ]
+        );
+
+        return $this->success('CTA section updated successfully.', [
+            'cms' => $cms,
+        ]);
+    }
 }

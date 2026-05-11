@@ -15,4 +15,5 @@ enum CmsSection: string
     case HIGHLIGHTS = 'highlights';
     case EVENTS = 'events';
     case SHOP = 'shop';
+    case CTA = 'cta';
 }
