@@ -479,6 +479,66 @@
                             </div>
                         </div>
                     </div>
+                    {{-- Spotlight Section --}}
+                    @php $spotlight = $cmsData->get('spotlight'); @endphp
+                    <div class="accordion-item card mb-3">
+                        <h2 class="accordion-header" id="headingSpotlight">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSpotlight" aria-expanded="false" aria-controls="collapseSpotlight">
+                                <i class="ri-star-line me-2"></i> Success Stories Spotlight
+                            </button>
+                        </h2>
+                        <div id="collapseSpotlight" class="accordion-collapse collapse" aria-labelledby="headingSpotlight" data-bs-parent="#cmsAccordion">
+                            <div class="accordion-body">
+                                <form id="spotlightForm">
+                                    <div class="row g-3">
+                                        <div class="col-md-12">
+                                            <label class="form-label">Section Title</label>
+                                            <input type="text" name="title" class="form-control" value="{{ $spotlight?->title }}" placeholder="e.g. Celebrating Local Success Stories">
+                                        </div>
+                                        <div class="col-md-12">
+                                            <label class="form-label">Section Subtitle</label>
+                                            <textarea name="sub_title" class="form-control" rows="3" placeholder="Enter section subtitle">{{ $spotlight?->sub_title }}</textarea>
+                                        </div>
+                                        <div class="col-12 text-end mt-4">
+                                            <button type="submit" class="btn btn-primary px-4" id="saveSpotlightBtn">
+                                                <i class="ri-save-line me-1"></i> Save Section
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {{-- Highlights Section --}}
+                    @php $highlights = $cmsData->get('highlights'); @endphp
+                    <div class="accordion-item card mb-3">
+                        <h2 class="accordion-header" id="headingHighlights">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseHighlights" aria-expanded="false" aria-controls="collapseHighlights">
+                                <i class="ri-calendar-event-line me-2"></i> Past Six Months Highlights
+                            </button>
+                        </h2>
+                        <div id="collapseHighlights" class="accordion-collapse collapse" aria-labelledby="headingHighlights" data-bs-parent="#cmsAccordion">
+                            <div class="accordion-body">
+                                <form id="highlightsForm">
+                                    <div class="row g-3">
+                                        <div class="col-md-12">
+                                            <label class="form-label">Section Title</label>
+                                            <input type="text" name="title" class="form-control" value="{{ $highlights?->title }}" placeholder="e.g. Past Six Months Highlights">
+                                        </div>
+                                        <div class="col-md-12">
+                                            <label class="form-label">Section Subtitle</label>
+                                            <input type="text" name="sub_title" class="form-control" value="{{ $highlights?->sub_title }}" placeholder="e.g. Celebrating our community's achievements...">
+                                        </div>
+                                        <div class="col-12 text-end mt-4">
+                                            <button type="submit" class="btn btn-primary px-4" id="saveHighlightsBtn">
+                                                <i class="ri-save-line me-1"></i> Save Section
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -792,6 +852,48 @@ $(function() {
         const formData = new FormData(this);
 
         axios.post("{{ route('admin.cms.content.update.boss_beginnings') }}", formData)
+            .then(res => {
+                Toast.success(res.data.message);
+                setTimeout(() => window.location.reload(), 1000);
+            })
+            .catch(err => {
+                Toast.fromResponse(err.response?.data);
+                $btn.prop('disabled', false).html(originalText);
+            });
+    });
+
+    // Spotlight Logic
+    $('#spotlightForm').on('submit', function(e) {
+        e.preventDefault();
+        const $btn = $('#saveSpotlightBtn');
+        const originalText = $btn.html();
+        
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
+
+        const formData = new FormData(this);
+
+        axios.post("{{ route('admin.cms.content.update.spotlight') }}", formData)
+            .then(res => {
+                Toast.success(res.data.message);
+                setTimeout(() => window.location.reload(), 1000);
+            })
+            .catch(err => {
+                Toast.fromResponse(err.response?.data);
+                $btn.prop('disabled', false).html(originalText);
+            });
+    });
+
+    // Highlights Logic
+    $('#highlightsForm').on('submit', function(e) {
+        e.preventDefault();
+        const $btn = $('#saveHighlightsBtn');
+        const originalText = $btn.html();
+        
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
+
+        const formData = new FormData(this);
+
+        axios.post("{{ route('admin.cms.content.update.highlights') }}", formData)
             .then(res => {
                 Toast.success(res.data.message);
                 setTimeout(() => window.location.reload(), 1000);

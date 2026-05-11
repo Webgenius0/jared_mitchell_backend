@@ -79,6 +79,8 @@ Route::prefix('cms/content')->name('admin.cms.content.')->group(function () {
     Route::post('/core-values', [CmsContentController::class, 'updateCoreValues'])->name('update.core_values');
     Route::post('/what-you-get', [CmsContentController::class, 'updateWhatYouGet'])->name('update.what_you_get');
     Route::post('/boss-beginnings', [CmsContentController::class, 'updateBossBeginnings'])->name('update.boss_beginnings');
+    Route::post('/spotlight', [CmsContentController::class, 'updateSpotlight'])->name('update.spotlight');
+    Route::post('/highlights', [CmsContentController::class, 'updateHighlights'])->name('update.highlights');
 });
 
 // routes/web.php

@@ -358,4 +358,64 @@ class CmsContentController extends Controller
             'cms' => $cms,
         ]);
     }
+
+    /**
+     * Update spotlight section
+     */
+    public function updateSpotlight(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:255'],
+            'sub_title' => ['nullable', 'string'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::updateOrCreate(
+            [
+                'page' => CmsPage::HOME,
+                'section' => CmsSection::SPOTLIGHT,
+            ],
+            [
+                'title' => $request->title,
+                'sub_title' => $request->sub_title,
+            ]
+        );
+
+        return $this->success('Spotlight section updated successfully.', [
+            'cms' => $cms,
+        ]);
+    }
+
+    /**
+     * Update highlights section
+     */
+    public function updateHighlights(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:255'],
+            'sub_title' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::updateOrCreate(
+            [
+                'page' => CmsPage::HOME,
+                'section' => CmsSection::HIGHLIGHTS,
+            ],
+            [
+                'title' => $request->title,
+                'sub_title' => $request->sub_title,
+            ]
+        );
+
+        return $this->success('Highlights section updated successfully.', [
+            'cms' => $cms,
+        ]);
+    }
 }
