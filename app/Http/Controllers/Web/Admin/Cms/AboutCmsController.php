@@ -23,7 +23,7 @@ class AboutCmsController extends Controller
     public function index(): View
     {
         $cmsData = CMS::where('page', CmsPage::ABOUT)->get()->keyBy(function ($item) {
-            return $item->section instanceof \App\Enums\CmsSection ? $item->section->value : $item->section;
+            return $item->section instanceof CmsSection ? $item->section->value : $item->section;
         });
 
         return view('web.admin.cms.about.index', [
@@ -331,5 +331,36 @@ class AboutCmsController extends Controller
         $cms->save();
 
         return $this->success('How It Works section updated successfully.', ['cms' => $cms]);
+    }
+
+    /**
+     * Update who we serve section
+     */
+    public function updateWhoWeServe(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'image_file' => ['nullable', 'file', 'image', 'max:5120'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::updateOrCreate(
+            ['page' => CmsPage::ABOUT, 'section' => CmsSection::ABOUT_WHO_WE_SERVE],
+            ['title' => $request->title, 'description' => $request->description]
+        );
+
+        if ($request->hasFile('image_file')) {
+            if ($cms->image && \Illuminate\Support\Str::startsWith($cms->image, 'uploads/')) {
+                FileHandle::fileDelete($cms->image);
+            }
+            $cms->image = FileHandle::fileUpload($request->file('image_file'), 'cms/about');
+            $cms->save();
+        }
+
+        return $this->success('Who we serve updated successfully.', ['cms' => $cms]);
     }
 }

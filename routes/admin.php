@@ -97,6 +97,7 @@ Route::prefix('cms/about')->name('admin.cms.about.')->group(function () {
     Route::post('/mission', [AboutCmsController::class, 'updateMission'])->name('update.mission');
     Route::post('/what-we-do', [AboutCmsController::class, 'updateWhatWeDo'])->name('update.what_we_do');
     Route::post('/how-it-works', [AboutCmsController::class, 'updateHowItWorks'])->name('update.how_it_works');
+    Route::post('/who-we-serve', [AboutCmsController::class, 'updateWhoWeServe'])->name('update.who_we_serve');
 });
 
 // routes/web.php

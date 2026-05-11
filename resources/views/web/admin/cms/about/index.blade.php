@@ -388,6 +388,45 @@
                             </div>
                         </div>
                     </div>
+                    {{-- Who We Serve Section --}}
+                    @php $serve = $cmsData->get('about_who_we_serve'); @endphp
+                    <div class="accordion-item card mb-3">
+                        <h2 class="accordion-header" id="headingServe">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseServe" aria-expanded="false" aria-controls="collapseServe">
+                                <i class="ri-group-line me-2"></i> Who We Serve Section
+                            </button>
+                        </h2>
+                        <div id="collapseServe" class="accordion-collapse collapse" aria-labelledby="headingServe" data-bs-parent="#aboutAccordion">
+                            <div class="accordion-body">
+                                <form id="serveForm" enctype="multipart/form-data">
+                                    <div class="row g-3">
+                                        <div class="col-md-12">
+                                            <label class="form-label">Title</label>
+                                            <input type="text" name="title" class="form-control" value="{{ $serve?->title }}" placeholder="e.g. Who We Serve">
+                                        </div>
+                                        <div class="col-md-12">
+                                            <label class="form-label">Description</label>
+                                            <textarea name="description" class="form-control" rows="4" placeholder="Enter description">{{ $serve?->description }}</textarea>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <label class="form-label">Side Image</label>
+                                            <input type="file" name="image_file" class="form-control" accept="image/*">
+                                            @if($serve?->image)
+                                                <div class="mt-2">
+                                                    <img src="{{ asset('storage/' . $serve->image) }}" alt="Serve Image" class="rounded border" style="height: 100px;">
+                                                </div>
+                                            @endif
+                                        </div>
+                                        <div class="col-12 text-end mt-4">
+                                            <button type="submit" class="btn btn-primary px-4" id="saveServeBtn">
+                                                <i class="ri-save-line me-1"></i> Save Section
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -643,6 +682,24 @@ $(function() {
         $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
         const formData = new FormData(this);
         axios.post("{{ route('admin.cms.about.update.how_it_works') }}", formData)
+            .then(res => {
+                Toast.success(res.data.message);
+                setTimeout(() => window.location.reload(), 1000);
+            })
+            .catch(err => {
+                Toast.fromResponse(err.response?.data);
+                $btn.prop('disabled', false).html(originalText);
+            });
+    });
+
+    // Serve Logic
+    $('#serveForm').on('submit', function(e) {
+        e.preventDefault();
+        const $btn = $('#saveServeBtn');
+        const originalText = $btn.html();
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
+        const formData = new FormData(this);
+        axios.post("{{ route('admin.cms.about.update.who_we_serve') }}", formData)
             .then(res => {
                 Toast.success(res.data.message);
                 setTimeout(() => window.location.reload(), 1000);
