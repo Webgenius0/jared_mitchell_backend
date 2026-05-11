@@ -208,6 +208,56 @@
         </div>
     </div>
 
+    {{-- Interview Section --}}
+    @php $interview = $cmsData->get('business_spotlight_interview'); @endphp
+    <div class="accordion-item card mb-3">
+        <h2 class="accordion-header" id="headingInterview">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInterview" aria-expanded="false" aria-controls="collapseInterview">
+                <i class="ri-mic-line me-2"></i> Business Interview Section
+            </button>
+        </h2>
+        <div id="collapseInterview" class="accordion-collapse collapse" aria-labelledby="headingInterview" data-bs-parent="#businessSpotlightAccordion">
+            <div class="accordion-body">
+                <form id="interviewForm" enctype="multipart/form-data">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label">Main Title</label>
+                            <input type="text" name="title" class="form-control" value="{{ $interview?->title }}" placeholder="e.g. Behind the Creative Journey">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Main Subtitle</label>
+                            <textarea name="sub_title" class="form-control" rows="2" placeholder="Enter main subtitle">{{ $interview?->sub_title }}</textarea>
+                        </div>
+                        <hr>
+                        <div class="col-md-12">
+                            <label class="form-label">Card Title</label>
+                            <input type="text" name="card_title" class="form-control" value="{{ $interview?->metadata['card_title'] ?? '' }}" placeholder="e.g. Business Interview: Behind the Creative Journey">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Card Description (Rich Text)</label>
+                            <div id="interviewEditor" class="snow-editor" style="height: 250px;"></div>
+                            <input type="hidden" id="interviewDescription" name="description" value="{{ $interview?->description }}">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Thumbnail Image</label>
+                            <input type="file" name="thumbnail" class="form-control" accept="image/*">
+                            @if($interview?->image)
+                                <div class="mt-2">
+                                    <img src="{{ asset('storage/' . $interview->image) }}" alt="Interview Thumbnail" class="rounded border" style="max-height: 150px;">
+                                </div>
+                            @endif
+                        </div>
+                        <div class="col-12 text-end mt-4">
+                            <button type="submit" class="btn btn-primary px-4" id="saveInterviewBtn">
+                                <i class="ri-save-line me-1"></i> Save Section
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     {{-- Join Section --}}
     @php $join = $cmsData->get('business_spotlight_join'); @endphp
     <div class="accordion-item card mb-3">
@@ -240,6 +290,42 @@
 @push('scripts')
 <script>
 $(function() {
+    // Quill: Interview Description
+    const editorEl = document.getElementById('interviewEditor');
+    const descInput = document.getElementById('interviewDescription');
+    let interviewEditor = null;
+
+    if (editorEl) {
+        interviewEditor = new Quill(editorEl, {
+            modules: {
+                toolbar: [
+                    [{
+                        header: [1, 2, 3, 4, 5, 6, false]
+                    }],
+                    ["bold", "italic", "underline", "strike"],
+                    [{
+                        list: "ordered"
+                    }, {
+                        list: "bullet"
+                    }],
+                    ["link"],
+                    ["clean"]
+                ]
+            },
+            theme: "snow"
+        });
+
+        // Set initial content
+        if (descInput.value) {
+            interviewEditor.root.innerHTML = descInput.value;
+        }
+
+        // Sync with hidden input
+        interviewEditor.on('text-change', function() {
+            descInput.value = interviewEditor.root.innerHTML;
+        });
+    }
+
     // Hero Logic
     $('#heroForm').on('submit', function(e) {
         e.preventDefault();
@@ -356,6 +442,24 @@ $(function() {
         $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
         const formData = new FormData(this);
         axios.post("{{ route('admin.cms.business_spotlight.update.join') }}", formData)
+            .then(res => {
+                Toast.success(res.data.message);
+                setTimeout(() => window.location.reload(), 1000);
+            })
+            .catch(err => {
+                Toast.fromResponse(err.response?.data);
+                $btn.prop('disabled', false).html(originalText);
+            });
+    });
+
+    // Interview Logic
+    $('#interviewForm').on('submit', function(e) {
+        e.preventDefault();
+        const $btn = $('#saveInterviewBtn');
+        const originalText = $btn.html();
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
+        const formData = new FormData(this);
+        axios.post("{{ route('admin.cms.business_spotlight.update.interview') }}", formData)
             .then(res => {
                 Toast.success(res.data.message);
                 setTimeout(() => window.location.reload(), 1000);

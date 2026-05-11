@@ -146,6 +146,7 @@ Route::prefix('cms/business-spotlight')->name('admin.cms.business_spotlight.')->
     Route::post('/picks', [BusinessSpotlightCmsController::class, 'updatePicks'])->name('update.picks');
     Route::post('/ladder', [BusinessSpotlightCmsController::class, 'updateLadder'])->name('update.ladder');
     Route::post('/join', [BusinessSpotlightCmsController::class, 'updateJoin'])->name('update.join');
+    Route::post('/interview', [BusinessSpotlightCmsController::class, 'updateInterview'])->name('update.interview');
 });
 
 // routes/web.php
