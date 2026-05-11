@@ -9,4 +9,5 @@ enum CmsSection: string
     case PARTNERS = 'partners';
     case FEATURES = 'features';
     case WHY_CHOOSE = 'why_choose';
+    case CORE_VALUES = 'core_values';
 }

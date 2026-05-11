@@ -241,4 +241,46 @@ class CmsContentController extends Controller
             'cms' => $cms,
         ]);
     }
+
+    /**
+     * Update core values section
+     */
+    public function updateCoreValues(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:255'],
+            'bg_file' => ['nullable', 'file', 'image', 'max:5120'],
+            'items' => ['nullable', 'array'],
+            'items.*.icon' => ['nullable', 'string', 'max:255'],
+            'items.*.title' => ['nullable', 'string', 'max:255'],
+            'items.*.sub_title' => ['nullable', 'string', 'max:255'],
+            'items.*.description' => ['nullable', 'string'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::firstOrNew([
+            'page' => CmsPage::HOME,
+            'section' => CmsSection::CORE_VALUES,
+        ]);
+
+        $cms->title = $request->title;
+
+        if ($request->hasFile('bg_file')) {
+            if ($cms->bg && \Illuminate\Support\Str::startsWith($cms->bg, 'uploads/')) {
+                FileHandle::fileDelete($cms->bg);
+            }
+            $path = FileHandle::fileUpload($request->file('bg_file'), 'cms/core_values');
+            $cms->bg = $path;
+        }
+
+        $cms->metadata = $request->items ?? [];
+        $cms->save();
+
+        return $this->success('Core Values section updated successfully.', [
+            'cms' => $cms,
+        ]);
+    }
 }
