@@ -184,4 +184,45 @@ class ArtistSpotlightCmsController extends Controller
 
         return $this->success('Artist spotlight join section updated successfully.', ['cms' => $cms]);
     }
+
+    /**
+     * Update Artist Spotlight Interview section
+     */
+    public function updateInterview(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:500'],
+            'sub_title' => ['nullable', 'string', 'max:500'],
+            'card_title' => ['nullable', 'string', 'max:500'],
+            'description' => ['nullable', 'string'],
+            'thumbnail' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::firstOrNew([
+            'page' => CmsPage::ARTIST_SPOTLIGHT,
+            'section' => CmsSection::ARTIST_SPOTLIGHT_INTERVIEW,
+        ]);
+
+        $cms->title = $request->title;
+        $cms->sub_title = $request->sub_title;
+        $cms->description = $request->description;
+        $cms->metadata = [
+            'card_title' => $request->card_title
+        ];
+
+        if ($request->hasFile('thumbnail')) {
+            if ($cms->image && Str::startsWith($cms->image, 'uploads/')) {
+                FileHandle::fileDelete($cms->image);
+            }
+            $cms->image = FileHandle::fileUpload($request->file('thumbnail'), 'cms/artist-spotlight');
+        }
+
+        $cms->save();
+
+        return $this->success('Artist spotlight interview section updated successfully.', ['cms' => $cms]);
+    }
 }
