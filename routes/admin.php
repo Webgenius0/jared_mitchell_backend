@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Web\Admin\Auth\AdminProfileController;
 use App\Http\Controllers\Web\Admin\BusinessSpotlight\AdminBusinessSpotlightController;
+use App\Http\Controllers\Web\Admin\Cms\CmsContentController;
 use App\Http\Controllers\Web\Admin\Cms\PageSectionController;
 use App\Http\Controllers\Web\Admin\Cms\PricingController;
 use App\Http\Controllers\Web\Admin\Contact\AdminChattingController;
@@ -62,6 +63,16 @@ Route::prefix('cms/pages')->name('admin.cms.pages.')->group(function () {
     Route::delete('/sections/{section}/contents/{content}', [PageSectionController::class, 'destroyContentField'])->name('sections.contents.destroy');
     Route::post('/sections/{section}/media', [PageSectionController::class, 'uploadMedia'])->name('sections.media.upload');
     Route::put('/sections/{section}/items', [PageSectionController::class, 'updateItems'])->name('sections.items.update');
+});
+
+/*
+|--------------------------------------------------------------------------
+| CMS Content (New System)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('cms/content')->name('admin.cms.content.')->group(function () {
+    Route::get('/', [CmsContentController::class, 'index'])->name('index');
+    Route::post('/hero', [CmsContentController::class, 'updateHero'])->name('update.hero');
 });
 
 // routes/web.php

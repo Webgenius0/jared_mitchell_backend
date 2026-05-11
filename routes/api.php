@@ -57,6 +57,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
         Route::get('/pages',        [CmsPageController::class,    'index']); // All published pages
         Route::get('/pages/{slug}', [CmsPageController::class,    'show']);  // Single page + visible sections + content
         Route::get('/pricing',      [CmsPricingController::class, 'index']); // Visible pricing plans with feature groups
+        Route::get('/content',      [\App\Http\Controllers\Api\Cms\CmsContentController::class, 'index']); // New system
     });
 
     /*
