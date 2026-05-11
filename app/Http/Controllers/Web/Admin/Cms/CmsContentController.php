@@ -283,4 +283,38 @@ class CmsContentController extends Controller
             'cms' => $cms,
         ]);
     }
+
+    /**
+     * Update what you get section
+     */
+    public function updateWhatYouGet(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:255'],
+            'sub_title' => ['nullable', 'string', 'max:255'],
+            'items' => ['nullable', 'array'],
+            'items.*.icon' => ['nullable', 'string', 'max:255'],
+            'items.*.title' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::updateOrCreate(
+            [
+                'page' => CmsPage::HOME,
+                'section' => CmsSection::WHAT_YOU_GET,
+            ],
+            [
+                'title' => $request->title,
+                'sub_title' => $request->sub_title,
+                'metadata' => $request->items ?? [],
+            ]
+        );
+
+        return $this->success('What You Really Getting section updated successfully.', [
+            'cms' => $cms,
+        ]);
+    }
 }

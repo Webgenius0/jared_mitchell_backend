@@ -77,6 +77,7 @@ Route::prefix('cms/content')->name('admin.cms.content.')->group(function () {
     Route::post('/features', [CmsContentController::class, 'updateFeatures'])->name('update.features');
     Route::post('/why-choose', [CmsContentController::class, 'updateWhyChoose'])->name('update.why_choose');
     Route::post('/core-values', [CmsContentController::class, 'updateCoreValues'])->name('update.core_values');
+    Route::post('/what-you-get', [CmsContentController::class, 'updateWhatYouGet'])->name('update.what_you_get');
 });
 
 // routes/web.php

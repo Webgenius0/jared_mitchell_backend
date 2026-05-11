@@ -369,6 +369,73 @@
                             </div>
                         </div>
                     </div>
+                    {{-- What You Get Section --}}
+                    @php 
+                        $whatYouGet = $cmsData->get('what_you_get'); 
+                        $whatYouGetItems = $whatYouGet?->metadata ?? [];
+                    @endphp
+                    <div class="accordion-item card mb-3">
+                        <h2 class="accordion-header" id="headingWhatYouGet">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseWhatYouGet" aria-expanded="false" aria-controls="collapseWhatYouGet">
+                                <i class="ri-checkbox-circle-line me-2"></i> What You're Really Getting
+                            </button>
+                        </h2>
+                        <div id="collapseWhatYouGet" class="accordion-collapse collapse" aria-labelledby="headingWhatYouGet" data-bs-parent="#cmsAccordion">
+                            <div class="accordion-body">
+                                <form id="whatYouGetForm">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Section Title</label>
+                                            <input type="text" name="title" class="form-control" value="{{ $whatYouGet?->title }}" placeholder="e.g. What You're Really Getting">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Section Subtitle</label>
+                                            <input type="text" name="sub_title" class="form-control" value="{{ $whatYouGet?->sub_title }}" placeholder="e.g. You're not buying a membership...">
+                                        </div>
+                                        
+                                        <div class="col-md-12 mt-4">
+                                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                                <label class="form-label mb-0">Feature Cards</label>
+                                                <button type="button" class="btn btn-sm btn-soft-primary" id="addWhatYouGetBtn">
+                                                    <i class="ri-add-line me-1"></i> Add Card
+                                                </button>
+                                            </div>
+                                            
+                                            <div id="whatYouGetContainer">
+                                                @forelse($whatYouGetItems as $index => $item)
+                                                    <div class="card border border-dashed mb-2 what-you-get-item">
+                                                        <div class="card-body py-2">
+                                                            <div class="row g-2 align-items-center">
+                                                                <div class="col-md-4">
+                                                                    <input type="text" name="items[{{ $index }}][icon]" class="form-control form-control-sm" value="{{ $item['icon'] }}" placeholder="Icon (e.g. ri-star-line)">
+                                                                </div>
+                                                                <div class="col-md-7">
+                                                                    <input type="text" name="items[{{ $index }}][title]" class="form-control form-control-sm" value="{{ $item['title'] }}" placeholder="Title (e.g. Business visibility)">
+                                                                </div>
+                                                                <div class="col-md-1 text-end">
+                                                                    <button type="button" class="btn btn-sm btn-soft-danger remove-what-you-get-btn">
+                                                                        <i class="ri-delete-bin-line"></i>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                @empty
+                                                    <div class="text-center text-muted py-3 what-you-get-empty">No cards added yet.</div>
+                                                @endforelse
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12 text-end mt-4">
+                                            <button type="submit" class="btn btn-primary px-4" id="saveWhatYouGetBtn">
+                                                <i class="ri-save-line me-1"></i> Save Section
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -604,6 +671,63 @@ $(function() {
         const formData = new FormData(this);
 
         axios.post("{{ route('admin.cms.content.update.core_values') }}", formData)
+            .then(res => {
+                Toast.success(res.data.message);
+                setTimeout(() => window.location.reload(), 1000);
+            })
+            .catch(err => {
+                Toast.fromResponse(err.response?.data);
+                $btn.prop('disabled', false).html(originalText);
+            });
+    });
+
+    // What You Get Logic
+    let whatYouGetCount = {{ count($whatYouGetItems) }};
+    
+    $('#addWhatYouGetBtn').on('click', function() {
+        const $container = $('#whatYouGetContainer');
+        $container.find('.what-you-get-empty').remove();
+        
+        const card = `
+            <div class="card border border-dashed mb-2 what-you-get-item">
+                <div class="card-body py-2">
+                    <div class="row g-2 align-items-center">
+                        <div class="col-md-4">
+                            <input type="text" name="items[${whatYouGetCount}][icon]" class="form-control form-control-sm" placeholder="Icon (e.g. ri-star-line)">
+                        </div>
+                        <div class="col-md-7">
+                            <input type="text" name="items[${whatYouGetCount}][title]" class="form-control form-control-sm" placeholder="Title (e.g. Business visibility)">
+                        </div>
+                        <div class="col-md-1 text-end">
+                            <button type="button" class="btn btn-sm btn-soft-danger remove-what-you-get-btn">
+                                <i class="ri-delete-bin-line"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        $container.append(card);
+        whatYouGetCount++;
+    });
+
+    $(document).on('click', '.remove-what-you-get-btn', function() {
+        $(this).closest('.what-you-get-item').remove();
+        if ($('#whatYouGetContainer .what-you-get-item').length === 0) {
+            $('#whatYouGetContainer').append('<div class="text-center text-muted py-3 what-you-get-empty">No cards added yet.</div>');
+        }
+    });
+
+    $('#whatYouGetForm').on('submit', function(e) {
+        e.preventDefault();
+        const $btn = $('#saveWhatYouGetBtn');
+        const originalText = $btn.html();
+        
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
+
+        const formData = new FormData(this);
+
+        axios.post("{{ route('admin.cms.content.update.what_you_get') }}", formData)
             .then(res => {
                 Toast.success(res.data.message);
                 setTimeout(() => window.location.reload(), 1000);
