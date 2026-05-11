@@ -515,4 +515,34 @@ class CmsContentController extends Controller
             'cms' => $cms,
         ]);
     }
+
+    /**
+     * Update newsletter section
+     */
+    public function updateNewsletter(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:255'],
+            'sub_title' => ['nullable', 'string'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::updateOrCreate(
+            [
+                'page' => CmsPage::HOME,
+                'section' => CmsSection::NEWSLETTER,
+            ],
+            [
+                'title' => $request->title,
+                'sub_title' => $request->sub_title,
+            ]
+        );
+
+        return $this->success('Newsletter section updated successfully.', [
+            'cms' => $cms,
+        ]);
+    }
 }

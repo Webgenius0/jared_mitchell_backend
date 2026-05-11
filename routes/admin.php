@@ -84,6 +84,7 @@ Route::prefix('cms/content')->name('admin.cms.content.')->group(function () {
     Route::post('/events', [CmsContentController::class, 'updateEvents'])->name('update.events');
     Route::post('/shop', [CmsContentController::class, 'updateShop'])->name('update.shop');
     Route::post('/cta', [CmsContentController::class, 'updateCta'])->name('update.cta');
+    Route::post('/newsletter', [CmsContentController::class, 'updateNewsletter'])->name('update.newsletter');
 });
 
 // routes/web.php
