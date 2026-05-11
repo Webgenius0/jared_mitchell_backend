@@ -84,6 +84,37 @@
         </div>
     </div>
 
+    {{-- List Section --}}
+    @php $list = $cmsData->get('business_spotlight_list'); @endphp
+    <div class="accordion-item card mb-3">
+        <h2 class="accordion-header" id="headingList">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseList" aria-expanded="false" aria-controls="collapseList">
+                <i class="ri-group-line me-2"></i> Business List Header
+            </button>
+        </h2>
+        <div id="collapseList" class="accordion-collapse collapse" aria-labelledby="headingList" data-bs-parent="#businessSpotlightAccordion">
+            <div class="accordion-body">
+                <form id="listForm">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label">Section Title</label>
+                            <input type="text" name="title" class="form-control" value="{{ $list?->title }}" placeholder="e.g. Discover More Business">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Section Subtitle</label>
+                            <textarea name="sub_title" class="form-control" rows="3" placeholder="Enter section description">{{ $list?->sub_title }}</textarea>
+                        </div>
+                        <div class="col-12 text-end mt-4">
+                            <button type="submit" class="btn btn-primary px-4" id="saveListBtn">
+                                <i class="ri-save-line me-1"></i> Save Section
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 @push('scripts')
@@ -115,6 +146,24 @@ $(function() {
         $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
         const formData = new FormData(this);
         axios.post("{{ route('admin.cms.business_spotlight.update.video') }}", formData)
+            .then(res => {
+                Toast.success(res.data.message);
+                setTimeout(() => window.location.reload(), 1000);
+            })
+            .catch(err => {
+                Toast.fromResponse(err.response?.data);
+                $btn.prop('disabled', false).html(originalText);
+            });
+    });
+
+    // List Logic
+    $('#listForm').on('submit', function(e) {
+        e.preventDefault();
+        const $btn = $('#saveListBtn');
+        const originalText = $btn.html();
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
+        const formData = new FormData(this);
+        axios.post("{{ route('admin.cms.business_spotlight.update.list') }}", formData)
             .then(res => {
                 Toast.success(res.data.message);
                 setTimeout(() => window.location.reload(), 1000);

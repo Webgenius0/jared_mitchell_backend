@@ -57,4 +57,5 @@ enum CmsSection: string
     // Business Spotlight Page
     case BUSINESS_SPOTLIGHT_HERO = 'business_spotlight_hero';
     case BUSINESS_SPOTLIGHT_VIDEO = 'business_spotlight_video';
+    case BUSINESS_SPOTLIGHT_LIST = 'business_spotlight_list';
 }

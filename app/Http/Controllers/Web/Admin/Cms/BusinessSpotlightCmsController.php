@@ -105,4 +105,32 @@ class BusinessSpotlightCmsController extends Controller
 
         return $this->success('Business spotlight video updated successfully.', ['cms' => $cms]);
     }
+
+    /**
+     * Update List section
+     */
+    public function updateList(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:500'],
+            'sub_title' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::updateOrCreate(
+            [
+                'page' => CmsPage::BUSINESS_SPOTLIGHT,
+                'section' => CmsSection::BUSINESS_SPOTLIGHT_LIST,
+            ],
+            [
+                'title' => $request->title,
+                'sub_title' => $request->sub_title,
+            ]
+        );
+
+        return $this->success('Business list header updated successfully.', ['cms' => $cms]);
+    }
 }
