@@ -17,7 +17,8 @@
                 <img src="{{ asset('admin/assets/images/default/logo-sm.png') }}" alt="" height="22">
             </span>
             <span class="logo-lg">
-                <img src="{{ $settings?->logo ? asset('storage/' . $settings?->logo) : asset('admin/assets/images/default/logo.png') }}" alt="" height="50" width="">
+                <img src="{{ $settings?->logo ? asset('storage/' . $settings?->logo) : asset('admin/assets/images/default/logo.png') }}"
+                    alt="" height="50" width="">
                 {{-- {{ $profile?->cover ? asset('storage/' . $profile?->cover) : asset('admin/assets/images/default/profile-bg.jpg') }} --}}
             </span>
         </a>
@@ -81,14 +82,16 @@
 
                 <li class="nav-item">
 
-                    <a class="nav-link menu-link {{ request()->routeIs('admin.cms.pages.*') ? 'active' : '' }}" href="#sidebarCmsPage"
-                        data-bs-toggle="collapse" role="button" aria-expanded="{{ request()->routeIs('admin.cms.*') ? 'true' : 'false' }}"
+                    <a class="nav-link menu-link {{ request()->routeIs('admin.cms.pages.*') ? 'active' : '' }}"
+                        href="#sidebarCmsPage" data-bs-toggle="collapse" role="button"
+                        aria-expanded="{{ request()->routeIs('admin.cms.*') ? 'true' : 'false' }}"
                         aria-controls="sidebarCmsPage">
                         <i class="ri-layout-5-line"></i>
                         <span>CMS</span>
                     </a>
 
-                    <div class="collapse menu-dropdown {{ request()->routeIs('admin.cms.pages.index', 'admin.cms.pricing.index', 'admin.cms.content.index') ? 'show' : '' }}" id="sidebarCmsPage">
+                    <div class="collapse menu-dropdown {{ request()->routeIs('admin.cms.pages.index', 'admin.cms.pricing.index', 'admin.cms.content.index') ? 'show' : '' }}"
+                        id="sidebarCmsPage">
                         <ul class="nav nav-sm flex-column">
                             <li class="nav-item">
                                 <a href="{{ route('admin.cms.pages.index') }}"
@@ -100,7 +103,7 @@
                             <li class="nav-item">
                                 <a href="{{ route('admin.cms.content.index') }}"
                                     class="nav-link {{ request()->routeIs('admin.cms.content.index') ? 'active' : '' }}">
-                                    <i class="ri-article-line"></i> CMS Content
+                                    <i class="ri-article-line"></i> CMS Pages
                                 </a>
                             </li>
 
@@ -110,19 +113,24 @@
                                     <i class="ri-mail-unread-line"></i> Price Plan
                                 </a>
                             </li>
+
                         </ul>
                     </div>
                 </li>
 
                 {{-- Spotlight --}}
                 @php
-                    $spotlightOpen = request()->routeIs('admin.business-spotlights.*', 'admin.artist-spotlights.*', 'admin.cms.artist-categories.*');
+                    $spotlightOpen = request()->routeIs(
+                        'admin.business-spotlights.*',
+                        'admin.artist-spotlights.*',
+                        'admin.cms.artist-categories.*',
+                    );
                 @endphp
 
                 <li class="nav-item">
                     <a class="nav-link menu-link {{ $spotlightOpen ? 'active' : '' }}" href="#sidebarSpotlight"
-                        data-bs-toggle="collapse" role="button" aria-expanded="{{ $spotlightOpen ? 'true' : 'false' }}"
-                        aria-controls="sidebarSpotlight">
+                        data-bs-toggle="collapse" role="button"
+                        aria-expanded="{{ $spotlightOpen ? 'true' : 'false' }}" aria-controls="sidebarSpotlight">
                         <i class="ri-star-smile-line"></i>
                         <span>Spotlight</span>
                     </a>
@@ -153,7 +161,8 @@
 
                 {{-- Events --}}
                 <li class="nav-item">
-                    <a class="nav-link menu-link {{ request()->routeIs('admin.events.*') ? 'active' : '' }}" href="{{ route('admin.events.index') }}">
+                    <a class="nav-link menu-link {{ request()->routeIs('admin.events.*') ? 'active' : '' }}"
+                        href="{{ route('admin.events.index') }}">
                         <i class="ri-calendar-event-line"></i>
                         <span>Events</span>
                     </a>
@@ -167,8 +176,8 @@
 
                 <li class="nav-item">
                     <a class="nav-link menu-link {{ $contactOpen ? 'active' : '' }}" href="#sidebarMessaging"
-                        data-bs-toggle="collapse" role="button" aria-expanded="{{ $contactOpen ? 'true' : 'false' }}"
-                        aria-controls="sidebarMessaging">
+                        data-bs-toggle="collapse" role="button"
+                        aria-expanded="{{ $contactOpen ? 'true' : 'false' }}" aria-controls="sidebarMessaging">
                         <i class="ri-kakao-talk-line"></i>
                         <span>Messaging</span>
                     </a>
@@ -193,56 +202,54 @@
                 </li>
                 {{-- ── User Management group ────────────────────────────── --}}
                 @canany(['manage users', 'manage roles', 'manage permissions'])
-                <li class="menu-title">
-                    <i class="ri-more-fill"></i>
-                    <span>User Management</span>
-                </li>
-
-                @php
-                    $userMgmtOpen = request()->routeIs('admin.users.*', 'admin.roles.*', 'admin.permissions.*');
-                @endphp
-
-                <li class="nav-item">
-                    <a class="nav-link menu-link {{ $userMgmtOpen ? 'active' : '' }}"
-                        href="#sidebarUserManagement" data-bs-toggle="collapse" role="button"
-                        aria-expanded="{{ $userMgmtOpen ? 'true' : 'false' }}"
-                        aria-controls="sidebarUserManagement">
-                        <i class="ri-shield-user-line"></i>
+                    <li class="menu-title">
+                        <i class="ri-more-fill"></i>
                         <span>User Management</span>
-                    </a>
+                    </li>
 
-                    <div class="collapse menu-dropdown {{ $userMgmtOpen ? 'show' : '' }}"
-                        id="sidebarUserManagement">
-                        <ul class="nav nav-sm flex-column">
-                            @can('manage users')
-                            <li class="nav-item">
-                                <a href="{{ route('admin.users.index') }}"
-                                    class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
-                                    <i class="ri-user-line"></i> Users
-                                </a>
-                            </li>
-                            @endcan
+                    @php
+                        $userMgmtOpen = request()->routeIs('admin.users.*', 'admin.roles.*', 'admin.permissions.*');
+                    @endphp
 
-                            @canany(['manage roles', 'manage users'])
-                            <li class="nav-item">
-                                <a href="{{ route('admin.roles.index') }}"
-                                    class="nav-link {{ request()->routeIs('admin.roles.*') ? 'active' : '' }}">
-                                    <i class="ri-shield-star-line"></i> Roles
-                                </a>
-                            </li>
-                            @endcanany
+                    <li class="nav-item">
+                        <a class="nav-link menu-link {{ $userMgmtOpen ? 'active' : '' }}" href="#sidebarUserManagement"
+                            data-bs-toggle="collapse" role="button"
+                            aria-expanded="{{ $userMgmtOpen ? 'true' : 'false' }}" aria-controls="sidebarUserManagement">
+                            <i class="ri-shield-user-line"></i>
+                            <span>User Management</span>
+                        </a>
 
-                            @canany(['manage permissions', 'manage users'])
-                            <li class="nav-item">
-                                <a href="{{ route('admin.permissions.index') }}"
-                                    class="nav-link {{ request()->routeIs('admin.permissions.*') ? 'active' : '' }}">
-                                    <i class="ri-key-line"></i> Permissions
-                                </a>
-                            </li>
-                            @endcanany
-                        </ul>
-                    </div>
-                </li>
+                        <div class="collapse menu-dropdown {{ $userMgmtOpen ? 'show' : '' }}" id="sidebarUserManagement">
+                            <ul class="nav nav-sm flex-column">
+                                @can('manage users')
+                                    <li class="nav-item">
+                                        <a href="{{ route('admin.users.index') }}"
+                                            class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+                                            <i class="ri-user-line"></i> Users
+                                        </a>
+                                    </li>
+                                @endcan
+
+                                @canany(['manage roles', 'manage users'])
+                                    <li class="nav-item">
+                                        <a href="{{ route('admin.roles.index') }}"
+                                            class="nav-link {{ request()->routeIs('admin.roles.*') ? 'active' : '' }}">
+                                            <i class="ri-shield-star-line"></i> Roles
+                                        </a>
+                                    </li>
+                                @endcanany
+
+                                @canany(['manage permissions', 'manage users'])
+                                    <li class="nav-item">
+                                        <a href="{{ route('admin.permissions.index') }}"
+                                            class="nav-link {{ request()->routeIs('admin.permissions.*') ? 'active' : '' }}">
+                                            <i class="ri-key-line"></i> Permissions
+                                        </a>
+                                    </li>
+                                @endcanany
+                            </ul>
+                        </div>
+                    </li>
                 @endcanany
 
                 {{-- ── Settings group ───────────────────────────────────── --}}

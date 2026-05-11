@@ -5,15 +5,12 @@
     <div class="card-body p-2">
         <div class="list-group list-group-flush">
             @foreach ($pages as $page)
-                @php
-                    $url = match($page->value) {
-                        'about' => route('admin.cms.about.index'),
-                        default => route('admin.cms.content.index', ['page' => $page->value])
-                    };
-                @endphp
-                <a href="{{ $url }}"
+                <a href="{{ route('admin.cms.content.index', ['page' => $page->value]) }}"
                     class="list-group-item list-group-item-action {{ $currentPage === $page->value ? 'active' : '' }}">
-                    {{ ucfirst($page->value) }}
+                    <div class="d-flex align-items-center">
+                        <i class="ri-pages-line me-2"></i>
+                        <span>{{ ucfirst($page->value) }} Page</span>
+                    </div>
                 </a>
             @endforeach
         </div>

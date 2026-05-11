@@ -12,6 +12,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\View\View;
+use Illuminate\Http\RedirectResponse;
 
 class AboutCmsController extends Controller
 {
@@ -20,17 +21,9 @@ class AboutCmsController extends Controller
     /**
      * Display about page cms content
      */
-    public function index(): View
+    public function index(): RedirectResponse
     {
-        $cmsData = CMS::where('page', CmsPage::ABOUT)->get()->keyBy(function ($item) {
-            return $item->section instanceof CmsSection ? $item->section->value : $item->section;
-        });
-
-        return view('web.admin.cms.about.index', [
-            'cmsData' => $cmsData,
-            'pages' => CmsPage::cases(),
-            'currentPage' => CmsPage::ABOUT->value,
-        ]);
+        return redirect()->route('admin.cms.content.index', ['page' => CmsPage::ABOUT->value]);
     }
 
     /**

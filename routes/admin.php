@@ -4,6 +4,7 @@ use App\Http\Controllers\Web\Admin\Auth\AdminProfileController;
 use App\Http\Controllers\Web\Admin\BusinessSpotlight\AdminBusinessSpotlightController;
 use App\Http\Controllers\Web\Admin\Cms\CmsContentController;
 use App\Http\Controllers\Web\Admin\Cms\AboutCmsController;
+use App\Http\Controllers\Web\Admin\Cms\ServiceCmsController;
 use App\Http\Controllers\Web\Admin\Cms\PageSectionController;
 use App\Http\Controllers\Web\Admin\Cms\PricingController;
 use App\Http\Controllers\Web\Admin\Contact\AdminChattingController;
@@ -104,6 +105,13 @@ Route::prefix('cms/about')->name('admin.cms.about.')->group(function () {
     Route::post('/join', [AboutCmsController::class, 'updateJoin'])->name('update.join');
     Route::post('/newsletter', [AboutCmsController::class, 'updateNewsletter'])->name('update.newsletter');
     Route::post('/sponsors', [AboutCmsController::class, 'updateSponsors'])->name('update.sponsors');
+});
+
+// Services CMS Routes
+Route::prefix('cms/services')->name('admin.cms.services.')->group(function () {
+    Route::get('/', [ServiceCmsController::class, 'index'])->name('index');
+    Route::post('/hero', [ServiceCmsController::class, 'updateHero'])->name('update.hero');
+    Route::post('/overview', [ServiceCmsController::class, 'updateOverview'])->name('update.overview');
 });
 
 // routes/web.php
