@@ -115,6 +115,99 @@
         </div>
     </div>
 
+    {{-- Highlights Section --}}
+    @php $highlights = $cmsData->get('business_spotlight_highlights'); @endphp
+    <div class="accordion-item card mb-3">
+        <h2 class="accordion-header" id="headingHighlights">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseHighlights" aria-expanded="false" aria-controls="collapseHighlights">
+                <i class="ri-star-line me-2"></i> Highlights Header
+            </button>
+        </h2>
+        <div id="collapseHighlights" class="accordion-collapse collapse" aria-labelledby="headingHighlights" data-bs-parent="#businessSpotlightAccordion">
+            <div class="accordion-body">
+                <form id="highlightsForm">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label">Section Title</label>
+                            <input type="text" name="title" class="form-control" value="{{ $highlights?->title }}" placeholder="e.g. Past Six Months Highlights">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Section Subtitle</label>
+                            <textarea name="sub_title" class="form-control" rows="3" placeholder="Enter section description">{{ $highlights?->sub_title }}</textarea>
+                        </div>
+                        <div class="col-12 text-end mt-4">
+                            <button type="submit" class="btn btn-primary px-4" id="saveHighlightsBtn">
+                                <i class="ri-save-line me-1"></i> Save Section
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {{-- Picks Section --}}
+    @php $picks = $cmsData->get('business_spotlight_picks'); @endphp
+    <div class="accordion-item card mb-3">
+        <h2 class="accordion-header" id="headingPicks">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePicks" aria-expanded="false" aria-controls="collapsePicks">
+                <i class="ri-thumb-up-line me-2"></i> Editor's Picks Header
+            </button>
+        </h2>
+        <div id="collapsePicks" class="accordion-collapse collapse" aria-labelledby="headingPicks" data-bs-parent="#businessSpotlightAccordion">
+            <div class="accordion-body">
+                <form id="picksForm">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label">Section Title</label>
+                            <input type="text" name="title" class="form-control" value="{{ $picks?->title }}" placeholder="e.g. Editor's Picks">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Section Subtitle</label>
+                            <textarea name="sub_title" class="form-control" rows="3" placeholder="Enter section description">{{ $picks?->sub_title }}</textarea>
+                        </div>
+                        <div class="col-12 text-end mt-4">
+                            <button type="submit" class="btn btn-primary px-4" id="savePicksBtn">
+                                <i class="ri-save-line me-1"></i> Save Section
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {{-- Ladder Section --}}
+    @php $ladder = $cmsData->get('business_spotlight_ladder'); @endphp
+    <div class="accordion-item card mb-3">
+        <h2 class="accordion-header" id="headingLadder">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseLadder" aria-expanded="false" aria-controls="collapseLadder">
+                <i class="ri-bar-chart-line me-2"></i> Spotlight Ladder Header
+            </button>
+        </h2>
+        <div id="collapseLadder" class="accordion-collapse collapse" aria-labelledby="headingLadder" data-bs-parent="#businessSpotlightAccordion">
+            <div class="accordion-body">
+                <form id="ladderForm">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label">Section Title</label>
+                            <input type="text" name="title" class="form-control" value="{{ $ladder?->title }}" placeholder="e.g. OSI Spotlight Ladder">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Section Subtitle</label>
+                            <textarea name="sub_title" class="form-control" rows="3" placeholder="Enter section description">{{ $ladder?->sub_title }}</textarea>
+                        </div>
+                        <div class="col-12 text-end mt-4">
+                            <button type="submit" class="btn btn-primary px-4" id="saveLadderBtn">
+                                <i class="ri-save-line me-1"></i> Save Section
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 @push('scripts')
@@ -164,6 +257,60 @@ $(function() {
         $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
         const formData = new FormData(this);
         axios.post("{{ route('admin.cms.business_spotlight.update.list') }}", formData)
+            .then(res => {
+                Toast.success(res.data.message);
+                setTimeout(() => window.location.reload(), 1000);
+            })
+            .catch(err => {
+                Toast.fromResponse(err.response?.data);
+                $btn.prop('disabled', false).html(originalText);
+            });
+    });
+
+    // Highlights Logic
+    $('#highlightsForm').on('submit', function(e) {
+        e.preventDefault();
+        const $btn = $('#saveHighlightsBtn');
+        const originalText = $btn.html();
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
+        const formData = new FormData(this);
+        axios.post("{{ route('admin.cms.business_spotlight.update.highlights') }}", formData)
+            .then(res => {
+                Toast.success(res.data.message);
+                setTimeout(() => window.location.reload(), 1000);
+            })
+            .catch(err => {
+                Toast.fromResponse(err.response?.data);
+                $btn.prop('disabled', false).html(originalText);
+            });
+    });
+
+    // Picks Logic
+    $('#picksForm').on('submit', function(e) {
+        e.preventDefault();
+        const $btn = $('#savePicksBtn');
+        const originalText = $btn.html();
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
+        const formData = new FormData(this);
+        axios.post("{{ route('admin.cms.business_spotlight.update.picks') }}", formData)
+            .then(res => {
+                Toast.success(res.data.message);
+                setTimeout(() => window.location.reload(), 1000);
+            })
+            .catch(err => {
+                Toast.fromResponse(err.response?.data);
+                $btn.prop('disabled', false).html(originalText);
+            });
+    });
+
+    // Ladder Logic
+    $('#ladderForm').on('submit', function(e) {
+        e.preventDefault();
+        const $btn = $('#saveLadderBtn');
+        const originalText = $btn.html();
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
+        const formData = new FormData(this);
+        axios.post("{{ route('admin.cms.business_spotlight.update.ladder') }}", formData)
             .then(res => {
                 Toast.success(res.data.message);
                 setTimeout(() => window.location.reload(), 1000);

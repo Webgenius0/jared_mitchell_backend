@@ -58,4 +58,7 @@ enum CmsSection: string
     case BUSINESS_SPOTLIGHT_HERO = 'business_spotlight_hero';
     case BUSINESS_SPOTLIGHT_VIDEO = 'business_spotlight_video';
     case BUSINESS_SPOTLIGHT_LIST = 'business_spotlight_list';
+    case BUSINESS_SPOTLIGHT_HIGHLIGHTS = 'business_spotlight_highlights';
+    case BUSINESS_SPOTLIGHT_PICKS = 'business_spotlight_picks';
+    case BUSINESS_SPOTLIGHT_LADDER = 'business_spotlight_ladder';
 }
