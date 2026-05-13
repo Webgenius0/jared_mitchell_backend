@@ -10,13 +10,15 @@ use App\Http\Controllers\Api\BusinessSpotlightController;
 use App\Http\Controllers\Api\Chat\ConversationController;
 use App\Http\Controllers\Api\Chat\MessageController;
 use App\Http\Controllers\Api\Chat\TypingController;
-use App\Http\Controllers\Api\Cms\CmsContentController;
 use App\Http\Controllers\Api\Cms\CmsAboutController;
 use App\Http\Controllers\Api\Cms\CmsArtistSpotlightController;
-use App\Http\Controllers\Api\Cms\CmsServiceController;
+use App\Http\Controllers\Api\Cms\CmsBusinessSpotlightController;
+use App\Http\Controllers\Api\Cms\CmsContentController;
 use App\Http\Controllers\Api\Cms\CmsHomePageController;
 use App\Http\Controllers\Api\Cms\CmsPageController;
 use App\Http\Controllers\Api\Cms\CmsPricingController;
+use App\Http\Controllers\Api\Cms\CmsServiceController;
+use App\Http\Controllers\Api\Cms\CmsSpotlightLadderController;
 use App\Http\Controllers\Api\Cms\FAQController as ApiFAQController;
 use Illuminate\Support\Facades\Route;
 
@@ -65,6 +67,8 @@ Route::group(['prefix' => 'v1'], function ($router) {
         Route::get('/about', [CmsAboutController::class, 'index']); // About page CMS
         Route::get('/services', [CmsServiceController::class, 'index']); // Services page CMS
         Route::get('/artist-spotlight', [CmsArtistSpotlightController::class, 'index']); // Artist spotlight page CMS
+        Route::get('/business-spotlight', [CmsBusinessSpotlightController::class, 'index']); // Business spotlight page CMS
+        Route::get('/spotlight-ladder', [CmsSpotlightLadderController::class, 'index']); // Spotlight ladder page CMS
         Route::get('/faq', [ApiFAQController::class, 'index']); // Active FAQs
     });
 

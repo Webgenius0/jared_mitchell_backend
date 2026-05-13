@@ -9,8 +9,9 @@ use App\Http\Resources\Cms\CmsContentResource;
 use App\Models\CMS;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
-class CmsArtistSpotlightController extends Controller
+class CmsSpotlightLadderController extends Controller
 {
     use ApiResponse;
 
@@ -21,15 +22,16 @@ class CmsArtistSpotlightController extends Controller
      */
     public function index(): JsonResponse
     {
-        $cmsData = CMS::where('page', CmsPage::ARTIST_SPOTLIGHT)
+        $cmsData = CMS::where('page', CmsPage::SPOTLIGHT_LADDER)
             ->get()
             ->keyBy(function ($item) {
                 return $item->section instanceof CmsSection ? $item->section->value : $item->section;
             });
 
         return $this->success(
-            'Artist spotlight page CMS content retrieved successfully.',
-            CmsContentResource::collection($cmsData)->resolve()
+            'Spotlight ladder page CMS content retrieved successfully.',
+            CmsContentResource::collection($cmsData)->resolve(),
+            200
         );
     }
 }
