@@ -68,7 +68,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
     */
     Route::prefix('business-spotlight')->group(function () {
         Route::get('/', [BusinessSpotlightController::class,'index']);
-        Route::post('/',       [BusinessSpotlightController::class, 'store']);     // Submit complete form
+        Route::post('/',       [BusinessSpotlightController::class, 'store']); // Submit complete form
         Route::post('/draft',  [BusinessSpotlightController::class, 'saveDraft']); // Save draft (partial)
         Route::get('/draft',   [BusinessSpotlightController::class, 'getDraft']);  // Retrieve draft by email
         Route::get('/{id}', [BusinessSpotlightController::class, 'show']);  // Retrieve draft by email
