@@ -13,7 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\View\View;
 
-class CmsContentController extends Controller
+class CmsHomePageController extends Controller
 {
     use AdminApiResponse;
 
@@ -113,7 +113,7 @@ class CmsContentController extends Controller
             'cms' => $cms,
         ]);
     }
-    
+
     /**
      * Update partners section
      */

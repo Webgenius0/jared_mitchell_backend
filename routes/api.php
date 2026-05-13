@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\Chat\ConversationController;
 use App\Http\Controllers\Api\Chat\MessageController;
 use App\Http\Controllers\Api\Chat\TypingController;
 use App\Http\Controllers\Api\Cms\CmsContentController;
+use App\Http\Controllers\Api\Cms\CmsHomePageController;
 use App\Http\Controllers\Api\Cms\CmsPageController;
 use App\Http\Controllers\Api\Cms\CmsPricingController;
 use App\Http\Controllers\Api\Cms\FAQController as ApiFAQController;
@@ -60,6 +61,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
         Route::get('/pages/{slug}', [CmsPageController::class, 'show']);  // Single page + visible sections + content
         Route::get('/pricing', [CmsPricingController::class, 'index']); // Visible pricing plans with feature groups
         Route::get('/content', [CmsContentController::class, 'index']); // New system
+        Route::get('/homepage', [CmsHomePageController::class, 'index']); // Homepage CMS
         Route::get('/faq', [ApiFAQController::class, 'index']); // Active FAQs
     });
 

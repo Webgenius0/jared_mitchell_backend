@@ -5,7 +5,7 @@ use App\Http\Controllers\Web\Admin\BusinessSpotlight\AdminBusinessSpotlightContr
 use App\Http\Controllers\Web\Admin\Cms\AboutCmsController;
 use App\Http\Controllers\Web\Admin\Cms\ArtistSpotlightCmsController;
 use App\Http\Controllers\Web\Admin\Cms\BusinessSpotlightCmsController;
-use App\Http\Controllers\Web\Admin\Cms\CmsContentController;
+use App\Http\Controllers\Web\Admin\Cms\CmsHomePageController;
 use App\Http\Controllers\Web\Admin\Cms\FAQController;
 use App\Http\Controllers\Web\Admin\Cms\PricingController;
 use App\Http\Controllers\Web\Admin\Cms\ServiceCmsController;
@@ -55,20 +55,20 @@ Route::prefix('mail')->name('admin.mail.')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::prefix('cms/content')->name('admin.cms.content.')->group(function () {
-    Route::get('/', [CmsContentController::class, 'index'])->name('index');
-    Route::post('/hero', [CmsContentController::class, 'updateHero'])->name('update.hero');
-    Route::post('/partners', [CmsContentController::class, 'updatePartners'])->name('update.partners');
-    Route::post('/features', [CmsContentController::class, 'updateFeatures'])->name('update.features');
-    Route::post('/why-choose', [CmsContentController::class, 'updateWhyChoose'])->name('update.why_choose');
-    Route::post('/core-values', [CmsContentController::class, 'updateCoreValues'])->name('update.core_values');
-    Route::post('/what-you-get', [CmsContentController::class, 'updateWhatYouGet'])->name('update.what_you_get');
-    Route::post('/boss-beginnings', [CmsContentController::class, 'updateBossBeginnings'])->name('update.boss_beginnings');
-    Route::post('/spotlight', [CmsContentController::class, 'updateSpotlight'])->name('update.spotlight');
-    Route::post('/highlights', [CmsContentController::class, 'updateHighlights'])->name('update.highlights');
-    Route::post('/events', [CmsContentController::class, 'updateEvents'])->name('update.events');
-    Route::post('/shop', [CmsContentController::class, 'updateShop'])->name('update.shop');
-    Route::post('/cta', [CmsContentController::class, 'updateCta'])->name('update.cta');
-    Route::post('/newsletter', [CmsContentController::class, 'updateNewsletter'])->name('update.newsletter');
+    Route::get('/', [CmsHomePageController::class, 'index'])->name('index');
+    Route::post('/hero', [CmsHomePageController::class, 'updateHero'])->name('update.hero');
+    Route::post('/partners', [CmsHomePageController::class, 'updatePartners'])->name('update.partners');
+    Route::post('/features', [CmsHomePageController::class, 'updateFeatures'])->name('update.features');
+    Route::post('/why-choose', [CmsHomePageController::class, 'updateWhyChoose'])->name('update.why_choose');
+    Route::post('/core-values', [CmsHomePageController::class, 'updateCoreValues'])->name('update.core_values');
+    Route::post('/what-you-get', [CmsHomePageController::class, 'updateWhatYouGet'])->name('update.what_you_get');
+    Route::post('/boss-beginnings', [CmsHomePageController::class, 'updateBossBeginnings'])->name('update.boss_beginnings');
+    Route::post('/spotlight', [CmsHomePageController::class, 'updateSpotlight'])->name('update.spotlight');
+    Route::post('/highlights', [CmsHomePageController::class, 'updateHighlights'])->name('update.highlights');
+    Route::post('/events', [CmsHomePageController::class, 'updateEvents'])->name('update.events');
+    Route::post('/shop', [CmsHomePageController::class, 'updateShop'])->name('update.shop');
+    Route::post('/cta', [CmsHomePageController::class, 'updateCta'])->name('update.cta');
+    Route::post('/newsletter', [CmsHomePageController::class, 'updateNewsletter'])->name('update.newsletter');
 });
 
 // About CMS Routes
