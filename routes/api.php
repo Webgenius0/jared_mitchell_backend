@@ -57,8 +57,6 @@ Route::group(['prefix' => 'v1'], function ($router) {
     |--------------------------------------------------------------------------
     */
     Route::prefix('cms')->group(function () {
-        Route::get('/pages', [CmsPageController::class, 'index']); // All published pages
-        Route::get('/pages/{slug}', [CmsPageController::class, 'show']);  // Single page + visible sections + content
         Route::get('/pricing', [CmsPricingController::class, 'index']); // Visible pricing plans with feature groups
         Route::get('/content', [CmsContentController::class, 'index']); // New system
         Route::get('/homepage', [CmsHomePageController::class, 'index']); // Homepage CMS
@@ -71,7 +69,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
     |--------------------------------------------------------------------------
     */
     Route::prefix('business-spotlight')->group(function () {
-        Route::get('/', [BusinessSpotlightController::class,'index']);
+        Route::get('/', [BusinessSpotlightController::class, 'index']);
         Route::post('/',       [BusinessSpotlightController::class, 'store']); // Submit complete form
         Route::post('/draft',  [BusinessSpotlightController::class, 'saveDraft']); // Save draft (partial)
         Route::get('/draft',   [BusinessSpotlightController::class, 'getDraft']);  // Retrieve draft by email
