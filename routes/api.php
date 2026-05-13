@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\Chat\TypingController;
 use App\Http\Controllers\Api\Cms\CmsContentController;
 use App\Http\Controllers\Api\Cms\CmsPageController;
 use App\Http\Controllers\Api\Cms\CmsPricingController;
+use App\Http\Controllers\Api\Cms\FAQController as ApiFAQController;
 use Illuminate\Support\Facades\Route;
 
 // health check
@@ -55,10 +56,11 @@ Route::group(['prefix' => 'v1'], function ($router) {
     |--------------------------------------------------------------------------
     */
     Route::prefix('cms')->group(function () {
-        Route::get('/pages',        [CmsPageController::class,    'index']); // All published pages
-        Route::get('/pages/{slug}', [CmsPageController::class,    'show']);  // Single page + visible sections + content
-        Route::get('/pricing',      [CmsPricingController::class, 'index']); // Visible pricing plans with feature groups
-        Route::get('/content',      [CmsContentController::class, 'index']); // New system
+        Route::get('/pages', [CmsPageController::class, 'index']); // All published pages
+        Route::get('/pages/{slug}', [CmsPageController::class, 'show']);  // Single page + visible sections + content
+        Route::get('/pricing', [CmsPricingController::class, 'index']); // Visible pricing plans with feature groups
+        Route::get('/content', [CmsContentController::class, 'index']); // New system
+        Route::get('/faq', [ApiFAQController::class, 'index']); // Active FAQs
     });
 
     /*

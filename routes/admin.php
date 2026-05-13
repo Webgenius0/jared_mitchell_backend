@@ -6,7 +6,7 @@ use App\Http\Controllers\Web\Admin\Cms\AboutCmsController;
 use App\Http\Controllers\Web\Admin\Cms\ArtistSpotlightCmsController;
 use App\Http\Controllers\Web\Admin\Cms\BusinessSpotlightCmsController;
 use App\Http\Controllers\Web\Admin\Cms\CmsContentController;
-use App\Http\Controllers\Web\Admin\Cms\PageSectionController;
+use App\Http\Controllers\Web\Admin\Cms\FAQController;
 use App\Http\Controllers\Web\Admin\Cms\PricingController;
 use App\Http\Controllers\Web\Admin\Cms\ServiceCmsController;
 use App\Http\Controllers\Web\Admin\Cms\SpotlightLadderCmsController;
@@ -138,14 +138,28 @@ Route::prefix('cms/spotlight-ladder')->name('admin.cms.spotlight_ladder.')->grou
 
 // routes/web.php
 Route::prefix('cms/pricing')->name('admin.cms.pricing.')->group(function () {
-    Route::get('/',                     [PricingController::class, 'index'])->name('index');
-    Route::get('/create',               [PricingController::class, 'create'])->name('create');
-    Route::post('/',                    [PricingController::class, 'store'])->name('store');
-    Route::get('/{plan}/edit',          [PricingController::class, 'edit'])->name('edit');
-    Route::put('/{plan}',               [PricingController::class, 'update'])->name('update');
-    Route::delete('/{plan}',            [PricingController::class, 'destroy'])->name('destroy');
-    Route::post('/reorder',             [PricingController::class, 'reorder'])->name('reorder');
-    Route::patch('/{plan}/toggle',      [PricingController::class, 'toggle'])->name('toggle');
+    Route::get('/', [PricingController::class, 'index'])->name('index');
+    Route::get('/create', [PricingController::class, 'create'])->name('create');
+    Route::post('/', [PricingController::class, 'store'])->name('store');
+    Route::get('/{plan}/edit', [PricingController::class, 'edit'])->name('edit');
+    Route::put('/{plan}', [PricingController::class, 'update'])->name('update');
+    Route::delete('/{plan}', [PricingController::class, 'destroy'])->name('destroy');
+    Route::post('/reorder', [PricingController::class, 'reorder'])->name('reorder');
+    Route::patch('/{plan}/toggle', [PricingController::class, 'toggle'])->name('toggle');
+});
+
+/*
+|--------------------------------------------------------------------------
+| FAQ Management
+|--------------------------------------------------------------------------
+*/
+Route::prefix('cms/faq')->name('admin.cms.faq.')->group(function () {
+    Route::get('/', [FAQController::class, 'index'])->name('index');
+    Route::get('/create', [FAQController::class, 'create'])->name('create');
+    Route::post('/', [FAQController::class, 'store'])->name('store');
+    Route::get('/{faq}/edit', [FAQController::class, 'edit'])->name('edit');
+    Route::put('/{faq}', [FAQController::class, 'update'])->name('update');
+    Route::delete('/{faq}', [FAQController::class, 'destroy'])->name('destroy');
 });
 
 /*

@@ -90,7 +90,7 @@
                         <span>CMS</span>
                     </a>
 
-                    <div class="collapse menu-dropdown {{ request()->routeIs('admin.cms.pages.index', 'admin.cms.pricing.index', 'admin.cms.content.index') ? 'show' : '' }}"
+                    <div class="collapse menu-dropdown {{ request()->routeIs('admin.cms.pages.index', 'admin.cms.pricing.index', 'admin.cms.content.index', 'admin.cms.faq.*') ? 'show' : '' }}"
                         id="sidebarCmsPage">
                         <ul class="nav nav-sm flex-column">
                             <li class="nav-item">
@@ -104,6 +104,13 @@
                                 <a href="{{ route('admin.cms.pricing.index') }}"
                                     class="nav-link {{ request()->routeIs('admin.cms.pricing.index') ? 'active' : '' }}">
                                     <i class="ri-mail-unread-line"></i> Price Plan
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a href="{{ route('admin.cms.faq.index') }}"
+                                    class="nav-link {{ request()->routeIs('admin.cms.faq.*') ? 'active' : '' }}">
+                                    <i class="ri-question-line"></i> FAQ
                                 </a>
                             </li>
 
