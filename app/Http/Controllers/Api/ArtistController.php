@@ -22,6 +22,7 @@ class ArtistController extends Controller
     {
         $query = User::role('artist', 'api')
             ->with(['profile', 'artistCategory'])
+            ->withCount(['likers', 'bookmarkers', 'shares'])
             ->where('status', 'active');
 
         // Search by name or username
@@ -64,6 +65,7 @@ class ArtistController extends Controller
     {
         $artist = User::role('artist', 'api')
             ->with(['profile', 'artistCategory'])
+            ->withCount(['likers', 'bookmarkers', 'shares'])
             ->where('status', 'active')
             ->find($id);
 
@@ -75,5 +77,77 @@ class ArtistController extends Controller
             'Artist profile retrieved successfully.',
             new ArtistResource($artist)
         );
+    }
+
+    /**
+     * POST /api/v1/artists/{id}/like
+     */
+    public function toggleLike($id): JsonResponse
+    {
+        $user = auth()->user();
+        if ($user->id == $id) {
+            return $this->error('You cannot like your own profile.', null, 403);
+        }
+
+        $artist = User::role('artist', 'api')->findOrFail($id);
+        $exists = $user->likedArtists()->where('artist_id', $id)->exists();
+
+        if ($exists) {
+            $user->likedArtists()->detach($id);
+            $message = 'Artist unliked successfully.';
+            $liked = false;
+        } else {
+            $user->likedArtists()->attach($id);
+            $message = 'Artist liked successfully.';
+            $liked = true;
+        }
+
+        return $this->success($message, ['is_liked' => $liked]);
+    }
+
+    /**
+     * POST /api/v1/artists/{id}/bookmark
+     */
+    public function toggleBookmark($id): JsonResponse
+    {
+        $user = auth()->user();
+        if ($user->id == $id) {
+            return $this->error('You cannot bookmark your own profile.', null, 403);
+        }
+
+        $artist = User::role('artist', 'api')->findOrFail($id);
+        $exists = $user->bookmarkedArtists()->where('artist_id', $id)->exists();
+
+        if ($exists) {
+            $user->bookmarkedArtists()->detach($id);
+            $message = 'Artist removed from bookmarks.';
+            $bookmarked = false;
+        } else {
+            $user->bookmarkedArtists()->attach($id);
+            $message = 'Artist bookmarked successfully.';
+            $bookmarked = true;
+        }
+
+        return $this->success($message, ['is_bookmarked' => $bookmarked]);
+    }
+
+    /**
+     * POST /api/v1/artists/{id}/share
+     */
+    public function recordShare(Request $request, $id): JsonResponse
+    {
+        $user = auth()->user();
+        if ($user && $user->id == $id) {
+            return $this->error('You cannot share your own profile.', null, 403);
+        }
+
+        $artist = User::role('artist', 'api')->findOrFail($id);
+
+        $artist->shares()->create([
+            'user_id' => $user?->id,
+            'platform' => $request->platform,
+        ]);
+
+        return $this->success('Artist share recorded successfully.');
     }
 }

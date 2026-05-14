@@ -72,4 +72,44 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->belongsTo(ArtistCategory::class, 'artist_category_id');
     }
+
+    /**
+     * Users who liked this artist.
+     */
+    public function likers(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'artist_likes', 'artist_id', 'user_id')->withTimestamps();
+    }
+
+    /**
+     * Artists liked by this user.
+     */
+    public function likedArtists(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'artist_likes', 'user_id', 'artist_id')->withTimestamps();
+    }
+
+    /**
+     * Users who bookmarked this artist.
+     */
+    public function bookmarkers(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'artist_bookmarks', 'artist_id', 'user_id')->withTimestamps();
+    }
+
+    /**
+     * Artists bookmarked by this user.
+     */
+    public function bookmarkedArtists(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'artist_bookmarks', 'user_id', 'artist_id')->withTimestamps();
+    }
+
+    /**
+     * Shares received by this artist.
+     */
+    public function shares(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ArtistShare::class, 'artist_id');
+    }
 }

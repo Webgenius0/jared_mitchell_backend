@@ -120,6 +120,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
     Route::prefix('artists')->group(function () {
         Route::get('/', [ArtistController::class, 'index']);    // List all artists
         Route::get('/{id}', [ArtistController::class, 'show']); // Artist detail
+        Route::post('/{id}/share', [ArtistController::class, 'recordShare']); // Public share (optional auth)
     });
 
     /*
@@ -136,6 +137,12 @@ Route::group(['prefix' => 'v1'], function ($router) {
         Route::post('/update-avatar', [UserProfileController::class, 'updateAvatar']); // DONE: update avatar
         Route::delete('/delete-profile', [UserProfileController::class, 'destroy']); // DONE: delete profile
         Route::post('/change-password', [UserProfileController::class, 'changePassword']); // DONE: change password
+
+        // Artist interactions
+        Route::prefix('artists')->group(function () {
+            Route::post('/{id}/like', [ArtistController::class, 'toggleLike']);
+            Route::post('/{id}/bookmark', [ArtistController::class, 'toggleBookmark']);
+        });
     });
 
     /*

@@ -10,8 +10,8 @@ class ArtistResource extends JsonResource
     /**
      * Transform the resource into an array.
      */
-    public function toArray(Request $request): array
-    {
+        $user = auth('api')->user();
+
         return [
             'id' => $this->id,
             'name' => $this->profile->name ?? '',
@@ -24,12 +24,12 @@ class ArtistResource extends JsonResource
                 'name' => $this->artistCategory->name ?? 'Uncategorized',
                 'slug' => $this->artistCategory->slug ?? '',
             ],
-            // Interaction counts (placeholders for now)
-            'likes_count' => 0,
-            'bookmarks_count' => 0,
-            'shares_count' => 0,
-            'is_liked' => false,
-            'is_bookmarked' => false,
+            // Interaction counts
+            'likes_count' => (int) ($this->likers_count ?? 0),
+            'bookmarks_count' => (int) ($this->bookmarkers_count ?? 0),
+            'shares_count' => (int) ($this->shares_count ?? 0),
+            'is_liked' => $user ? $this->likers()->where('user_id', $user->id)->exists() : false,
+            'is_bookmarked' => $user ? $this->bookmarkers()->where('user_id', $user->id)->exists() : false,
             'created_at' => $this->created_at?->toIso8601String(),
         ];
     }
