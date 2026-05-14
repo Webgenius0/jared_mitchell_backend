@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Faker\Factory as Faker;
+use Spatie\Permission\Models\Role;
 
 class ArtistSeeder extends Seeder
 {
@@ -40,7 +41,8 @@ class ArtistSeeder extends Seeder
             );
 
             // Assign artist role
-            $user->assignRole('artist');
+            $role = Role::findByName('artist', 'api');
+            $user->assignRole($role);
 
             $slug = Helper::generateSlug($name);
             $username = Helper::generateUsername($name);

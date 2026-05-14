@@ -21,15 +21,7 @@ class DatabaseSeeder extends Seeder
             ArtistCategorySeeder::class,
             ArtistSeeder::class,
             SpotlightLadderSeeder::class,
-            BusinessSpotlightSeeder::class,
-            BusinessSpotlightVideoSeeder::class,
-            BusinessSpotlightListSeeder::class,
-            BusinessHighlightsSeeder::class,
-            BusinessPicksSeeder::class,
-            BusinessLadderSeeder::class,
-            BusinessJoinSeeder::class,
-            BusinessInterviewSeeder::class,
-            WhyOsiExistsSeeder::class,
+            BusinessSpotlightPageSeeder::class,
         ]);
     }
 }

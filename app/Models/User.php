@@ -15,8 +15,6 @@ class User extends Authenticatable implements JWTSubject
 {
     use HasFactory, Notifiable, HasRoles, SoftDeletes;
 
-    protected $guard_name = 'api';
-
     protected $fillable = [
         'email',
         'phone',
