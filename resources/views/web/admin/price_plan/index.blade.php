@@ -21,7 +21,7 @@
                     <div class="card">
                         <div class="card-header d-flex justify-content-between">
                             <h5>Pricing Plans</h5>
-                            <a href="{{ route('admin.cms.pricing.create') }}" class="btn btn-primary">+ Add Plan</a>
+                            <a href="{{ route('admin.pricing.create') }}" class="btn btn-primary">+ Add Plan</a>
                         </div>
                         <div class="card-body">
                             <table class="table table-bordered align-middle" id="pricingPlansTable" style="width: 100%;">
@@ -50,9 +50,9 @@
 @push('scripts')
     <script>
         $(function() {
-            const indexRoute = @json(route('admin.cms.pricing.index'));
-            const toggleRouteTemplate = @json(route('admin.cms.pricing.toggle', ['plan' => '__PLAN_ID__']));
-            const destroyRouteTemplate = @json(route('admin.cms.pricing.destroy', ['plan' => '__PLAN_ID__']));
+            const indexRoute = @json(route('admin.pricing.index'));
+            const toggleRouteTemplate = @json(route('admin.pricing.toggle', ['plan' => '__PLAN_ID__']));
+            const destroyRouteTemplate = @json(route('admin.pricing.destroy', ['plan' => '__PLAN_ID__']));
             const csrfToken = $('meta[name="csrf-token"]').attr('content');
 
             function endpoint(template, planId) {

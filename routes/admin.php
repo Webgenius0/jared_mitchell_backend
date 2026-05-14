@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\Web\Admin\ArtistSpotlight\AdminArtistSpotlightController;
 use App\Http\Controllers\Web\Admin\Auth\AdminProfileController;
 use App\Http\Controllers\Web\Admin\BusinessSpotlight\AdminBusinessSpotlightController;
 use App\Http\Controllers\Web\Admin\Cms\AboutCmsController;
+use App\Http\Controllers\Web\Admin\Cms\AdminArtistCategoryController;
 use App\Http\Controllers\Web\Admin\Cms\ArtistSpotlightCmsController;
 use App\Http\Controllers\Web\Admin\Cms\BusinessSpotlightCmsController;
 use App\Http\Controllers\Web\Admin\Cms\CmsHomePageController;
@@ -13,6 +15,7 @@ use App\Http\Controllers\Web\Admin\Cms\SpotlightLadderCmsController;
 use App\Http\Controllers\Web\Admin\Contact\AdminChattingController;
 use App\Http\Controllers\Web\Admin\Contact\AdminMailingController;
 use App\Http\Controllers\Web\Admin\Dashboard\AdminDashboardController;
+use App\Http\Controllers\Web\Admin\Event\EventController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [AdminDashboardController::class, 'index'])->name('show.admin.dashboard'); // show admin dashboard
@@ -136,8 +139,13 @@ Route::prefix('cms/spotlight-ladder')->name('admin.cms.spotlight_ladder.')->grou
     Route::post('/hero', [SpotlightLadderCmsController::class, 'updateHero'])->name('update.hero');
 });
 
-// routes/web.php
-Route::prefix('cms/pricing')->name('admin.cms.pricing.')->group(function () {
+
+/*
+|--------------------------------------------------------------------------
+| Pricing plan Management
+|--------------------------------------------------------------------------
+*/
+Route::prefix('pricing')->name('admin.pricing.')->group(function () {
     Route::get('/', [PricingController::class, 'index'])->name('index');
     Route::get('/create', [PricingController::class, 'create'])->name('create');
     Route::post('/', [PricingController::class, 'store'])->name('store');
@@ -147,6 +155,7 @@ Route::prefix('cms/pricing')->name('admin.cms.pricing.')->group(function () {
     Route::post('/reorder', [PricingController::class, 'reorder'])->name('reorder');
     Route::patch('/{plan}/toggle', [PricingController::class, 'toggle'])->name('toggle');
 });
+
 
 /*
 |--------------------------------------------------------------------------
@@ -168,17 +177,17 @@ Route::prefix('cms/faq')->name('admin.cms.faq.')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::prefix('business-spotlights')->name('admin.business-spotlights.')->group(function () {
-    Route::get('/',                     [AdminBusinessSpotlightController::class, 'index'])->name('index');
-    Route::get('/data',                 [AdminBusinessSpotlightController::class, 'getData'])->name('data');
-    Route::get('/statistics',           [AdminBusinessSpotlightController::class, 'statistics'])->name('statistics');
-    Route::post('/bulk-status',         [AdminBusinessSpotlightController::class, 'bulkUpdateStatus'])->name('bulk-status');
-    Route::get('/{id}',                 [AdminBusinessSpotlightController::class, 'show'])->name('show');
-    Route::patch('/{id}/status',        [AdminBusinessSpotlightController::class, 'updateStatus'])->name('status.update');
-    Route::post('/{id}/approve',        [AdminBusinessSpotlightController::class, 'approve'])->name('approve');
-    Route::post('/{id}/reject',         [AdminBusinessSpotlightController::class, 'reject'])->name('reject');
-    Route::post('/{id}/under-review',   [AdminBusinessSpotlightController::class, 'markUnderReview'])->name('under-review');
-    Route::delete('/{id}',              [AdminBusinessSpotlightController::class, 'destroy'])->name('destroy');
-    Route::post('/{id}/restore',        [AdminBusinessSpotlightController::class, 'restore'])->name('restore');
+    Route::get('/', [AdminBusinessSpotlightController::class, 'index'])->name('index');
+    Route::get('/data', [AdminBusinessSpotlightController::class, 'getData'])->name('data');
+    Route::get('/statistics', [AdminBusinessSpotlightController::class, 'statistics'])->name('statistics');
+    Route::post('/bulk-status', [AdminBusinessSpotlightController::class, 'bulkUpdateStatus'])->name('bulk-status');
+    Route::get('/{id}', [AdminBusinessSpotlightController::class, 'show'])->name('show');
+    Route::patch('/{id}/status', [AdminBusinessSpotlightController::class, 'updateStatus'])->name('status.update');
+    Route::post('/{id}/approve', [AdminBusinessSpotlightController::class, 'approve'])->name('approve');
+    Route::post('/{id}/reject', [AdminBusinessSpotlightController::class, 'reject'])->name('reject');
+    Route::post('/{id}/under-review', [AdminBusinessSpotlightController::class, 'markUnderReview'])->name('under-review');
+    Route::delete('/{id}', [AdminBusinessSpotlightController::class, 'destroy'])->name('destroy');
+    Route::post('/{id}/restore', [AdminBusinessSpotlightController::class, 'restore'])->name('restore');
 });
 
 /*
@@ -187,15 +196,15 @@ Route::prefix('business-spotlights')->name('admin.business-spotlights.')->group(
 |--------------------------------------------------------------------------
 */
 Route::prefix('artist-spotlights')->name('admin.artist-spotlights.')->group(function () {
-    Route::get('/',                     [\App\Http\Controllers\Web\Admin\ArtistSpotlight\AdminArtistSpotlightController::class, 'index'])->name('index');
-    Route::get('/data',                 [\App\Http\Controllers\Web\Admin\ArtistSpotlight\AdminArtistSpotlightController::class, 'getData'])->name('data');
-    Route::get('/statistics',           [\App\Http\Controllers\Web\Admin\ArtistSpotlight\AdminArtistSpotlightController::class, 'statistics'])->name('statistics');
-    Route::post('/bulk-status',         [\App\Http\Controllers\Web\Admin\ArtistSpotlight\AdminArtistSpotlightController::class, 'bulkUpdateStatus'])->name('bulk-status');
-    Route::get('/{id}',                 [\App\Http\Controllers\Web\Admin\ArtistSpotlight\AdminArtistSpotlightController::class, 'show'])->name('show');
-    Route::patch('/{id}/status',        [\App\Http\Controllers\Web\Admin\ArtistSpotlight\AdminArtistSpotlightController::class, 'updateStatus'])->name('status.update');
-    Route::post('/{id}/approve',        [\App\Http\Controllers\Web\Admin\ArtistSpotlight\AdminArtistSpotlightController::class, 'approve'])->name('approve');
-    Route::post('/{id}/reject',         [\App\Http\Controllers\Web\Admin\ArtistSpotlight\AdminArtistSpotlightController::class, 'reject'])->name('reject');
-    Route::delete('/{id}',              [\App\Http\Controllers\Web\Admin\ArtistSpotlight\AdminArtistSpotlightController::class, 'destroy'])->name('destroy');
+    Route::get('/', [AdminArtistSpotlightController::class, 'index'])->name('index');
+    Route::get('/data', [AdminArtistSpotlightController::class, 'getData'])->name('data');
+    Route::get('/statistics', [AdminArtistSpotlightController::class, 'statistics'])->name('statistics');
+    Route::post('/bulk-status', [AdminArtistSpotlightController::class, 'bulkUpdateStatus'])->name('bulk-status');
+    Route::get('/{id}', [AdminArtistSpotlightController::class, 'show'])->name('show');
+    Route::patch('/{id}/status', [AdminArtistSpotlightController::class, 'updateStatus'])->name('status.update');
+    Route::post('/{id}/approve', [AdminArtistSpotlightController::class, 'approve'])->name('approve');
+    Route::post('/{id}/reject', [AdminArtistSpotlightController::class, 'reject'])->name('reject');
+    Route::delete('/{id}', [AdminArtistSpotlightController::class, 'destroy'])->name('destroy');
 });
 
 /*
@@ -204,11 +213,11 @@ Route::prefix('artist-spotlights')->name('admin.artist-spotlights.')->group(func
 |--------------------------------------------------------------------------
 */
 Route::prefix('admin/artist-categories')->name('admin.artist-categories.')->group(function () {
-    Route::get('/',                     [\App\Http\Controllers\Web\Admin\Cms\AdminArtistCategoryController::class, 'index'])->name('index');
-    Route::get('/data',                 [\App\Http\Controllers\Web\Admin\Cms\AdminArtistCategoryController::class, 'getData'])->name('data');
-    Route::post('/',                    [\App\Http\Controllers\Web\Admin\Cms\AdminArtistCategoryController::class, 'store'])->name('store');
-    Route::put('/{category}',           [\App\Http\Controllers\Web\Admin\Cms\AdminArtistCategoryController::class, 'update'])->name('update');
-    Route::delete('/{category}',        [\App\Http\Controllers\Web\Admin\Cms\AdminArtistCategoryController::class, 'destroy'])->name('destroy');
+    Route::get('/', [AdminArtistCategoryController::class, 'index'])->name('index');
+    Route::get('/data', [AdminArtistCategoryController::class, 'getData'])->name('data');
+    Route::post('/', [AdminArtistCategoryController::class, 'store'])->name('store');
+    Route::put('/{category}', [AdminArtistCategoryController::class, 'update'])->name('update');
+    Route::delete('/{category}', [AdminArtistCategoryController::class, 'destroy'])->name('destroy');
 });
 
 /*
@@ -217,12 +226,12 @@ Route::prefix('admin/artist-categories')->name('admin.artist-categories.')->grou
 |--------------------------------------------------------------------------
 */
 Route::prefix('events')->name('admin.events.')->group(function () {
-    Route::get('/',                     [\App\Http\Controllers\Web\Admin\Event\EventController::class, 'index'])->name('index');
-    Route::get('/data',                 [\App\Http\Controllers\Web\Admin\Event\EventController::class, 'getData'])->name('data');
-    Route::get('/create',               [\App\Http\Controllers\Web\Admin\Event\EventController::class, 'create'])->name('create');
-    Route::post('/',                    [\App\Http\Controllers\Web\Admin\Event\EventController::class, 'store'])->name('store');
-    Route::get('/{event}',              [\App\Http\Controllers\Web\Admin\Event\EventController::class, 'show'])->name('show');
-    Route::get('/{event}/edit',         [\App\Http\Controllers\Web\Admin\Event\EventController::class, 'edit'])->name('edit');
-    Route::put('/{event}',              [\App\Http\Controllers\Web\Admin\Event\EventController::class, 'update'])->name('update');
-    Route::delete('/{event}',           [\App\Http\Controllers\Web\Admin\Event\EventController::class, 'destroy'])->name('destroy');
+    Route::get('/', [EventController::class, 'index'])->name('index');
+    Route::get('/data', [EventController::class, 'getData'])->name('data');
+    Route::get('/create', [EventController::class, 'create'])->name('create');
+    Route::post('/', [EventController::class, 'store'])->name('store');
+    Route::get('/{event}', [EventController::class, 'show'])->name('show');
+    Route::get('/{event}/edit', [EventController::class, 'edit'])->name('edit');
+    Route::put('/{event}', [EventController::class, 'update'])->name('update');
+    Route::delete('/{event}', [EventController::class, 'destroy'])->name('destroy');
 });

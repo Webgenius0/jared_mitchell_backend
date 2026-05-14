@@ -12,7 +12,7 @@
                         <h4 class="mb-sm-0">{{ $plan->exists ? 'Edit Plan' : 'Create Plan' }}</h4>
                         <ol class="breadcrumb m-0">
                             <li class="breadcrumb-item"><a href="{{ route('show.admin.dashboard') }}">Dashboard</a></li>
-                            <li class="breadcrumb-item"><a href="{{ route('admin.cms.pricing.index') }}">Price Plans</a></li>
+                            <li class="breadcrumb-item"><a href="{{ route('admin.pricing.index') }}">Price Plans</a></li>
                             <li class="breadcrumb-item active">{{ $plan->exists ? 'Edit' : 'Create' }}</li>
                         </ol>
                     </div>
@@ -35,7 +35,7 @@
             {{-- jQuery + AJAX form --}}
             <form
                 id="pricingPlanForm"
-                action="{{ $plan->exists ? route('admin.cms.pricing.update', $plan) : route('admin.cms.pricing.store') }}"
+                action="{{ $plan->exists ? route('admin.pricing.update', $plan) : route('admin.pricing.store') }}"
                 method="POST"
             >
                 @csrf
@@ -220,7 +220,7 @@
                     <button type="submit" class="btn btn-success px-4" id="savePlanBtn">
                         {{ $plan->exists ? 'Update Plan' : 'Create Plan' }}
                     </button>
-                    <a href="{{ route('admin.cms.pricing.index') }}" class="btn btn-secondary">
+                    <a href="{{ route('admin.pricing.index') }}" class="btn btn-secondary">
                         Cancel
                     </a>
                 </div>
@@ -372,7 +372,7 @@
                     },
                 }).done(function(response) {
                     Toast.success(response?.message || 'Saved successfully.');
-                    const redirect = response?.data?.redirect || '{{ route('admin.cms.pricing.index') }}';
+                    const redirect = response?.data?.redirect || '{{ route('admin.pricing.index') }}';
                     window.location.href = redirect;
                 }).fail(function(xhr) {
                     const data = xhr.responseJSON || {};

@@ -80,6 +80,7 @@
                     </a>
                 </li>
 
+                {{-- CMS --}}
                 <li class="nav-item">
 
                     <a class="nav-link menu-link {{ request()->routeIs('admin.cms.pages.*') ? 'active' : '' }}"
@@ -101,21 +102,22 @@
                             </li>
 
                             <li class="nav-item">
-                                <a href="{{ route('admin.cms.pricing.index') }}"
-                                    class="nav-link {{ request()->routeIs('admin.cms.pricing.index') ? 'active' : '' }}">
-                                    <i class="ri-mail-unread-line"></i> Price Plan
-                                </a>
-                            </li>
-
-                            <li class="nav-item">
                                 <a href="{{ route('admin.cms.faq.index') }}"
                                     class="nav-link {{ request()->routeIs('admin.cms.faq.*') ? 'active' : '' }}">
                                     <i class="ri-question-line"></i> FAQ
                                 </a>
                             </li>
-
                         </ul>
                     </div>
+                </li>
+
+                {{-- Pricing plan --}}
+                <li class="nav-item">
+                    <a class="nav-link menu-link {{ request()->routeIs('admin.pricing.*') ? 'active' : '' }}"
+                        href="{{ route('admin.pricing.index') }}">
+                        <i class="ri-price-tag-3-line"></i>
+                        <span>Pricing Plan</span>
+                    </a>
                 </li>
 
                 {{-- Spotlight --}}

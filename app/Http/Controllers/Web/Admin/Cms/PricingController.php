@@ -44,7 +44,7 @@ class PricingController extends Controller
                     return '<button type="button" class="btn btn-sm ' . $btnClass . ' js-toggle-visibility" data-plan-id="' . $plan->id . '">' . $btnLabel . '</button>';
                 })
                 ->addColumn('actions', function (PricingPlan $plan): string {
-                    $editUrl = route('admin.cms.pricing.edit', $plan);
+                    $editUrl = route('admin.pricing.edit', $plan);
 
                     return '<a href="' . e($editUrl) . '" class="btn btn-sm btn-warning">Edit</a> '
                         . '<button type="button" class="btn btn-sm btn-danger js-delete-plan" data-plan-id="' . $plan->id . '">Delete</button>';
@@ -53,13 +53,13 @@ class PricingController extends Controller
                 ->toJson();
         }
 
-        return view('web.admin.cms.price_plan.index');
+        return view('web.admin.price_plan.index');
     }
 
     // Show create form
     public function create() {
         $plan = new PricingPlan();
-        return view('web.admin.cms.price_plan.form', compact('plan'));
+        return view('web.admin.price_plan.form', compact('plan'));
     }
 
     // Save new plan with groups + items
@@ -81,19 +81,19 @@ class PricingController extends Controller
                 'message' => 'Plan created successfully.',
                 'data' => [
                     'plan' => $plan,
-                    'redirect' => route('admin.cms.pricing.index'),
+                    'redirect' => route('admin.pricing.index'),
                 ],
             ]);
         }
 
-        return redirect()->route('admin.cms.pricing.index')
+        return redirect()->route('admin.pricing.index')
             ->with('success', 'Plan created!');
     }
 
     // Show edit form
     public function edit(PricingPlan $plan) {
         $plan->load('featureGroups.items');
-        return view('web.admin.cms.price_plan.form', compact('plan'));
+        return view('web.admin.price_plan.form', compact('plan'));
     }
 
     // Update existing plan
@@ -118,12 +118,12 @@ class PricingController extends Controller
                 'message' => 'Plan updated successfully.',
                 'data' => [
                     'plan' => $plan->fresh('featureGroups.items'),
-                    'redirect' => route('admin.cms.pricing.index'),
+                    'redirect' => route('admin.pricing.index'),
                 ],
             ]);
         }
 
-        return redirect()->route('admin.cms.pricing.index')
+        return redirect()->route('admin.pricing.index')
             ->with('success', 'Plan updated!');
     }
 
@@ -229,7 +229,7 @@ class PricingController extends Controller
             ]);
         }
 
-        return redirect()->route('admin.cms.pricing.index')
+        return redirect()->route('admin.pricing.index')
             ->with('success', 'Plan deleted!');
     }
 
