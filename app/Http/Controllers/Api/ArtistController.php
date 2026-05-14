@@ -20,7 +20,7 @@ class ArtistController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = User::role('artist')
+        $query = User::role('artist', 'api')
             ->with(['profile', 'artistCategory'])
             ->where('status', 'active');
 
@@ -43,7 +43,15 @@ class ArtistController extends Controller
 
         return $this->success(
             'Artists retrieved successfully.',
-            ArtistResource::collection($artists)->response()->getData(true)
+            [
+                'artists' => ArtistResource::collection($artists),
+                'pagination' => [
+                    'current_page' => $artists->currentPage(),
+                    'per_page' => $artists->perPage(),
+                    'total' => $artists->total(),
+                    'last_page' => $artists->lastPage(),
+                ]
+            ]
         );
     }
 
@@ -54,7 +62,7 @@ class ArtistController extends Controller
      */
     public function show($id): JsonResponse
     {
-        $artist = User::role('artist')
+        $artist = User::role('artist', 'api')
             ->with(['profile', 'artistCategory'])
             ->where('status', 'active')
             ->find($id);
