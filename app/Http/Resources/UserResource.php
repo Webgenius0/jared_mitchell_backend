@@ -25,6 +25,12 @@ class UserResource extends JsonResource
                     'slug' => '',
                     'avatar' => asset('admin/default/user.jpg'),
                 ],
+
+            'artist_category' => $this->artistCategory ? [
+                'id' => $this->artistCategory->id,
+                'name' => $this->artistCategory->name,
+                'slug' => $this->artistCategory->slug,
+            ] : null,
         ];
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -20,6 +21,7 @@ class User extends Authenticatable implements JWTSubject
         'password',
         'status',
         'email_verified_at',
+        'artist_category_id',
     ];
 
     protected $hidden = [
@@ -62,5 +64,10 @@ class User extends Authenticatable implements JWTSubject
     public function profile(): HasOne
     {
         return $this->hasOne(Profile::class);
+    }
+
+    public function artistCategory(): BelongsTo
+    {
+        return $this->belongsTo(ArtistCategory::class, 'artist_category_id');
     }
 }

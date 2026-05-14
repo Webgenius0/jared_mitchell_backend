@@ -32,6 +32,7 @@ class RegisterController extends Controller
             'email' => 'required|string|email|max:150',
             'password' => 'required|string|min:6|confirmed',
             'role' => 'required|in:5,6,7,8',
+            'artist_category_id' => 'required_if:role,5|exists:artist_categories,id',
         ]);
 
         if ($validator->fails()) {
@@ -86,6 +87,7 @@ class RegisterController extends Controller
                 'email' => strtolower($request->email),
                 'password' => Hash::make($request->password),
                 'status' => 'inactive',
+                'artist_category_id' => $request->role == 5 ? $request->artist_category_id : null,
             ]);
 
             $slug = Helper::generateSlug($request->name);
