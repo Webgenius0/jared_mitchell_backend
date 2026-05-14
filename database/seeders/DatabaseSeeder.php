@@ -25,6 +25,11 @@ class DatabaseSeeder extends Seeder
             BusinessSpotlightVideoSeeder::class,
             BusinessSpotlightListSeeder::class,
             BusinessHighlightsSeeder::class,
+            BusinessPicksSeeder::class,
+            BusinessLadderSeeder::class,
+            BusinessJoinSeeder::class,
+            BusinessInterviewSeeder::class,
+            WhyOsiExistsSeeder::class,
         ]);
     }
 }
