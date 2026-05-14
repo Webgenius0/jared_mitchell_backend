@@ -19,7 +19,7 @@ class AdminArtistCategoryController extends Controller
      */
     public function index()
     {
-        return view('web.admin.spotlight.artist_categories');
+        return view('web.admin.artist-category.artist_categories');
     }
 
     /**
@@ -62,8 +62,8 @@ class AdminArtistCategoryController extends Controller
             return $this->validationError($validator);
         }
 
-        $slug = $request->filled('slug') 
-            ? Str::slug($request->slug) 
+        $slug = $request->filled('slug')
+            ? Str::slug($request->slug)
             : Str::slug($request->name);
 
         $category = ArtistCategory::create([
@@ -96,8 +96,8 @@ class AdminArtistCategoryController extends Controller
             return $this->validationError($validator);
         }
 
-        $slug = $request->filled('slug') 
-            ? Str::slug($request->slug) 
+        $slug = $request->filled('slug')
+            ? Str::slug($request->slug)
             : Str::slug($request->name);
 
         $category->update([

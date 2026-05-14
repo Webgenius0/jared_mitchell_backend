@@ -151,6 +151,28 @@
                                     <i class="ri-user-star-line"></i> Artist
                                 </a>
                             </li>
+                        </ul>
+                    </div>
+                </li>
+
+
+                {{-- Manage Tags --}}
+                @php
+                    $manageTagsOpen = request()->routeIs(
+                        'admin.artist-categories.index',
+                    );
+                @endphp
+
+                <li class="nav-item">
+                    <a class="nav-link menu-link {{ $manageTagsOpen ? 'active' : '' }}" href="#sidebarManageTags"
+                        data-bs-toggle="collapse" role="button"
+                        aria-expanded="{{ $manageTagsOpen ? 'true' : 'false' }}" aria-controls="sidebarManageTags">
+                        <i class="ri-star-smile-line"></i>
+                        <span>Manage Tags</span>
+                    </a>
+
+                    <div class="collapse menu-dropdown {{ $manageTagsOpen ? 'show' : '' }}" id="sidebarManageTags">
+                        <ul class="nav nav-sm flex-column">
                             <li class="nav-item">
                                 <a href="{{ route('admin.artist-categories.index') }}"
                                     class="nav-link {{ request()->routeIs('admin.artist-categories.*') ? 'active' : '' }}">

@@ -209,10 +209,10 @@ Route::prefix('artist-spotlights')->name('admin.artist-spotlights.')->group(func
 
 /*
 |--------------------------------------------------------------------------
-| Artist Categories (CMS)
+| Artist Categories
 |--------------------------------------------------------------------------
 */
-Route::prefix('admin/artist-categories')->name('admin.artist-categories.')->group(function () {
+Route::prefix('artist-categories')->name('admin.artist-categories.')->group(function () {
     Route::get('/', [AdminArtistCategoryController::class, 'index'])->name('index');
     Route::get('/data', [AdminArtistCategoryController::class, 'getData'])->name('data');
     Route::post('/', [AdminArtistCategoryController::class, 'store'])->name('store');
