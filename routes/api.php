@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Api\ArtistCategoryController;
+use App\Http\Controllers\Api\ArtistSpotlightController;
 use App\Http\Controllers\Api\Auth\ForgotPasswordController;
 use App\Http\Controllers\Api\Auth\LoginController;
 use App\Http\Controllers\Api\Auth\RegisterController;
@@ -13,9 +15,7 @@ use App\Http\Controllers\Api\Chat\TypingController;
 use App\Http\Controllers\Api\Cms\CmsAboutController;
 use App\Http\Controllers\Api\Cms\CmsArtistSpotlightController;
 use App\Http\Controllers\Api\Cms\CmsBusinessSpotlightController;
-use App\Http\Controllers\Api\Cms\CmsContentController;
 use App\Http\Controllers\Api\Cms\CmsHomePageController;
-use App\Http\Controllers\Api\Cms\CmsPageController;
 use App\Http\Controllers\Api\Cms\CmsPricingController;
 use App\Http\Controllers\Api\Cms\CmsServiceController;
 use App\Http\Controllers\Api\Cms\CmsSpotlightLadderController;
@@ -79,9 +79,9 @@ Route::group(['prefix' => 'v1'], function ($router) {
     */
     Route::prefix('business-spotlight')->group(function () {
         Route::get('/', [BusinessSpotlightController::class, 'index']);
-        Route::post('/',       [BusinessSpotlightController::class, 'store']); // Submit complete form
-        Route::post('/draft',  [BusinessSpotlightController::class, 'saveDraft']); // Save draft (partial)
-        Route::get('/draft',   [BusinessSpotlightController::class, 'getDraft']);  // Retrieve draft by email
+        Route::post('/', [BusinessSpotlightController::class, 'store']); // Submit complete form
+        Route::post('/draft', [BusinessSpotlightController::class, 'saveDraft']); // Save draft (partial)
+        Route::get('/draft', [BusinessSpotlightController::class, 'getDraft']);  // Retrieve draft by email
         Route::get('/{id}', [BusinessSpotlightController::class, 'show']);  // Retrieve draft by email
     });
 
@@ -91,12 +91,13 @@ Route::group(['prefix' => 'v1'], function ($router) {
     |--------------------------------------------------------------------------
     | Includes categories listing and spotlight submission/drafts.
     */
-    Route::get('/artist-categories', [\App\Http\Controllers\Api\ArtistCategoryController::class, 'index']);
+    Route::get('/artist-categories', [ArtistCategoryController::class, 'index']);
+
     Route::prefix('artist-spotlight')->group(function () {
-        Route::get('/',       [\App\Http\Controllers\Api\ArtistSpotlightController::class, 'index']);     // Submit complete form
-        Route::post('/',       [\App\Http\Controllers\Api\ArtistSpotlightController::class, 'store']);     // Submit complete form
-        Route::post('/draft',  [\App\Http\Controllers\Api\ArtistSpotlightController::class, 'saveDraft']); // Save draft (partial)
-        Route::get('/draft',   [\App\Http\Controllers\Api\ArtistSpotlightController::class, 'getDraft']);  // Retrieve draft by email
+        Route::get('/', [ArtistSpotlightController::class, 'index']);     // Submit complete form
+        Route::post('/', [ArtistSpotlightController::class, 'store']);     // Submit complete form
+        Route::post('/draft', [ArtistSpotlightController::class, 'saveDraft']); // Save draft (partial)
+        Route::get('/draft', [ArtistSpotlightController::class, 'getDraft']);  // Retrieve draft by email
     });
 
     /*

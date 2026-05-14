@@ -6,16 +6,18 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\ArtistCategoryResource;
 use App\Models\ArtistCategory;
 use App\Traits\ApiResponse;
-use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class ArtistCategoryController extends Controller
 {
     use ApiResponse;
 
     /**
-     * Display a listing of active artist categories.
+     * GET /api/v1/artist-categories
+     *
+     * Returns all active artist categories.
      */
-    public function index()
+    public function index(): JsonResponse
     {
         $categories = ArtistCategory::where('is_active', true)
             ->orderBy('sort_order')
