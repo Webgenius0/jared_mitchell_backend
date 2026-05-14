@@ -20,7 +20,11 @@ class DatabaseSeeder extends Seeder
             SettingSeeder::class,
             ArtistCategorySeeder::class,
             ArtistSeeder::class,
-            SpotlightLadderSeeder::class
+            SpotlightLadderSeeder::class,
+            BusinessSpotlightSeeder::class,
+            BusinessSpotlightVideoSeeder::class,
+            BusinessSpotlightListSeeder::class,
+            BusinessHighlightsSeeder::class,
         ]);
     }
 }
