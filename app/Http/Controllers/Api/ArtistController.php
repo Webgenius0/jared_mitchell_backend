@@ -30,7 +30,7 @@ class ArtistController extends Controller
             $search = $request->search;
             $query->whereHas('profile', function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('username', 'like', "%{$search}%");
+                    ->orWhere('username', 'like', "%{$search}%");
             });
         }
 

@@ -10,6 +10,8 @@ class ArtistResource extends JsonResource
     /**
      * Transform the resource into an array.
      */
+    public function toArray(Request $request): array
+    {
         $user = auth('api')->user();
 
         return [
