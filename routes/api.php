@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\Auth\ForgotPasswordController;
 use App\Http\Controllers\Api\Auth\LoginController;
 use App\Http\Controllers\Api\Auth\RegisterController;
 use App\Http\Controllers\Api\Auth\UserProfileController;
+use App\Http\Controllers\Api\ArtistController;
 use App\Http\Controllers\Api\Auth\V2\ForgotPasswordController as V2ForgotPasswordController;
 use App\Http\Controllers\Api\Auth\V2\RegisterController as V2RegisterController;
 use App\Http\Controllers\Api\BusinessSpotlightController;
@@ -109,6 +110,16 @@ Route::group(['prefix' => 'v1'], function ($router) {
         Route::get('/',            [\App\Http\Controllers\Api\EventController::class, 'index']);    // List all
         Route::get('/{slug}',      [\App\Http\Controllers\Api\EventController::class, 'show']);     // Detail
         Route::post('/register',   [\App\Http\Controllers\Api\EventController::class, 'register']); // Register
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Artists — Public listing and profile
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('artists')->group(function () {
+        Route::get('/', [ArtistController::class, 'index']);    // List all artists
+        Route::get('/{id}', [ArtistController::class, 'show']); // Artist detail
     });
 
     /*
