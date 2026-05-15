@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 class Event extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, HasFactory;
 
     protected $fillable = [
         'title', 'slug', 'description', 'starts_at', 'ends_at', 'timezone',
@@ -45,7 +47,7 @@ class Event extends Model
         parent::boot();
         static::creating(function ($event) {
             if (!$event->slug) {
-                $event->slug = \Illuminate\Support\Str::slug($event->title);
+                $event->slug = Str::slug($event->title);
             }
         });
     }
