@@ -24,6 +24,10 @@ class DatabaseSeeder extends Seeder
             BusinessSpotlightPageSeeder::class,
             ArtistSpotlightPageSeeder::class,
             EventSeeder::class,
+            FAQSeeder::class,
+            PricingSeeder::class,
+            BusinessSpotlightSeeder::class,
+            ArtistSpotlightSeeder::class,
         ]);
     }
 }
