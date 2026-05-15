@@ -28,6 +28,7 @@ class DatabaseSeeder extends Seeder
             PricingSeeder::class,
             BusinessSpotlightSeeder::class,
             ArtistSpotlightSeeder::class,
+            ServicePageSeeder::class,
         ]);
     }
 }
