@@ -114,6 +114,9 @@ Route::group(['prefix' => 'v1'], function ($router) {
         Route::post('/register', [EventController::class, 'register'])->middleware('auth:api'); // Register
     });
 
+    // Contact Us
+    Route::post('/contact', [\App\Http\Controllers\Api\ContactController::class, 'store']);
+
     /*
     |--------------------------------------------------------------------------
     | Artists — Public listing and profile

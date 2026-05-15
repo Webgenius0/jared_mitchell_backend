@@ -14,6 +14,7 @@ use App\Http\Controllers\Web\Admin\Cms\ServiceCmsController;
 use App\Http\Controllers\Web\Admin\Cms\SpotlightLadderCmsController;
 use App\Http\Controllers\Web\Admin\Contact\AdminChattingController;
 use App\Http\Controllers\Web\Admin\Contact\AdminMailingController;
+use App\Http\Controllers\Web\Admin\ContactController as WebContactController;
 use App\Http\Controllers\Web\Admin\Dashboard\AdminDashboardController;
 use App\Http\Controllers\Web\Admin\Event\EventController;
 use Illuminate\Support\Facades\Route;
@@ -234,4 +235,15 @@ Route::prefix('events')->name('admin.events.')->group(function () {
     Route::get('/{event}/edit', [EventController::class, 'edit'])->name('edit');
     Route::put('/{event}', [EventController::class, 'update'])->name('update');
     Route::delete('/{event}', [EventController::class, 'destroy'])->name('destroy');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Contact Messages
+|--------------------------------------------------------------------------
+*/
+Route::prefix('contacts')->name('admin.contacts.')->group(function () {
+    Route::get('/', [WebContactController::class, 'index'])->name('index');
+    Route::patch('/{contact}/read', [WebContactController::class, 'markAsRead'])->name('read');
+    Route::delete('/{contact}', [WebContactController::class, 'destroy'])->name('destroy');
 });
