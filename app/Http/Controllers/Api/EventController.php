@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\AttendeeResource;
 use App\Http\Resources\EventResource;
 use App\Models\Event;
 use App\Models\EventRegistration;
 use App\Models\EventTicketTier;
 use App\Traits\ApiResponse;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -16,6 +18,33 @@ use Illuminate\Support\Facades\Validator;
 class EventController extends Controller
 {
     use ApiResponse;
+
+    /**
+     * List attendees for a specific event.
+     */
+    public function attendees($slug)
+    {
+        $event = Event::where('slug', $slug)->firstOrFail();
+
+        $attendees = EventRegistration::where('event_id', $event->id)
+            ->where('status', 'confirmed')
+            ->with('user.profile')
+            ->latest()
+            ->paginate(20);
+
+        return $this->success(
+            'Attendees retrieved successfully.',
+            [
+                'attendees' => AttendeeResource::collection($attendees),
+                'pagination' => [
+                    'current_page' => $attendees->currentPage(),
+                    'per_page' => $attendees->perPage(),
+                    'total' => $attendees->total(),
+                    'last_page' => $attendees->lastPage(),
+                ]
+            ]
+        );
+    }
 
     /**
      * List events with grouping/filtering.

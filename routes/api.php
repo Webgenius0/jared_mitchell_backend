@@ -110,6 +110,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
     Route::prefix('events')->group(function () {
         Route::get('/', [EventController::class, 'index']); // List all
         Route::get('/{slug}', [EventController::class, 'show']); // Detail
+        Route::get('/{slug}/attendees', [EventController::class, 'attendees']); // Attendees list
         Route::post('/register', [EventController::class, 'register']); // Register
     });
 
