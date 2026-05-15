@@ -97,6 +97,7 @@ class ArtistSpotlightCmsController extends Controller
 
         return $this->success('Artist spotlight video updated successfully.', ['cms' => $cms]);
     }
+    
     /**
      * Update Artist Spotlight List section
      */
