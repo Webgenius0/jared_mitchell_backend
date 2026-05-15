@@ -35,6 +35,16 @@ class EventController extends Controller
             $query->where('is_featured', true);
         }
 
+        // Upcoming / Past filter
+        if ($request->has('time')) {
+            $now = now();
+            if ($request->time === 'upcoming') {
+                $query->where('ends_at', '>=', $now);
+            } elseif ($request->time === 'past') {
+                $query->where('ends_at', '<', $now);
+            }
+        }
+
         $events = $query->latest('starts_at')->paginate($request->input('per_page', 12));
 
         return $this->success(
