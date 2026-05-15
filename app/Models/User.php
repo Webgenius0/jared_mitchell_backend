@@ -110,4 +110,58 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasMany(ArtistShare::class, 'artist_id');
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Event Interactions
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Events liked by this user.
+     */
+    public function likedEvents(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Event::class, 'event_likes', 'user_id', 'event_id')->withTimestamps();
+    }
+
+    /**
+     * Events bookmarked by this user.
+     */
+    public function bookmarkedEvents(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Event::class, 'event_bookmarks', 'user_id', 'event_id')->withTimestamps();
+    }
+
+    /**
+     * Business spotlights liked by this user.
+     */
+    public function likedBusinessSpotlights(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(BusinessSpotlight::class, 'business_spotlight_likes', 'user_id', 'business_spotlight_id')->withTimestamps();
+    }
+
+    /**
+     * Business spotlights bookmarked by this user.
+     */
+    public function bookmarkedBusinessSpotlights(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(BusinessSpotlight::class, 'business_spotlight_bookmarks', 'user_id', 'business_spotlight_id')->withTimestamps();
+    }
+
+    /**
+     * Artist spotlights liked by this user.
+     */
+    public function likedArtistSpotlights(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(ArtistSpotlight::class, 'artist_spotlight_likes', 'user_id', 'artist_spotlight_id')->withTimestamps();
+    }
+
+    /**
+     * Artist spotlights bookmarked by this user.
+     */
+    public function bookmarkedArtistSpotlights(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(ArtistSpotlight::class, 'artist_spotlight_bookmarks', 'user_id', 'artist_spotlight_id')->withTimestamps();
+    }
 }

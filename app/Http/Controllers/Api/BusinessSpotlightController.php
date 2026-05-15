@@ -21,6 +21,7 @@ class BusinessSpotlightController extends Controller
     public function index()
     {
         $spotlights = BusinessSpotlight::where('status', '!=', 'draft')
+            ->withCount(['likers', 'bookmarkers', 'shares'])
             ->orderBy('submitted_at', 'desc')
             ->paginate(15);
 
@@ -29,7 +30,7 @@ class BusinessSpotlightController extends Controller
 
     public function show($id)
     {
-        $spotlight = BusinessSpotlight::with('category')
+        $spotlight = BusinessSpotlight::withCount(['likers', 'bookmarkers', 'shares'])
             ->where('status', '!=', 'draft')
             ->findOrFail($id);
 
@@ -147,6 +148,68 @@ class BusinessSpotlightController extends Controller
             'Draft retrieved successfully.',
             new BusinessSpotlightResource($spotlight)
         );
+    }
+
+    /**
+     * POST /api/business-spotlight/{id}/like
+     */
+    public function toggleLike($id): \Illuminate\Http\JsonResponse
+    {
+        $user = auth()->user();
+        $spotlight = BusinessSpotlight::findOrFail($id);
+
+        $exists = $user->likedBusinessSpotlights()->where('business_spotlight_id', $id)->exists();
+
+        if ($exists) {
+            $user->likedBusinessSpotlights()->detach($id);
+            $message = 'Business spotlight unliked successfully.';
+            $liked = false;
+        } else {
+            $user->likedBusinessSpotlights()->attach($id);
+            $message = 'Business spotlight liked successfully.';
+            $liked = true;
+        }
+
+        return $this->success($message, ['is_liked' => $liked]);
+    }
+
+    /**
+     * POST /api/business-spotlight/{id}/bookmark
+     */
+    public function toggleBookmark($id): \Illuminate\Http\JsonResponse
+    {
+        $user = auth()->user();
+        $spotlight = BusinessSpotlight::findOrFail($id);
+
+        $exists = $user->bookmarkedBusinessSpotlights()->where('business_spotlight_id', $id)->exists();
+
+        if ($exists) {
+            $user->bookmarkedBusinessSpotlights()->detach($id);
+            $message = 'Business spotlight removed from bookmarks.';
+            $bookmarked = false;
+        } else {
+            $user->bookmarkedBusinessSpotlights()->attach($id);
+            $message = 'Business spotlight bookmarked successfully.';
+            $bookmarked = true;
+        }
+
+        return $this->success($message, ['is_bookmarked' => $bookmarked]);
+    }
+
+    /**
+     * POST /api/business-spotlight/{id}/share
+     */
+    public function recordShare(Request $request, $id): \Illuminate\Http\JsonResponse
+    {
+        $user = auth()->user();
+        $spotlight = BusinessSpotlight::findOrFail($id);
+
+        $spotlight->shares()->create([
+            'user_id' => $user?->id,
+            'platform' => $request->platform,
+        ]);
+
+        return $this->success('Business spotlight share recorded successfully.');
     }
 
     /**

@@ -42,6 +42,30 @@ class Event extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    /**
+     * Users who liked this event.
+     */
+    public function likers()
+    {
+        return $this->belongsToMany(User::class, 'event_likes', 'event_id', 'user_id')->withTimestamps();
+    }
+
+    /**
+     * Users who bookmarked this event.
+     */
+    public function bookmarkers()
+    {
+        return $this->belongsToMany(User::class, 'event_bookmarks', 'event_id', 'user_id')->withTimestamps();
+    }
+
+    /**
+     * Shares for this event.
+     */
+    public function shares()
+    {
+        return $this->hasMany(EventShare::class);
+    }
+
     protected static function boot()
     {
         parent::boot();

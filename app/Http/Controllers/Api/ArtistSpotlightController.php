@@ -21,6 +21,7 @@ class ArtistSpotlightController extends Controller
     public function index()
     {
         $spotlights = ArtistSpotlight::where('status', '!=', 'draft')
+            ->withCount(['likers', 'bookmarkers', 'shares'])
             ->orderBy('submitted_at', 'desc')
             ->paginate(15);
 
@@ -29,7 +30,8 @@ class ArtistSpotlightController extends Controller
 
     public function show($id)
     {
-        $spotlight = ArtistSpotlight::where('status', '!=', 'draft')
+        $spotlight = ArtistSpotlight::withCount(['likers', 'bookmarkers', 'shares'])
+            ->where('status', '!=', 'draft')
             ->findOrFail($id);
 
         return new ArtistSpotlightResource($spotlight);
@@ -147,6 +149,68 @@ class ArtistSpotlightController extends Controller
             'Draft retrieved successfully.',
             new ArtistSpotlightResource($spotlight)
         );
+    }
+
+    /**
+     * POST /api/artist-spotlight/{id}/like
+     */
+    public function toggleLike($id): \Illuminate\Http\JsonResponse
+    {
+        $user = auth()->user();
+        $spotlight = ArtistSpotlight::findOrFail($id);
+
+        $exists = $user->likedArtistSpotlights()->where('artist_spotlight_id', $id)->exists();
+
+        if ($exists) {
+            $user->likedArtistSpotlights()->detach($id);
+            $message = 'Artist spotlight unliked successfully.';
+            $liked = false;
+        } else {
+            $user->likedArtistSpotlights()->attach($id);
+            $message = 'Artist spotlight liked successfully.';
+            $liked = true;
+        }
+
+        return $this->success($message, ['is_liked' => $liked]);
+    }
+
+    /**
+     * POST /api/artist-spotlight/{id}/bookmark
+     */
+    public function toggleBookmark($id): \Illuminate\Http\JsonResponse
+    {
+        $user = auth()->user();
+        $spotlight = ArtistSpotlight::findOrFail($id);
+
+        $exists = $user->bookmarkedArtistSpotlights()->where('artist_spotlight_id', $id)->exists();
+
+        if ($exists) {
+            $user->bookmarkedArtistSpotlights()->detach($id);
+            $message = 'Artist spotlight removed from bookmarks.';
+            $bookmarked = false;
+        } else {
+            $user->bookmarkedArtistSpotlights()->attach($id);
+            $message = 'Artist spotlight bookmarked successfully.';
+            $bookmarked = true;
+        }
+
+        return $this->success($message, ['is_bookmarked' => $bookmarked]);
+    }
+
+    /**
+     * POST /api/artist-spotlight/{id}/share
+     */
+    public function recordShare(Request $request, $id): \Illuminate\Http\JsonResponse
+    {
+        $user = auth()->user();
+        $spotlight = ArtistSpotlight::findOrFail($id);
+
+        $spotlight->shares()->create([
+            'user_id' => $user?->id,
+            'platform' => $request->platform,
+        ]);
+
+        return $this->success('Artist spotlight share recorded successfully.');
     }
 
     /**

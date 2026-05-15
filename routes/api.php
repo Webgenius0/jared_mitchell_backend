@@ -145,6 +145,27 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::post('/{id}/like', [ArtistController::class, 'toggleLike']);
             Route::post('/{id}/bookmark', [ArtistController::class, 'toggleBookmark']);
         });
+
+        // Event interactions
+        Route::prefix('events')->group(function () {
+            Route::post('/{id}/like', [EventController::class, 'toggleLike']);
+            Route::post('/{id}/bookmark', [EventController::class, 'toggleBookmark']);
+            Route::post('/{id}/share', [EventController::class, 'recordShare']);
+        });
+
+        // Business Spotlight interactions
+        Route::prefix('business-spotlight')->group(function () {
+            Route::post('/{id}/like', [BusinessSpotlightController::class, 'toggleLike']);
+            Route::post('/{id}/bookmark', [BusinessSpotlightController::class, 'toggleBookmark']);
+            Route::post('/{id}/share', [BusinessSpotlightController::class, 'recordShare']);
+        });
+
+        // Artist Spotlight interactions
+        Route::prefix('artist-spotlight')->group(function () {
+            Route::post('/{id}/like', [ArtistSpotlightController::class, 'toggleLike']);
+            Route::post('/{id}/bookmark', [ArtistSpotlightController::class, 'toggleBookmark']);
+            Route::post('/{id}/share', [ArtistSpotlightController::class, 'recordShare']);
+        });
     });
 
     /*

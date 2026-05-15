@@ -10,6 +10,7 @@ use App\Models\EventRegistration;
 use App\Models\EventTicketTier;
 use App\Traits\ApiResponse;
 use Exception;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -54,7 +55,8 @@ class EventController extends Controller
         $query = Event::where('status', 'published')
             ->with(['ticketTiers' => function($q) {
                 $q->where('is_active', true)->orderBy('sort_order');
-            }]);
+            }])
+            ->withCount(['likers', 'bookmarkers', 'shares']);
 
         if ($request->has('type') && $request->type !== 'all') {
             $query->where('event_type', $request->type);
@@ -100,6 +102,7 @@ class EventController extends Controller
             ->with(['ticketTiers' => function($q) {
                 $q->where('is_active', true)->orderBy('sort_order');
             }])
+            ->withCount(['likers', 'bookmarkers', 'shares'])
             ->first();
 
         if (!$event) {
@@ -198,5 +201,67 @@ class EventController extends Controller
             Log::error('Event registration failed: ' . $e->getMessage());
             return $this->error(null, 'Failed to process registration: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * POST /api/events/{id}/like
+     */
+    public function toggleLike($id): JsonResponse
+    {
+        $user = auth()->user();
+        $event = Event::findOrFail($id);
+
+        $exists = $user->likedEvents()->where('event_id', $id)->exists();
+
+        if ($exists) {
+            $user->likedEvents()->detach($id);
+            $message = 'Event unliked successfully.';
+            $liked = false;
+        } else {
+            $user->likedEvents()->attach($id);
+            $message = 'Event liked successfully.';
+            $liked = true;
+        }
+
+        return $this->success($message, ['is_liked' => $liked]);
+    }
+
+    /**
+     * POST /api/events/{id}/bookmark
+     */
+    public function toggleBookmark($id): \Illuminate\Http\JsonResponse
+    {
+        $user = auth()->user();
+        $event = Event::findOrFail($id);
+
+        $exists = $user->bookmarkedEvents()->where('event_id', $id)->exists();
+
+        if ($exists) {
+            $user->bookmarkedEvents()->detach($id);
+            $message = 'Event removed from bookmarks.';
+            $bookmarked = false;
+        } else {
+            $user->bookmarkedEvents()->attach($id);
+            $message = 'Event bookmarked successfully.';
+            $bookmarked = true;
+        }
+
+        return $this->success($message, ['is_bookmarked' => $bookmarked]);
+    }
+
+    /**
+     * POST /api/events/{id}/share
+     */
+    public function recordShare(Request $request, $id): \Illuminate\Http\JsonResponse
+    {
+        $user = auth()->user();
+        $event = Event::findOrFail($id);
+
+        $event->shares()->create([
+            'user_id' => $user?->id,
+            'platform' => $request->platform,
+        ]);
+
+        return $this->success('Event share recorded successfully.');
     }
 }

@@ -78,4 +78,28 @@ class BusinessSpotlight extends Model
     {
         return $this->belongsTo(\App\Models\User::class, 'reviewed_by');
     }
+
+    /**
+     * Users who liked this business spotlight.
+     */
+    public function likers()
+    {
+        return $this->belongsToMany(User::class, 'business_spotlight_likes', 'business_spotlight_id', 'user_id')->withTimestamps();
+    }
+
+    /**
+     * Users who bookmarked this business spotlight.
+     */
+    public function bookmarkers()
+    {
+        return $this->belongsToMany(User::class, 'business_spotlight_bookmarks', 'business_spotlight_id', 'user_id')->withTimestamps();
+    }
+
+    /**
+     * Shares for this business spotlight.
+     */
+    public function shares()
+    {
+        return $this->hasMany(BusinessSpotlightShare::class);
+    }
 }

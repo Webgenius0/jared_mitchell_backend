@@ -34,6 +34,12 @@ class EventResource extends JsonResource
             'tickets_available' => (bool) $this->tickets_available,
             'status' => $this->status,
             'ticket_tiers' => $this->whenLoaded('ticketTiers'),
+            // Interaction counts
+            'likes_count' => (int) ($this->likers_count ?? 0),
+            'bookmarks_count' => (int) ($this->bookmarkers_count ?? 0),
+            'shares_count' => (int) ($this->shares_count ?? 0),
+            'is_liked' => auth('api')->check() ? $this->likers()->where('user_id', auth('api')->id())->exists() : false,
+            'is_bookmarked' => auth('api')->check() ? $this->bookmarkers()->where('user_id', auth('api')->id())->exists() : false,
             'created_at' => $this->created_at?->toIso8601String(),
         ];
     }

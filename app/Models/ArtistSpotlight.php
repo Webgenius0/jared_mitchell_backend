@@ -85,4 +85,28 @@ class ArtistSpotlight extends Model
     {
         return $this->belongsTo(User::class, 'reviewed_by');
     }
+
+    /**
+     * Users who liked this artist spotlight.
+     */
+    public function likers()
+    {
+        return $this->belongsToMany(User::class, 'artist_spotlight_likes', 'artist_spotlight_id', 'user_id')->withTimestamps();
+    }
+
+    /**
+     * Users who bookmarked this artist spotlight.
+     */
+    public function bookmarkers()
+    {
+        return $this->belongsToMany(User::class, 'artist_spotlight_bookmarks', 'artist_spotlight_id', 'user_id')->withTimestamps();
+    }
+
+    /**
+     * Shares for this artist spotlight.
+     */
+    public function shares()
+    {
+        return $this->hasMany(ArtistSpotlightShare::class);
+    }
 }
