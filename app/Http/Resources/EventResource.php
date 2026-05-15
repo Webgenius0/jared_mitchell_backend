@@ -1,0 +1,40 @@
+<?php
+
+namespace App\Http\Resources;
+
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class EventResource extends JsonResource
+{
+    /**
+     * Transform the resource into an array.
+     */
+    public function toArray(Request $request): array
+    {
+        return [
+            'id' => $this->id,
+            'title' => $this->title,
+            'slug' => $this->slug,
+            'description' => $this->description,
+            'starts_at' => $this->starts_at?->toIso8601String(),
+            'ends_at' => $this->ends_at?->toIso8601String(),
+            'timezone' => $this->timezone,
+            'venue_name' => $this->venue_name,
+            'address' => $this->address,
+            'city' => $this->city,
+            'state' => $this->state,
+            'hosted_by' => $this->hosted_by,
+            'cover_image_url' => $this->cover_image_path ? asset('storage/' . $this->cover_image_path) : null,
+            'promo_video_url' => $this->promo_video_path ? asset('storage/' . $this->promo_video_path) : null,
+            'event_type' => $this->event_type,
+            'is_featured' => (bool) $this->is_featured,
+            'like_count' => (int) $this->like_count,
+            'ticket_url' => $this->ticket_url,
+            'tickets_available' => (bool) $this->tickets_available,
+            'status' => $this->status,
+            'ticket_tiers' => $this->whenLoaded('ticketTiers'),
+            'created_at' => $this->created_at?->toIso8601String(),
+        ];
+    }
+}

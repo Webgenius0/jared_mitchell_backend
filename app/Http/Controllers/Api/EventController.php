@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\EventResource;
 use App\Models\Event;
 use App\Models\EventRegistration;
 use App\Models\EventTicketTier;
+use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -13,6 +15,8 @@ use Illuminate\Support\Facades\Validator;
 
 class EventController extends Controller
 {
+    use ApiResponse;
+
     /**
      * List events with grouping/filtering.
      */
@@ -31,12 +35,20 @@ class EventController extends Controller
             $query->where('is_featured', true);
         }
 
-        $events = $query->latest('starts_at')->paginate(12);
+        $events = $query->latest('starts_at')->paginate($request->input('per_page', 12));
 
-        return response()->json([
-            'success' => true,
-            'data' => $events,
-        ]);
+        return $this->success(
+            'Events retrieved successfully.',
+            [
+                'events' => EventResource::collection($events),
+                'pagination' => [
+                    'current_page' => $events->currentPage(),
+                    'per_page' => $events->perPage(),
+                    'total' => $events->total(),
+                    'last_page' => $events->lastPage(),
+                ]
+            ]
+        );
     }
 
     /**
@@ -49,12 +61,16 @@ class EventController extends Controller
             ->with(['ticketTiers' => function($q) {
                 $q->where('is_active', true)->orderBy('sort_order');
             }])
-            ->firstOrFail();
+            ->first();
 
-        return response()->json([
-            'success' => true,
-            'data' => $event,
-        ]);
+        if (!$event) {
+            return $this->error('Event not found.', null, 404);
+        }
+
+        return $this->success(
+            'Event details retrieved successfully.',
+            new EventResource($event)
+        );
     }
 
     /**
@@ -73,25 +89,27 @@ class EventController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'errors' => $validator->errors()
-            ], 422);
+            return $this->validationError($validator->errors());
         }
 
-        $event = Event::findOrFail($request->event_id);
+        $event = Event::find($request->event_id);
+        if (!$event) {
+            return $this->error('Event not found.', null, 404);
+        }
+
         $tier = EventTicketTier::where('id', $request->ticket_tier_id)
             ->where('event_id', $event->id)
-            ->firstOrFail();
+            ->first();
+
+        if (!$tier) {
+            return $this->error('Ticket tier not found.', null, 404);
+        }
 
         // Check availability
         if ($tier->quantity_available !== null) {
             $remaining = $tier->quantity_available - $tier->quantity_sold;
             if ($remaining < $request->quantity) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Not enough tickets available in this tier.'
-                ], 400);
+                return $this->error(null, 'Not enough tickets available in this tier.', 400);
             }
         }
 
@@ -100,7 +118,7 @@ class EventController extends Controller
                 $unitPrice = $tier->price;
                 $quantity = $request->quantity;
                 $subtotal = $unitPrice * $quantity;
-                
+
                 // 5% Service Fee as requested/shown in screenshot
                 $serviceFeePercent = 0.05;
                 $serviceFee = $subtotal * $serviceFeePercent;
@@ -113,37 +131,33 @@ class EventController extends Controller
                     'last_name' => $request->last_name,
                     'email' => $request->email,
                     'phone_number' => $request->phone_number,
-                    'user_id' => null, // If logged in
+                    'user_id' => auth('api')->id(),
                     'quantity' => $quantity,
                     'unit_price' => $unitPrice,
                     'service_fee' => $serviceFee,
                     'subtotal' => $subtotal,
                     'total' => $total,
                     'currency' => 'USD',
-                    'payment_status' => 'pending', // Would move to paid after payment integration
-                    'status' => 'confirmed',     // Automatically confirmed for now
+                    'payment_status' => 'pending',
+                    'status' => 'confirmed',
                     'confirmed_at' => now(),
                 ]);
 
                 // Update quantity sold
                 $tier->increment('quantity_sold', $quantity);
 
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Registration successful.',
-                    'data' => [
+                return $this->success(
+                    'Registration successful.',
+                    [
                         'booking_reference' => $registration->booking_reference,
                         'registration' => $registration->load('event', 'ticketTier'),
-                    ]
-                ], 201);
+                    ],
+                    201
+                );
             });
-        } catch (\Exception $e) {
-
-        Log::error('Event registration failed: ' . $e->getMessage() . $e->getTraceAsString(). ' -- Payload: ' . json_encode($request->all()));
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to process registration: ' . $e->getMessage()
-            ], 500);
+        } catch (Exception $e) {
+            Log::error('Event registration failed: ' . $e->getMessage());
+            return $this->error(null, 'Failed to process registration: ' . $e->getMessage());
         }
     }
 }

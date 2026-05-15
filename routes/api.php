@@ -1,12 +1,12 @@
 <?php
 
 use App\Http\Controllers\Api\ArtistCategoryController;
+use App\Http\Controllers\Api\ArtistController;
 use App\Http\Controllers\Api\ArtistSpotlightController;
 use App\Http\Controllers\Api\Auth\ForgotPasswordController;
 use App\Http\Controllers\Api\Auth\LoginController;
 use App\Http\Controllers\Api\Auth\RegisterController;
 use App\Http\Controllers\Api\Auth\UserProfileController;
-use App\Http\Controllers\Api\ArtistController;
 use App\Http\Controllers\Api\Auth\V2\ForgotPasswordController as V2ForgotPasswordController;
 use App\Http\Controllers\Api\Auth\V2\RegisterController as V2RegisterController;
 use App\Http\Controllers\Api\BusinessSpotlightController;
@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\Cms\CmsPricingController;
 use App\Http\Controllers\Api\Cms\CmsServiceController;
 use App\Http\Controllers\Api\Cms\CmsSpotlightLadderController;
 use App\Http\Controllers\Api\Cms\FAQController as ApiFAQController;
+use App\Http\Controllers\Api\EventController;
 use Illuminate\Support\Facades\Route;
 
 // health check
@@ -107,9 +108,9 @@ Route::group(['prefix' => 'v1'], function ($router) {
     |--------------------------------------------------------------------------
     */
     Route::prefix('events')->group(function () {
-        Route::get('/',            [\App\Http\Controllers\Api\EventController::class, 'index']);    // List all
-        Route::get('/{slug}',      [\App\Http\Controllers\Api\EventController::class, 'show']);     // Detail
-        Route::post('/register',   [\App\Http\Controllers\Api\EventController::class, 'register']); // Register
+        Route::get('/', [EventController::class, 'index']); // List all
+        Route::get('/{slug}', [EventController::class, 'show']); // Detail
+        Route::post('/register', [EventController::class, 'register']); // Register
     });
 
     /*
