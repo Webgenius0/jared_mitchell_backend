@@ -30,6 +30,7 @@ class DatabaseSeeder extends Seeder
             ArtistSpotlightSeeder::class,
             ServicePageSeeder::class,
             AboutPageSeeder::class,
+            HomePageSeeder::class,
         ]);
     }
 }
