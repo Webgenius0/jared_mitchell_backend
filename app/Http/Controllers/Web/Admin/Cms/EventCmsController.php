@@ -145,4 +145,46 @@ class EventCmsController extends Controller
 
         return $this->success('Host section updated successfully.', ['cms' => $cms]);
     }
+
+    /**
+     * Update Vendor With OSI section
+     */
+    public function updateVendor(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:500'],
+            'sub_title' => ['nullable', 'string', 'max:1000'],
+            'pricing' => ['nullable', 'array'],
+            'benefits' => ['nullable', 'array'],
+            'member_perks_top' => ['nullable', 'array'],
+            'member_perks_bottom' => ['nullable', 'array'],
+            'what_vendors_provide' => ['nullable', 'array'],
+            'why_vendors_love' => ['nullable', 'array'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::updateOrCreate(
+            [
+                'page' => CmsPage::EVENTS,
+                'section' => CmsSection::EVENTS_PAGE_VENDOR,
+            ],
+            [
+                'title' => $request->title,
+                'sub_title' => $request->sub_title,
+                'metadata' => [
+                    'pricing' => $request->pricing ?? [],
+                    'benefits' => $request->benefits ?? [],
+                    'member_perks_top' => $request->member_perks_top ?? [],
+                    'member_perks_bottom' => $request->member_perks_bottom ?? [],
+                    'what_vendors_provide' => $request->what_vendors_provide ?? [],
+                    'why_vendors_love' => $request->why_vendors_love ?? [],
+                ]
+            ]
+        );
+
+        return $this->success('Vendor section updated successfully.', ['cms' => $cms]);
+    }
 }
