@@ -167,6 +167,11 @@ Route::prefix('cms/shop')->name('admin.cms.shop.')->group(function () {
 Route::prefix('cms/sponsorship')->name('admin.cms.sponsorship.')->group(function () {
     Route::get('/', [SponsorshipCmsController::class, 'index'])->name('index');
     Route::post('/hero', [SponsorshipCmsController::class, 'updateHero'])->name('update.hero');
+    Route::post('/video', [SponsorshipCmsController::class, 'updateVideo'])->name('update.video');
+    Route::post('/why', [SponsorshipCmsController::class, 'updateWhy'])->name('update.why');
+    Route::post('/steps', [SponsorshipCmsController::class, 'updateSteps'])->name('update.steps');
+    Route::post('/levels-header', [SponsorshipCmsController::class, 'updateLevelsHeader'])->name('update.levels_header');
+    Route::post('/footer', [SponsorshipCmsController::class, 'updateFooter'])->name('update.footer');
 });
 
 

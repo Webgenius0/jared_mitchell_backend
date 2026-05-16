@@ -83,4 +83,9 @@ enum CmsSection: string
 
     // Sponsorship Page
     case SPONSORSHIP_PAGE_HERO = 'sponsorship_page_hero';
+    case SPONSORSHIP_PAGE_VIDEO = 'sponsorship_page_video';
+    case SPONSORSHIP_PAGE_WHY = 'sponsorship_page_why';
+    case SPONSORSHIP_PAGE_STEPS = 'sponsorship_page_steps';
+    case SPONSORSHIP_PAGE_LEVELS_HEADER = 'sponsorship_page_levels_header';
+    case SPONSORSHIP_PAGE_FOOTER = 'sponsorship_page_footer';
 }
