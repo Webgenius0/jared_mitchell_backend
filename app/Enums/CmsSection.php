@@ -80,4 +80,7 @@ enum CmsSection: string
     case SHOP_PAGE_FEATURES = 'shop_page_features';
     case SHOP_PAGE_SUPPORT = 'shop_page_support';
     case SHOP_PAGE_FOOTER_FEATURES = 'shop_page_footer_features';
+
+    // Sponsorship Page
+    case SPONSORSHIP_PAGE_HERO = 'sponsorship_page_hero';
 }

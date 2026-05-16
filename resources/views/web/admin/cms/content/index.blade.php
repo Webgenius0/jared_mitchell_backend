@@ -40,6 +40,8 @@
                     @include('web.admin.cms.content.partials._events')
                 @elseif($currentPage === 'shop')
                     @include('web.admin.cms.content.partials._shop')
+                @elseif($currentPage === 'sponsorship')
+                    @include('web.admin.cms.content.partials._sponsorship')
                 @else
                     <div class="alert alert-info">
                         Please select a page from the left sidebar to manage its content.

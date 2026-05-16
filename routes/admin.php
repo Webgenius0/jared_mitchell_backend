@@ -14,6 +14,7 @@ use App\Http\Controllers\Web\Admin\Cms\ServiceCmsController;
 use App\Http\Controllers\Web\Admin\Cms\SpotlightLadderCmsController;
 use App\Http\Controllers\Web\Admin\Cms\EventCmsController;
 use App\Http\Controllers\Web\Admin\Cms\ShopCmsController;
+use App\Http\Controllers\Web\Admin\Cms\SponsorshipCmsController;
 use App\Http\Controllers\Web\Admin\Contact\AdminChattingController;
 use App\Http\Controllers\Web\Admin\Contact\AdminMailingController;
 use App\Http\Controllers\Web\Admin\ContactController as WebContactController;
@@ -160,6 +161,12 @@ Route::prefix('cms/shop')->name('admin.cms.shop.')->group(function () {
     Route::post('/features', [ShopCmsController::class, 'updateFeatures'])->name('update.features');
     Route::post('/support', [ShopCmsController::class, 'updateSupport'])->name('update.support');
     Route::post('/footer-features', [ShopCmsController::class, 'updateFooterFeatures'])->name('update.footer_features');
+});
+
+// Sponsorship CMS Routes
+Route::prefix('cms/sponsorship')->name('admin.cms.sponsorship.')->group(function () {
+    Route::get('/', [SponsorshipCmsController::class, 'index'])->name('index');
+    Route::post('/hero', [SponsorshipCmsController::class, 'updateHero'])->name('update.hero');
 });
 
 
