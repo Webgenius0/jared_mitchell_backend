@@ -105,4 +105,44 @@ class EventCmsController extends Controller
 
         return $this->success('Events video updated successfully.', ['cms' => $cms]);
     }
+
+    /**
+     * Update Host Your Event section
+     */
+    public function updateHost(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:500'],
+            'sub_title' => ['nullable', 'string', 'max:1000'],
+            'image_file' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
+            'items' => ['nullable', 'array'],
+            'items.*.title' => ['nullable', 'string', 'max:255'],
+            'items.*.description' => ['nullable', 'string', 'max:500'],
+            'items.*.icon' => ['nullable', 'string', 'max:100'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::firstOrNew([
+            'page' => CmsPage::EVENTS,
+            'section' => CmsSection::EVENTS_PAGE_HOST,
+        ]);
+
+        $cms->title = $request->title;
+        $cms->sub_title = $request->sub_title;
+
+        if ($request->hasFile('image_file')) {
+            if ($cms->image && Str::startsWith($cms->image, 'uploads/')) {
+                FileHandle::fileDelete($cms->image);
+            }
+            $cms->image = FileHandle::fileUpload($request->file('image_file'), 'cms/events');
+        }
+
+        $cms->metadata = $request->items ?? [];
+        $cms->save();
+
+        return $this->success('Host section updated successfully.', ['cms' => $cms]);
+    }
 }

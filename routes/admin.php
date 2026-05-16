@@ -147,6 +147,7 @@ Route::prefix('cms/event')->name('admin.cms.event.')->group(function () {
     Route::get('/', [EventCmsController::class, 'index'])->name('index');
     Route::post('/hero', [EventCmsController::class, 'updateHero'])->name('update.hero');
     Route::post('/video', [EventCmsController::class, 'updateVideo'])->name('update.video');
+    Route::post('/host', [EventCmsController::class, 'updateHost'])->name('update.host');
 });
 
 
