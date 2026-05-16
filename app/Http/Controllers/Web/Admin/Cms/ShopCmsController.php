@@ -97,4 +97,35 @@ class ShopCmsController extends Controller
 
         return $this->success('Shop features updated successfully.', ['cms' => $cms]);
     }
+
+    /**
+     * Update Support section
+     */
+    public function updateSupport(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:500'],
+            'sub_title' => ['nullable', 'string', 'max:500'],
+            'items' => ['nullable', 'array'],
+            'items.*.title' => ['nullable', 'string', 'max:255'],
+            'items.*.description' => ['nullable', 'string', 'max:500'],
+            'items.*.icon' => ['nullable', 'string', 'max:100'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::firstOrNew([
+            'page' => CmsPage::SHOP,
+            'section' => CmsSection::SHOP_PAGE_SUPPORT,
+        ]);
+
+        $cms->title = $request->title;
+        $cms->sub_title = $request->sub_title;
+        $cms->metadata = $request->items ?? [];
+        $cms->save();
+
+        return $this->success('Support section updated successfully.', ['cms' => $cms]);
+    }
 }

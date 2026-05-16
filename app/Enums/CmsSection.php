@@ -78,4 +78,5 @@ enum CmsSection: string
     // Shop Page
     case SHOP_PAGE_HERO = 'shop_page_hero';
     case SHOP_PAGE_FEATURES = 'shop_page_features';
+    case SHOP_PAGE_SUPPORT = 'shop_page_support';
 }

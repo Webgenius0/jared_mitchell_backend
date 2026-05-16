@@ -158,6 +158,7 @@ Route::prefix('cms/shop')->name('admin.cms.shop.')->group(function () {
     Route::get('/', [ShopCmsController::class, 'index'])->name('index');
     Route::post('/hero', [ShopCmsController::class, 'updateHero'])->name('update.hero');
     Route::post('/features', [ShopCmsController::class, 'updateFeatures'])->name('update.features');
+    Route::post('/support', [ShopCmsController::class, 'updateSupport'])->name('update.support');
 });
 
 
