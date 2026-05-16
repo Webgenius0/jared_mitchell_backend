@@ -74,4 +74,8 @@ enum CmsSection: string
     case EVENTS_PAGE_HOST = 'events_page_host';
     case EVENTS_PAGE_VENDOR = 'events_page_vendor';
     case EVENTS_PAGE_BOOTH_FEATURES = 'events_page_booth_features';
+
+    // Shop Page
+    case SHOP_PAGE_HERO = 'shop_page_hero';
+    case SHOP_PAGE_FEATURES = 'shop_page_features';
 }

@@ -13,6 +13,7 @@ use App\Http\Controllers\Web\Admin\Cms\PricingController;
 use App\Http\Controllers\Web\Admin\Cms\ServiceCmsController;
 use App\Http\Controllers\Web\Admin\Cms\SpotlightLadderCmsController;
 use App\Http\Controllers\Web\Admin\Cms\EventCmsController;
+use App\Http\Controllers\Web\Admin\Cms\ShopCmsController;
 use App\Http\Controllers\Web\Admin\Contact\AdminChattingController;
 use App\Http\Controllers\Web\Admin\Contact\AdminMailingController;
 use App\Http\Controllers\Web\Admin\ContactController as WebContactController;
@@ -150,6 +151,13 @@ Route::prefix('cms/event')->name('admin.cms.event.')->group(function () {
     Route::post('/host', [EventCmsController::class, 'updateHost'])->name('update.host');
     Route::post('/vendor', [EventCmsController::class, 'updateVendor'])->name('update.vendor');
     Route::post('/booth-features', [EventCmsController::class, 'updateBoothFeatures'])->name('update.booth_features');
+});
+
+// Shop CMS Routes
+Route::prefix('cms/shop')->name('admin.cms.shop.')->group(function () {
+    Route::get('/', [ShopCmsController::class, 'index'])->name('index');
+    Route::post('/hero', [ShopCmsController::class, 'updateHero'])->name('update.hero');
+    Route::post('/features', [ShopCmsController::class, 'updateFeatures'])->name('update.features');
 });
 
 

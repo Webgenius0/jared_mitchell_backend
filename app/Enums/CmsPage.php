@@ -11,4 +11,5 @@ enum CmsPage: string
     case BUSINESS_SPOTLIGHT = 'business_spotlight';
     case SPOTLIGHT_LADDER = 'spotlight_ladder';
     case EVENTS = 'events';
+    case SHOP = 'shop';
 }
