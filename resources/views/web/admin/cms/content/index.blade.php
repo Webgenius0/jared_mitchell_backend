@@ -36,6 +36,8 @@
                     @include('web.admin.cms.content.partials._business_spotlight')
                 @elseif($currentPage === 'spotlight_ladder')
                     @include('web.admin.cms.content.partials._spotlight_ladder')
+                @elseif($currentPage === 'events')
+                    @include('web.admin.cms.content.partials._events')
                 @else
                     <div class="alert alert-info">
                         Please select a page from the left sidebar to manage its content.

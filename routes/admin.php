@@ -12,6 +12,7 @@ use App\Http\Controllers\Web\Admin\Cms\FAQController;
 use App\Http\Controllers\Web\Admin\Cms\PricingController;
 use App\Http\Controllers\Web\Admin\Cms\ServiceCmsController;
 use App\Http\Controllers\Web\Admin\Cms\SpotlightLadderCmsController;
+use App\Http\Controllers\Web\Admin\Cms\EventCmsController;
 use App\Http\Controllers\Web\Admin\Contact\AdminChattingController;
 use App\Http\Controllers\Web\Admin\Contact\AdminMailingController;
 use App\Http\Controllers\Web\Admin\ContactController as WebContactController;
@@ -139,6 +140,13 @@ Route::prefix('cms/business-spotlight')->name('admin.cms.business_spotlight.')->
 Route::prefix('cms/spotlight-ladder')->name('admin.cms.spotlight_ladder.')->group(function () {
     Route::get('/', [SpotlightLadderCmsController::class, 'index'])->name('index');
     Route::post('/hero', [SpotlightLadderCmsController::class, 'updateHero'])->name('update.hero');
+});
+
+// Event CMS Routes
+Route::prefix('cms/event')->name('admin.cms.event.')->group(function () {
+    Route::get('/', [EventCmsController::class, 'index'])->name('index');
+    Route::post('/hero', [EventCmsController::class, 'updateHero'])->name('update.hero');
+    Route::post('/video', [EventCmsController::class, 'updateVideo'])->name('update.video');
 });
 
 
