@@ -128,4 +128,32 @@ class ShopCmsController extends Controller
 
         return $this->success('Support section updated successfully.', ['cms' => $cms]);
     }
+
+    /**
+     * Update Footer Features section
+     */
+    public function updateFooterFeatures(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'bottom_text' => ['nullable', 'string', 'max:255'],
+            'items' => ['nullable', 'array'],
+            'items.*.title' => ['nullable', 'string', 'max:255'],
+            'items.*.description' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::firstOrNew([
+            'page' => CmsPage::SHOP,
+            'section' => CmsSection::SHOP_PAGE_FOOTER_FEATURES,
+        ]);
+
+        $cms->sub_title = $request->bottom_text;
+        $cms->metadata = $request->items ?? [];
+        $cms->save();
+
+        return $this->success('Footer features updated successfully.', ['cms' => $cms]);
+    }
 }

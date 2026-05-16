@@ -139,6 +139,51 @@
         </div>
     </div>
 
+    {{-- Footer Features Section --}}
+    @php $footer = $cmsData->get('shop_page_footer_features'); @endphp
+    <div class="accordion-item card mb-3">
+        <h2 class="accordion-header" id="headingFooter">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFooter" aria-expanded="false" aria-controls="collapseFooter">
+                <i class="ri-shield-check-line me-2"></i> Shop Footer Features (4 items)
+            </button>
+        </h2>
+        <div id="collapseFooter" class="accordion-collapse collapse" aria-labelledby="headingFooter" data-bs-parent="#shopAccordion">
+            <div class="accordion-body">
+                <form id="footerFeaturesForm">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label">Bottom Text</label>
+                            <input type="text" name="bottom_text" class="form-control" value="{{ $footer?->sub_title }}" placeholder="e.g. Powered by OSI. Built for the culture.">
+                        </div>
+                        
+                        <hr>
+                        <h6>Items (4 items)</h6>
+                        @for($i = 0; $i < 4; $i++)
+                            @php $item = $footer?->metadata[$i] ?? null; @endphp
+                            <div class="col-md-3 border p-3 rounded mb-2">
+                                <h7 class="fw-bold mb-2 d-block">Item {{ $i + 1 }}</h7>
+                                <div class="mb-2">
+                                    <label class="form-label fs-12">Title</label>
+                                    <input type="text" name="items[{{ $i }}][title]" class="form-control form-control-sm" value="{{ $item['title'] ?? '' }}" placeholder="Enter title">
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label fs-12">Description</label>
+                                    <textarea name="items[{{ $i }}][description]" class="form-control form-control-sm" rows="2" placeholder="Enter description">{{ $item['description'] ?? '' }}</textarea>
+                                </div>
+                            </div>
+                        @endfor
+
+                        <div class="col-12 text-end mt-4">
+                            <button type="submit" class="btn btn-primary px-4" id="saveFooterBtn">
+                                <i class="ri-save-line me-1"></i> Save Section
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 @push('scripts')
@@ -218,6 +263,39 @@ $(function() {
         });
 
         axios.post("{{ route('admin.cms.shop.update.support') }}", data)
+            .then(res => {
+                Toast.success(res.data.message);
+                setTimeout(() => window.location.reload(), 1000);
+            })
+            .catch(err => {
+                Toast.fromResponse(err.response?.data);
+                $btn.prop('disabled', false).html(originalText);
+            });
+    });
+
+    // Footer Features Logic
+    $('#footerFeaturesForm').on('submit', function(e) {
+        e.preventDefault();
+        const $btn = $('#saveFooterBtn');
+        const originalText = $btn.html();
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
+        const formData = new FormData(this);
+        const data = {};
+        formData.forEach((value, key) => {
+            const keys = key.split(/[\[\]]+/).filter(k => k !== '');
+            let current = data;
+            for (let i = 0; i < keys.length; i++) {
+                const k = keys[i];
+                if (i === keys.length - 1) {
+                    current[k] = value;
+                } else {
+                    current[k] = current[k] || (isNaN(keys[i+1]) ? {} : []);
+                    current = current[k];
+                }
+            }
+        });
+
+        axios.post("{{ route('admin.cms.shop.update.footer_features') }}", data)
             .then(res => {
                 Toast.success(res.data.message);
                 setTimeout(() => window.location.reload(), 1000);
