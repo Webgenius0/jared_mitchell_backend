@@ -158,9 +158,7 @@
 
                 {{-- Manage Tags --}}
                 @php
-                    $manageTagsOpen = request()->routeIs(
-                        'admin.artist-categories.index',
-                    );
+                    $manageTagsOpen = request()->routeIs('admin.artist-categories.index');
                 @endphp
 
                 <li class="nav-item">
@@ -189,6 +187,24 @@
                         href="{{ route('admin.events.index') }}">
                         <i class="ri-calendar-event-line"></i>
                         <span>Events</span>
+                    </a>
+                </li>
+
+                {{-- Contact Forms --}}
+                <li class="nav-item">
+                    <a class="nav-link menu-link {{ request()->routeIs('admin.contacts.*') ? 'active' : '' }}"
+                        href="{{ route('admin.contacts.index') }}">
+                        <i class="ri-mail-open-line"></i>
+                        <span>Contact Forms</span>
+                    </a>
+                </li>
+
+                {{-- Newsletter --}}
+                <li class="nav-item">
+                    <a class="nav-link menu-link {{ request()->routeIs('admin.newsletters.*') ? 'active' : '' }}"
+                        href="{{ route('admin.newsletters.index') }}">
+                        <i class="ri-newspaper-line"></i>
+                        <span>Newsletter</span>
                     </a>
                 </li>
 

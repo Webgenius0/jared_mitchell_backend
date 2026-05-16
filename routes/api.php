@@ -21,7 +21,9 @@ use App\Http\Controllers\Api\Cms\CmsPricingController;
 use App\Http\Controllers\Api\Cms\CmsServiceController;
 use App\Http\Controllers\Api\Cms\CmsSpotlightLadderController;
 use App\Http\Controllers\Api\Cms\FAQController as ApiFAQController;
+use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\EventController;
+use App\Http\Controllers\Api\NewsletterController;
 use Illuminate\Support\Facades\Route;
 
 // health check
@@ -115,7 +117,10 @@ Route::group(['prefix' => 'v1'], function ($router) {
     });
 
     // Contact Us
-    Route::post('/contact', [\App\Http\Controllers\Api\ContactController::class, 'store']);
+    Route::post('/contact', [ContactController::class, 'store']);
+
+    // Newsletter
+    Route::post('/newsletter', [NewsletterController::class, 'store']);
 
     /*
     |--------------------------------------------------------------------------

@@ -15,6 +15,7 @@ use App\Http\Controllers\Web\Admin\Cms\SpotlightLadderCmsController;
 use App\Http\Controllers\Web\Admin\Contact\AdminChattingController;
 use App\Http\Controllers\Web\Admin\Contact\AdminMailingController;
 use App\Http\Controllers\Web\Admin\ContactController as WebContactController;
+use App\Http\Controllers\Web\Admin\NewsletterController as WebNewsletterController;
 use App\Http\Controllers\Web\Admin\Dashboard\AdminDashboardController;
 use App\Http\Controllers\Web\Admin\Event\EventController;
 use Illuminate\Support\Facades\Route;
@@ -246,4 +247,14 @@ Route::prefix('contacts')->name('admin.contacts.')->group(function () {
     Route::get('/', [WebContactController::class, 'index'])->name('index');
     Route::patch('/{contact}/read', [WebContactController::class, 'markAsRead'])->name('read');
     Route::delete('/{contact}', [WebContactController::class, 'destroy'])->name('destroy');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Newsletter Subscriptions
+|--------------------------------------------------------------------------
+*/
+Route::prefix('newsletters')->name('admin.newsletters.')->group(function () {
+    Route::get('/', [WebNewsletterController::class, 'index'])->name('index');
+    Route::delete('/{newsletter}', [WebNewsletterController::class, 'destroy'])->name('destroy');
 });
