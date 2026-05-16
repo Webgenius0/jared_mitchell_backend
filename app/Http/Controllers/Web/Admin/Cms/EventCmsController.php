@@ -187,4 +187,33 @@ class EventCmsController extends Controller
 
         return $this->success('Vendor section updated successfully.', ['cms' => $cms]);
     }
+
+    /**
+     * Update Booth Features section
+     */
+    public function updateBoothFeatures(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:500'],
+            'items' => ['nullable', 'array'],
+            'items.*.title' => ['nullable', 'string', 'max:255'],
+            'items.*.description' => ['nullable', 'string', 'max:500'],
+            'items.*.icon' => ['nullable', 'string', 'max:100'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::firstOrNew([
+            'page' => CmsPage::EVENTS,
+            'section' => CmsSection::EVENTS_PAGE_BOOTH_FEATURES,
+        ]);
+
+        $cms->title = $request->title;
+        $cms->metadata = $request->items ?? [];
+        $cms->save();
+
+        return $this->success('Booth features updated successfully.', ['cms' => $cms]);
+    }
 }

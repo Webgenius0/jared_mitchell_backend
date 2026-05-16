@@ -234,6 +234,55 @@
         </div>
     </div>
 
+    {{-- Booth Features Section --}}
+    @php $booth = $cmsData->get('events_page_booth_features'); @endphp
+    <div class="accordion-item card mb-3">
+        <h2 class="accordion-header" id="headingBooth">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBooth" aria-expanded="false" aria-controls="collapseBooth">
+                <i class="ri-checkbox-circle-line me-2"></i> Booth Features Section
+            </button>
+        </h2>
+        <div id="collapseBooth" class="accordion-collapse collapse" aria-labelledby="headingBooth" data-bs-parent="#eventAccordion">
+            <div class="accordion-body">
+                <form id="boothForm">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label">Section Title</label>
+                            <input type="text" name="title" class="form-control" value="{{ $booth?->title }}" placeholder="e.g. What You Get with Every Booth">
+                        </div>
+                        
+                        <hr>
+                        <h6>Feature Items (3 items)</h6>
+                        @for($i = 0; $i < 3; $i++)
+                            @php $item = $booth?->metadata[$i] ?? null; @endphp
+                            <div class="col-md-4 border p-3 rounded mb-2">
+                                <h7 class="fw-bold mb-2 d-block">Feature {{ $i + 1 }}</h7>
+                                <div class="mb-2">
+                                    <label class="form-label">Icon (Remix Icon Class)</label>
+                                    <input type="text" name="items[{{ $i }}][icon]" class="form-control" value="{{ $item['icon'] ?? '' }}" placeholder="e.g. ri-camera-line">
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label">Title</label>
+                                    <input type="text" name="items[{{ $i }}][title]" class="form-control" value="{{ $item['title'] ?? '' }}" placeholder="Enter title">
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label">Description</label>
+                                    <textarea name="items[{{ $i }}][description]" class="form-control" rows="2" placeholder="Enter description">{{ $item['description'] ?? '' }}</textarea>
+                                </div>
+                            </div>
+                        @endfor
+
+                        <div class="col-12 text-end mt-4">
+                            <button type="submit" class="btn btn-primary px-4" id="saveBoothBtn">
+                                <i class="ri-save-line me-1"></i> Save Section
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 @push('scripts')
@@ -324,6 +373,39 @@ $(function() {
         });
 
         axios.post("{{ route('admin.cms.event.update.vendor') }}", data)
+            .then(res => {
+                Toast.success(res.data.message);
+                setTimeout(() => window.location.reload(), 1000);
+            })
+            .catch(err => {
+                Toast.fromResponse(err.response?.data);
+                $btn.prop('disabled', false).html(originalText);
+            });
+    });
+
+    // Booth Features Logic
+    $('#boothForm').on('submit', function(e) {
+        e.preventDefault();
+        const $btn = $('#saveBoothBtn');
+        const originalText = $btn.html();
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
+        const formData = new FormData(this);
+        const data = {};
+        formData.forEach((value, key) => {
+            const keys = key.split(/[\[\]]+/).filter(k => k !== '');
+            let current = data;
+            for (let i = 0; i < keys.length; i++) {
+                const k = keys[i];
+                if (i === keys.length - 1) {
+                    current[k] = value;
+                } else {
+                    current[k] = current[k] || (isNaN(keys[i+1]) ? {} : []);
+                    current = current[k];
+                }
+            }
+        });
+
+        axios.post("{{ route('admin.cms.event.update.booth_features') }}", data)
             .then(res => {
                 Toast.success(res.data.message);
                 setTimeout(() => window.location.reload(), 1000);
