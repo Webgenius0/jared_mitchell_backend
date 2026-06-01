@@ -158,7 +158,7 @@
 
                 {{-- Manage Tags --}}
                 @php
-                    $manageTagsOpen = request()->routeIs('admin.artist-categories.index');
+                    $manageTagsOpen = request()->routeIs('admin.artist-categories.index', 'admin.business-categories.index');
                 @endphp
 
                 <li class="nav-item">
@@ -169,12 +169,25 @@
                         <span>Manage Tags</span>
                     </a>
 
+                    {{-- Artist categories --}}
                     <div class="collapse menu-dropdown {{ $manageTagsOpen ? 'show' : '' }}" id="sidebarManageTags">
                         <ul class="nav nav-sm flex-column">
                             <li class="nav-item">
                                 <a href="{{ route('admin.artist-categories.index') }}"
                                     class="nav-link {{ request()->routeIs('admin.artist-categories.*') ? 'active' : '' }}">
                                     <i class="ri-list-settings-line"></i> Artist Category
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    {{-- Business categories --}}
+                    <div class="collapse menu-dropdown {{ $manageTagsOpen ? 'show' : '' }}" id="sidebarManageTags">
+                        <ul class="nav nav-sm flex-column">
+                            <li class="nav-item">
+                                <a href="{{ route('admin.business-categories.index') }}"
+                                    class="nav-link {{ request()->routeIs('admin.business-categories.*') ? 'active' : '' }}">
+                                    <i class="ri-list-settings-line"></i> Business Category
                                 </a>
                             </li>
                         </ul>

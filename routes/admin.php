@@ -5,6 +5,7 @@ use App\Http\Controllers\Web\Admin\Auth\AdminProfileController;
 use App\Http\Controllers\Web\Admin\BusinessSpotlight\AdminBusinessSpotlightController;
 use App\Http\Controllers\Web\Admin\Cms\AboutCmsController;
 use App\Http\Controllers\Web\Admin\Cms\AdminArtistCategoryController;
+use App\Http\Controllers\Web\Admin\Cms\AdminBusinessCategoryController;
 use App\Http\Controllers\Web\Admin\Cms\ArtistSpotlightCmsController;
 use App\Http\Controllers\Web\Admin\Cms\BusinessSpotlightCmsController;
 use App\Http\Controllers\Web\Admin\Cms\CmsHomePageController;
@@ -253,6 +254,19 @@ Route::prefix('artist-categories')->name('admin.artist-categories.')->group(func
     Route::post('/', [AdminArtistCategoryController::class, 'store'])->name('store');
     Route::put('/{category}', [AdminArtistCategoryController::class, 'update'])->name('update');
     Route::delete('/{category}', [AdminArtistCategoryController::class, 'destroy'])->name('destroy');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Business Categories
+|--------------------------------------------------------------------------
+*/
+Route::prefix('business-categories')->name('admin.business-categories.')->group(function () {
+    Route::get('/', [AdminBusinessCategoryController::class, 'index'])->name('index');
+    Route::get('/data', [AdminBusinessCategoryController::class, 'getData'])->name('data');
+    Route::post('/', [AdminBusinessCategoryController::class, 'store'])->name('store');
+    Route::put('/{category}', [AdminBusinessCategoryController::class, 'update'])->name('update');
+    Route::delete('/{category}', [AdminBusinessCategoryController::class, 'destroy'])->name('destroy');
 });
 
 /*
