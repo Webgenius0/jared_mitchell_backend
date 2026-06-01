@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\Auth\RegisterController;
 use App\Http\Controllers\Api\Auth\UserProfileController;
 use App\Http\Controllers\Api\Auth\V2\ForgotPasswordController as V2ForgotPasswordController;
 use App\Http\Controllers\Api\Auth\V2\RegisterController as V2RegisterController;
+use App\Http\Controllers\Api\BusinessCategoryController;
 use App\Http\Controllers\Api\BusinessSpotlightController;
 use App\Http\Controllers\Api\Chat\ConversationController;
 use App\Http\Controllers\Api\Chat\MessageController;
@@ -96,6 +97,9 @@ Route::group(['prefix' => 'v1'], function ($router) {
     | Includes categories listing and spotlight submission/drafts.
     */
     Route::get('/artist-categories', [ArtistCategoryController::class, 'index']);
+
+    // Business category list
+    Route::get('/business-categories', [BusinessCategoryController::class, 'index']);
 
     Route::prefix('artist-spotlight')->group(function () {
         Route::get('/', [ArtistSpotlightController::class, 'index']);     // Submit complete form

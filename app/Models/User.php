@@ -22,6 +22,7 @@ class User extends Authenticatable implements JWTSubject
         'status',
         'email_verified_at',
         'artist_category_id',
+        'business_category_id',
     ];
 
     protected $hidden = [
@@ -69,6 +70,11 @@ class User extends Authenticatable implements JWTSubject
     public function artistCategory(): BelongsTo
     {
         return $this->belongsTo(ArtistCategory::class, 'artist_category_id');
+    }
+
+    public function businessCategory(): BelongsTo
+    {
+        return $this->belongsTo(BusinessCategory::class, 'business_category_id');
     }
 
     /**

@@ -28,11 +28,12 @@ class RegisterController extends Controller
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:100',
-            'email' => 'required|string|email|max:150',
-            'password' => 'required|string|min:6|confirmed',
-            'role' => 'required|in:5,6,7,8',
-            'artist_category_id' => 'required_if:role,5|exists:artist_categories,id',
+            'name'                 => 'required|string|max:100',
+            'email'                => 'required|string|email|max:150',
+            'password'             => 'required|string|min:6|confirmed',
+            'role'                 => 'required|in:5,6,7,8',
+            'artist_category_id'   => 'required_if:role,5|nullable|exists:artist_categories,id',
+            'business_category_id' => 'required_if:role,8|nullable|exists:business_categories,id',
         ]);
 
         if ($validator->fails()) {
@@ -84,10 +85,11 @@ class RegisterController extends Controller
 
             // Create new user
             $user = User::create([
-                'email' => strtolower($request->email),
-                'password' => Hash::make($request->password),
-                'status' => 'inactive',
-                'artist_category_id' => $request->role == 5 ? $request->artist_category_id : null,
+                'email'                => strtolower($request->email),
+                'password'             => Hash::make($request->password),
+                'status'               => 'inactive',
+                'artist_category_id'   => $request->role == 5 ? $request->artist_category_id : null,
+                'business_category_id' => $request->role == 8 ? $request->business_category_id : null,
             ]);
 
             $slug = Helper::generateSlug($request->name);
