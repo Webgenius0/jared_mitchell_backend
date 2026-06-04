@@ -42,128 +42,107 @@ Route::get('/health-check', function () {
 |--------------------------------------------------------------------------
 */
 Route::group(['prefix' => 'v1'], function ($router) {
+
     /*
     |--------------------------------------------------------------------------
-    | User Authentication Routes
+    | Public route
     |--------------------------------------------------------------------------
     */
-    Route::group(['middleware' => 'guest:api'], function () {
-        //register
-        Route::post('/register', [RegisterController::class, 'register']); // DONE: user registraion
-        Route::post('/verify-email', [RegisterController::class, 'VerifyEmail']); // DONE: email verification
-        Route::post('/resend-otp', [RegisterController::class, 'ResendOtp']); // DONE: resend otp
+    Route::group(['middleware' => 'guest:api'], function ($router) {
+        /*
+        |--------------------------------------------------------------------------
+        | User Authentication Routes
+        |--------------------------------------------------------------------------
+        */
+        Route::group(['middleware' => 'guest:api'], function () {
+            //register
+            Route::post('/register', [RegisterController::class, 'register']); // DONE: user registraion
+            Route::post('/verify-email', [RegisterController::class, 'VerifyEmail']); // DONE: email verification
+            Route::post('/resend-otp', [RegisterController::class, 'ResendOtp']); // DONE: resend otp
 
-        //login
-        Route::post('/login', [LoginController::class, 'login']); // DONE: user login
+            //login
+            Route::post('/login', [LoginController::class, 'login']); // DONE: user login
 
-        //forgot password
-        Route::post('/forgot-password', [ForgotPasswordController::class, 'sendOtp']); // DONE: send forgot password otp
-        Route::post('/verify-otp', [ForgotPasswordController::class, 'verifyOtp']); // DONE: verify forgot password otp
-        Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword']); // DONE: Reset password
+            //forgot password
+            Route::post('/forgot-password', [ForgotPasswordController::class, 'sendOtp']); // DONE: send forgot password otp
+            Route::post('/verify-otp', [ForgotPasswordController::class, 'verifyOtp']); // DONE: verify forgot password otp
+            Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword']); // DONE: Reset password
+        });
+
+        /*
+        |--------------------------------------------------------------------------
+        | CMS — Public read-only routes (no auth required)
+        |--------------------------------------------------------------------------
+        */
+        Route::prefix('cms')->group(function () {
+            Route::get('/pricing', [CmsPricingController::class, 'index']); // Visible pricing plans with feature groups
+            Route::get('/homepage', [CmsHomePageController::class, 'index']); // Homepage CMS
+            Route::get('/about', [CmsAboutController::class, 'index']); // About page CMS
+            Route::get('/services', [CmsServiceController::class, 'index']); // Services page CMS
+            Route::get('/artist-spotlight', [CmsArtistSpotlightController::class, 'index']); // Artist spotlight page CMS
+            Route::get('/business-spotlight', [CmsBusinessSpotlightController::class, 'index']); // Business spotlight page CMS
+            Route::get('/spotlight-ladder', [CmsSpotlightLadderController::class, 'index']); // Spotlight ladder page CMS
+            Route::get('/faq', [ApiFAQController::class, 'index']); // Active FAQs
+        });
+
+        /*
+        |--------------------------------------------------------------------------
+        | Spotlights
+        |--------------------------------------------------------------------------
+        */
+        // Business Sportlight
+        Route::prefix('business-spotlight')->group(function () {
+            Route::get('/', [BusinessSpotlightController::class, 'index']);
+            Route::post('/', [BusinessSpotlightController::class, 'store']); // Submit complete form
+            Route::post('/draft', [BusinessSpotlightController::class, 'saveDraft']); // Save draft (partial)
+            Route::get('/draft', [BusinessSpotlightController::class, 'getDraft']);  // Retrieve draft by email
+            Route::get('/{id}', [BusinessSpotlightController::class, 'show']);  // Retrieve draft by email
+        });
+
+        // Artist Spotlight
+        Route::prefix('artist-spotlight')->group(function () {
+            Route::get('/', [ArtistSpotlightController::class, 'index']); // Submit complete form
+            Route::post('/', [ArtistSpotlightController::class, 'store']); // Submit complete form
+            Route::post('/draft', [ArtistSpotlightController::class, 'saveDraft']); // Save draft (partial)
+            Route::get('/draft', [ArtistSpotlightController::class, 'getDraft']);  // Retrieve draft by email
+        });
+
+        // Artist Categories - for artist registering
+        Route::get('/artist-categories', [ArtistCategoryController::class, 'index']); // DONE: artist categories
+
+        /*
+        |--------------------------------------------------------------------------
+        | Events — Public listing and registration
+        |--------------------------------------------------------------------------
+        */
+        Route::prefix('events')->group(function () {
+            Route::get('/', [EventController::class, 'index']); // List all
+            Route::get('/{slug}', [EventController::class, 'show'])->middleware('auth:api'); // Detail
+            Route::get('/{slug}/attendees', [EventController::class, 'attendees'])->middleware('auth:api'); // Attendees list
+            Route::post('/register', [EventController::class, 'register'])->middleware('auth:api'); // Register
+        });
+
+        // Contact Us
+        Route::post('/contact', [ContactController::class, 'store']);
+
+        // Newsletter
+        Route::post('/newsletter', [NewsletterController::class, 'store']);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Artists — Public listing and profile
+        |--------------------------------------------------------------------------
+        */
+        Route::prefix('artists')->group(function () {
+            Route::get('/', [ArtistController::class, 'index']);    // List all artists
+            Route::get('/{id}', [ArtistController::class, 'show']); // Artist detail
+            Route::post('/{id}/share', [ArtistController::class, 'recordShare']); // Public share (optional auth)
+        });
     });
 
     /*
     |--------------------------------------------------------------------------
-    | CMS — Public read-only routes (no auth required)
-    |--------------------------------------------------------------------------
-    */
-    Route::prefix('cms')->group(function () {
-        Route::get('/pricing', [CmsPricingController::class, 'index']); // Visible pricing plans with feature groups
-        Route::get('/homepage', [CmsHomePageController::class, 'index']); // Homepage CMS
-        Route::get('/about', [CmsAboutController::class, 'index']); // About page CMS
-        Route::get('/services', [CmsServiceController::class, 'index']); // Services page CMS
-        Route::get('/artist-spotlight', [CmsArtistSpotlightController::class, 'index']); // Artist spotlight page CMS
-        Route::get('/business-spotlight', [CmsBusinessSpotlightController::class, 'index']); // Business spotlight page CMS
-        Route::get('/spotlight-ladder', [CmsSpotlightLadderController::class, 'index']); // Spotlight ladder page CMS
-        Route::get('/faq', [ApiFAQController::class, 'index']); // Active FAQs
-    });
-
-    /*
-    |--------------------------------------------------------------------------
-    | Business Spotlight — Public form submission (no auth required)
-    |--------------------------------------------------------------------------
-    */
-    Route::prefix('business-spotlight')->group(function () {
-        Route::get('/', [BusinessSpotlightController::class, 'index']);
-        Route::post('/', [BusinessSpotlightController::class, 'store']); // Submit complete form
-        Route::post('/draft', [BusinessSpotlightController::class, 'saveDraft']); // Save draft (partial)
-        Route::get('/draft', [BusinessSpotlightController::class, 'getDraft']);  // Retrieve draft by email
-        Route::get('/{id}', [BusinessSpotlightController::class, 'show']);  // Retrieve draft by email
-    });
-
-    /*
-    |--------------------------------------------------------------------------
-    | Artist Spotlight — Public form submission
-    |--------------------------------------------------------------------------
-    | Includes categories listing and spotlight submission/drafts.
-    */
-    Route::get('/artist-categories', [ArtistCategoryController::class, 'index']);
-
-    // Business category list
-    Route::get('/business-categories', [BusinessCategoryController::class, 'index']);
-
-    /*
-    |--------------------------------------------------------------------------
-    | Businesses — management
-    |--------------------------------------------------------------------------
-    */
-    Route::prefix('businesses')->group(function () {
-        Route::get('/', [BusinessController::class, 'index']); // List all
-        Route::post('/', [BusinessController::class, 'store']); // Create
-        Route::get('/{business}', [BusinessController::class, 'show']); // Show
-        Route::put('/{business}', [BusinessController::class, 'update']); // Update
-        Route::delete('/{business}', [BusinessController::class, 'destroy']); // Delete
-        Route::patch('/{business}/toggle-status', [BusinessController::class, 'toggleStatus']); // Toggle active/inactive
-        Route::patch('/{business}/terminate', [BusinessController::class, 'terminate']); // Terminate
-    });
-
-    // Business interactions (clap, save, share)
-    Route::prefix('businesses')->group(function () {
-        Route::post('/{business}/clap', [BusinessController::class, 'toggleClap']);
-        Route::post('/{business}/save', [BusinessController::class, 'toggleSave']);
-        Route::post('/{business}/share', [BusinessController::class, 'toggleShare']);
-        Route::get('/{business}/interactions', [BusinessController::class, 'userInteractions']);
-    });
-
-    Route::prefix('artist-spotlight')->group(function () {
-        Route::get('/', [ArtistSpotlightController::class, 'index']); // Submit complete form
-        Route::post('/', [ArtistSpotlightController::class, 'store']); // Submit complete form
-        Route::post('/draft', [ArtistSpotlightController::class, 'saveDraft']); // Save draft (partial)
-        Route::get('/draft', [ArtistSpotlightController::class, 'getDraft']);  // Retrieve draft by email
-    });
-
-    /*
-    |--------------------------------------------------------------------------
-    | Events — Public listing and registration
-    |--------------------------------------------------------------------------
-    */
-    Route::prefix('events')->group(function () {
-        Route::get('/', [EventController::class, 'index']); // List all
-        Route::get('/{slug}', [EventController::class, 'show'])->middleware('auth:api'); // Detail
-        Route::get('/{slug}/attendees', [EventController::class, 'attendees'])->middleware('auth:api'); // Attendees list
-        Route::post('/register', [EventController::class, 'register'])->middleware('auth:api'); // Register
-    });
-
-    // Contact Us
-    Route::post('/contact', [ContactController::class, 'store']);
-
-    // Newsletter
-    Route::post('/newsletter', [NewsletterController::class, 'store']);
-
-    /*
-    |--------------------------------------------------------------------------
-    | Artists — Public listing and profile
-    |--------------------------------------------------------------------------
-    */
-    Route::prefix('artists')->group(function () {
-        Route::get('/', [ArtistController::class, 'index']);    // List all artists
-        Route::get('/{id}', [ArtistController::class, 'show']); // Artist detail
-        Route::post('/{id}/share', [ArtistController::class, 'recordShare']); // Public share (optional auth)
-    });
-
-    /*
-    |--------------------------------------------------------------------------
-    | User Profile and After Authentication
+    | Auth Routes
     |--------------------------------------------------------------------------
     */
     Route::group(['middleware' => 'auth:api'], function ($router) {
@@ -201,6 +180,32 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::post('/{id}/like', [ArtistSpotlightController::class, 'toggleLike']);
             Route::post('/{id}/bookmark', [ArtistSpotlightController::class, 'toggleBookmark']);
             Route::post('/{id}/share', [ArtistSpotlightController::class, 'recordShare']);
+        });
+
+        // Business category list
+        Route::get('/business-categories', [BusinessCategoryController::class, 'index']);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Businesses — management
+        |--------------------------------------------------------------------------
+        */
+        Route::prefix('businesses')->group(function () {
+            Route::get('/', [BusinessController::class, 'index']); // List all
+            Route::post('/', [BusinessController::class, 'store']); // Create
+            Route::get('/{business}', [BusinessController::class, 'show']); // Show
+            Route::put('/{business}', [BusinessController::class, 'update']); // Update
+            Route::delete('/{business}', [BusinessController::class, 'destroy']); // Delete
+            Route::patch('/{business}/toggle-status', [BusinessController::class, 'toggleStatus']); // Toggle active/inactive
+            Route::patch('/{business}/terminate', [BusinessController::class, 'terminate']); // Terminate
+        });
+
+        // Business interactions (clap, save, share)
+        Route::prefix('businesses')->group(function () {
+            Route::post('/{business}/clap', [BusinessController::class, 'toggleClap']);
+            Route::post('/{business}/save', [BusinessController::class, 'toggleSave']);
+            Route::post('/{business}/share', [BusinessController::class, 'toggleShare']);
+            Route::get('/{business}/interactions', [BusinessController::class, 'userInteractions']);
         });
     });
 
