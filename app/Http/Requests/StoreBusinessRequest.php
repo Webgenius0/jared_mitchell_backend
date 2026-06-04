@@ -20,7 +20,6 @@ class StoreBusinessRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id'              => 'required|exists:users,id',
             'business_category_id' => 'required|exists:business_categories,id',
             'owner_name'           => 'required|string|max:255',
             'business_name'        => 'required|string|max:255',
