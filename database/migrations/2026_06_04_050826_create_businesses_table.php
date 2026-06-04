@@ -41,6 +41,11 @@ return new class extends Migration
 
             $table->boolean('is_featured')->default(false);
 
+            $table->unsignedBigInteger('total_claps')->default(0);
+            $table->unsignedBigInteger('total_saves')->default(0);
+            $table->unsignedBigInteger('total_shares')->default(0);
+            $table->unsignedBigInteger('total_points')->default(0);
+
             $table->timestamps();
             $table->softDeletes();
         });

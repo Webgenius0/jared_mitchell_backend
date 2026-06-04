@@ -34,4 +34,14 @@ class Business extends Model
     {
         return $this->belongsTo(BusinessCategory::class, 'business_category_id');
     }
+
+    public function interactions()
+    {
+        return $this->hasMany(BusinessInteraction::class);
+    }
+
+    public function claps()
+    {
+        return $this->interactions()->where('action_type', 'clap');
+    }
 }

@@ -130,4 +130,96 @@ class BusinessController extends Controller
             new BusinessResource($business)
         );
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | User Interactions (auth required)
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * POST /api/v1/businesses/{business}/clap
+     *
+     * Toggle clap (like/unlike). Clap = 1 point.
+     */
+    public function toggleClap(Request $request, Business $business): JsonResponse
+    {
+        $user = auth()->user();
+
+        $result = $this->businessService->toggleClap(
+            $business,
+            $user->id,
+            $request->ip(),
+            $request->userAgent()
+        );
+
+        $message = $result['is_clapped']
+            ? 'Business clapped successfully.'
+            : 'Business clap removed successfully.';
+
+        return $this->success($message, $result);
+    }
+
+    /**
+     * POST /api/v1/businesses/{business}/save
+     *
+     * Toggle save/unsave. Save = 3 points.
+     */
+    public function toggleSave(Request $request, Business $business): JsonResponse
+    {
+        $user = auth()->user();
+
+        $result = $this->businessService->toggleSave(
+            $business,
+            $user->id,
+            $request->ip(),
+            $request->userAgent()
+        );
+
+        $message = $result['is_saved']
+            ? 'Business saved successfully.'
+            : 'Business save removed successfully.';
+
+        return $this->success($message, $result);
+    }
+
+    /**
+     * POST /api/v1/businesses/{business}/share
+     *
+     * Toggle share/unshare. Share = 5 points.
+     */
+    public function toggleShare(Request $request, Business $business): JsonResponse
+    {
+        $user = auth()->user();
+
+        $result = $this->businessService->toggleShare(
+            $business,
+            $user->id,
+            $request->ip(),
+            $request->userAgent()
+        );
+
+        $message = $result['is_shared']
+            ? 'Business shared successfully.'
+            : 'Business share removed successfully.';
+
+        return $this->success($message, $result);
+    }
+
+    /**
+     * GET /api/v1/businesses/{business}/interactions
+     *
+     * Get the current user's interaction state for a business.
+     */
+    public function userInteractions(Business $business): JsonResponse
+    {
+        $user = auth()->user();
+
+        $result = $this->businessService->getUserInteractionState($business, $user->id);
+
+        return $this->success(
+            'User interactions retrieved successfully.',
+            $result
+        );
+    }
 }

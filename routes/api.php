@@ -104,7 +104,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
 
     /*
     |--------------------------------------------------------------------------
-    | Businesses — Admin CRUD and management
+    | Businesses — management
     |--------------------------------------------------------------------------
     */
     Route::prefix('businesses')->group(function () {
@@ -115,6 +115,14 @@ Route::group(['prefix' => 'v1'], function ($router) {
         Route::delete('/{business}', [BusinessController::class, 'destroy']); // Delete
         Route::patch('/{business}/toggle-status', [BusinessController::class, 'toggleStatus']); // Toggle active/inactive
         Route::patch('/{business}/terminate', [BusinessController::class, 'terminate']); // Terminate
+    });
+
+    // Business interactions (clap, save, share)
+    Route::prefix('businesses')->group(function () {
+        Route::post('/{business}/clap', [BusinessController::class, 'toggleClap']);
+        Route::post('/{business}/save', [BusinessController::class, 'toggleSave']);
+        Route::post('/{business}/share', [BusinessController::class, 'toggleShare']);
+        Route::get('/{business}/interactions', [BusinessController::class, 'userInteractions']);
     });
 
     Route::prefix('artist-spotlight')->group(function () {

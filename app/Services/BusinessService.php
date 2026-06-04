@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Business;
+use App\Models\BusinessInteraction;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -169,5 +170,148 @@ class BusinessService
         ]);
 
         return $business->load(['user.profile', 'category']);
+    }
+
+    /**
+     * Toggle clap (like/unlike) for a business by a user.
+     * Clap: +1 total_claps, +1 total_points
+     * Unclap: -1 total_claps, -1 total_points
+     */
+    public function toggleClap(Business $business, int $userId, ?string $ip = null, ?string $userAgent = null): array
+    {
+        $existing = BusinessInteraction::where('user_id', $userId)
+            ->where('business_id', $business->id)
+            ->where('action_type', 'clap')
+            ->first();
+
+        if ($existing) {
+            $existing->delete();
+            $business->decrement('total_claps');
+            $business->decrement('total_points', 1);
+
+            return [
+                'is_clapped' => false,
+                'total_claps' => max(0, $business->fresh()->total_claps),
+                'total_points' => max(0, $business->fresh()->total_points),
+            ];
+        }
+
+        BusinessInteraction::create([
+            'user_id'    => $userId,
+            'business_id'=> $business->id,
+            'action_type'=> 'clap',
+            'ip'         => $ip,
+            'user_agent' => $userAgent,
+        ]);
+
+        $business->increment('total_claps');
+        $business->increment('total_points', 1);
+
+        return [
+            'is_clapped' => true,
+            'total_claps' => $business->fresh()->total_claps,
+            'total_points' => $business->fresh()->total_points,
+        ];
+    }
+
+    /**
+     * Toggle save/unsave for a business by a user.
+     * Save: +1 total_saves, +3 total_points
+     * Unsave: -1 total_saves, -3 total_points
+     */
+    public function toggleSave(Business $business, int $userId, ?string $ip = null, ?string $userAgent = null): array
+    {
+        $existing = BusinessInteraction::where('user_id', $userId)
+            ->where('business_id', $business->id)
+            ->where('action_type', 'save')
+            ->first();
+
+        if ($existing) {
+            $existing->delete();
+            $business->decrement('total_saves');
+            $business->decrement('total_points', 3);
+
+            return [
+                'is_saved' => false,
+                'total_saves' => max(0, $business->fresh()->total_saves),
+                'total_points' => max(0, $business->fresh()->total_points),
+            ];
+        }
+
+        BusinessInteraction::create([
+            'user_id'    => $userId,
+            'business_id'=> $business->id,
+            'action_type'=> 'save',
+            'ip'         => $ip,
+            'user_agent' => $userAgent,
+        ]);
+
+        $business->increment('total_saves');
+        $business->increment('total_points', 3);
+
+        return [
+            'is_saved' => true,
+            'total_saves' => $business->fresh()->total_saves,
+            'total_points' => $business->fresh()->total_points,
+        ];
+    }
+
+    /**
+     * Toggle share/unshare for a business by a user.
+     * Share: +1 total_shares, +5 total_points
+     * Unshare: -1 total_shares, -5 total_points
+     */
+    public function toggleShare(Business $business, int $userId, ?string $ip = null, ?string $userAgent = null): array
+    {
+        $existing = BusinessInteraction::where('user_id', $userId)
+            ->where('business_id', $business->id)
+            ->where('action_type', 'share')
+            ->first();
+
+        if ($existing) {
+            $existing->delete();
+            $business->decrement('total_shares');
+            $business->decrement('total_points', 5);
+
+            return [
+                'is_shared' => false,
+                'total_shares' => max(0, $business->fresh()->total_shares),
+                'total_points' => max(0, $business->fresh()->total_points),
+            ];
+        }
+
+        BusinessInteraction::create([
+            'user_id'    => $userId,
+            'business_id'=> $business->id,
+            'action_type'=> 'share',
+            'ip'         => $ip,
+            'user_agent' => $userAgent,
+        ]);
+
+        $business->increment('total_shares');
+        $business->increment('total_points', 5);
+
+        return [
+            'is_shared' => true,
+            'total_shares' => $business->fresh()->total_shares,
+            'total_points' => $business->fresh()->total_points,
+        ];
+    }
+
+    /**
+     * Get interaction state for the authenticated user.
+     */
+    public function getUserInteractionState(Business $business, int $userId): array
+    {
+        $interactions = BusinessInteraction::where('user_id', $userId)
+            ->where('business_id', $business->id)
+            ->pluck('action_type')
+            ->toArray();
+
+        return [
+            'is_clapped' => in_array('clap', $interactions),
+            'is_saved'   => in_array('save', $interactions),
+            'is_shared'  => in_array('share', $interactions),
+        ];
     }
 }
