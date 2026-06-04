@@ -32,7 +32,7 @@ enum CmsSection: string
     case ABOUT_JOIN = 'about_join';
     case ABOUT_NEWSLETTER = 'about_newsletter';
     case ABOUT_SPONSORS = 'about_sponsors';
-    
+
     // Services Page
     case SERVICES_HERO = 'services_hero';
     case SERVICES_OVERVIEW = 'services_overview';
@@ -53,7 +53,7 @@ enum CmsSection: string
     case ARTIST_SPOTLIGHT_JOIN = 'artist_spotlight_join';
     case ARTIST_SPOTLIGHT_INTERVIEW = 'artist_spotlight_interview';
     case ARTIST_SPOTLIGHT_WHY_EXISTS = 'artist_spotlight_why_exists';
-    
+
     // Business Spotlight Page
     case BUSINESS_SPOTLIGHT_HERO = 'business_spotlight_hero';
     case BUSINESS_SPOTLIGHT_VIDEO = 'business_spotlight_video';
@@ -88,4 +88,16 @@ enum CmsSection: string
     case SPONSORSHIP_PAGE_STEPS = 'sponsorship_page_steps';
     case SPONSORSHIP_PAGE_LEVELS_HEADER = 'sponsorship_page_levels_header';
     case SPONSORSHIP_PAGE_FOOTER = 'sponsorship_page_footer';
+
+    // ==================== Boss Beginnings Sections ====================
+    case BOSS_BEGINNINGS_HERO = 'boss_beginnings_hero';
+    case BOSS_BEGINNINGS_FEATURES = 'boss_beginnings_features';
+    case BOSS_BEGINNINGS_VIDEO_GALLERY = 'boss_beginnings_video_gallery';
+    case BOSS_BEGINNINGS_STEPS = 'boss_beginnings_steps';
+    case BOSS_BEGINNINGS_SECTION5 = 'boss_beginnings_section5';
+    case BOSS_BEGINNINGS_DYNAMIC = 'boss_beginnings_dynamic';
+
+    // Boss Beginnings Winner Chosen Sections
+    case BOSS_BEGINNINGS_WINNER_CHOSEN_SECTION1 = 'boss_beginnings_winner_chosen_section1';
+    case BOSS_BEGINNINGS_WINNER_CHOSEN_SECTION2 = 'boss_beginnings_winner_chosen_section2';
 }
