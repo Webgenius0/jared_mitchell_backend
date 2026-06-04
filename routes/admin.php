@@ -5,6 +5,7 @@ use App\Http\Controllers\Web\Admin\Auth\AdminProfileController;
 use App\Http\Controllers\Web\Admin\BusinessSpotlight\AdminBusinessSpotlightController;
 use App\Http\Controllers\Web\Admin\Cms\AboutCmsController;
 use App\Http\Controllers\Web\Admin\Cms\AdminArtistCategoryController;
+use App\Http\Controllers\Web\Admin\Business\AdminBusinessController;
 use App\Http\Controllers\Web\Admin\Cms\AdminBusinessCategoryController;
 use App\Http\Controllers\Web\Admin\Cms\ArtistSpotlightCmsController;
 use App\Http\Controllers\Web\Admin\Cms\BusinessSpotlightCmsController;
@@ -297,6 +298,19 @@ Route::prefix('events')->name('admin.events.')->group(function () {
     Route::put('/{event}', [EventController::class, 'update'])->name('update');
     Route::delete('/{event}', [EventController::class, 'destroy'])->name('destroy');
 });
+
+/*
+|--------------------------------------------------------------------------
+| Businesses Management
+|--------------------------------------------------------------------------
+*/
+Route::prefix('businesses')->name('admin.businesses.')->group(function () {
+    Route::get('/', [AdminBusinessController::class, 'index'])->name('index');
+    Route::get('/{business}', [AdminBusinessController::class, 'show'])->name('show');
+    Route::patch('/{business}/toggle-status', [AdminBusinessController::class, 'toggleStatus'])->name('toggle-status');
+    Route::delete('/{business}', [AdminBusinessController::class, 'destroy'])->name('destroy');
+});
+
 
 /*
 |--------------------------------------------------------------------------

@@ -84,7 +84,7 @@
                 {{-- Handle Business --}}
                 @canany(['manage users', 'manage roles', 'manage permissions'])
                     @php
-                        $userMgmtOpen = request()->routeIs('admin.users.*', 'admin.roles.*', 'admin.permissions.*', 'admin.round-sessions.*');
+                        $userMgmtOpen = request()->routeIs('admin.users.*', 'admin.roles.*', 'admin.permissions.*', 'admin.round-sessions.*', 'admin.businesses.*');
                     @endphp
 
                     <li class="nav-item">
@@ -97,6 +97,15 @@
 
                         <div class="collapse menu-dropdown {{ $userMgmtOpen ? 'show' : '' }}" id="sidebarUserManagement">
                             <ul class="nav nav-sm flex-column">
+                                @can('manage users')
+                                    <li class="nav-item">
+                                        <a href="{{ route('admin.businesses.index') }}"
+                                            class="nav-link {{ request()->routeIs('admin.businesses.*') ? 'active' : '' }}">
+                                            <i class="ri-store-2-line"></i> Businesses
+                                        </a>
+                                    </li>
+                                @endcan
+
                                 @can('manage users')
                                     <li class="nav-item">
                                         <a href="{{ route('admin.round-sessions.index') }}"
