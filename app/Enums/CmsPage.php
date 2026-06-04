@@ -13,4 +13,5 @@ enum CmsPage: string
     case EVENTS = 'events';
     case SHOP = 'shop';
     case SPONSORSHIP = 'sponsorship';
+    case BOSS_BEGINNINGS = 'boss_beginnings';
 }
