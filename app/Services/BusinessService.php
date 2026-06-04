@@ -62,7 +62,7 @@ class BusinessService
         $data['slug'] = $data['slug'] ?? Str::slug($data['business_name']);
 
         $business = Business::create([
-            'user_id'              => $data['user_id'],
+            'user_id' => auth('api')->user()->id,
             'business_category_id' => $data['business_category_id'],
             'owner_name'           => $data['owner_name'],
             'business_name'        => $data['business_name'],
