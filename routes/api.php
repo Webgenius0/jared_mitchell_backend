@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\Auth\UserProfileController;
 use App\Http\Controllers\Api\Auth\V2\ForgotPasswordController as V2ForgotPasswordController;
 use App\Http\Controllers\Api\Auth\V2\RegisterController as V2RegisterController;
 use App\Http\Controllers\Api\BusinessCategoryController;
+use App\Http\Controllers\Api\BusinessController;
 use App\Http\Controllers\Api\BusinessSpotlightController;
 use App\Http\Controllers\Api\Chat\ConversationController;
 use App\Http\Controllers\Api\Chat\MessageController;
@@ -100,6 +101,21 @@ Route::group(['prefix' => 'v1'], function ($router) {
 
     // Business category list
     Route::get('/business-categories', [BusinessCategoryController::class, 'index']);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Businesses — Admin CRUD and management
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('businesses')->group(function () {
+        Route::get('/', [BusinessController::class, 'index']); // List all
+        Route::post('/', [BusinessController::class, 'store']); // Create
+        Route::get('/{business}', [BusinessController::class, 'show']); // Show
+        Route::put('/{business}', [BusinessController::class, 'update']); // Update
+        Route::delete('/{business}', [BusinessController::class, 'destroy']); // Delete
+        Route::patch('/{business}/toggle-status', [BusinessController::class, 'toggleStatus']); // Toggle active/inactive
+        Route::patch('/{business}/terminate', [BusinessController::class, 'terminate']); // Terminate
+    });
 
     Route::prefix('artist-spotlight')->group(function () {
         Route::get('/', [ArtistSpotlightController::class, 'index']); // Submit complete form
