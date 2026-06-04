@@ -102,8 +102,8 @@ Route::group(['prefix' => 'v1'], function ($router) {
     Route::get('/business-categories', [BusinessCategoryController::class, 'index']);
 
     Route::prefix('artist-spotlight')->group(function () {
-        Route::get('/', [ArtistSpotlightController::class, 'index']);     // Submit complete form
-        Route::post('/', [ArtistSpotlightController::class, 'store']);     // Submit complete form
+        Route::get('/', [ArtistSpotlightController::class, 'index']); // Submit complete form
+        Route::post('/', [ArtistSpotlightController::class, 'store']); // Submit complete form
         Route::post('/draft', [ArtistSpotlightController::class, 'saveDraft']); // Save draft (partial)
         Route::get('/draft', [ArtistSpotlightController::class, 'getDraft']);  // Retrieve draft by email
     });
