@@ -16,6 +16,7 @@ use App\Http\Controllers\Web\Admin\Cms\SpotlightLadderCmsController;
 use App\Http\Controllers\Web\Admin\Cms\EventCmsController;
 use App\Http\Controllers\Web\Admin\Cms\ShopCmsController;
 use App\Http\Controllers\Web\Admin\Cms\SponsorshipCmsController;
+use App\Http\Controllers\Web\Admin\Cms\BossBeginningsCmsController;
 use App\Http\Controllers\Web\Admin\Contact\AdminChattingController;
 use App\Http\Controllers\Web\Admin\Contact\AdminMailingController;
 use App\Http\Controllers\Web\Admin\ContactController as WebContactController;
@@ -174,6 +175,17 @@ Route::prefix('cms/sponsorship')->name('admin.cms.sponsorship.')->group(function
     Route::post('/steps', [SponsorshipCmsController::class, 'updateSteps'])->name('update.steps');
     Route::post('/levels-header', [SponsorshipCmsController::class, 'updateLevelsHeader'])->name('update.levels_header');
     Route::post('/footer', [SponsorshipCmsController::class, 'updateFooter'])->name('update.footer');
+});
+// Boss Beginnings CMS Routes
+// Boss Beginnings CMS Routes
+Route::prefix('cms/boss-beginnings')->name('admin.cms.boss-beginnings.')->group(function () {
+    Route::get('/', [BossBeginningsCmsController::class, 'index'])->name('index');
+    Route::post('/hero', [BossBeginningsCmsController::class, 'updateHero'])->name('update.hero');
+    Route::post('/features', [BossBeginningsCmsController::class, 'updateFeatures'])->name('update.features');
+    Route::post('/video-gallery', [BossBeginningsCmsController::class, 'updateVideoGallery'])->name('update.video_gallery');
+    Route::post('/steps', [BossBeginningsCmsController::class, 'updateSteps'])->name('update.steps');
+    Route::post('/section5', [BossBeginningsCmsController::class, 'updateSection5'])->name('update.section5');
+    Route::post('/dynamic', [BossBeginningsCmsController::class, 'updateDynamicSection'])->name('update.dynamic');
 });
 
 
