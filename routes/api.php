@@ -22,6 +22,8 @@ use App\Http\Controllers\Api\Cms\CmsHomePageController;
 use App\Http\Controllers\Api\Cms\CmsPricingController;
 use App\Http\Controllers\Api\Cms\CmsServiceController;
 use App\Http\Controllers\Api\Cms\CmsSpotlightLadderController;
+use App\Http\Controllers\Api\Cms\BossBeginingsController;
+use App\Http\Controllers\Api\Cms\BossWinnerChosenController;
 use App\Http\Controllers\Api\Cms\FAQController as ApiFAQController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\EventController;
@@ -82,6 +84,8 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::get('/artist-spotlight', [CmsArtistSpotlightController::class, 'index']); // Artist spotlight page CMS
             Route::get('/business-spotlight', [CmsBusinessSpotlightController::class, 'index']); // Business spotlight page CMS
             Route::get('/spotlight-ladder', [CmsSpotlightLadderController::class, 'index']); // Spotlight ladder page CMS
+            Route::get('/boss-beginnings', [BossBeginingsController::class, 'index']); // Boss Beginnings page CMS
+            Route::get('/boss-beginnings-winner',[BossWinnerChosenController::class, 'index']); // Boss Beginnings Winner Chosen page CMS
             Route::get('/faq', [ApiFAQController::class, 'index']); // Active FAQs
         });
 
