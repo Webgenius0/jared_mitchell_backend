@@ -20,6 +20,7 @@ use App\Http\Controllers\Web\Admin\Contact\AdminChattingController;
 use App\Http\Controllers\Web\Admin\Contact\AdminMailingController;
 use App\Http\Controllers\Web\Admin\ContactController as WebContactController;
 use App\Http\Controllers\Web\Admin\NewsletterController as WebNewsletterController;
+use App\Http\Controllers\Web\Admin\Round\RoundSessionController;
 use App\Http\Controllers\Web\Admin\Dashboard\AdminDashboardController;
 use App\Http\Controllers\Web\Admin\Event\EventController;
 use Illuminate\Support\Facades\Route;
@@ -283,6 +284,20 @@ Route::prefix('events')->name('admin.events.')->group(function () {
     Route::get('/{event}/edit', [EventController::class, 'edit'])->name('edit');
     Route::put('/{event}', [EventController::class, 'update'])->name('update');
     Route::delete('/{event}', [EventController::class, 'destroy'])->name('destroy');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Round Sessions
+|--------------------------------------------------------------------------
+*/
+Route::prefix('round-sessions')->name('admin.round-sessions.')->group(function () {
+    Route::get('/', [RoundSessionController::class, 'index'])->name('index');
+    Route::get('/create', [RoundSessionController::class, 'create'])->name('create');
+    Route::post('/', [RoundSessionController::class, 'store'])->name('store');
+    Route::get('/{roundSession}/edit', [RoundSessionController::class, 'edit'])->name('edit');
+    Route::put('/{roundSession}', [RoundSessionController::class, 'update'])->name('update');
+    Route::delete('/{roundSession}', [RoundSessionController::class, 'destroy'])->name('destroy');
 });
 
 /*

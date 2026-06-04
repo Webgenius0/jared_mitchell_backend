@@ -80,6 +80,63 @@
                     </a>
                 </li>
 
+
+                {{-- Handle Business --}}
+                @canany(['manage users', 'manage roles', 'manage permissions'])
+                    @php
+                        $userMgmtOpen = request()->routeIs('admin.users.*', 'admin.roles.*', 'admin.permissions.*', 'admin.round-sessions.*');
+                    @endphp
+
+                    <li class="nav-item">
+                        <a class="nav-link menu-link {{ $userMgmtOpen ? 'active' : '' }}" href="#sidebarUserManagement"
+                            data-bs-toggle="collapse" role="button" aria-expanded="{{ $userMgmtOpen ? 'true' : 'false' }}"
+                            aria-controls="sidebarUserManagement">
+                            <i class="ri-briefcase-line"></i>
+                            <span>Business Management</span>
+                        </a>
+
+                        <div class="collapse menu-dropdown {{ $userMgmtOpen ? 'show' : '' }}" id="sidebarUserManagement">
+                            <ul class="nav nav-sm flex-column">
+                                @can('manage users')
+                                    <li class="nav-item">
+                                        <a href="{{ route('admin.round-sessions.index') }}"
+                                            class="nav-link {{ request()->routeIs('admin.round-sessions.*') ? 'active' : '' }}">
+                                            <i class="ri-scissors-2-line"></i> Rounds
+                                        </a>
+                                    </li>
+                                @endcan
+
+                                @canany(['manage roles', 'manage users'])
+                                    <li class="nav-item">
+                                        <a href="{{ route('admin.roles.index') }}"
+                                            class="nav-link {{ request()->routeIs('admin.roles.*') ? 'active' : '' }}">
+                                            <i class="ri-trophy-line"></i> Contests
+                                        </a>
+                                    </li>
+                                @endcanany
+
+                                @canany(['manage permissions', 'manage users'])
+                                    <li class="nav-item">
+                                        <a href="{{ route('admin.permissions.index') }}"
+                                            class="nav-link {{ request()->routeIs('admin.permissions.*') ? 'active' : '' }}">
+                                            <i class="ri-key-line"></i> Participants
+                                        </a>
+                                    </li>
+                                @endcanany
+
+                                @canany(['manage permissions', 'manage users'])
+                                    <li class="nav-item">
+                                        <a href="{{ route('admin.permissions.index') }}"
+                                            class="nav-link {{ request()->routeIs('admin.permissions.*') ? 'active' : '' }}">
+                                            <i class="ri-key-line"></i> Winners
+                                        </a>
+                                    </li>
+                                @endcanany
+                            </ul>
+                        </div>
+                    </li>
+                @endcanany
+
                 {{-- CMS --}}
                 <li class="nav-item">
 
@@ -158,7 +215,10 @@
 
                 {{-- Manage Tags --}}
                 @php
-                    $manageTagsOpen = request()->routeIs('admin.artist-categories.index', 'admin.business-categories.index');
+                    $manageTagsOpen = request()->routeIs(
+                        'admin.artist-categories.index',
+                        'admin.business-categories.index',
+                    );
                 @endphp
 
                 <li class="nav-item">
@@ -221,8 +281,15 @@
                     </a>
                 </li>
 
+                {{-- ── Settings group ───────────────────────────────────── --}}
+                <li class="menu-title">
+                    <i class="ri-more-fill"></i>
+                    <span>Settings</span>
+                </li>
+
+
                 {{-- Contact --}}
-                @php
+                {{-- @php
                     // System Settings dropdown is open when any child route is active
                     $contactOpen = request()->routeIs('admin.chat.index', 'admin.mail.index');
                 @endphp
@@ -252,7 +319,7 @@
                             </li>
                         </ul>
                     </div>
-                </li>
+                </li> --}}
                 {{-- ── User Management group ────────────────────────────── --}}
                 @canany(['manage users', 'manage roles', 'manage permissions'])
                     <li class="menu-title">
