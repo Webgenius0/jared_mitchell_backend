@@ -53,7 +53,7 @@ class EventController extends Controller
     public function index(Request $request)
     {
         $query = Event::where('status', 'published')
-            ->with(['ticketTiers' => function($q) {
+            ->with(['ticketTiers' => function ($q) {
                 $q->where('is_active', true)->orderBy('sort_order');
             }])
             ->withCount(['likers', 'bookmarkers', 'shares']);
@@ -99,7 +99,7 @@ class EventController extends Controller
     {
         $event = Event::where('slug', $slug)
             ->where('status', 'published')
-            ->with(['ticketTiers' => function($q) {
+            ->with(['ticketTiers' => function ($q) {
                 $q->where('is_active', true)->orderBy('sort_order');
             }])
             ->withCount(['likers', 'bookmarkers', 'shares'])
@@ -263,5 +263,33 @@ class EventController extends Controller
         ]);
 
         return $this->success('Event share recorded successfully.');
+    }
+
+    public function upcomingEvents()
+    {
+        $events = Event::where('status', 'published')
+            ->where('starts_at', '>', now())
+            ->orderBy('starts_at')
+            ->take(15)
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $events,
+        ]);
+    }
+
+    public function pastEvents()
+    {
+        $events = Event::where('status', 'published')
+            ->where('starts_at', '<', now())
+            ->orderBy('starts_at', 'desc')
+            ->take(15)
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $events,
+        ]);
     }
 }

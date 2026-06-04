@@ -114,27 +114,11 @@ Route::group(['prefix' => 'v1'], function ($router) {
     |--------------------------------------------------------------------------
     */
     Route::prefix('events')->group(function () {
-        Route::get('/', [EventController::class, 'index']); // List all
-        Route::get('/{slug}', [EventController::class, 'show'])->middleware('auth:api'); // Detail
-        Route::get('/{slug}/attendees', [EventController::class, 'attendees'])->middleware('auth:api'); // Attendees list
-        Route::post('/register', [EventController::class, 'register'])->middleware('auth:api'); // Register
-    });
-
-    // Contact Us
-    Route::post('/contact', [ContactController::class, 'store']);
-
-    // Newsletter
-    Route::post('/newsletter', [NewsletterController::class, 'store']);
-
-    /*
-    |--------------------------------------------------------------------------
-    | Artists — Public listing and profile
-    |--------------------------------------------------------------------------
-    */
-    Route::prefix('artists')->group(function () {
-        Route::get('/', [ArtistController::class, 'index']);    // List all artists
-        Route::get('/{id}', [ArtistController::class, 'show']); // Artist detail
-        Route::post('/{id}/share', [ArtistController::class, 'recordShare']); // Public share (optional auth)
+        Route::get('/',            [\App\Http\Controllers\Api\EventController::class, 'index']);    // List all
+        Route::get('/{slug}',      [\App\Http\Controllers\Api\EventController::class, 'show']);     // Detail
+        Route::post('/register',   [\App\Http\Controllers\Api\EventController::class, 'register']); // Register
+        Route::get('/0/upcoming',    [\App\Http\Controllers\Api\EventController::class, 'upcomingEvents']); // Upcoming
+        Route::get('/0/past',        [\App\Http\Controllers\Api\EventController::class, 'pastEvents']); // Past
     });
 
     /*
