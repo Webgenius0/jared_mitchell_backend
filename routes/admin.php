@@ -5,6 +5,7 @@ use App\Http\Controllers\Web\Admin\Auth\AdminProfileController;
 use App\Http\Controllers\Web\Admin\BusinessSpotlight\AdminBusinessSpotlightController;
 use App\Http\Controllers\Web\Admin\Cms\AboutCmsController;
 use App\Http\Controllers\Web\Admin\Cms\AdminArtistCategoryController;
+use App\Http\Controllers\Web\Admin\Cms\AdminBusinessCategoryController;
 use App\Http\Controllers\Web\Admin\Cms\ArtistSpotlightCmsController;
 use App\Http\Controllers\Web\Admin\Cms\BusinessSpotlightCmsController;
 use App\Http\Controllers\Web\Admin\Cms\CmsHomePageController;
@@ -20,6 +21,7 @@ use App\Http\Controllers\Web\Admin\Contact\AdminChattingController;
 use App\Http\Controllers\Web\Admin\Contact\AdminMailingController;
 use App\Http\Controllers\Web\Admin\ContactController as WebContactController;
 use App\Http\Controllers\Web\Admin\NewsletterController as WebNewsletterController;
+use App\Http\Controllers\Web\Admin\Round\RoundSessionController;
 use App\Http\Controllers\Web\Admin\Dashboard\AdminDashboardController;
 use App\Http\Controllers\Web\Admin\Event\EventController;
 use Illuminate\Support\Facades\Route;
@@ -29,7 +31,7 @@ Route::get('/', [AdminDashboardController::class, 'index'])->name('show.admin.da
 /*
 |--------------------------------------------------------------------------
 | Profile
-|--------------------------------------------------------------------------
+|-------------------------------------------------------------------------
 */
 Route::prefix('profile')->name('admin.profile.')->group(function () {
     Route::get('/', [AdminProfileController::class, 'index'])->name('index'); // Show profile page
@@ -269,6 +271,19 @@ Route::prefix('artist-categories')->name('admin.artist-categories.')->group(func
 
 /*
 |--------------------------------------------------------------------------
+| Business Categories
+|--------------------------------------------------------------------------
+*/
+Route::prefix('business-categories')->name('admin.business-categories.')->group(function () {
+    Route::get('/', [AdminBusinessCategoryController::class, 'index'])->name('index');
+    Route::get('/data', [AdminBusinessCategoryController::class, 'getData'])->name('data');
+    Route::post('/', [AdminBusinessCategoryController::class, 'store'])->name('store');
+    Route::put('/{category}', [AdminBusinessCategoryController::class, 'update'])->name('update');
+    Route::delete('/{category}', [AdminBusinessCategoryController::class, 'destroy'])->name('destroy');
+});
+
+/*
+|--------------------------------------------------------------------------
 | Events Management
 |--------------------------------------------------------------------------
 */
@@ -281,6 +296,20 @@ Route::prefix('events')->name('admin.events.')->group(function () {
     Route::get('/{event}/edit', [EventController::class, 'edit'])->name('edit');
     Route::put('/{event}', [EventController::class, 'update'])->name('update');
     Route::delete('/{event}', [EventController::class, 'destroy'])->name('destroy');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Round Sessions
+|--------------------------------------------------------------------------
+*/
+Route::prefix('round-sessions')->name('admin.round-sessions.')->group(function () {
+    Route::get('/', [RoundSessionController::class, 'index'])->name('index');
+    Route::get('/create', [RoundSessionController::class, 'create'])->name('create');
+    Route::post('/', [RoundSessionController::class, 'store'])->name('store');
+    Route::get('/{roundSession}/edit', [RoundSessionController::class, 'edit'])->name('edit');
+    Route::put('/{roundSession}', [RoundSessionController::class, 'update'])->name('update');
+    Route::delete('/{roundSession}', [RoundSessionController::class, 'destroy'])->name('destroy');
 });
 
 /*
