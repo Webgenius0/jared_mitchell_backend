@@ -29,7 +29,7 @@ Route::get('/', [AdminDashboardController::class, 'index'])->name('show.admin.da
 /*
 |--------------------------------------------------------------------------
 | Profile
-|--------------------------------------------------------------------------
+|-------------------------------------------------------------------------
 */
 Route::prefix('profile')->name('admin.profile.')->group(function () {
     Route::get('/', [AdminProfileController::class, 'index'])->name('index'); // Show profile page
