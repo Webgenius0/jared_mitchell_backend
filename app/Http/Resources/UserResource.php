@@ -31,6 +31,11 @@ class UserResource extends JsonResource
                 'name' => $this->artistCategory->name,
                 'slug' => $this->artistCategory->slug,
             ] : null,
+            'business_category' => $this->businessCategory ? [
+                'id' => $this->businessCategory->id,
+                'name' => $this->businessCategory->name,
+                'slug' => $this->businessCategory->slug,
+            ] : null,
         ];
     }
 }

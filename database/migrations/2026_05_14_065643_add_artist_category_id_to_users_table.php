@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             $table->foreignId('artist_category_id')->nullable()->constrained('artist_categories')->onDelete('set null');
+            $table->unsignedBigInteger('business_category_id')->nullable();
         });
     }
 
@@ -23,7 +24,7 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             $table->dropForeign(['artist_category_id']);
-            $table->dropColumn('artist_category_id');
+            $table->dropColumn(['artist_category_id', 'business_category_id']);
         });
     }
 };

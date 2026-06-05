@@ -13,6 +13,7 @@ class Profile extends Model
         'is_online'      => 'boolean',
         'last_active_at' => 'datetime',
         'stripe_onboarded_at' => 'datetime',
+        'social_links'   => 'array',
     ];
 
     /*

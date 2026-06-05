@@ -7,6 +7,10 @@ use App\Http\Controllers\Api\Auth\ForgotPasswordController;
 use App\Http\Controllers\Api\Auth\LoginController;
 use App\Http\Controllers\Api\Auth\RegisterController;
 use App\Http\Controllers\Api\Auth\UserProfileController;
+use App\Http\Controllers\Api\Auth\V1\ArtistProfileController;
+use App\Http\Controllers\Api\Auth\V1\MemberProfileController;
+use App\Http\Controllers\Api\Auth\V1\SponsorProfileController;
+use App\Http\Controllers\Api\Auth\V1\BossProfileController;
 use App\Http\Controllers\Api\Auth\V2\ForgotPasswordController as V2ForgotPasswordController;
 use App\Http\Controllers\Api\Auth\V2\RegisterController as V2RegisterController;
 use App\Http\Controllers\Api\BusinessCategoryController;
@@ -159,6 +163,27 @@ Route::group(['prefix' => 'v1'], function ($router) {
         Route::post('/update-avatar', [UserProfileController::class, 'updateAvatar']); // DONE: update avatar
         Route::delete('/delete-profile', [UserProfileController::class, 'destroy']); // DONE: delete profile
         Route::post('/change-password', [UserProfileController::class, 'changePassword']); // DONE: change password
+
+        // Role-based Profile Routes
+        Route::middleware('role:artist,api')->prefix('artist')->group(function () {
+            Route::post('/profile/store', [ArtistProfileController::class, 'store']);
+            Route::post('/profile/update', [ArtistProfileController::class, 'update']);
+        });
+
+        Route::middleware('role:member,api')->prefix('member')->group(function () {
+            Route::post('/profile/store', [MemberProfileController::class, 'store']);
+            Route::post('/profile/update', [MemberProfileController::class, 'update']);
+        });
+
+        Route::middleware('role:sponsor,api')->prefix('sponsor')->group(function () {
+            Route::post('/profile/store', [SponsorProfileController::class, 'store']);
+            Route::post('/profile/update', [SponsorProfileController::class, 'update']);
+        });
+
+        Route::middleware('role:boss,api')->prefix('boss')->group(function () {
+            Route::post('/profile/store', [BossProfileController::class, 'store']);
+            Route::post('/profile/update', [BossProfileController::class, 'update']);
+        });
 
         // Artist interactions
         Route::prefix('artists')->group(function () {

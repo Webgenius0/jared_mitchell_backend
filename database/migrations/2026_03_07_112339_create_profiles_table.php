@@ -28,6 +28,11 @@ return new class extends Migration
             $table->string('stripe_account_id')->nullable();
             $table->timestamp('stripe_onboarded_at')->nullable();
 
+            // Custom Profile Columns
+            $table->text('business_description')->nullable();
+            $table->string('website_link')->nullable();
+            $table->json('social_links')->nullable();
+
             // last activity tracking
             $table->timestamp('last_active_at')->nullable();
             $table->boolean('is_online')->default(false);
