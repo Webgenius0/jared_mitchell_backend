@@ -44,6 +44,8 @@
                         @include('web.admin.cms.content.partials._sponsorship')
                     @elseif($currentPage === 'boss_beginnings')
                         @include('web.admin.cms.content.partials._boss_beginnings')
+                    @elseif($currentPage === 'boss_beginnings_winner_chosen')
+                        @include('web.admin.cms.content.partials._boss_beginnings_winner_chosen')
                     @else
                         <div class="alert alert-info">
                             Please select a page from the left sidebar to manage its content.
