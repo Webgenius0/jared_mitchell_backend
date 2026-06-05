@@ -1,0 +1,170 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreContestApplicationRequest;
+use App\Models\Business;
+use App\Models\ContestApplication;
+use App\Models\RoundSession;
+use App\Services\ContestApplicationService;
+use App\Traits\ApiResponse;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+
+class ContestApplicationController extends Controller
+{
+    use ApiResponse;
+
+    public function __construct(
+        protected ContestApplicationService $contestApplicationService
+    ) {}
+
+    /**
+     * POST /api/v1/contest-applications
+     *
+     * Apply a business to a round session.
+     */
+    public function store(StoreContestApplicationRequest $request): JsonResponse
+    {
+        $business = Business::findOrFail($request->business_id);
+        $roundSession = RoundSession::findOrFail($request->round_session_id);
+
+        $result = $this->contestApplicationService->apply($business, $roundSession);
+
+        if (!$result['success']) {
+            return $this->error(null, $result['message'], 422);
+        }
+
+        return $this->success(
+            'Contest application submitted successfully.',
+            [
+                'id'               => $result['application']->id,
+                'business_id'      => $result['application']->business_id,
+                'round_session_id' => $result['application']->round_session_id,
+                'status'           => $result['application']->status,
+                'created_at'       => $result['application']->created_at,
+            ],
+            201
+        );
+    }
+
+    /**
+     * POST /api/v1/contest-applications/{application}/withdraw
+     *
+     * Withdraw a contest application.
+     */
+    public function withdraw(ContestApplication $application): JsonResponse
+    {
+        $result = $this->contestApplicationService->withdraw($application);
+
+        if (!$result['success']) {
+            return $this->error(null, $result['message'], 422);
+        }
+
+        return $this->success($result['message'] ?? 'Contest application withdrawn successfully.');
+    }
+
+    /**
+     * GET /api/v1/contest-applications/my
+     *
+     * List the authenticated user's contest applications.
+     */
+    public function myApplications(): JsonResponse
+    {
+        $applications = $this->contestApplicationService->myApplications();
+
+        return $this->success(
+            'My contest applications retrieved successfully.',
+            ['applications' => $applications]
+        );
+    }
+
+    /**
+     * GET /api/v1/contest-applications/{application}
+     *
+     * Show a single contest application.
+     */
+    public function show(ContestApplication $application): JsonResponse
+    {
+        $application = $this->contestApplicationService->show($application);
+
+        return $this->success(
+            'Contest application retrieved successfully.',
+            $application
+        );
+    }
+
+    /**
+     * GET /api/v1/contest-applications/session/{roundSession}
+     *
+     * List all contest applications for a round session (admin).
+     */
+    public function listBySession(RoundSession $roundSession): JsonResponse
+    {
+        $applications = $this->contestApplicationService->listBySession($roundSession);
+
+        return $this->success(
+            'Contest applications retrieved successfully.',
+            [
+                'applications' => $applications->items(),
+                'pagination'   => [
+                    'current_page' => $applications->currentPage(),
+                    'per_page'     => $applications->perPage(),
+                    'total'        => $applications->total(),
+                    'last_page'    => $applications->lastPage(),
+                ],
+            ]
+        );
+    }
+
+    /**
+     * PATCH /api/v1/contest-applications/{application}/approve
+     *
+     * Approve a contest application (admin).
+     */
+    public function approve(ContestApplication $application): JsonResponse
+    {
+        $result = $this->contestApplicationService->approve($application);
+
+        if (!$result['success']) {
+            return $this->error(null, $result['message'], 422);
+        }
+
+        return $this->success(
+            'Contest application approved successfully.',
+            [
+                'id'          => $result['application']->id,
+                'status'      => $result['application']->status,
+                'approved_at' => $result['application']->approved_at,
+                'approved_by' => $result['application']->approved_by,
+            ]
+        );
+    }
+
+    /**
+     * PATCH /api/v1/contest-applications/{application}/reject
+     *
+     * Reject a contest application (admin).
+     */
+    public function reject(Request $request, ContestApplication $application): JsonResponse
+    {
+        $request->validate([
+            'admin_note' => 'nullable|string|max:1000',
+        ]);
+
+        $result = $this->contestApplicationService->reject(
+            $application,
+            $request->input('admin_note')
+        );
+
+        return $this->success(
+            'Contest application rejected successfully.',
+            [
+                'id'         => $result['application']->id,
+                'status'     => $result['application']->status,
+                'admin_note' => $result['application']->admin_note,
+            ]
+        );
+    }
+}

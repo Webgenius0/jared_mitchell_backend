@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\Auth\V2\RegisterController as V2RegisterController;
 use App\Http\Controllers\Api\BusinessCategoryController;
 use App\Http\Controllers\Api\BusinessController;
 use App\Http\Controllers\Api\BusinessSpotlightController;
+use App\Http\Controllers\Api\ContestApplicationController;
 use App\Http\Controllers\Api\Chat\ConversationController;
 use App\Http\Controllers\Api\Chat\MessageController;
 use App\Http\Controllers\Api\Chat\TypingController;
@@ -187,10 +188,10 @@ Route::group(['prefix' => 'v1'], function ($router) {
 
         /*
         |--------------------------------------------------------------------------
-        | Businesses — management
+        | Businesses — management (protected by boss role)
         |--------------------------------------------------------------------------
         */
-        Route::prefix('businesses')->group(function () {
+        Route::middleware('role:boss,api')->prefix('businesses')->group(function () {
             Route::get('/list', [BusinessController::class, 'index']); // List all
             Route::post('/store', [BusinessController::class, 'store']); // Create
             Route::get('/details/{business}', [BusinessController::class, 'show']); // Show
@@ -206,6 +207,24 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::post('/{business}/save', [BusinessController::class, 'toggleSave']);
             Route::post('/{business}/share', [BusinessController::class, 'toggleShare']);
             Route::get('/{business}/interactions', [BusinessController::class, 'userInteractions']);
+        });
+
+        // Active round session
+        Route::get('/active-round-session', [ContestApplicationController::class, 'activeRoundSession']);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Contest Applications (protected by boss role)
+        |--------------------------------------------------------------------------
+        */
+        Route::middleware('role:boss,api')->prefix('contest-applications')->group(function () {
+            Route::post('/', [ContestApplicationController::class, 'store']); // Apply to contest
+            Route::get('/my', [ContestApplicationController::class, 'myApplications']); // My applications
+            Route::get('/session/{roundSession}', [ContestApplicationController::class, 'listBySession']); // List by session (admin)
+            Route::get('/{application}', [ContestApplicationController::class, 'show']); // Show application
+            Route::post('/{application}/withdraw', [ContestApplicationController::class, 'withdraw']); // Withdraw application
+            Route::patch('/{application}/approve', [ContestApplicationController::class, 'approve']); // Approve (admin)
+            Route::patch('/{application}/reject', [ContestApplicationController::class, 'reject']); // Reject (admin)
         });
     });
 

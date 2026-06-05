@@ -30,6 +30,11 @@ class RoundSession extends Model
         return $this->hasMany(Round::class);
     }
 
+    public function contestApplications(): HasMany
+    {
+        return $this->hasMany(ContestApplication::class);
+    }
+
     protected static function boot()
     {
         parent::boot();
