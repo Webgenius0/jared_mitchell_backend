@@ -4,6 +4,7 @@ namespace App\Http\Resources\Cms;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class CmsContentResource extends JsonResource
 {
@@ -21,7 +22,14 @@ class CmsContentResource extends JsonResource
             'description' => $this->description,
             'image' => $this->image,
             'bg' => $this->bg,
-            'video' => $this->video ? (filter_var($this->video, FILTER_VALIDATE_URL) ? $this->video : url($this->video)) : null,
+            // 'video' => $this->video ? (filter_var($this->video, FILTER_VALIDATE_URL) ? $this->video : url($this->video)) : null,
+            'video' => $this->video
+                ? (
+                    filter_var($this->video, FILTER_VALIDATE_URL)
+                    ? $this->video
+                    : url(Storage::url($this->video))
+                )
+                : null,
             'metadata' => $this->formatMetadata($this->metadata),
         ];
     }
