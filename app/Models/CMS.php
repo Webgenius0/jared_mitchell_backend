@@ -2,7 +2,10 @@
 
 namespace App\Models;
 
+use App\Enums\CmsPage;
+use App\Enums\CmsSection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class CMS extends Model
 {
@@ -10,8 +13,8 @@ class CMS extends Model
 
     protected $casts = [
         'metadata' => 'array',
-        'page' => \App\Enums\CmsPage::class,
-        'section' => \App\Enums\CmsSection::class,
+        'page' => CmsPage::class,
+        'section' => CmsSection::class,
     ];
 
     public function getImageAttribute($value): string | null
@@ -22,7 +25,7 @@ class CMS extends Model
         // Check if the request is an API request
         if (request()->is('api/*') && !empty($value)) {
             // Return the full URL for API requests
-            return url($value);
+            return url(Storage::url($value));
         }
 
         // Return only the path for web requests
@@ -37,7 +40,7 @@ class CMS extends Model
         // Check if the request is an API request
         if (request()->is('api/*') && !empty($value)) {
             // Return the full URL for API requests
-            return url($value);
+            return url(Storage::url($value));
         }
 
         // Return only the path for web requests
