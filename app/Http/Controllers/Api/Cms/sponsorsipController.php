@@ -11,12 +11,12 @@ use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class sponsorsipController extends Controller
+class SponsorsipController extends Controller
 {
     use ApiResponse;
 
     /**
-     * GET /api/v1/cms/sponsorsip
+     * GET /api/v1/cms/sponsorsip  
      *
      * Returns all CMS content for the sponsorship page, keyed by section.
      */

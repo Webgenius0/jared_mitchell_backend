@@ -26,7 +26,7 @@ class FileHandle
             'public'
         );
 
-        return $path; // ex: uploads/avatars/abc123.png
+          return 'storage/' . $path; // ex: uploads/avatars/abc123.png
     }
 
     /**
