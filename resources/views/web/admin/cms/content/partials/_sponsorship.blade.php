@@ -1,5 +1,5 @@
 <div class="accordion custom-accordionwithicon custom-accordion-border accordion-border-box" id="sponsorshipAccordion">
-    
+
     {{-- Hero Section --}}
     @php $hero = $cmsData->get('sponsorship_page_hero'); @endphp
     <div class="accordion-item card mb-3">
@@ -23,9 +23,9 @@
                         <div class="col-md-12">
                             <label class="form-label">Background Image</label>
                             <input type="file" name="bg_image" class="form-control" accept="image/*">
-                            @if($hero?->image)
+                            @if($hero?->bg)
                                 <div class="mt-2">
-                                    <img src="{{ asset('storage/' . $hero->image) }}" alt="Hero Background" class="rounded border" style="max-height: 150px;">
+                                    <img src="{{ asset('storage/' . $hero->bg) }}" alt="Hero Background" class="rounded border" style="max-height: 150px;">
                                 </div>
                             @endif
                         </div>
@@ -77,8 +77,8 @@
     </div>
 
     {{-- Why Section --}}
-    @php 
-        $why = $cmsData->get('sponsorship_page_why'); 
+    @php
+        $why = $cmsData->get('sponsorship_page_why');
         $meta = $why?->metadata ?? [];
     @endphp
     <div class="accordion-item card mb-3">
@@ -296,7 +296,7 @@ $(function() {
         const $btn = $('#saveWhyBtn');
         const originalText = $btn.html();
         $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
-        
+
         const formData = new FormData(this);
         const data = {};
         formData.forEach((value, key) => {
@@ -334,7 +334,7 @@ $(function() {
         const $btn = $('#saveStepsBtn');
         const originalText = $btn.html();
         $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
-        
+
         const formData = new FormData(this);
         const data = {};
         formData.forEach((value, key) => {

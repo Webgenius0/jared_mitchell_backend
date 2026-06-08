@@ -58,10 +58,10 @@ class SponsorshipCmsController extends Controller
         $cms->sub_title = $request->sub_title;
 
         if ($request->hasFile('bg_image')) {
-            if ($cms->image && Str::startsWith($cms->image, 'uploads/')) {
-                FileHandle::fileDelete($cms->image);
+            if ($cms->bg && Str::startsWith($cms->bg, 'uploads/')) {
+                FileHandle::fileDelete($cms->bg);
             }
-            $cms->image = FileHandle::fileUpload($request->file('bg_image'), 'cms/sponsorship');
+            $cms->bg = FileHandle::fileUpload($request->file('bg_image'), 'cms/sponsorship');
         }
 
         $cms->save();

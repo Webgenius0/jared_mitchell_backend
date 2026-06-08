@@ -60,10 +60,10 @@ class ShopCmsController extends Controller
         $cms->description = $request->description;
 
         if ($request->hasFile('bg_image')) {
-            if ($cms->image && Str::startsWith($cms->image, 'uploads/')) {
-                FileHandle::fileDelete($cms->image);
+            if ($cms->bg && Str::startsWith($cms->bg, 'uploads/')) {
+                FileHandle::fileDelete($cms->bg);
             }
-            $cms->image = FileHandle::fileUpload($request->file('bg_image'), 'cms/shop');
+            $cms->bg = FileHandle::fileUpload($request->file('bg_image'), 'cms/shop');
         }
 
         $cms->save();

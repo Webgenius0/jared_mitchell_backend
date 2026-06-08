@@ -1,5 +1,5 @@
 <div class="accordion custom-accordionwithicon custom-accordion-border accordion-border-box" id="shopAccordion">
-    
+
     {{-- Hero Section --}}
     @php $hero = $cmsData->get('shop_page_hero'); @endphp
     <div class="accordion-item card mb-3">
@@ -27,9 +27,9 @@
                         <div class="col-md-12">
                             <label class="form-label">Background Image</label>
                             <input type="file" name="bg_image" class="form-control" accept="image/*">
-                            @if($hero?->image)
+                            @if($hero?->bg)
                                 <div class="mt-2">
-                                    <img src="{{ asset('storage/' . $hero->image) }}" alt="Hero Background" class="rounded border" style="max-height: 150px;">
+                                    <img src="{{ asset('storage/' . $hero->bg) }}" alt="Hero Background" class="rounded border" style="max-height: 150px;">
                                 </div>
                             @endif
                         </div>
@@ -106,7 +106,7 @@
                             <label class="form-label">Section Sub-title</label>
                             <textarea name="sub_title" class="form-control" rows="2" placeholder="e.g. Your purchase directly funds...">{{ $support?->sub_title }}</textarea>
                         </div>
-                        
+
                         <hr>
                         <h6>Items (4 items)</h6>
                         @for($i = 0; $i < 4; $i++)
@@ -155,7 +155,7 @@
                             <label class="form-label">Bottom Text</label>
                             <input type="text" name="bottom_text" class="form-control" value="{{ $footer?->sub_title }}" placeholder="e.g. Powered by OSI. Built for the culture.">
                         </div>
-                        
+
                         <hr>
                         <h6>Items (4 items)</h6>
                         @for($i = 0; $i < 4; $i++)
