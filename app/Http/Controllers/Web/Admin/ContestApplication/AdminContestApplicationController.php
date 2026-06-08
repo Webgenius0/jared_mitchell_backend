@@ -50,7 +50,7 @@ class AdminContestApplicationController extends Controller
                     : null,
                 'owner_name'         => $contestApplication->business?->user?->profile?->name ?? '—',
                 'owner_email'        => $contestApplication->business?->user?->email ?? '—',
-                'round_session_name' => $contestApplication->roundSession?->name ?? '—',
+                'round_session_name' => $contestApplication->roundSession?->title ?? '—',
                 'round_session_id'   => $contestApplication->roundSession?->id,
                 'approver_name'      => $contestApplication->approver?->profile?->name
                     ?? $contestApplication->approver?->email

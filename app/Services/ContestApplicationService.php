@@ -10,6 +10,14 @@ use Illuminate\Support\Facades\DB;
 class ContestApplicationService
 {
     /**
+     * Get the currently active round session.
+     */
+    public function activeRoundSession(): ?RoundSession
+    {
+        return RoundSession::where('is_active', true)->latest()->first();
+    }
+
+    /**
      * Apply a business to a round session.
      *
      * Returns ['success' => true, 'application' => ContestApplication]

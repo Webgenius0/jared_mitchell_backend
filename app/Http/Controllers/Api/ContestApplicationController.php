@@ -21,6 +21,33 @@ class ContestApplicationController extends Controller
     ) {}
 
     /**
+     * GET /api/v1/contest-applications/active-round-session
+     *
+     * Get the currently active round session.
+     */
+    public function activeRoundSession(): JsonResponse
+    {
+        $roundSession = $this->contestApplicationService->activeRoundSession();
+
+        if (!$roundSession) {
+            return $this->error(null, 'No active round session found.', 404);
+        }
+
+        return $this->success(
+            'Active round session retrieved successfully.',
+            [
+                'id'          => $roundSession->id,
+                'title'       => $roundSession->title,
+                'slug'        => $roundSession->slug,
+                'description' => $roundSession->description,
+                'is_active'   => $roundSession->is_active,
+                'starts_at'   => $roundSession->starts_at,
+                'ends_at'     => $roundSession->ends_at,
+            ]
+        );
+    }
+
+    /**
      * POST /api/v1/contest-applications
      *
      * Apply a business to a round session.

@@ -125,7 +125,7 @@
                                                 </div>
                                             </div>
                                         </td>
-                                        <td>{{ $application->roundSession?->name ?? '—' }}</td>
+                                        <td>{{ $application->roundSession?->title ?? '—' }}</td>
                                         <td>
                                             @if($application->status == 'pending')
                                                 <span class="badge bg-warning-subtle text-warning">Pending</span>
@@ -251,7 +251,7 @@
             $('#viewModalFooter').html(
                 '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>');
 
-            axios.get('{{ url("admin/contest-applications") }}/' + id)
+            axios.get('{{ url("contest-applications") }}/' + id)
                 .then(function(res) {
                     const d = res.data.data;
                     let html = buildDetailsHtml(d);
@@ -340,7 +340,7 @@
             }).then(function(confirmed) {
                 if (!confirmed) return;
 
-                axios.patch('{{ url("admin/contest-applications") }}/' + id + '/approve')
+                axios.patch('{{ url("contest-applications") }}/' + id + '/approve')
                     .then(function(res) {
                         Toast.success('Application approved successfully.');
                         $('#viewModal').modal('hide');
@@ -362,7 +362,7 @@
             }).then(function(confirmed) {
                 if (!confirmed) return;
 
-                axios.patch('{{ url("admin/contest-applications") }}/' + id + '/cancel')
+                axios.patch('{{ url("contest-applications") }}/' + id + '/cancel')
                     .then(function(res) {
                         Toast.success('Application cancelled successfully.');
                         $('#viewModal').modal('hide');
@@ -384,7 +384,7 @@
             }).then(function(confirmed) {
                 if (!confirmed) return;
 
-                axios.delete('{{ url("admin/contest-applications") }}/' + id)
+                axios.delete('{{ url("contest-applications") }}/' + id)
                     .then(function(res) {
                         Toast.success('Application deleted successfully.');
                         $('#viewModal').modal('hide');
