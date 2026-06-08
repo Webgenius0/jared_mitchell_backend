@@ -19,7 +19,8 @@
             <span class="logo-lg">
                 <img src="{{ $settings?->logo ? asset('storage/' . $settings?->logo) : asset('admin/assets/images/default/logo.png') }}"
                     alt="" height="50" width="">
-                {{-- {{ $profile?->cover ? asset('storage/' . $profile?->cover) : asset('admin/assets/images/default/profile-bg.jpg') }} --}}
+                {{-- {{ $profile?->cover ? asset('storage/' . $profile?->cover) :
+                asset('admin/assets/images/default/profile-bg.jpg') }} --}}
             </span>
         </a>
         <button type="button" class="btn btn-sm p-0 fs-20 header-item float-end btn-vertical-sm-hover"
@@ -84,7 +85,7 @@
                 {{-- Handle Business --}}
                 @canany(['manage users', 'manage roles', 'manage permissions'])
                     @php
-                        $userMgmtOpen = request()->routeIs('admin.users.*', 'admin.roles.*', 'admin.permissions.*', 'admin.round-sessions.*', 'admin.businesses.*');
+                        $userMgmtOpen = request()->routeIs('admin.users.*', 'admin.roles.*', 'admin.permissions.*', 'admin.round-sessions.*', 'admin.businesses.*', 'admin.contest-applications.*');
                     @endphp
 
                     <li class="nav-item">
@@ -115,11 +116,20 @@
                                     </li>
                                 @endcan
 
+                                {{-- @canany(['manage roles', 'manage users'])
+                                <li class="nav-item">
+                                    <a href="{{ route('admin.roles.index') }}"
+                                        class="nav-link {{ request()->routeIs('admin.roles.*') ? 'active' : '' }}">
+                                        <i class="ri-trophy-line"></i> Contests
+                                    </a>
+                                </li>
+                                @endcanany --}}
+
                                 @canany(['manage roles', 'manage users'])
                                     <li class="nav-item">
-                                        <a href="{{ route('admin.roles.index') }}"
-                                            class="nav-link {{ request()->routeIs('admin.roles.*') ? 'active' : '' }}">
-                                            <i class="ri-trophy-line"></i> Contests
+                                        <a href="{{ route('admin.contest-applications.index') }}"
+                                            class="nav-link {{ request()->routeIs('admin.contest-applications.*') ? 'active' : '' }}">
+                                            <i class="ri-file-list-3-line"></i> Contest Applications
                                         </a>
                                     </li>
                                 @endcanany
@@ -197,8 +207,8 @@
 
                 <li class="nav-item">
                     <a class="nav-link menu-link {{ $spotlightOpen ? 'active' : '' }}" href="#sidebarSpotlight"
-                        data-bs-toggle="collapse" role="button"
-                        aria-expanded="{{ $spotlightOpen ? 'true' : 'false' }}" aria-controls="sidebarSpotlight">
+                        data-bs-toggle="collapse" role="button" aria-expanded="{{ $spotlightOpen ? 'true' : 'false' }}"
+                        aria-controls="sidebarSpotlight">
                         <i class="ri-star-smile-line"></i>
                         <span>Spotlight</span>
                     </a>
@@ -232,8 +242,8 @@
 
                 <li class="nav-item">
                     <a class="nav-link menu-link {{ $manageTagsOpen ? 'active' : '' }}" href="#sidebarManageTags"
-                        data-bs-toggle="collapse" role="button"
-                        aria-expanded="{{ $manageTagsOpen ? 'true' : 'false' }}" aria-controls="sidebarManageTags">
+                        data-bs-toggle="collapse" role="button" aria-expanded="{{ $manageTagsOpen ? 'true' : 'false' }}"
+                        aria-controls="sidebarManageTags">
                         <i class="ri-star-smile-line"></i>
                         <span>Manage Tags</span>
                     </a>
@@ -299,14 +309,14 @@
 
                 {{-- Contact --}}
                 {{-- @php
-                    // System Settings dropdown is open when any child route is active
-                    $contactOpen = request()->routeIs('admin.chat.index', 'admin.mail.index');
+                // System Settings dropdown is open when any child route is active
+                $contactOpen = request()->routeIs('admin.chat.index', 'admin.mail.index');
                 @endphp
 
                 <li class="nav-item">
                     <a class="nav-link menu-link {{ $contactOpen ? 'active' : '' }}" href="#sidebarMessaging"
-                        data-bs-toggle="collapse" role="button"
-                        aria-expanded="{{ $contactOpen ? 'true' : 'false' }}" aria-controls="sidebarMessaging">
+                        data-bs-toggle="collapse" role="button" aria-expanded="{{ $contactOpen ? 'true' : 'false' }}"
+                        aria-controls="sidebarMessaging">
                         <i class="ri-kakao-talk-line"></i>
                         <span>Messaging</span>
                     </a>
@@ -342,8 +352,8 @@
 
                     <li class="nav-item">
                         <a class="nav-link menu-link {{ $userMgmtOpen ? 'active' : '' }}" href="#sidebarUserManagement"
-                            data-bs-toggle="collapse" role="button"
-                            aria-expanded="{{ $userMgmtOpen ? 'true' : 'false' }}" aria-controls="sidebarUserManagement">
+                            data-bs-toggle="collapse" role="button" aria-expanded="{{ $userMgmtOpen ? 'true' : 'false' }}"
+                            aria-controls="sidebarUserManagement">
                             <i class="ri-shield-user-line"></i>
                             <span>User Management</span>
                         </a>
@@ -508,22 +518,22 @@
 
 {{-- Sidebar logout (mirrors header logout) --}}
 <script>
-    document.getElementById('sidebarLogoutBtn').addEventListener('click', function() {
+    document.getElementById('sidebarLogoutBtn').addEventListener('click', function () {
         Alert.confirm('You will be returned to the login screen.', {
             title: 'Log out?',
             icon: 'warning',
             type: 'danger',
             confirmText: 'Yes, log me out',
             cancelText: 'Stay',
-        }).then(function(confirmed) {
+        }).then(function (confirmed) {
             if (!confirmed) return;
 
             axios.post('{{ route('admin.logout') }}')
-                .then(function(res) {
+                .then(function (res) {
                     Toast.success(res.data.message || 'Logged out successfully.');
                     setTimeout(() => window.location.href = res.data.redirect, 1000);
                 })
-                .catch(function() {
+                .catch(function () {
                     window.location.href = '{{ route('show.admin.login') }}';
                 });
         });

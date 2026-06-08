@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Web\Admin\ContestApplication\AdminContestApplicationController;
 use App\Http\Controllers\Web\Admin\ArtistSpotlight\AdminArtistSpotlightController;
 use App\Http\Controllers\Web\Admin\Auth\AdminProfileController;
 use App\Http\Controllers\Web\Admin\BusinessSpotlight\AdminBusinessSpotlightController;
@@ -330,6 +331,19 @@ Route::prefix('round-sessions')->name('admin.round-sessions.')->group(function (
     Route::get('/{roundSession}/edit', [RoundSessionController::class, 'edit'])->name('edit');
     Route::put('/{roundSession}', [RoundSessionController::class, 'update'])->name('update');
     Route::delete('/{roundSession}', [RoundSessionController::class, 'destroy'])->name('destroy');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Contest Applications
+|--------------------------------------------------------------------------
+*/
+Route::prefix('contest-applications')->name('admin.contest-applications.')->group(function () {
+    Route::get('/', [AdminContestApplicationController::class, 'index'])->name('index');
+    Route::get('/{contestApplication}', [AdminContestApplicationController::class, 'show'])->name('show');
+    Route::patch('/{contestApplication}/approve', [AdminContestApplicationController::class, 'approve'])->name('approve');
+    Route::patch('/{contestApplication}/cancel', [AdminContestApplicationController::class, 'cancel'])->name('cancel');
+    Route::delete('/{contestApplication}', [AdminContestApplicationController::class, 'destroy'])->name('destroy');
 });
 
 /*
