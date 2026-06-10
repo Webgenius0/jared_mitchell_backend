@@ -18,7 +18,8 @@ class ContestApplicationController extends Controller
 
     public function __construct(
         protected ContestApplicationService $contestApplicationService
-    ) {}
+    ) {
+    }
 
     /**
      * GET /api/v1/contest-applications/active-round-session
@@ -36,13 +37,13 @@ class ContestApplicationController extends Controller
         return $this->success(
             'Active round session retrieved successfully.',
             [
-                'id'          => $roundSession->id,
-                'title'       => $roundSession->title,
-                'slug'        => $roundSession->slug,
+                'id' => $roundSession->id,
+                'title' => $roundSession->title,
+                'slug' => $roundSession->slug,
                 'description' => $roundSession->description,
-                'is_active'   => $roundSession->is_active,
-                'starts_at'   => $roundSession->starts_at,
-                'ends_at'     => $roundSession->ends_at,
+                'is_active' => $roundSession->is_active,
+                'starts_at' => $roundSession->starts_at,
+                'ends_at' => $roundSession->ends_at,
             ]
         );
     }
@@ -66,11 +67,11 @@ class ContestApplicationController extends Controller
         return $this->success(
             'Contest application submitted successfully.',
             [
-                'id'               => $result['application']->id,
-                'business_id'      => $result['application']->business_id,
+                'id' => $result['application']->id,
+                'business_id' => $result['application']->business_id,
                 'round_session_id' => $result['application']->round_session_id,
-                'status'           => $result['application']->status,
-                'created_at'       => $result['application']->created_at,
+                'status' => $result['application']->status,
+                'created_at' => $result['application']->created_at,
             ],
             201
         );
@@ -135,11 +136,11 @@ class ContestApplicationController extends Controller
             'Contest applications retrieved successfully.',
             [
                 'applications' => $applications->items(),
-                'pagination'   => [
+                'pagination' => [
                     'current_page' => $applications->currentPage(),
-                    'per_page'     => $applications->perPage(),
-                    'total'        => $applications->total(),
-                    'last_page'    => $applications->lastPage(),
+                    'per_page' => $applications->perPage(),
+                    'total' => $applications->total(),
+                    'last_page' => $applications->lastPage(),
                 ],
             ]
         );
@@ -161,8 +162,8 @@ class ContestApplicationController extends Controller
         return $this->success(
             'Contest application approved successfully.',
             [
-                'id'          => $result['application']->id,
-                'status'      => $result['application']->status,
+                'id' => $result['application']->id,
+                'status' => $result['application']->status,
                 'approved_at' => $result['application']->approved_at,
                 'approved_by' => $result['application']->approved_by,
             ]
@@ -188,9 +189,73 @@ class ContestApplicationController extends Controller
         return $this->success(
             'Contest application rejected successfully.',
             [
-                'id'         => $result['application']->id,
-                'status'     => $result['application']->status,
+                'id' => $result['application']->id,
+                'status' => $result['application']->status,
                 'admin_note' => $result['application']->admin_note,
+            ]
+        );
+    }
+
+    /**
+     * GET /api/v1/contest-applications/approved
+     *
+     * Get approved businesses for a specific round session.
+     */
+    public function approvedBusinesses(Request $request): JsonResponse
+    {
+        $request->validate([
+            'round_session_id' => 'required|integer|exists:round_sessions,id',
+        ]);
+
+        $roundSessionId = $request->input('round_session_id');
+        $perPage = min((int) $request->input('per_page', 100), 100);
+
+        // Fetch businesses that have an approved contest application for the given round session.
+        // Eager load category and user profile.
+        $businesses = Business::select('businesses.*')
+            ->join('contest_applications', 'businesses.id', '=', 'contest_applications.business_id')
+            ->where('contest_applications.round_session_id', $roundSessionId)
+            ->where('contest_applications.status', 'approved')
+            ->orderBy('contest_applications.approved_at', 'desc')
+            ->with(['user.profile', 'category'])
+            ->paginate($perPage);
+
+            if ($businesses->isEmpty()) {
+                return $this->error(null, 'No approved businesses found for the specified round session.', 404);
+            }
+
+        return $this->success(
+            'Approved businesses retrieved successfully.',
+            [
+                'businesses' => \App\Http\Resources\BusinessResource::collection($businesses),
+                'pagination' => [
+                    'current_page' => $businesses->currentPage(),
+                    'per_page' => $businesses->perPage(),
+                    'total' => $businesses->total(),
+                    'last_page' => $businesses->lastPage(),
+                ],
+            ]
+        );
+    }
+
+    /**
+     * GET /api/v1/contest-applications/approved/{id}
+     *
+     * Get a single approved business for a specific round session.
+     */
+    public function showApprovedBusiness($id): JsonResponse
+    {
+        $business = Business::with(['user.profile', 'category'])    
+            ->findOrFail($id);
+
+        if (!$business) {
+            return $this->error(null, 'No approved businesses found for the specified round session.', 404);
+        }
+
+        return $this->success(
+            'Approved business retrieved successfully.',
+            [
+                'business' => new \App\Http\Resources\BusinessResource($business),
             ]
         );
     }

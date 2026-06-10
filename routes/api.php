@@ -93,7 +93,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::get('/business-spotlight', [CmsBusinessSpotlightController::class, 'index']); // Business spotlight page CMS
             Route::get('/spotlight-ladder', [CmsSpotlightLadderController::class, 'index']); // Spotlight ladder page CMS
             Route::get('/boss-beginnings', [BossBeginingsController::class, 'index']); // Boss Beginnings page CMS
-            Route::get('/boss-beginnings-winner',[BossWinnerChosenController::class, 'index']); // Boss Beginnings Winner Chosen page CMS
+            Route::get('/boss-beginnings-winner', [BossWinnerChosenController::class, 'index']); // Boss Beginnings Winner Chosen page CMS
             Route::get('/events', [CmsEventController::class, 'index']); // Events page CMS
             Route::get('/shop', [ShopController::class, 'index']); // Shop page CMS
             Route::get('/sponsorsip', [SponsorsipController::class, 'index']); // Sponsorship page CMS
@@ -154,6 +154,16 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::get('/{id}', [ArtistController::class, 'show']); // Artist detail
             Route::post('/{id}/share', [ArtistController::class, 'recordShare']); // Public share (optional auth)
         });
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Contest Applications — Public routes
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('contest-applications')->group(function () {
+        Route::get('/approved', [ContestApplicationController::class, 'approvedBusinesses']);
+        Route::get('/approved/{id}', [ContestApplicationController::class, 'showApprovedBusiness']);
     });
 
     /*
