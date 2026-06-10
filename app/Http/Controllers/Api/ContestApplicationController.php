@@ -204,25 +204,40 @@ class ContestApplicationController extends Controller
     public function approvedBusinesses(Request $request): JsonResponse
     {
         $request->validate([
-            'round_session_id' => 'required|integer|exists:round_sessions,id',
+            'round_session_id' => 'required|integer',
         ]);
 
-        $roundSessionId = $request->input('round_session_id');
+        $roundSessionId = $request->round_session_id;
         $perPage = min((int) $request->input('per_page', 100), 100);
 
-        // Fetch businesses that have an approved contest application for the given round session.
-        // Eager load category and user profile.
+        // Check if round session exists
+        $roundSession = RoundSession::find($roundSessionId);
+
+        if (!$roundSession) {
+            return $this->error(
+                null,
+                'Round session not found.',
+                404
+            );
+        }
+
+        // Fetch approved businesses
         $businesses = Business::select('businesses.*')
             ->join('contest_applications', 'businesses.id', '=', 'contest_applications.business_id')
             ->where('contest_applications.round_session_id', $roundSessionId)
             ->where('contest_applications.status', 'approved')
-            ->orderBy('contest_applications.approved_at', 'desc')
+            ->orderByDesc('contest_applications.approved_at')
             ->with(['user.profile', 'category'])
             ->paginate($perPage);
 
-            if ($businesses->isEmpty()) {
-                return $this->error(null, 'No approved businesses found for the specified round session.', 404);
-            }
+        // No approved businesses found
+        if ($businesses->total() === 0) {
+            return $this->error(
+                null,
+                'No approved businesses found for this round session.',
+                404
+            );
+        }
 
         return $this->success(
             'Approved businesses retrieved successfully.',
@@ -245,15 +260,19 @@ class ContestApplicationController extends Controller
      */
     public function showApprovedBusiness($id): JsonResponse
     {
-        $business = Business::with(['user.profile', 'category'])    
-            ->findOrFail($id);
+        $business = Business::with(['user.profile', 'category'])
+            ->find($id);
 
         if (!$business) {
-            return $this->error(null, 'No approved businesses found for the specified round session.', 404);
+            return $this->error(
+                null,
+                'Business not found.',
+                404
+            );
         }
 
         return $this->success(
-            'Approved business retrieved successfully.',
+            'Business retrieved successfully.',
             [
                 'business' => new \App\Http\Resources\BusinessResource($business),
             ]
