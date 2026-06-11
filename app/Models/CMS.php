@@ -25,7 +25,7 @@ class CMS extends Model
         // Check if the request is an API request
         if (request()->is('api/*') && !empty($value)) {
             // Return the full URL for API requests
-            return url(Storage::url($value));
+            return url(\Illuminate\Support\Str::startsWith($value, 'storage/') ? $value : Storage::url($value));
         }
 
         // Return only the path for web requests
@@ -40,7 +40,7 @@ class CMS extends Model
         // Check if the request is an API request
         if (request()->is('api/*') && !empty($value)) {
             // Return the full URL for API requests
-            return url(Storage::url($value));
+            return url(\Illuminate\Support\Str::startsWith($value, 'storage/') ? $value : Storage::url($value));
         }
 
         // Return only the path for web requests

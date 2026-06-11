@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Cms;
 
+use App\Enums\CmsSection;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
@@ -16,7 +17,7 @@ class CmsContentResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'section' => $this->section instanceof \App\Enums\CmsSection ? $this->section->value : $this->section,
+            'section' => $this->section instanceof CmsSection ? $this->section->value : $this->section,
             'title' => $this->title,
             'sub_title' => $this->sub_title,
             'description' => $this->description,
@@ -39,7 +40,7 @@ class CmsContentResource extends JsonResource
                 ? (
                     filter_var($this->video, FILTER_VALIDATE_URL)
                     ? $this->video
-                    : url(Storage::url($this->video))
+                    : url(\Illuminate\Support\Str::startsWith($this->video, 'storage/') ? $this->video : Storage::url($this->video))
                 )
                 : null,
             'metadata' => $this->formatMetadata($this->metadata),
@@ -77,7 +78,7 @@ class CmsContentResource extends JsonResource
                         $formattedGallery = [];
                         foreach ($value as $item) {
                             if (is_string($item) && !empty($item) && !filter_var($item, FILTER_VALIDATE_URL)) {
-                                $formattedGallery[] = url(Storage::url($item));
+                                $formattedGallery[] = url(\Illuminate\Support\Str::startsWith($item, 'storage/') ? $item : Storage::url($item));
                             } else {
                                 $formattedGallery[] = $item;
                             }
@@ -93,7 +94,7 @@ class CmsContentResource extends JsonResource
                         str_contains($key, 'image_file')
                     ) {
                         if (!filter_var($value, FILTER_VALIDATE_URL)) {
-                            $metadata[$key] = url(Storage::url($value));
+                            $metadata[$key] = url(\Illuminate\Support\Str::startsWith($value, 'storage/') ? $value : Storage::url($value));
                         }
                     }
                 }
