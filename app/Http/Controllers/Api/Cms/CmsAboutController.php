@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Cms;
 
 use App\Enums\CmsPage;
+use App\Enums\CmsSection;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Cms\CmsContentResource;
 use App\Models\CMS;
@@ -23,8 +24,13 @@ class CmsAboutController extends Controller
         $cmsData = CMS::where('page', CmsPage::ABOUT)
             ->get()
             ->keyBy(function ($item) {
-                return $item->section instanceof \App\Enums\CmsSection ? $item->section->value : $item->section;
+                return $item->section instanceof CmsSection ? $item->section->value : $item->section;
             });
+        $shonsors = CMS::where('page', CmsPage::HOME)
+            ->where('section', CmsSection::PARTNERS)
+            ->get();
+        // add $shonsors in $cmsData
+        $cmsData['partners'] = $shonsors;
 
         return $this->success(
             'About page CMS content retrieved successfully.',

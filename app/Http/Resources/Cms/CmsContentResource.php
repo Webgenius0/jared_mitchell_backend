@@ -5,6 +5,7 @@ namespace App\Http\Resources\Cms;
 use App\Enums\CmsSection;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 
 class CmsContentResource extends JsonResource
@@ -16,6 +17,16 @@ class CmsContentResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        if ($this->resource instanceof Collection) {
+            $first = $this->resource->first();
+            $sectionName = $first ? ($first->section instanceof CmsSection ? $first->section->value : $first->section) : 'about_partners';
+
+            return [
+                'section' => $sectionName,
+                'items' => self::collection($this->resource)->resolve(),
+            ];
+        }
+
         return [
             'section' => $this->section instanceof CmsSection ? $this->section->value : $this->section,
             'title' => $this->title,
