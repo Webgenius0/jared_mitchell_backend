@@ -144,7 +144,7 @@ class BusinessController extends Controller
      */
     public function toggleClap(Request $request, Business $business): JsonResponse
     {
-        $user = auth()->user();
+        $user = auth('api')->user();
 
         $result = $this->businessService->toggleClap(
             $business,
@@ -167,7 +167,7 @@ class BusinessController extends Controller
      */
     public function toggleSave(Request $request, Business $business): JsonResponse
     {
-        $user = auth()->user();
+        $user = auth('api')->user();
 
         $result = $this->businessService->toggleSave(
             $business,
@@ -190,7 +190,7 @@ class BusinessController extends Controller
      */
     public function toggleShare(Request $request, Business $business): JsonResponse
     {
-        $user = auth()->user();
+        $user = auth('api')->user();
 
         $result = $this->businessService->toggleShare(
             $business,
@@ -213,7 +213,7 @@ class BusinessController extends Controller
      */
     public function userInteractions(Business $business): JsonResponse
     {
-        $user = auth()->user();
+        $user = auth('api')->user();
 
         $result = $this->businessService->getUserInteractionState($business, $user->id);
 

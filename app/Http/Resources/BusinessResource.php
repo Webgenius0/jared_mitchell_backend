@@ -39,9 +39,9 @@ class BusinessResource extends JsonResource
             'total_shares'         => (int) ($this->total_shares ?? 0),
             'total_points'         => (int) ($this->total_points ?? 0),
             // Current user's interaction state (when authenticated)
-            'is_clapped'           => $user ? $this->interactions()->where('user_id', $user->id)->where('action_type', 'clap')->exists() : false,
-            'is_saved'             => $user ? $this->interactions()->where('user_id', $user->id)->where('action_type', 'save')->exists() : false,
-            'is_shared'            => $user ? $this->interactions()->where('user_id', $user->id)->where('action_type', 'share')->exists() : false,
+            'is_clapped'           => $user ? \App\Models\BusinessInteraction::where('business_id', $this->id)->where('user_id', $user->id)->where('action_type', 'clap')->exists() : false,
+            'is_saved'             => $user ? \App\Models\BusinessInteraction::where('business_id', $this->id)->where('user_id', $user->id)->where('action_type', 'save')->exists() : false,
+            'is_shared'            => $user ? \App\Models\BusinessInteraction::where('business_id', $this->id)->where('user_id', $user->id)->where('action_type', 'share')->exists() : false,
             'created_at'           => $this->created_at?->toIso8601String(),
             'updated_at'           => $this->updated_at?->toIso8601String(),
         ];
