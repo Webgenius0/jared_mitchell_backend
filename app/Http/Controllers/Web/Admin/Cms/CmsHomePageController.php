@@ -82,6 +82,7 @@ class CmsHomePageController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'title' => ['nullable', 'string', 'max:255'],
+            'sub_title' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'bg_file' => ['nullable', 'file', 'image', 'max:5120'], // 5MB
         ]);
@@ -97,6 +98,7 @@ class CmsHomePageController extends Controller
             ],
             [
                 'title' => $request->title,
+                'sub_title' => $request->sub_title,
                 'description' => $request->description,
             ]
         );
@@ -121,6 +123,7 @@ class CmsHomePageController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'title' => ['nullable', 'string', 'max:255'],
+            'sub_title' => ['nullable', 'string', 'max:255'],
             'partners' => ['nullable', 'array'],
             'partners.*.link' => ['nullable', 'string', 'max:255'],
             'partners.*.image_file' => ['nullable', 'file', 'image', 'max:2048'],
@@ -137,6 +140,7 @@ class CmsHomePageController extends Controller
         ]);
 
         $cms->title = $request->title;
+        $cms->sub_title = $request->sub_title;
 
         $partnerData = [];
         $existingMetadata = $cms->metadata ?? [];
