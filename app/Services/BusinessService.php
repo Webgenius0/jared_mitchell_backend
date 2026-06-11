@@ -303,15 +303,10 @@ class BusinessService
      */
     public function getUserInteractionState(Business $business, int $userId): array
     {
-        $interactions = BusinessInteraction::where('user_id', $userId)
-            ->where('business_id', $business->id)
-            ->pluck('action_type')
-            ->toArray();
-
         return [
-            'is_clapped' => in_array('clap', $interactions),
-            'is_saved'   => in_array('save', $interactions),
-            'is_shared'  => in_array('share', $interactions),
+            'is_clapped' => BusinessInteraction::where('business_id', $business->id)->where('user_id', $userId)->where('action_type', 'clap')->exists(),
+            'is_saved'   => BusinessInteraction::where('business_id', $business->id)->where('user_id', $userId)->where('action_type', 'save')->exists(),
+            'is_shared'  => BusinessInteraction::where('business_id', $business->id)->where('user_id', $userId)->where('action_type', 'share')->exists(),
         ];
     }
 }
