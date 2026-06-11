@@ -53,23 +53,21 @@
                 <form id="videoForm" enctype="multipart/form-data">
                     <div class="row g-3">
                         <div class="col-md-12">
-                            <label class="form-label">Video Title</label>
-                            <input type="text" name="title" class="form-control" value="{{ $video?->title }}" placeholder="Enter video section title">
-                        </div>
-                        <div class="col-md-12">
-                            <label class="form-label">Video Subtitle</label>
-                            <textarea name="sub_title" class="form-control" rows="2" placeholder="Enter video section subtitle">{{ $video?->sub_title }}</textarea>
-                        </div>
-                        <div class="col-md-12">
                             <label class="form-label">Video URL (YouTube/Vimeo)</label>
-                            <input type="url" name="video_url" class="form-control" value="{{ $video?->description }}" placeholder="https://www.youtube.com/watch?v=...">
+                            <input type="url" name="video_url" class="form-control" value="{{ (isset($video) && !Str::startsWith($video->video, 'uploads/')) ? $video->video : '' }}" placeholder="https://www.youtube.com/watch?v=...">
+                        </div>
+                        <div class="col-md-12 text-center">
+                            <span class="text-muted fw-bold">OR</span>
                         </div>
                         <div class="col-md-12">
-                            <label class="form-label">Video Thumbnail</label>
-                            <input type="file" name="thumbnail" class="form-control" accept="image/*">
-                            @if($video?->image)
+                            <label class="form-label">Upload Video</label>
+                            <input type="file" name="video_file" class="form-control" accept="video/*">
+                            @if(isset($video) && $video->video && Str::startsWith($video->video, 'uploads/'))
                                 <div class="mt-2">
-                                    <img src="{{ asset('storage/' . $video->image) }}" alt="Video Thumbnail" class="rounded border" style="max-height: 150px;">
+                                    <video controls style="max-height: 150px;" class="rounded border">
+                                        <source src="{{ asset('storage/' . $video->video) }}">
+                                        Your browser does not support the video tag.
+                                    </video>
                                 </div>
                             @endif
                         </div>

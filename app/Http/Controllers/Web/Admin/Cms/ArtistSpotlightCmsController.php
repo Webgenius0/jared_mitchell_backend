@@ -67,10 +67,8 @@ class ArtistSpotlightCmsController extends Controller
     public function updateVideo(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'title' => ['nullable', 'string', 'max:500'],
-            'sub_title' => ['nullable', 'string', 'max:500'],
-            'video_url' => ['nullable', 'url'],
-            'thumbnail' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
+            'video_url' => ['nullable', 'url', 'max:500'],
+            'video_file' => ['nullable', 'file', 'mimes:mp4,mov,ogg,qt', 'max:20480'],
         ]);
 
         if ($validator->fails()) {
@@ -82,15 +80,16 @@ class ArtistSpotlightCmsController extends Controller
             'section' => CmsSection::ARTIST_SPOTLIGHT_VIDEO,
         ]);
 
-        $cms->title = $request->title;
-        $cms->sub_title = $request->sub_title;
-        $cms->description = $request->video_url;
-
-        if ($request->hasFile('thumbnail')) {
-            if ($cms->image && Str::startsWith($cms->image, 'uploads/')) {
-                FileHandle::fileDelete($cms->image);
+        if ($request->hasFile('video_file')) {
+            if ($cms->video && Str::startsWith($cms->video, 'uploads/')) {
+                FileHandle::fileDelete($cms->video);
             }
-            $cms->image = FileHandle::fileUpload($request->file('thumbnail'), 'cms/artist-spotlight');
+            $cms->video = FileHandle::fileUpload($request->file('video_file'), 'cms/artist-spotlight/videos');
+        } elseif ($request->filled('video_url')) {
+            if ($cms->video && Str::startsWith($cms->video, 'uploads/')) {
+                FileHandle::fileDelete($cms->video);
+            }
+            $cms->video = $request->video_url;
         }
 
         $cms->save();

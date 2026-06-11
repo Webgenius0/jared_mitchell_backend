@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers\Web\Admin\Cms;
 
+use App\Enums\CmsPage;
+use App\Enums\CmsSection;
 use App\Helpers\FileHandle;
 use App\Http\Controllers\Controller;
 use App\Models\CMS;
-use App\Enums\CmsPage;
-use App\Enums\CmsSection;
 use App\Traits\AdminApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class CmsHomePageController extends Controller
@@ -63,7 +64,7 @@ class CmsHomePageController extends Controller
         );
 
         if ($request->hasFile('video_file')) {
-            if ($cms->video && \Illuminate\Support\Str::startsWith($cms->video, 'uploads/')) {
+            if ($cms->video && Str::startsWith($cms->video, 'uploads/')) {
                 FileHandle::fileDelete($cms->video);
             }
             $path = FileHandle::fileUpload($request->file('video_file'), 'cms/videos');
@@ -104,7 +105,7 @@ class CmsHomePageController extends Controller
         );
 
         if ($request->hasFile('bg_file')) {
-            if ($cms->bg && \Illuminate\Support\Str::startsWith($cms->bg, 'uploads/')) {
+            if ($cms->bg && Str::startsWith($cms->bg, 'uploads/')) {
                 FileHandle::fileDelete($cms->bg);
             }
             $path = FileHandle::fileUpload($request->file('bg_file'), 'cms/backgrounds');
@@ -151,7 +152,7 @@ class CmsHomePageController extends Controller
                 $imagePath = $partner['existing_image'] ?? null;
 
                 if ($request->hasFile("partners.$index.image_file")) {
-                    if ($imagePath && \Illuminate\Support\Str::startsWith($imagePath, 'uploads/')) {
+                    if ($imagePath && Str::startsWith($imagePath, 'uploads/')) {
                         FileHandle::fileDelete($imagePath);
                     }
                     $imagePath = FileHandle::fileUpload($request->file("partners.$index.image_file"), 'cms/partners');
@@ -166,7 +167,7 @@ class CmsHomePageController extends Controller
 
         $newImages = collect($partnerData)->pluck('image')->toArray();
         foreach ($existingImages as $oldImg) {
-            if ($oldImg && !in_array($oldImg, $newImages) && \Illuminate\Support\Str::startsWith($oldImg, 'uploads/')) {
+            if ($oldImg && !in_array($oldImg, $newImages) && Str::startsWith($oldImg, 'uploads/')) {
                 FileHandle::fileDelete($oldImg);
             }
         }
@@ -216,7 +217,7 @@ class CmsHomePageController extends Controller
                 $imagePath = $item['existing_image'] ?? null;
 
                 if ($request->hasFile("items.$index.image_file")) {
-                    if ($imagePath && \Illuminate\Support\Str::startsWith($imagePath, 'uploads/')) {
+                    if ($imagePath && Str::startsWith($imagePath, 'uploads/')) {
                         FileHandle::fileDelete($imagePath);
                     }
                     $imagePath = FileHandle::fileUpload($request->file("items.$index.image_file"), 'cms/why_choose');
@@ -233,7 +234,7 @@ class CmsHomePageController extends Controller
 
         $newImages = collect($itemsData)->pluck('image')->toArray();
         foreach ($existingImages as $oldImg) {
-            if ($oldImg && !in_array($oldImg, $newImages) && \Illuminate\Support\Str::startsWith($oldImg, 'uploads/')) {
+            if ($oldImg && !in_array($oldImg, $newImages) && Str::startsWith($oldImg, 'uploads/')) {
                 FileHandle::fileDelete($oldImg);
             }
         }
@@ -273,7 +274,7 @@ class CmsHomePageController extends Controller
         $cms->title = $request->title;
 
         if ($request->hasFile('bg_file')) {
-            if ($cms->bg && \Illuminate\Support\Str::startsWith($cms->bg, 'uploads/')) {
+            if ($cms->bg && Str::startsWith($cms->bg, 'uploads/')) {
                 FileHandle::fileDelete($cms->bg);
             }
             $path = FileHandle::fileUpload($request->file('bg_file'), 'cms/core_values');
@@ -351,7 +352,7 @@ class CmsHomePageController extends Controller
         );
 
         if ($request->hasFile('image_file')) {
-            if ($cms->image && \Illuminate\Support\Str::startsWith($cms->image, 'uploads/')) {
+            if ($cms->image && Str::startsWith($cms->image, 'uploads/')) {
                 FileHandle::fileDelete($cms->image);
             }
             $path = FileHandle::fileUpload($request->file('image_file'), 'cms/boss_beginnings');
