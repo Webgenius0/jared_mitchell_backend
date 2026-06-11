@@ -20,6 +20,9 @@ class CmsContentResource extends JsonResource
             'title' => $this->title,
             'sub_title' => $this->sub_title,
             'description' => $this->description,
+            'name' => $this->name,
+            'small_title' => $this->name,
+            'sub_description' => $this->sub_description,
             'image' => $this->image
                 ? (filter_var($this->image, FILTER_VALIDATE_URL)
                     ? $this->image
@@ -70,7 +73,19 @@ class CmsContentResource extends JsonResource
         if (is_array($metadata)) {
             foreach ($metadata as $key => $value) {
                 if (is_array($value)) {
-                    $metadata[$key] = $this->formatMetadata($value);
+                    if ($key === 'gallery') {
+                        $formattedGallery = [];
+                        foreach ($value as $item) {
+                            if (is_string($item) && !empty($item) && !filter_var($item, FILTER_VALIDATE_URL)) {
+                                $formattedGallery[] = url(Storage::url($item));
+                            } else {
+                                $formattedGallery[] = $item;
+                            }
+                        }
+                        $metadata[$key] = $formattedGallery;
+                    } else {
+                        $metadata[$key] = $this->formatMetadata($value);
+                    }
                 } elseif (is_string($value) && !empty($value)) {
 
                     if (

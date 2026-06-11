@@ -1,14 +1,17 @@
-<div class="accordion custom-accordionwithicon custom-accordion-border accordion-border-box" id="bossBeginningsAccordion">
+<div class="accordion custom-accordionwithicon custom-accordion-border accordion-border-box"
+    id="bossBeginningsAccordion">
 
     {{-- 1. Hero Section --}}
     @php $hero = $cmsData->get('boss_beginnings_hero'); @endphp
     <div class="accordion-item card mb-3">
         <h2 class="accordion-header" id="headingHero">
-            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseHero" aria-expanded="true" aria-controls="collapseHero">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseHero"
+                aria-expanded="true" aria-controls="collapseHero">
                 <i class="ri-image-line me-2"></i> 1. Hero Section
             </button>
         </h2>
-        <div id="collapseHero" class="accordion-collapse collapse show" aria-labelledby="headingHero" data-bs-parent="#bossBeginningsAccordion">
+        <div id="collapseHero" class="accordion-collapse collapse show" aria-labelledby="headingHero"
+            data-bs-parent="#bossBeginningsAccordion">
             <div class="accordion-body">
                 <form id="heroForm" enctype="multipart/form-data">
                     <div class="row g-3">
@@ -22,19 +25,22 @@
                         </div>
                         <div class="col-md-12">
                             <label class="form-label">Description</label>
-                            <textarea name="description" class="form-control" rows="4">{{ $hero?->description }}</textarea>
+                            <textarea name="description" class="form-control"
+                                rows="4">{{ $hero?->description }}</textarea>
                         </div>
                         <div class="col-md-12">
                             <label class="form-label">Background Image</label>
                             <input type="file" name="bg_image" class="form-control" accept="image/*">
                             @if($hero?->image)
                                 <div class="mt-2">
-                                    <img src="{{ asset($hero->image) }}" class="rounded border shadow-sm" style="height: 120px; width: 120px; object-fit: cover;">
+                                    <img src="{{ asset($hero->image) }}" class="rounded border shadow-sm"
+                                        style="height: 120px; width: 120px; object-fit: cover;">
                                 </div>
                             @endif
                         </div>
                         <div class="col-12 text-end">
-                            <button type="submit" class="btn btn-primary px-4" id="saveHeroBtn">Save Hero Section</button>
+                            <button type="submit" class="btn btn-primary px-4" id="saveHeroBtn">Save Hero
+                                Section</button>
                         </div>
                     </div>
                 </form>
@@ -49,11 +55,13 @@
     @endphp
     <div class="accordion-item card mb-3">
         <h2 class="accordion-header" id="headingFeatures">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFeatures" aria-expanded="false" aria-controls="collapseFeatures">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#collapseFeatures" aria-expanded="false" aria-controls="collapseFeatures">
                 <i class="ri-star-line me-2"></i> 2. Features Section
             </button>
         </h2>
-        <div id="collapseFeatures" class="accordion-collapse collapse" aria-labelledby="headingFeatures" data-bs-parent="#bossBeginningsAccordion">
+        <div id="collapseFeatures" class="accordion-collapse collapse" aria-labelledby="headingFeatures"
+            data-bs-parent="#bossBeginningsAccordion">
             <div class="accordion-body">
                 <form id="featuresForm" enctype="multipart/form-data">
                     <div class="row g-3">
@@ -63,7 +71,8 @@
                         </div>
                         <div class="col-12">
                             <label class="form-label">Section Description</label>
-                            <textarea name="description" class="form-control" rows="3">{{ $features?->description }}</textarea>
+                            <textarea name="description" class="form-control"
+                                rows="3">{{ $features?->description }}</textarea>
                         </div>
 
                         <hr>
@@ -72,19 +81,24 @@
                             @php $item = $fMeta[$i] ?? []; @endphp
                             <div class="col-md-4 border p-3 rounded mb-3">
                                 <label class="form-label">Image / Icon</label>
-                                <input type="file" name="features[{{ $i }}][image]" class="form-control form-control-sm" accept="image/*">
+                                <input type="file" name="features[{{ $i }}][image]" class="form-control form-control-sm"
+                                    accept="image/*">
                                 @if(!empty($item['image']))
                                     <div class="mt-2">
-                                        <img src="{{ asset($item['image']) }}" class="rounded border shadow-sm" style="height: 80px; width: 80px; object-fit: cover;">
+                                        <img src="{{ asset($item['image']) }}" class="rounded border shadow-sm"
+                                            style="height: 80px; width: 80px; object-fit: cover;">
                                     </div>
                                 @endif
-                                <input type="text" name="features[{{ $i }}][title]" class="form-control mt-2" value="{{ $item['title'] ?? '' }}" placeholder="Title">
-                                <textarea name="features[{{ $i }}][description]" class="form-control mt-2" rows="3" placeholder="Description">{{ $item['description'] ?? '' }}</textarea>
+                                <input type="text" name="features[{{ $i }}][title]" class="form-control mt-2"
+                                    value="{{ $item['title'] ?? '' }}" placeholder="Title">
+                                <textarea name="features[{{ $i }}][description]" class="form-control mt-2" rows="3"
+                                    placeholder="Description">{{ $item['description'] ?? '' }}</textarea>
                             </div>
                         @endfor
 
                         <div class="col-12 text-end mt-3">
-                            <button type="submit" class="btn btn-primary px-4" id="saveFeaturesBtn">Save Features</button>
+                            <button type="submit" class="btn btn-primary px-4" id="saveFeaturesBtn">Save
+                                Features</button>
                         </div>
                     </div>
                 </form>
@@ -96,11 +110,13 @@
     @php $video = $cmsData->get('boss_beginnings_video_gallery'); @endphp
     <div class="accordion-item card mb-3">
         <h2 class="accordion-header" id="headingVideo">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseVideo" aria-expanded="false" aria-controls="collapseVideo">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#collapseVideo" aria-expanded="false" aria-controls="collapseVideo">
                 <i class="ri-video-line me-2"></i> 3. Video & Gallery Section
             </button>
         </h2>
-        <div id="collapseVideo" class="accordion-collapse collapse" aria-labelledby="headingVideo" data-bs-parent="#bossBeginningsAccordion">
+        <div id="collapseVideo" class="accordion-collapse collapse" aria-labelledby="headingVideo"
+            data-bs-parent="#bossBeginningsAccordion">
             <div class="accordion-body">
                 <form id="videoForm" enctype="multipart/form-data">
                     <div class="row g-3">
@@ -114,10 +130,12 @@
                         </div>
                         <div class="col-12">
                             <label class="form-label">Upload Video</label>
-                            <input type="file" name="video_file" class="form-control" accept="video/mp4,video/webm,video/ogg">
+                            <input type="file" name="video_file" class="form-control"
+                                accept="video/mp4,video/webm,video/ogg">
                             @if($video?->video)
                                 <div class="mt-2">
-                                    <video class="rounded border shadow-sm" style="height: 150px; width: 250px; object-fit: cover;" controls>
+                                    <video class="rounded border shadow-sm"
+                                        style="height: 150px; width: 250px; object-fit: cover;" controls>
                                         <source src="{{ asset($video->video) }}" type="video/mp4">
                                         Your browser does not support the video tag.
                                     </video>
@@ -130,13 +148,20 @@
                             @if(!empty($video?->metadata['gallery']) && count($video->metadata['gallery']) > 0)
                                 <div class="mt-3 d-flex flex-wrap gap-2">
                                     @foreach($video->metadata['gallery'] as $img)
-                                        <img src="{{ asset($img) }}" class="rounded border shadow-sm" style="height: 80px; width: 80px; object-fit: cover;">
+                                        <div class="position-relative gallery-img-wrapper" style="height: 80px; width: 80px;">
+                                            <img src="{{ asset($img) }}" class="rounded border shadow-sm w-100 h-100" style="object-fit: cover;">
+                                            <input type="hidden" name="existing_gallery[]" value="{{ $img }}">
+                                            <button type="button" class="btn btn-danger btn-sm p-0 rounded-circle position-absolute delete-gallery-img" 
+                                                style="top: -5px; right: -5px; width: 20px; height: 20px; line-height: 18px; font-size: 12px;" 
+                                                data-path="{{ $img }}">×</button>
+                                        </div>
                                     @endforeach
                                 </div>
                             @endif
                         </div>
                         <div class="col-12 text-end mt-3">
-                            <button type="submit" class="btn btn-primary px-4" id="saveVideoBtn">Save Video & Gallery</button>
+                            <button type="submit" class="btn btn-primary px-4" id="saveVideoBtn">Save Video &
+                                Gallery</button>
                         </div>
                     </div>
                 </form>
@@ -151,11 +176,13 @@
     @endphp
     <div class="accordion-item card mb-3">
         <h2 class="accordion-header" id="headingSteps">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSteps" aria-expanded="false" aria-controls="collapseSteps">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#collapseSteps" aria-expanded="false" aria-controls="collapseSteps">
                 <i class="ri-list-check-2 me-2"></i> 4. Steps Section
             </button>
         </h2>
-        <div id="collapseSteps" class="accordion-collapse collapse" aria-labelledby="headingSteps" data-bs-parent="#bossBeginningsAccordion">
+        <div id="collapseSteps" class="accordion-collapse collapse" aria-labelledby="headingSteps"
+            data-bs-parent="#bossBeginningsAccordion">
             <div class="accordion-body">
                 <form id="stepsForm" enctype="multipart/form-data">
                     <div class="row g-3">
@@ -174,14 +201,20 @@
                             @php $item = $sMeta[$i] ?? []; @endphp
                             <div class="col-12 border p-3 rounded mb-3">
                                 <label class="form-label">Step Image</label>
-                                <input type="file" name="steps[{{ $i }}][image]" class="form-control form-control-sm" accept="image/*">
+                                <input type="file" name="steps[{{ $i }}][image]" class="form-control form-control-sm"
+                                    accept="image/*">
                                 @if(!empty($item['image']))
                                     <div class="mt-2">
-                                        <img src="{{ asset($item['image']) }}" class="rounded border shadow-sm" style="height: 80px; width: 80px; object-fit: cover;">
+                                        <img src="{{ asset($item['image']) }}" class="rounded border shadow-sm"
+                                            style="height: 80px; width: 80px; object-fit: cover;">
                                     </div>
                                 @endif
-                                <input type="text" name="steps[{{ $i }}][title]" class="form-control mt-2" value="{{ $item['title'] ?? '' }}" placeholder="Step Title">
-                                <textarea name="steps[{{ $i }}][description]" class="form-control mt-2" rows="3" placeholder="Step Description">{{ $item['description'] ?? '' }}</textarea>
+                                <input type="text" name="steps[{{ $i }}][small_text]" class="form-control mt-2"
+                                    value="{{ $item['small_text'] ?? '' }}" placeholder="Step Small Text">
+                                <input type="text" name="steps[{{ $i }}][title]" class="form-control mt-2"
+                                    value="{{ $item['title'] ?? '' }}" placeholder="Step Title">
+                                <textarea name="steps[{{ $i }}][description]" class="form-control mt-2" rows="3"
+                                    placeholder="Step Description">{{ $item['description'] ?? '' }}</textarea>
                             </div>
                         @endfor
 
@@ -198,11 +231,13 @@
     @php $sec5 = $cmsData->get('boss_beginnings_section5'); @endphp
     <div class="accordion-item card mb-3">
         <h2 class="accordion-header" id="headingSection5">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSection5" aria-expanded="false" aria-controls="collapseSection5">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#collapseSection5" aria-expanded="false" aria-controls="collapseSection5">
                 <i class="ri-file-text-line me-2"></i> 5. Section 5
             </button>
         </h2>
-        <div id="collapseSection5" class="accordion-collapse collapse" aria-labelledby="headingSection5" data-bs-parent="#bossBeginningsAccordion">
+        <div id="collapseSection5" class="accordion-collapse collapse" aria-labelledby="headingSection5"
+            data-bs-parent="#bossBeginningsAccordion">
             <div class="accordion-body">
                 <form id="section5Form">
                     <div class="row g-3">
@@ -212,10 +247,12 @@
                         </div>
                         <div class="col-12">
                             <label class="form-label">Description</label>
-                            <textarea name="description" class="form-control" rows="5">{{ $sec5?->description }}</textarea>
+                            <textarea name="description" class="form-control"
+                                rows="5">{{ $sec5?->description }}</textarea>
                         </div>
                         <div class="col-12 text-end mt-3">
-                            <button type="submit" class="btn btn-primary px-4" id="saveSection5Btn">Save Section 5</button>
+                            <button type="submit" class="btn btn-primary px-4" id="saveSection5Btn">Save Section
+                                5</button>
                         </div>
                     </div>
                 </form>
@@ -230,11 +267,13 @@
     @endphp
     <div class="accordion-item card mb-3">
         <h2 class="accordion-header" id="headingDynamic">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDynamic" aria-expanded="false" aria-controls="collapseDynamic">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#collapseDynamic" aria-expanded="false" aria-controls="collapseDynamic">
                 <i class="ri-add-circle-line me-2"></i> 6. Dynamic Items Section
             </button>
         </h2>
-        <div id="collapseDynamic" class="accordion-collapse collapse" aria-labelledby="headingDynamic" data-bs-parent="#bossBeginningsAccordion">
+        <div id="collapseDynamic" class="accordion-collapse collapse" aria-labelledby="headingDynamic"
+            data-bs-parent="#bossBeginningsAccordion">
             <div class="accordion-body">
                 <form id="dynamicForm" enctype="multipart/form-data">
                     <div class="row g-3">
@@ -244,43 +283,51 @@
                         </div>
                         <div class="col-12">
                             <label class="form-label">Section Description</label>
-                            <textarea name="description" class="form-control" rows="3">{{ $dynamic?->description }}</textarea>
+                            <textarea name="description" class="form-control"
+                                rows="3">{{ $dynamic?->description }}</textarea>
                         </div>
 
                         <hr>
-                        <h6>Dynamic Items <button type="button" class="btn btn-success btn-sm" id="addDynamicItem">+ Add Item</button></h6>
+                        <h6>Dynamic Items <button type="button" class="btn btn-success btn-sm" id="addDynamicItem">+ Add
+                                Item</button></h6>
 
                         <div id="dynamicItemsContainer">
                             @foreach($dItems as $index => $item)
-                            <div class="dynamic-item border p-3 rounded mb-3">
-                                <div class="row">
-                                    <div class="col-md-3">
-                                        <label>Image / Icon</label>
-                                        <input type="file" name="items[{{ $index }}][image]" class="form-control form-control-sm" accept="image/*">
-                                        @if(!empty($item['image']))
-                                            <div class="mt-2">
-                                                <img src="{{ asset($item['image']) }}" class="rounded border shadow-sm" style="height: 80px; width: 80px; object-fit: cover;">
-                                            </div>
-                                        @endif
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label>Title</label>
-                                        <input type="text" name="items[{{ $index }}][title]" class="form-control form-control-sm" value="{{ $item['title'] ?? '' }}">
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label>Description</label>
-                                        <textarea name="items[{{ $index }}][description]" class="form-control form-control-sm" rows="3">{{ $item['description'] ?? '' }}</textarea>
-                                    </div>
-                                    <div class="col-md-1 text-end">
-                                        <button type="button" class="btn btn-danger btn-sm remove-item mt-4">×</button>
+                                <div class="dynamic-item border p-3 rounded mb-3">
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <label>Image / Icon</label>
+                                            <input type="file" name="items[{{ $index }}][image]"
+                                                class="form-control form-control-sm" accept="image/*">
+                                            @if(!empty($item['image']))
+                                                <div class="mt-2">
+                                                    <img src="{{ asset($item['image']) }}" class="rounded border shadow-sm"
+                                                        style="height: 80px; width: 80px; object-fit: cover;">
+                                                </div>
+                                            @endif
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label>Title</label>
+                                            <input type="text" name="items[{{ $index }}][title]"
+                                                class="form-control form-control-sm" value="{{ $item['title'] ?? '' }}">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label>Description</label>
+                                            <textarea name="items[{{ $index }}][description]"
+                                                class="form-control form-control-sm"
+                                                rows="3">{{ $item['description'] ?? '' }}</textarea>
+                                        </div>
+                                        <div class="col-md-1 text-end">
+                                            <button type="button" class="btn btn-danger btn-sm remove-item mt-4">×</button>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
                             @endforeach
                         </div>
 
                         <div class="col-12 text-end mt-4">
-                            <button type="submit" class="btn btn-primary px-4" id="saveDynamicBtn">Save Dynamic Items</button>
+                            <button type="submit" class="btn btn-primary px-4" id="saveDynamicBtn">Save Dynamic
+                                Items</button>
                         </div>
                     </div>
                 </form>
@@ -291,69 +338,74 @@
 </div>
 
 @push('scripts')
-<script>
-$(function() {
-    let itemCount = {{ count($dItems) }};
+    <script>
+        $(function () {
+            let itemCount = "{{ count($dItems) }}";
 
-    // Add Dynamic Item
-    $('#addDynamicItem').on('click', function() {
-        let html = `
-            <div class="dynamic-item border p-3 rounded mb-3">
-                <div class="row">
-                    <div class="col-md-3">
-                        <label>Image / Icon</label>
-                        <input type="file" name="items[${itemCount}][image]" class="form-control form-control-sm" accept="image/*">
+            // Delete gallery image
+            $(document).on('click', '.delete-gallery-img', function () {
+                $(this).closest('.gallery-img-wrapper').remove();
+            });
+
+            // Add Dynamic Item
+            $('#addDynamicItem').on('click', function () {
+                let html = `
+                <div class="dynamic-item border p-3 rounded mb-3">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label>Image / Icon</label>
+                            <input type="file" name="items[${itemCount}][image]" class="form-control form-control-sm" accept="image/*">
+                        </div>
+                        <div class="col-md-4">
+                            <label>Title</label>
+                            <input type="text" name="items[${itemCount}][title]" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-md-4">
+                            <label>Description</label>
+                            <textarea name="items[${itemCount}][description]" class="form-control form-control-sm" rows="3"></textarea>
+                        </div>
+                        <div class="col-md-1 text-end">
+                            <button type="button" class="btn btn-danger btn-sm remove-item mt-4">×</button>
+                        </div>
                     </div>
-                    <div class="col-md-4">
-                        <label>Title</label>
-                        <input type="text" name="items[${itemCount}][title]" class="form-control form-control-sm">
-                    </div>
-                    <div class="col-md-4">
-                        <label>Description</label>
-                        <textarea name="items[${itemCount}][description]" class="form-control form-control-sm" rows="3"></textarea>
-                    </div>
-                    <div class="col-md-1 text-end">
-                        <button type="button" class="btn btn-danger btn-sm remove-item mt-4">×</button>
-                    </div>
-                </div>
-            </div>`;
-        $('#dynamicItemsContainer').append(html);
-        itemCount++;
-    });
+                </div>`;
+                $('#dynamicItemsContainer').append(html);
+                itemCount++;
+            });
 
-    // Remove Dynamic Item
-    $(document).on('click', '.remove-item', function() {
-        $(this).closest('.dynamic-item').remove();
-    });
+            // Remove Dynamic Item
+            $(document).on('click', '.remove-item', function () {
+                $(this).closest('.dynamic-item').remove();
+            });
 
-    // Form Submit Handler
-    function submitForm(formId, route) {
-        $(formId).on('submit', function(e) {
-            e.preventDefault();
-            const $btn = $(this).find('button[type="submit"]');
-            const originalText = $btn.html();
+            // Form Submit Handler
+            function submitForm(formId, route) {
+                $(formId).on('submit', function (e) {
+                    e.preventDefault();
+                    const $btn = $(this).find('button[type="submit"]');
+                    const originalText = $btn.html();
 
-            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> Saving...');
+                    $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> Saving...');
 
-            axios.post(route, new FormData(this))
-                .then(res => {
-                    Toast.success(res.data.message);
-                    setTimeout(() => location.reload(), 1200);
-                })
-                .catch(err => {
-                    Toast.fromResponse(err.response?.data);
-                    $btn.prop('disabled', false).html(originalText);
+                    axios.post(route, new FormData(this))
+                        .then(res => {
+                            Toast.success(res.data.message);
+                            setTimeout(() => location.reload(), 1200);
+                        })
+                        .catch(err => {
+                            Toast.fromResponse(err.response?.data);
+                            $btn.prop('disabled', false).html(originalText);
+                        });
                 });
-        });
-    }
+            }
 
-    // Initialize all forms
-    submitForm('#heroForm', "{{ route('admin.cms.boss-beginnings.update.hero') }}");
-    submitForm('#featuresForm', "{{ route('admin.cms.boss-beginnings.update.features') }}");
-    submitForm('#videoForm', "{{ route('admin.cms.boss-beginnings.update.video_gallery') }}");
-    submitForm('#stepsForm', "{{ route('admin.cms.boss-beginnings.update.steps') }}");
-    submitForm('#section5Form', "{{ route('admin.cms.boss-beginnings.update.section5') }}");
-    submitForm('#dynamicForm', "{{ route('admin.cms.boss-beginnings.update.dynamic') }}");
-});
-</script>
+            // Initialize all forms
+            submitForm('#heroForm', "{{ route('admin.cms.boss-beginnings.update.hero') }}");
+            submitForm('#featuresForm', "{{ route('admin.cms.boss-beginnings.update.features') }}");
+            submitForm('#videoForm', "{{ route('admin.cms.boss-beginnings.update.video_gallery') }}");
+            submitForm('#stepsForm', "{{ route('admin.cms.boss-beginnings.update.steps') }}");
+            submitForm('#section5Form', "{{ route('admin.cms.boss-beginnings.update.section5') }}");
+            submitForm('#dynamicForm', "{{ route('admin.cms.boss-beginnings.update.dynamic') }}");
+        });
+    </script>
 @endpush

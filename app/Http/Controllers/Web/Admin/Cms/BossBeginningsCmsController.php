@@ -153,24 +153,29 @@ class BossBeginningsCmsController extends Controller
             $cms->video = FileHandle::fileUpload($request->file('video_file'), 'cms/boss-beginnings');
         }
 
-        // Gallery Images Upload
-        if ($request->hasFile('gallery_images')) {
-            $existing = $cms->metadata['gallery'] ?? [];
-            foreach ($existing as $img) {
-                if (!empty($img)) {
-                    FileHandle::fileDelete($img);
-                }
-            }
+        // Gallery Images Handling
+        $existing = $cms->metadata['gallery'] ?? [];
+        $remaining = $request->input('existing_gallery', []);
 
-            $gallery = [];
+        // Delete images that were removed by the user
+        $deleted = array_diff($existing, $remaining);
+        foreach ($deleted as $img) {
+            if (!empty($img)) {
+                FileHandle::fileDelete($img);
+            }
+        }
+
+        $gallery = $remaining;
+
+        // Upload new images and append them
+        if ($request->hasFile('gallery_images')) {
             foreach ($request->file('gallery_images') as $image) {
                 $gallery[] = FileHandle::fileUpload($image, 'cms/boss-beginnings');
             }
-
-
-            $currentMetadata = is_array($cms->metadata) ? $cms->metadata : [];
-            $cms->metadata = array_merge($currentMetadata, ['gallery' => $gallery]);
         }
+
+        $currentMetadata = is_array($cms->metadata) ? $cms->metadata : [];
+        $cms->metadata = array_merge($currentMetadata, ['gallery' => $gallery]);
 
         $cms->save();
 
@@ -186,6 +191,7 @@ class BossBeginningsCmsController extends Controller
             'title'               => ['nullable', 'string', 'max:500'],
             'sub_title'           => ['nullable', 'string', 'max:1000'],
             'steps'               => ['nullable', 'array'],
+            'steps.*.small_text'  => ['nullable', 'string', 'max:500'],
             'steps.*.title'       => ['nullable', 'string', 'max:255'],
             'steps.*.description' => ['nullable', 'string', 'max:500'],
         ]);
