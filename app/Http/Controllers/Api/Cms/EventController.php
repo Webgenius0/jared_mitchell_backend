@@ -23,13 +23,13 @@ class EventController extends Controller
     {
         $cmsData = CMS::where('page', CmsPage::EVENTS)
             ->get()
-            ->keyBy(function ($item) {
-                return $item->section instanceof CmsSection ? $item->section->value : $item->section;
+            ->mapWithKeys(function ($item) {
+                return [$item->section->value => (new CmsContentResource($item))->resolve()];
             });
 
         return $this->success(
             'Events page CMS content retrieved successfully.',
-            CmsContentResource::collection($cmsData)->resolve(),
+            $cmsData,
             200
         );
     }
