@@ -27,6 +27,19 @@ class EventController extends Controller
                 return [$item->section->value => (new CmsContentResource($item))->resolve()];
             });
 
+        $shonsors = CMS::where('page', CmsPage::HOME)
+            ->where('section', CmsSection::PARTNERS)
+            ->get();
+        
+        $cmsData['partners'] = (new CmsContentResource($shonsors))->resolve();
+
+        $newletter = CMS::where('page', CmsPage::HOME)
+            ->where('section', CmsSection::NEWSLETTER)
+            ->first();
+        if ($newletter) {
+            $cmsData['newsletter'] = (new CmsContentResource($newletter))->resolve();
+        }
+
         return $this->success(
             'Events page CMS content retrieved successfully.',
             $cmsData,

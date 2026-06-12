@@ -32,6 +32,13 @@ class CmsAboutController extends Controller
         // add $shonsors in $cmsData
         $cmsData['partners'] = $shonsors;
 
+        $newletter = CMS::where('page', CmsPage::HOME)
+            ->where('section', CmsSection::NEWSLETTER)
+            ->first();
+        if ($newletter) {
+            $cmsData['newsletter'] = $newletter;
+        }
+
         return $this->success(
             'About page CMS content retrieved successfully.',
             CmsContentResource::collection($cmsData)->resolve()
