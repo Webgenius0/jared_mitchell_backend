@@ -36,6 +36,8 @@ use App\Http\Controllers\Api\Cms\FAQController as ApiFAQController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\NewsletterController;
+use App\Http\Controllers\Api\SpotlightController;
+use App\Http\Controllers\Api\RoundSessionApiController;
 use Illuminate\Support\Facades\Route;
 
 // health check
@@ -101,11 +103,6 @@ Route::group(['prefix' => 'v1'], function ($router) {
 
         });
 
-        /*
-        |--------------------------------------------------------------------------
-        | Spotlights
-        |--------------------------------------------------------------------------
-        */
         // Business Sportlight
         Route::prefix('business-spotlight')->group(function () {
             Route::get('/', [BusinessSpotlightController::class, 'index']);
@@ -155,6 +152,14 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::post('/{id}/share', [ArtistController::class, 'recordShare']); // Public share (optional auth)
         });
     });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Spotlights (Accessible by both guest and authenticated users)
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/spotlight', [SpotlightController::class, 'index']);
+    Route::get('/round-countdown', [RoundSessionApiController::class, 'countdown']);
 
     /*
     |--------------------------------------------------------------------------
