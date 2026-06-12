@@ -17,15 +17,18 @@ class CmsContentResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        // partner
         if ($this->resource instanceof Collection) {
             $first = $this->resource->first();
-            $sectionName = $first ? ($first->section instanceof CmsSection ? $first->section->value : $first->section) : 'about_partners';
+            $sectionName = $first ? ($first->section instanceof CmsSection ? $first->section->value : $first->section) : 'partners';
 
             return [
                 'section' => $sectionName,
                 'items' => self::collection($this->resource)->resolve(),
             ];
         }
+
+
 
         return [
             'section' => $this->section instanceof CmsSection ? $this->section->value : $this->section,
