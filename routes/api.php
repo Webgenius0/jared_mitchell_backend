@@ -17,6 +17,8 @@ use App\Http\Controllers\Api\BusinessCategoryController;
 use App\Http\Controllers\Api\BusinessController;
 use App\Http\Controllers\Api\BusinessSpotlightController;
 use App\Http\Controllers\Api\ContestApplicationController;
+use App\Http\Controllers\Api\PricingCntroller;
+use App\Http\Controllers\Api\Event_IsFeature_Controller;
 use App\Http\Controllers\Api\Chat\ConversationController;
 use App\Http\Controllers\Api\Chat\MessageController;
 use App\Http\Controllers\Api\Chat\TypingController;
@@ -161,7 +163,22 @@ Route::group(['prefix' => 'v1'], function ($router) {
     Route::get('/spotlight', [SpotlightController::class, 'index']);
     Route::get('/round-countdown', [RoundSessionApiController::class, 'countdown']);
 
+
     /*
+    |--------------------------------------------------------------------------
+    | Pricing (Accessible by both guest and authenticated users)
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/pricing', [PricingCntroller::class, 'index']);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Featured Events (Accessible by both guest and authenticated users)
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/featured-events', [Event_IsFeature_Controller::class, 'index']);
+
+    /*  
     |--------------------------------------------------------------------------
     | Contest Applications — Public routes
     |--------------------------------------------------------------------------
