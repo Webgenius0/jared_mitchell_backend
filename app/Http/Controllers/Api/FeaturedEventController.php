@@ -8,7 +8,7 @@ use App\Traits\ApiResponse;
 use Exception;
 use Illuminate\Support\Facades\Log;
 
-class Event_IsFeature_Controller extends Controller
+class FeaturedEventController extends Controller
 {
     use ApiResponse;
 

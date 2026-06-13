@@ -7,7 +7,7 @@ use App\Traits\ApiResponse;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-class PricingCntroller extends Controller
+class PricingController extends Controller
 {
     use ApiResponse;
     public function index()
