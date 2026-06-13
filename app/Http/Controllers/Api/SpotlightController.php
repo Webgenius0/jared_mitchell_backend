@@ -21,19 +21,27 @@ class SpotlightController extends Controller
      */
     public function index(): JsonResponse
     {
-        // 1. Fetch random Artist Spotlight (preferring approved/featured status)
-        $artist = ArtistSpotlight::with('category')->whereIn('status', ['approved', 'featured'])->inRandomOrder()->first()
-            ?? ArtistSpotlight::with('category')->where('status', '!=', 'draft')->inRandomOrder()->first()
-            ?? ArtistSpotlight::with('category')->inRandomOrder()->first();
+        // 1. Fetch random Artist Spotlights (preferring approved/featured status)
+        $artists = ArtistSpotlight::with('category')->whereIn('status', ['approved'])->inRandomOrder()->get();
+        if ($artists->isEmpty()) {
+            $artists = ArtistSpotlight::with('category')->where('status', '!=', 'draft')->inRandomOrder()->get();
+        }
+        if ($artists->isEmpty()) {
+            $artists = ArtistSpotlight::with('category')->inRandomOrder()->get();
+        }
 
-        // 2. Fetch random Business Spotlight (preferring approved/featured status)
-        $business = BusinessSpotlight::whereIn('status', ['approved', 'featured'])->inRandomOrder()->first()
-            ?? BusinessSpotlight::where('status', '!=', 'draft')->inRandomOrder()->first()
-            ?? BusinessSpotlight::inRandomOrder()->first();
+        // 2. Fetch random Business Spotlights (preferring approved/featured status)
+        $businesses = BusinessSpotlight::whereIn('status', ['approved'])->inRandomOrder()->get();
+        if ($businesses->isEmpty()) {
+            $businesses = BusinessSpotlight::where('status', '!=', 'draft')->inRandomOrder()->get();
+        }
+        if ($businesses->isEmpty()) {
+            $businesses = BusinessSpotlight::inRandomOrder()->get();
+        }
 
         // 3. Format Artist Spotlight Data
-        $artistData = null;
-        if ($artist) {
+        $artistsData = [];
+        foreach ($artists as $artist) {
             $artistCategory = $artist->category?->name
                 ?? $artist->category_other_description
                 ?? 'Other';
@@ -56,7 +64,7 @@ class SpotlightController extends Controller
                 $artistImages[] = $this->formatImageUrl($artist->behind_scenes_photo_path);
             }
 
-            $artistData = [
+            $artistsData[] = [
                 'id' => $artist->id,
                 'category' => $artistCategory,
                 'title' => $artistTitle,
@@ -64,9 +72,10 @@ class SpotlightController extends Controller
                 'images' => $artistImages
             ];
         }
+
         // 4. Format Business Spotlight Data
-        $businessData = null;
-        if ($business) {
+        $businessesData = [];
+        foreach ($businesses as $business) {
             $businessCategory = $business->business_category ?? 'Business';
             $businessTitle = $business->business_name;
 
@@ -89,7 +98,7 @@ class SpotlightController extends Controller
                 $businessImages[] = $this->formatImageUrl($business->team_photo_path);
             }
 
-            $businessData = [
+            $businessesData[] = [
                 'id' => $business->id,
                 'category' => $businessCategory,
                 'title' => $businessTitle,
@@ -99,8 +108,10 @@ class SpotlightController extends Controller
         }
 
         return $this->success('Spotlight data retrieved successfully.', [
-            'artist' => $artistData,
-            'business' => $businessData,
+            'artist' => $artistsData[0] ?? null,
+            'business' => $businessesData[0] ?? null,
+            'artists' => $artistsData,
+            'businesses' => $businessesData,
         ]);
     }
 
