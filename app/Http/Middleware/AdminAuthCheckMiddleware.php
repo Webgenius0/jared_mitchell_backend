@@ -13,7 +13,7 @@ class AdminAuthCheckMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // ── Not authenticated ──────────────────────────────────────────────
+        // Not authenticated
         if (! auth('admin')->check()) {
             if ($request->expectsJson()) {
                 return response()->json([
@@ -30,7 +30,7 @@ class AdminAuthCheckMiddleware
 
         $user = auth('admin')->user();
 
-        // ── Account deactivated ────────────────────────────────────────────
+        // Account deactivated
         if ($user->status !== 'active') {
             auth('admin')->logout();
             $request->session()->invalidate();
@@ -48,7 +48,7 @@ class AdminAuthCheckMiddleware
                 ->with('error', 'Your account has been deactivated.');
         }
 
-        // ── Not admin role ─────────────────────────────────────────────────
+        // Not admin role
         if (! $user->hasAnyRole(['admin', 'super-admin'])) {
             auth('admin')->logout();
             $request->session()->invalidate();
@@ -66,7 +66,7 @@ class AdminAuthCheckMiddleware
                 ->with('error', 'Access denied.');
         }
 
-        // ── Authenticated — disable browser caching on all protected pages ─
+        // Authenticated — disable browser caching on all protected pages
         $response = $next($request);
 
         return $response->withHeaders([

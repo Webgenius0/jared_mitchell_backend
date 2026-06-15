@@ -178,7 +178,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
     */
     Route::get('/featured-events', [FeaturedEventController::class, 'index']);
 
-    /*  
+    /*
     |--------------------------------------------------------------------------
     | Contest Applications — Public routes
     |--------------------------------------------------------------------------
@@ -293,6 +293,12 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::post('/{application}/withdraw', [ContestApplicationController::class, 'withdraw']); // Withdraw application
             Route::patch('/{application}/approve', [ContestApplicationController::class, 'approve']); // Approve (admin)
             Route::patch('/{application}/reject', [ContestApplicationController::class, 'reject']); // Reject (admin)
+        });
+
+        Route::prefix('events')->group(function () {
+            Route::get('/{slug}', [EventController::class, 'show']); // Detail
+            Route::get('/{slug}/attendees', [EventController::class, 'attendees']); // Attendees list
+            Route::post('/register', [EventController::class, 'register']); // Register
         });
     });
 
