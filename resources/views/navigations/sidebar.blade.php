@@ -232,6 +232,33 @@
                 </li>
 
 
+                {{-- Product Manage --}}
+                @php
+                    $productManageOpen = request()->routeIs(
+                        'admin.product-categories.*',
+                    );
+                @endphp
+
+                <li class="nav-item">
+                    <a class="nav-link menu-link {{ $productManageOpen ? 'active' : '' }}" href="#sidebarProductManage"
+                        data-bs-toggle="collapse" role="button" aria-expanded="{{ $productManageOpen ? 'true' : 'false' }}"
+                        aria-controls="sidebarProductManage">
+                        <i class="ri-shopping-bag-3-line"></i>
+                        <span>Product Manage</span>
+                    </a>
+
+                    <div class="collapse menu-dropdown {{ $productManageOpen ? 'show' : '' }}" id="sidebarProductManage">
+                        <ul class="nav nav-sm flex-column">
+                            <li class="nav-item">
+                                <a href="{{ route('admin.product-categories.index') }}"
+                                    class="nav-link {{ request()->routeIs('admin.product-categories.*') ? 'active' : '' }}">
+                                    <i class="ri-list-settings-line"></i> Product Category
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+
                 {{-- Manage Tags --}}
                 @php
                     $manageTagsOpen = request()->routeIs(

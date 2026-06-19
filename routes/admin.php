@@ -20,6 +20,7 @@ use App\Http\Controllers\Web\Admin\Cms\ShopCmsController;
 use App\Http\Controllers\Web\Admin\Cms\SponsorshipCmsController;
 use App\Http\Controllers\Web\Admin\Cms\BossBeginningsCmsController;
 use App\Http\Controllers\Web\Admin\Cms\BossBeginningWinnerChossenCMSController;
+use App\Http\Controllers\Web\Admin\Product\AdminProductCategoryController;
 use App\Http\Controllers\Web\Admin\Contact\AdminChattingController;
 use App\Http\Controllers\Web\Admin\Contact\AdminMailingController;
 use App\Http\Controllers\Web\Admin\ContactController as WebContactController;
@@ -344,6 +345,19 @@ Route::prefix('contest-applications')->name('admin.contest-applications.')->grou
     Route::patch('/{contestApplication}/approve', [AdminContestApplicationController::class, 'approve'])->name('approve');
     Route::patch('/{contestApplication}/cancel', [AdminContestApplicationController::class, 'cancel'])->name('cancel');
     Route::delete('/{contestApplication}', [AdminContestApplicationController::class, 'destroy'])->name('destroy');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Product Categories
+|--------------------------------------------------------------------------
+*/
+Route::prefix('product-categories')->name('admin.product-categories.')->group(function () {
+    Route::get('/', [AdminProductCategoryController::class, 'index'])->name('index');
+    Route::get('/data', [AdminProductCategoryController::class, 'getData'])->name('data');
+    Route::post('/', [AdminProductCategoryController::class, 'store'])->name('store');
+    Route::put('/{category}', [AdminProductCategoryController::class, 'update'])->name('update');
+    Route::delete('/{category}', [AdminProductCategoryController::class, 'destroy'])->name('destroy');
 });
 
 /*
