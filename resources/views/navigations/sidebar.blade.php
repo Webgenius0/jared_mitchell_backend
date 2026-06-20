@@ -85,7 +85,14 @@
                 {{-- Handle Business --}}
                 @canany(['manage users', 'manage roles', 'manage permissions'])
                     @php
-                        $userMgmtOpen = request()->routeIs('admin.users.*', 'admin.roles.*', 'admin.permissions.*', 'admin.round-sessions.*', 'admin.businesses.*', 'admin.contest-applications.*');
+                        $userMgmtOpen = request()->routeIs(
+                            'admin.users.*',
+                            'admin.roles.*',
+                            'admin.permissions.*',
+                            'admin.round-sessions.*',
+                            'admin.businesses.*',
+                            'admin.contest-applications.*',
+                        );
                     @endphp
 
                     <li class="nav-item">
@@ -207,8 +214,8 @@
 
                 <li class="nav-item">
                     <a class="nav-link menu-link {{ $spotlightOpen ? 'active' : '' }}" href="#sidebarSpotlight"
-                        data-bs-toggle="collapse" role="button" aria-expanded="{{ $spotlightOpen ? 'true' : 'false' }}"
-                        aria-controls="sidebarSpotlight">
+                        data-bs-toggle="collapse" role="button"
+                        aria-expanded="{{ $spotlightOpen ? 'true' : 'false' }}" aria-controls="sidebarSpotlight">
                         <i class="ri-star-smile-line"></i>
                         <span>Spotlight</span>
                     </a>
@@ -234,27 +241,36 @@
 
                 {{-- Product Manage --}}
                 @php
-                    $productManageOpen = request()->routeIs(
-                        'admin.product-categories.*',
-                    );
+                    $productManageOpen = request()->routeIs('admin.product-categories.*', 'admin.products.*');
                 @endphp
 
                 <li class="nav-item">
-                    <a class="nav-link menu-link {{ $productManageOpen ? 'active' : '' }}" href="#sidebarProductManage"
-                        data-bs-toggle="collapse" role="button" aria-expanded="{{ $productManageOpen ? 'true' : 'false' }}"
+                    <a class="nav-link menu-link {{ $productManageOpen ? 'active' : '' }}"
+                        href="#sidebarProductManage" data-bs-toggle="collapse" role="button"
+                        aria-expanded="{{ $productManageOpen ? 'true' : 'false' }}"
                         aria-controls="sidebarProductManage">
                         <i class="ri-shopping-bag-3-line"></i>
                         <span>Product Manage</span>
                     </a>
 
-                    <div class="collapse menu-dropdown {{ $productManageOpen ? 'show' : '' }}" id="sidebarProductManage">
+                    <div class="collapse menu-dropdown {{ $productManageOpen ? 'show' : '' }}"
+                        id="sidebarProductManage">
                         <ul class="nav nav-sm flex-column">
+
                             <li class="nav-item">
                                 <a href="{{ route('admin.product-categories.index') }}"
                                     class="nav-link {{ request()->routeIs('admin.product-categories.*') ? 'active' : '' }}">
                                     <i class="ri-list-settings-line"></i> Product Category
                                 </a>
                             </li>
+
+                            <li class="nav-item">
+                                <a href="{{ route('admin.products.index') }}"
+                                    class="nav-link {{ request()->routeIs('admin.products.*') ? 'active' : '' }}">
+                                    <i class="ri-shopping-cart-line"></i> Products
+                                </a>
+                            </li>
+
                         </ul>
                     </div>
                 </li>
@@ -269,8 +285,8 @@
 
                 <li class="nav-item">
                     <a class="nav-link menu-link {{ $manageTagsOpen ? 'active' : '' }}" href="#sidebarManageTags"
-                        data-bs-toggle="collapse" role="button" aria-expanded="{{ $manageTagsOpen ? 'true' : 'false' }}"
-                        aria-controls="sidebarManageTags">
+                        data-bs-toggle="collapse" role="button"
+                        aria-expanded="{{ $manageTagsOpen ? 'true' : 'false' }}" aria-controls="sidebarManageTags">
                         <i class="ri-star-smile-line"></i>
                         <span>Manage Tags</span>
                     </a>
@@ -379,8 +395,8 @@
 
                     <li class="nav-item">
                         <a class="nav-link menu-link {{ $userMgmtOpen ? 'active' : '' }}" href="#sidebarUserManagement"
-                            data-bs-toggle="collapse" role="button" aria-expanded="{{ $userMgmtOpen ? 'true' : 'false' }}"
-                            aria-controls="sidebarUserManagement">
+                            data-bs-toggle="collapse" role="button"
+                            aria-expanded="{{ $userMgmtOpen ? 'true' : 'false' }}" aria-controls="sidebarUserManagement">
                             <i class="ri-shield-user-line"></i>
                             <span>User Management</span>
                         </a>
@@ -545,22 +561,22 @@
 
 {{-- Sidebar logout (mirrors header logout) --}}
 <script>
-    document.getElementById('sidebarLogoutBtn').addEventListener('click', function () {
+    document.getElementById('sidebarLogoutBtn').addEventListener('click', function() {
         Alert.confirm('You will be returned to the login screen.', {
             title: 'Log out?',
             icon: 'warning',
             type: 'danger',
             confirmText: 'Yes, log me out',
             cancelText: 'Stay',
-        }).then(function (confirmed) {
+        }).then(function(confirmed) {
             if (!confirmed) return;
 
             axios.post('{{ route('admin.logout') }}')
-                .then(function (res) {
+                .then(function(res) {
                     Toast.success(res.data.message || 'Logged out successfully.');
                     setTimeout(() => window.location.href = res.data.redirect, 1000);
                 })
-                .catch(function () {
+                .catch(function() {
                     window.location.href = '{{ route('show.admin.login') }}';
                 });
         });
