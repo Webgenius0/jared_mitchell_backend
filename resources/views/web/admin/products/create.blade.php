@@ -71,8 +71,9 @@
                             </div>
 
                             <div class="mb-3">
-                                <label for="description" class="form-label">Full Description</label>
-                                <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="6" placeholder="Detailed product description...">{{ old('description') }}</textarea>
+                                <label class="form-label">Full Description</label>
+                                <div id="descriptionEditor" class="snow-editor @error('description') is-invalid @enderror" style="height: 260px;"></div>
+                                <input type="hidden" id="description" name="description" value="{{ old('description') }}">
                                 @error('description') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                         </div>
@@ -207,11 +208,29 @@
                                         <input class="form-control d-none" id="thumbnail" name="thumbnail" type="file" accept="image/png, image/gif, image/jpeg">
                                     </div>
                                     <div class="avatar-xl bg-light rounded shadow">
-                                        <img src="{{ asset('admin/assets/images/default/no-img.png') }}" id="thumbnail_preview" class="avatar-xl rounded object-fit-cover" style="width: 150px; height: 150px;">
+                                        <img src="{{ asset('admin/default/no-image.png') }}" id="thumbnail_preview" class="avatar-xl rounded object-fit-cover" style="width: 150px; height: 150px;">
                                     </div>
                                 </div>
-                                <p class="text-muted mt-2 small">Recommended: 500x500px (Max 2MB)</p>
+                                <p class="text-muted mt-5 small">Recommended: 500x500px (Max 2MB)</p>
                             </div>
+                        </div>
+                    </div>
+
+                    {{-- Gallery Images Card --}}
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Product Gallery</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="images" class="form-label">Additional Images</label>
+                                <input type="file" class="form-control @error('images.*') is-invalid @enderror @error('images') is-invalid @enderror" id="images" name="images[]" multiple accept="image/png, image/gif, image/jpeg">
+                                @error('images') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                @error('images.*') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                <small class="text-muted">You can select multiple images. Each max 2MB. Supported: PNG, GIF, JPEG</small>
+                            </div>
+                            {{-- Gallery preview container --}}
+                            <div id="gallery_preview" class="row g-2 mt-2"></div>
                         </div>
                     </div>
 
@@ -268,6 +287,40 @@
                     .replace(/[\s_]+/g, '-')
                     .replace(/^-+|-+$/g, '');
             }
+        });
+
+        // ── Quill editor ─────────────────────────────────────────────
+        const descEditorEl = document.getElementById('descriptionEditor');
+        const descInput = document.getElementById('description');
+        const descEditor = Quill.find(descEditorEl);
+
+        if (descEditor && descInput.value) {
+            descEditor.clipboard.dangerouslyPasteHTML(descInput.value);
+        }
+
+        if (descEditor) {
+            descEditor.on('text-change', function() {
+                descInput.value = descEditor.getSemanticHTML();
+            });
+        }
+
+        // Gallery Images Preview
+        document.getElementById('images').addEventListener('change', function(e) {
+            const container = document.getElementById('gallery_preview');
+            container.innerHTML = '';
+            Array.from(e.target.files).forEach(function(file, index) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const col = document.createElement('div');
+                    col.className = 'col-4 col-md-3';
+                    col.innerHTML = '<div class="position-relative">' +
+                        '<img src="' + event.target.result + '" class="img-thumbnail" style="height: 100px; width: 100%; object-fit: cover;">' +
+                        '<span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-secondary" style="font-size: 10px;">' + (index + 1) + '</span>' +
+                        '</div>';
+                    container.appendChild(col);
+                };
+                reader.readAsDataURL(file);
+            });
         });
     });
 </script>

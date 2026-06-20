@@ -100,6 +100,8 @@ class AdminProductController extends Controller
             'type'              => 'required|in:physical,digital,service',
             'brand'             => 'nullable|string|max:255',
             'thumbnail'         => 'nullable|image|max:2048',
+            'images'            => 'nullable|array',
+            'images.*'          => 'image|max:2048',
             'vendor_name'       => 'nullable|string|max:255',
             'vendor_email'      => 'nullable|email|max:255',
             'vendor_phone'      => 'nullable|string|max:50',
@@ -110,7 +112,7 @@ class AdminProductController extends Controller
             'is_active'         => 'nullable|boolean',
         ]);
 
-        $data = $request->except(['thumbnail', 'slug']);
+        $data = $request->except(['thumbnail', 'images', 'slug']);
         $data['slug'] = $request->filled('slug') ? Str::slug($request->slug) : Str::slug($request->name);
         $data['track_stock'] = $request->boolean('track_stock', true);
         $data['is_featured'] = $request->boolean('is_featured', false);
@@ -121,7 +123,20 @@ class AdminProductController extends Controller
             $data['thumbnail'] = FileHandle::fileUpload($request->file('thumbnail'), 'products/thumbnails');
         }
 
-        Product::create($data);
+        $product = Product::create($data);
+
+        // Handle multiple gallery images
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $index => $image) {
+                $path = FileHandle::fileUpload($image, 'products/images');
+                if ($path) {
+                    $product->images()->create([
+                        'image'      => $path,
+                        'sort_order' => $index,
+                    ]);
+                }
+            }
+        }
 
         return redirect()->route('admin.products.index')->with('success', 'Product created successfully.');
     }
@@ -161,6 +176,10 @@ class AdminProductController extends Controller
             'type'              => 'required|in:physical,digital,service',
             'brand'             => 'nullable|string|max:255',
             'thumbnail'         => 'nullable|image|max:2048',
+            'images'            => 'nullable|array',
+            'images.*'          => 'image|max:2048',
+            'delete_images'     => 'nullable|array',
+            'delete_images.*'   => 'integer|exists:product_images,id',
             'vendor_name'       => 'nullable|string|max:255',
             'vendor_email'      => 'nullable|email|max:255',
             'vendor_phone'      => 'nullable|string|max:50',
@@ -171,7 +190,7 @@ class AdminProductController extends Controller
             'is_active'         => 'nullable|boolean',
         ]);
 
-        $data = $request->except(['thumbnail', 'slug']);
+        $data = $request->except(['thumbnail', 'images', 'delete_images', 'slug']);
         $data['slug'] = $request->filled('slug') ? Str::slug($request->slug) : Str::slug($request->name);
         $data['track_stock'] = $request->boolean('track_stock', true);
         $data['is_featured'] = $request->boolean('is_featured', false);
@@ -187,6 +206,34 @@ class AdminProductController extends Controller
         }
 
         $product->update($data);
+
+        // Delete selected existing images
+        if ($request->filled('delete_images')) {
+            $imagesToDelete = ProductImage::whereIn('id', $request->delete_images)
+                ->where('product_id', $product->id)
+                ->get();
+
+            foreach ($imagesToDelete as $image) {
+                FileHandle::fileDelete($image->image);
+                $image->delete();
+            }
+        }
+
+        // Handle new gallery image uploads
+        if ($request->hasFile('images')) {
+            // Get the current max sort_order
+            $maxSort = $product->images()->max('sort_order') ?? -1;
+
+            foreach ($request->file('images') as $index => $image) {
+                $path = FileHandle::fileUpload($image, 'products/images');
+                if ($path) {
+                    $product->images()->create([
+                        'image'      => $path,
+                        'sort_order' => $maxSort + 1 + $index,
+                    ]);
+                }
+            }
+        }
 
         return redirect()->route('admin.products.index')->with('success', 'Product updated successfully.');
     }

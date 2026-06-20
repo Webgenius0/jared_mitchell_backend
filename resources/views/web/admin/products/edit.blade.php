@@ -72,8 +72,9 @@
                             </div>
 
                             <div class="mb-3">
-                                <label for="description" class="form-label">Full Description</label>
-                                <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="6" placeholder="Detailed product description...">{{ old('description', $product->description) }}</textarea>
+                                <label class="form-label">Full Description</label>
+                                <div id="descriptionEditor" class="snow-editor @error('description') is-invalid @enderror" style="height: 260px;"></div>
+                                <input type="hidden" id="description" name="description" value="{{ old('description', $product->description) }}">
                                 @error('description') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                         </div>
@@ -221,6 +222,47 @@
                         </div>
                     </div>
 
+                    {{-- Gallery Images Card --}}
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">Product Gallery</h5>
+                            @if($product->images->count() > 0)
+                                <span class="badge bg-info">{{ $product->images->count() }} images</span>
+                            @endif
+                        </div>
+                        <div class="card-body">
+                            {{-- Existing Images --}}
+                            @if($product->images->count() > 0)
+                                <label class="form-label text-muted small">Check images to delete:</label>
+                                <div class="row g-2 mb-3">
+                                    @foreach($product->images as $image)
+                                        <div class="col-4 col-md-3">
+                                            <div class="position-relative">
+                                                <img src="{{ asset('/' . $image->image) }}" alt="Gallery Image" class="img-thumbnail" style="height: 100px; width: 100%; object-fit: cover;">
+                                                <div class="form-check position-absolute top-0 start-0 m-1">
+                                                    <input class="form-check-input" type="checkbox" name="delete_images[]" value="{{ $image->id }}" id="delete_img_{{ $image->id }}">
+                                                    <label class="form-check-label small text-white" for="delete_img_{{ $image->id }}" style="text-shadow: 0 0 3px rgba(0,0,0,0.8);">Delete</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                <hr>
+                            @endif
+
+                            {{-- Upload New Images --}}
+                            <div class="mb-3">
+                                <label for="images" class="form-label">Add New Images</label>
+                                <input type="file" class="form-control @error('images.*') is-invalid @enderror @error('images') is-invalid @enderror" id="images" name="images[]" multiple accept="image/png, image/gif, image/jpeg">
+                                @error('images') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                @error('images.*') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                <small class="text-muted">You can select multiple images. Each max 2MB. Supported: PNG, GIF, JPEG</small>
+                            </div>
+                            {{-- Gallery preview container --}}
+                            <div id="gallery_preview" class="row g-2 mt-2"></div>
+                        </div>
+                    </div>
+
                     {{-- Status Card --}}
                     <div class="card">
                         <div class="card-header">
@@ -274,6 +316,40 @@
                     .replace(/[\s_]+/g, '-')
                     .replace(/^-+|-+$/g, '');
             }
+        });
+
+        // ── Quill editor ─────────────────────────────────────────────
+        const descEditorEl = document.getElementById('descriptionEditor');
+        const descInput = document.getElementById('description');
+        const descEditor = Quill.find(descEditorEl);
+
+        if (descEditor && descInput.value) {
+            descEditor.clipboard.dangerouslyPasteHTML(descInput.value);
+        }
+
+        if (descEditor) {
+            descEditor.on('text-change', function() {
+                descInput.value = descEditor.getSemanticHTML();
+            });
+        }
+
+        // Gallery Images Preview
+        document.getElementById('images').addEventListener('change', function(e) {
+            const container = document.getElementById('gallery_preview');
+            container.innerHTML = '';
+            Array.from(e.target.files).forEach(function(file, index) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const col = document.createElement('div');
+                    col.className = 'col-4 col-md-3';
+                    col.innerHTML = '<div class="position-relative">' +
+                        '<img src="' + event.target.result + '" class="img-thumbnail" style="height: 100px; width: 100%; object-fit: cover;">' +
+                        '<span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-secondary" style="font-size: 10px;">' + (index + 1) + '</span>' +
+                        '</div>';
+                    container.appendChild(col);
+                };
+                reader.readAsDataURL(file);
+            });
         });
     });
 </script>

@@ -207,8 +207,8 @@
                         <div class="row g-2">
                             @foreach($product->images as $image)
                             <div class="col-4 col-md-3">
-                                <a href="{{ asset('storage/' . $image->image) }}" target="_blank">
-                                    <img src="{{ asset('storage/' . $image->image) }}" alt="Product Image" class="img-thumbnail" style="height: 120px; width: 100%; object-fit: cover;">
+                                <a href="{{ asset('/' . $image->image) }}" target="_blank">
+                                    <img src="{{ asset('/' . $image->image) }}" alt="Product Image" class="img-thumbnail" style="height: 120px; width: 100%; object-fit: cover;">
                                 </a>
                             </div>
                             @endforeach
