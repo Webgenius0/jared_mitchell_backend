@@ -36,6 +36,7 @@ use App\Http\Controllers\Api\Cms\ShopController;
 use App\Http\Controllers\Api\Cms\SponsorsipController;
 use App\Http\Controllers\Api\Cms\FAQController as ApiFAQController;
 use App\Http\Controllers\Api\ContactController;
+use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\NewsletterController;
 use App\Http\Controllers\Api\SpotlightController;
@@ -142,6 +143,14 @@ Route::group(['prefix' => 'v1'], function ($router) {
 
         // Newsletter
         Route::post('/newsletter', [NewsletterController::class, 'store']);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Products — Public listing and detail
+        |--------------------------------------------------------------------------
+        */
+        Route::get('/products', [ProductController::class, 'index']);
+        Route::get('/products/{slug}', [ProductController::class, 'show']);
 
         /*
         |--------------------------------------------------------------------------
