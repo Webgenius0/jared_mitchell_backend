@@ -170,4 +170,50 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->belongsToMany(ArtistSpotlight::class, 'artist_spotlight_bookmarks', 'user_id', 'artist_spotlight_id')->withTimestamps();
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | E-commerce: Wishlist, Cart & Orders
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Products in user's wishlist.
+     */
+    public function wishlists(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Wishlist::class);
+    }
+
+    /**
+     * Wishlisted products (through the pivot).
+     */
+    public function wishlistedProducts(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Product::class, 'wishlists')->withTimestamps();
+    }
+
+    /**
+     * Cart items for this user.
+     */
+    public function cartItems(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Cart::class);
+    }
+
+    /**
+     * Products in user's cart (through the pivot).
+     */
+    public function cartProducts(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Product::class, 'carts')->withPivot('quantity')->withTimestamps();
+    }
+
+    /**
+     * Orders placed by this user.
+     */
+    public function orders(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
 }

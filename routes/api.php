@@ -8,20 +8,20 @@ use App\Http\Controllers\Api\Auth\LoginController;
 use App\Http\Controllers\Api\Auth\RegisterController;
 use App\Http\Controllers\Api\Auth\UserProfileController;
 use App\Http\Controllers\Api\Auth\V1\ArtistProfileController;
+use App\Http\Controllers\Api\Auth\V1\BossProfileController;
 use App\Http\Controllers\Api\Auth\V1\MemberProfileController;
 use App\Http\Controllers\Api\Auth\V1\SponsorProfileController;
-use App\Http\Controllers\Api\Auth\V1\BossProfileController;
 use App\Http\Controllers\Api\Auth\V2\ForgotPasswordController as V2ForgotPasswordController;
 use App\Http\Controllers\Api\Auth\V2\RegisterController as V2RegisterController;
 use App\Http\Controllers\Api\BusinessCategoryController;
 use App\Http\Controllers\Api\BusinessController;
 use App\Http\Controllers\Api\BusinessSpotlightController;
-use App\Http\Controllers\Api\ContestApplicationController;
-use App\Http\Controllers\Api\PricingController;
-use App\Http\Controllers\Api\FeaturedEventController;
+use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\Chat\ConversationController;
 use App\Http\Controllers\Api\Chat\MessageController;
 use App\Http\Controllers\Api\Chat\TypingController;
+use App\Http\Controllers\Api\Cms\BossBeginingsController;
+use App\Http\Controllers\Api\Cms\BossWinnerChosenController;
 use App\Http\Controllers\Api\Cms\CmsAboutController;
 use App\Http\Controllers\Api\Cms\CmsArtistSpotlightController;
 use App\Http\Controllers\Api\Cms\CmsBusinessSpotlightController;
@@ -29,18 +29,21 @@ use App\Http\Controllers\Api\Cms\CmsHomePageController;
 use App\Http\Controllers\Api\Cms\CmsPricingController;
 use App\Http\Controllers\Api\Cms\CmsServiceController;
 use App\Http\Controllers\Api\Cms\CmsSpotlightLadderController;
-use App\Http\Controllers\Api\Cms\BossBeginingsController;
-use App\Http\Controllers\Api\Cms\BossWinnerChosenController;
 use App\Http\Controllers\Api\Cms\EventController as CmsEventController;
+use App\Http\Controllers\Api\Cms\FAQController as ApiFAQController;
 use App\Http\Controllers\Api\Cms\ShopController;
 use App\Http\Controllers\Api\Cms\SponsorsipController;
-use App\Http\Controllers\Api\Cms\FAQController as ApiFAQController;
 use App\Http\Controllers\Api\ContactController;
-use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\ContestApplicationController;
 use App\Http\Controllers\Api\EventController;
+use App\Http\Controllers\Api\FeaturedEventController;
 use App\Http\Controllers\Api\NewsletterController;
-use App\Http\Controllers\Api\SpotlightController;
+use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\PricingController;
+use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\RoundSessionApiController;
+use App\Http\Controllers\Api\SpotlightController;
+use App\Http\Controllers\Api\WishlistController;
 use Illuminate\Support\Facades\Route;
 
 // health check
@@ -276,6 +279,34 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::delete('/delete/{business}', [BusinessController::class, 'destroy']); // Delete
             Route::patch('/{business}/toggle-status', [BusinessController::class, 'toggleStatus']); // Toggle active/inactive
             Route::patch('/{business}/terminate', [BusinessController::class, 'terminate']); // Terminate
+        });
+
+        /*
+        |--------------------------------------------------------------------------
+        | E-commerce: Wishlist, Cart & Orders
+        |--------------------------------------------------------------------------
+        */
+        Route::prefix('wishlist')->group(function () {
+            Route::get('/', [WishlistController::class, 'index']); // DONE: get all wishlist product
+            Route::post('/toggle/{product}', [WishlistController::class, 'toggle']); // DONE: toggle wishlist product
+            Route::delete('/{product}', [WishlistController::class, 'destroy']); // DONE: delete wishlist product
+            Route::delete('/', [WishlistController::class, 'clear']); // DONE: clear wishlist product
+        });
+
+        Route::prefix('cart')->group(function () {
+            Route::get('/', [CartController::class, 'index']); // DONE: get all cart product
+            Route::post('/add', [CartController::class, 'add']); // DONE: add product to cart
+            Route::post('/{cart}/update', [CartController::class, 'update']); // DONE: update product in cart
+            Route::delete('/{cart}/delete', [CartController::class, 'destroy']); // DONE: delete product from cart
+            Route::delete('/clear', [CartController::class, 'clear']); // DONE: clear cart
+        });
+
+        Route::prefix('orders')->group(function () {
+            Route::get('/', [OrderController::class, 'index']);
+            Route::post('/place', [OrderController::class, 'place']);
+            Route::post('/buy-now', [OrderController::class, 'buyNow']);
+            Route::get('/{order}', [OrderController::class, 'show']);
+            Route::post('/{order}/cancel', [OrderController::class, 'cancel']);
         });
 
         // Business interactions (clap, save, share)

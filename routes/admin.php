@@ -366,6 +366,20 @@ Route::prefix('products')->name('admin.products.')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
+| Orders Management
+|--------------------------------------------------------------------------
+*/
+Route::prefix('orders')->name('admin.orders.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Web\Admin\Order\AdminOrderController::class, 'index'])->name('index');
+    Route::get('/data', [\App\Http\Controllers\Web\Admin\Order\AdminOrderController::class, 'getData'])->name('data');
+    Route::get('/{order}', [\App\Http\Controllers\Web\Admin\Order\AdminOrderController::class, 'show'])->name('show');
+    Route::post('/{order}/status', [\App\Http\Controllers\Web\Admin\Order\AdminOrderController::class, 'updateStatus'])->name('status.update');
+    Route::post('/{order}/payment-status', [\App\Http\Controllers\Web\Admin\Order\AdminOrderController::class, 'updatePaymentStatus'])->name('payment-status.update');
+    Route::post('/{order}/refund', [\App\Http\Controllers\Web\Admin\Order\AdminOrderController::class, 'refund'])->name('refund');
+});
+
+/*
+|--------------------------------------------------------------------------
 | Product Categories
 |--------------------------------------------------------------------------
 */
