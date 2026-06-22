@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Services\OrderService;
+use App\Services\StripeService;
 use App\Traits\ApiResponse;
 use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -17,7 +18,8 @@ class OrderController extends Controller
     use ApiResponse;
 
     public function __construct(
-        protected OrderService $orderService
+        protected OrderService  $orderService,
+        protected StripeService $stripeService
     ) {}
 
     /**
@@ -52,7 +54,7 @@ class OrderController extends Controller
             'billing.country' => 'nullable|string|max:2',
 
             // Payment & notes
-            'payment_method' => 'nullable|string|max:50',
+            'payment_method' => 'nullable|string|in:cod,card|max:50',
             'notes' => 'nullable|string|max:1000',
         ]);
 
@@ -62,6 +64,7 @@ class OrderController extends Controller
 
         try {
             $userId = auth('api')->id();
+            $paymentMethod = $request->input('payment_method', 'cod');
 
             $billing = $request->input('billing')
                 ? $request->input('billing')
@@ -73,13 +76,19 @@ class OrderController extends Controller
                 $billing,
                 [
                     'notes' => $request->input('notes'),
-                    'payment_method' => $request->input('payment_method'),
+                    'payment_method' => $paymentMethod,
                 ]
             );
 
+            // If card payment, create a Stripe Checkout session
+            if ($paymentMethod === 'card') {
+                return $this->handleStripeCheckout($order);
+            }
+
+            // COD — order is placed immediately
             return $this->success(
-                'Order placed successfully.',
-                $this->formatOrder($order),
+                'Order placed successfully. Payment on delivery.',
+                $this->formatOrder($order, true),
                 201
             );
         } catch (RuntimeException $e) {
@@ -123,7 +132,7 @@ class OrderController extends Controller
             'billing.zip' => 'nullable|string|max:20',
             'billing.country' => 'nullable|string|max:2',
 
-            'payment_method' => 'nullable|string|max:50',
+            'payment_method' => 'nullable|string|in:cod,card|max:50',
             'notes' => 'nullable|string|max:1000',
         ]);
 
@@ -133,6 +142,7 @@ class OrderController extends Controller
 
         try {
             $userId = auth('api')->id();
+            $paymentMethod = $request->input('payment_method', 'cod');
 
             $billing = $request->input('billing')
                 ? $request->input('billing')
@@ -145,14 +155,20 @@ class OrderController extends Controller
                 $request->input('shipping'),
                 $billing,
                 [
-                    'notes' => $request->input('notes'),
-                    'payment_method' => $request->input('payment_method'),
+                    'notes'          => $request->input('notes'),
+                    'payment_method' => $paymentMethod,
                 ]
             );
 
+            // If card payment, create a Stripe Checkout session
+            if ($paymentMethod === 'card') {
+                return $this->handleStripeCheckout($order);
+            }
+
+            // COD — order is placed immediately
             return $this->success(
-                'Order placed successfully.',
-                $this->formatOrder($order),
+                'Order placed successfully. Payment on delivery.',
+                $this->formatOrder($order, true),
                 201
             );
         } catch (RuntimeException $e) {
@@ -161,6 +177,54 @@ class OrderController extends Controller
             return $this->notFound('Product not found.');
         } catch (Exception $e) {
             return $this->error(null, 'Failed to place order. Please try again.');
+        }
+    }
+
+    /**
+     * Create a Stripe Checkout session for a card-payment order.
+     *
+     * @param \App\Models\Order $order
+     * @return JsonResponse
+     */
+    private function handleStripeCheckout(\App\Models\Order $order): JsonResponse
+    {
+        try {
+            $lineItems = $order->items->map(function ($item) {
+                return [
+                    'name'     => $item->product_name,
+                    'quantity' => $item->quantity,
+                    'price'    => $item->sale_price ?? $item->product_price,
+                ];
+            })->toArray();
+
+            $checkoutSession = $this->stripeService->createCheckoutSession([
+                'order_id'       => $order->id,
+                'order_number'   => $order->order_number,
+                'amount'         => (float) $order->total,
+                'customer_email' => auth('api')->user()?->email,
+                'line_items'     => $lineItems,
+                'metadata'       => [
+                    'order_id'     => (string) $order->id,
+                    'order_number' => $order->order_number,
+                ],
+            ]);
+
+            // Mark the order as card-payment pending
+            $this->orderService->markAsStripePending($order->id);
+
+            return $this->success(
+                'Redirecting to payment...',
+                [
+                    'order'         => $this->formatOrder($order, true),
+                    'checkout_url'  => $checkoutSession->url,
+                    'session_id'    => $checkoutSession->id,
+                ],
+                201
+            );
+        } catch (\Stripe\Exception\ApiErrorException $e) {
+            return $this->error(null, 'Payment service error: ' . $e->getMessage(), 422);
+        } catch (Exception $e) {
+            return $this->error(null, 'Failed to initiate payment. Please try again.');
         }
     }
 

@@ -43,6 +43,7 @@ use App\Http\Controllers\Api\PricingController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\RoundSessionApiController;
 use App\Http\Controllers\Api\SpotlightController;
+use App\Http\Controllers\Api\StripeWebhookController;
 use App\Http\Controllers\Api\WishlistController;
 use Illuminate\Support\Facades\Route;
 
@@ -416,3 +417,10 @@ Route::group(['prefix' => 'v2'], function () {
 
 // Legacy alias — now delegates to the proper CMS controller
 Route::get('/pricing-plans', [CmsPricingController::class, 'index']);
+
+/*
+|--------------------------------------------------------------------------
+| Stripe Webhook (public, no auth)
+|--------------------------------------------------------------------------
+*/
+Route::post('/webhooks/stripe', [StripeWebhookController::class, 'handle']);

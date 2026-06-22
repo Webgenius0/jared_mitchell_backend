@@ -351,6 +351,23 @@ class OrderService
         return $order->fresh(['items', 'user.profile', 'shippingAddress', 'billingAddress']);
     }
 
+    /**
+     * Mark an order as pending Stripe card payment.
+     *
+     * @param int $orderId
+     * @return Order
+     */
+    public function markAsStripePending(int $orderId): Order
+    {
+        $order = Order::findOrFail($orderId);
+
+        $order->update([
+            'payment_method' => 'card',
+        ]);
+
+        return $order->fresh(['items', 'shippingAddress', 'billingAddress']);
+    }
+
     /*
     |--------------------------------------------------------------------------
     | Helpers
