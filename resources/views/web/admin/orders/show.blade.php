@@ -368,7 +368,7 @@
         const orderId = document.getElementById('orderId').value;
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
 
-        // ── Update Order Status ──────────────────────────────────────────
+        // Update Order Status
         document.querySelectorAll('.update-status-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 const status = this.dataset.status;
@@ -380,7 +380,7 @@
                 }).then(confirmed => {
                     if (!confirmed) return;
 
-                    axios.post(`{{ url('admin/orders') }}/${orderId}/status`, {
+                    axios.post(`{{ url('/orders') }}/${orderId}/status`, {
                         status: status
                     })
                     .then(res => {
@@ -394,7 +394,7 @@
             });
         });
 
-        // ── Update Payment Status ────────────────────────────────────────
+        // Update Payment Status
         document.querySelectorAll('.update-payment-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 const paymentStatus = this.dataset.payment_status;
@@ -426,7 +426,7 @@
             }).then(confirmed => {
                 if (!confirmed) return;
 
-                axios.post(`{{ url('admin/orders') }}/${orderId}/payment-status`, data)
+                axios.post(`{{ url('/orders') }}/${orderId}/payment-status`, data)
                     .then(res => {
                         Toast.success(res.data.message);
                         setTimeout(() => window.location.reload(), 1000);
@@ -437,7 +437,7 @@
             });
         }
 
-        // ── Process Refund ───────────────────────────────────────────────
+        // Process Refund
         const refundBtn = document.getElementById('refundOrderBtn');
         if (refundBtn) {
             refundBtn.addEventListener('click', function() {
@@ -450,7 +450,7 @@
                 }).then(confirmed => {
                     if (!confirmed) return;
 
-                    axios.post(`{{ url('admin/orders') }}/${orderId}/refund`, {
+                    axios.post(`{{ url('/orders') }}/${orderId}/refund`, {
                         note: note
                     })
                     .then(res => {

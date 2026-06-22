@@ -302,11 +302,11 @@ Route::group(['prefix' => 'v1'], function ($router) {
         });
 
         Route::prefix('orders')->group(function () {
-            Route::get('/', [OrderController::class, 'index']);
-            Route::post('/place', [OrderController::class, 'place']);
-            Route::post('/buy-now', [OrderController::class, 'buyNow']);
-            Route::get('/{order}', [OrderController::class, 'show']);
-            Route::post('/{order}/cancel', [OrderController::class, 'cancel']);
+            Route::get('/', [OrderController::class, 'index']); // DONE: get all order
+            Route::post('/place', [OrderController::class, 'place']); // DONE: place a new oeder
+            Route::post('/buy-now', [OrderController::class, 'buyNow']); // DONE: buy now
+            Route::get('/{order}', [OrderController::class, 'show']); // DONE: show order
+            Route::post('/{order}/cancel', [OrderController::class, 'cancel']); // DONE: cancel order
         });
 
         // Business interactions (clap, save, share)

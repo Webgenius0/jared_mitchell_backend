@@ -1,34 +1,35 @@
 <?php
 
-use App\Http\Controllers\Web\Admin\ContestApplication\AdminContestApplicationController;
 use App\Http\Controllers\Web\Admin\ArtistSpotlight\AdminArtistSpotlightController;
 use App\Http\Controllers\Web\Admin\Auth\AdminProfileController;
+use App\Http\Controllers\Web\Admin\Business\AdminBusinessController;
 use App\Http\Controllers\Web\Admin\BusinessSpotlight\AdminBusinessSpotlightController;
 use App\Http\Controllers\Web\Admin\Cms\AboutCmsController;
 use App\Http\Controllers\Web\Admin\Cms\AdminArtistCategoryController;
-use App\Http\Controllers\Web\Admin\Business\AdminBusinessController;
 use App\Http\Controllers\Web\Admin\Cms\AdminBusinessCategoryController;
 use App\Http\Controllers\Web\Admin\Cms\ArtistSpotlightCmsController;
+use App\Http\Controllers\Web\Admin\Cms\BossBeginningsCmsController;
+use App\Http\Controllers\Web\Admin\Cms\BossBeginningWinnerChossenCMSController;
 use App\Http\Controllers\Web\Admin\Cms\BusinessSpotlightCmsController;
 use App\Http\Controllers\Web\Admin\Cms\CmsHomePageController;
+use App\Http\Controllers\Web\Admin\Cms\EventCmsController;
 use App\Http\Controllers\Web\Admin\Cms\FAQController;
 use App\Http\Controllers\Web\Admin\Cms\PricingController;
 use App\Http\Controllers\Web\Admin\Cms\ServiceCmsController;
-use App\Http\Controllers\Web\Admin\Cms\SpotlightLadderCmsController;
-use App\Http\Controllers\Web\Admin\Cms\EventCmsController;
 use App\Http\Controllers\Web\Admin\Cms\ShopCmsController;
 use App\Http\Controllers\Web\Admin\Cms\SponsorshipCmsController;
-use App\Http\Controllers\Web\Admin\Cms\BossBeginningsCmsController;
-use App\Http\Controllers\Web\Admin\Cms\BossBeginningWinnerChossenCMSController;
-use App\Http\Controllers\Web\Admin\Product\AdminProductCategoryController;
-use App\Http\Controllers\Web\Admin\Product\AdminProductController;
+use App\Http\Controllers\Web\Admin\Cms\SpotlightLadderCmsController;
 use App\Http\Controllers\Web\Admin\Contact\AdminChattingController;
 use App\Http\Controllers\Web\Admin\Contact\AdminMailingController;
 use App\Http\Controllers\Web\Admin\ContactController as WebContactController;
-use App\Http\Controllers\Web\Admin\NewsletterController as WebNewsletterController;
-use App\Http\Controllers\Web\Admin\Round\RoundSessionController;
+use App\Http\Controllers\Web\Admin\ContestApplication\AdminContestApplicationController;
 use App\Http\Controllers\Web\Admin\Dashboard\AdminDashboardController;
 use App\Http\Controllers\Web\Admin\Event\EventController;
+use App\Http\Controllers\Web\Admin\NewsletterController as WebNewsletterController;
+use App\Http\Controllers\Web\Admin\Order\AdminOrderController;
+use App\Http\Controllers\Web\Admin\Product\AdminProductCategoryController;
+use App\Http\Controllers\Web\Admin\Product\AdminProductController;
+use App\Http\Controllers\Web\Admin\Round\RoundSessionController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [AdminDashboardController::class, 'index'])->name('show.admin.dashboard'); // show admin dashboard
@@ -370,12 +371,13 @@ Route::prefix('products')->name('admin.products.')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::prefix('orders')->name('admin.orders.')->group(function () {
-    Route::get('/', [\App\Http\Controllers\Web\Admin\Order\AdminOrderController::class, 'index'])->name('index');
-    Route::get('/data', [\App\Http\Controllers\Web\Admin\Order\AdminOrderController::class, 'getData'])->name('data');
-    Route::get('/{order}', [\App\Http\Controllers\Web\Admin\Order\AdminOrderController::class, 'show'])->name('show');
-    Route::post('/{order}/status', [\App\Http\Controllers\Web\Admin\Order\AdminOrderController::class, 'updateStatus'])->name('status.update');
-    Route::post('/{order}/payment-status', [\App\Http\Controllers\Web\Admin\Order\AdminOrderController::class, 'updatePaymentStatus'])->name('payment-status.update');
-    Route::post('/{order}/refund', [\App\Http\Controllers\Web\Admin\Order\AdminOrderController::class, 'refund'])->name('refund');
+    Route::get('/', [AdminOrderController::class, 'index'])->name('index');
+    Route::get('/data', [AdminOrderController::class, 'getData'])->name('data');
+    Route::get('/{order}', [AdminOrderController::class, 'show'])->name('show');
+    Route::post('/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('status.update');
+    Route::post('/{order}/payment-status', [AdminOrderController::class, 'updatePaymentStatus'])->name('payment-status.update');
+    Route::post('/{order}/refund', [AdminOrderController::class, 'refund'])->name('refund');
+    Route::delete('/{order}', [AdminOrderController::class, 'destroy'])->name('destroy');
 });
 
 /*

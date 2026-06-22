@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Services\OrderService;
 use App\Traits\ApiResponse;
 use Exception;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use RuntimeException;
 
 class OrderController extends Controller
 {
@@ -27,31 +29,31 @@ class OrderController extends Controller
     {
         $validator = Validator::make($request->all(), [
             // Shipping address (required)
-            'shipping.name'          => 'required|string|max:255',
-            'shipping.phone'         => 'nullable|string|max:20',
-            'shipping.email'         => 'nullable|email|max:255',
+            'shipping.name' => 'required|string|max:255',
+            'shipping.phone' => 'nullable|string|max:20',
+            'shipping.email' => 'nullable|email|max:255',
             'shipping.address_line1' => 'required|string|max:255',
             'shipping.address_line2' => 'nullable|string|max:255',
-            'shipping.city'          => 'required|string|max:255',
-            'shipping.state'         => 'nullable|string|max:255',
-            'shipping.zip'           => 'nullable|string|max:20',
-            'shipping.country'       => 'nullable|string|max:2',
+            'shipping.city' => 'required|string|max:255',
+            'shipping.state' => 'nullable|string|max:255',
+            'shipping.zip' => 'nullable|string|max:20',
+            'shipping.country' => 'nullable|string|max:2',
 
             // Billing address (optional — if billing group is provided, all required fields become required)
-            'billing'              => 'nullable|array',
-            'billing.name'          => 'required_with:billing|string|max:255',
-            'billing.phone'         => 'nullable|string|max:20',
-            'billing.email'         => 'nullable|email|max:255',
+            'billing' => 'nullable|array',
+            'billing.name' => 'required_with:billing|string|max:255',
+            'billing.phone' => 'nullable|string|max:20',
+            'billing.email' => 'nullable|email|max:255',
             'billing.address_line1' => 'required_with:billing|string|max:255',
             'billing.address_line2' => 'nullable|string|max:255',
-            'billing.city'          => 'required_with:billing|string|max:255',
-            'billing.state'         => 'nullable|string|max:255',
-            'billing.zip'           => 'nullable|string|max:20',
-            'billing.country'       => 'nullable|string|max:2',
+            'billing.city' => 'required_with:billing|string|max:255',
+            'billing.state' => 'nullable|string|max:255',
+            'billing.zip' => 'nullable|string|max:20',
+            'billing.country' => 'nullable|string|max:2',
 
             // Payment & notes
             'payment_method' => 'nullable|string|max:50',
-            'notes'          => 'nullable|string|max:1000',
+            'notes' => 'nullable|string|max:1000',
         ]);
 
         if ($validator->fails()) {
@@ -70,7 +72,7 @@ class OrderController extends Controller
                 $request->input('shipping'),
                 $billing,
                 [
-                    'notes'          => $request->input('notes'),
+                    'notes' => $request->input('notes'),
                     'payment_method' => $request->input('payment_method'),
                 ]
             );
@@ -80,9 +82,9 @@ class OrderController extends Controller
                 $this->formatOrder($order),
                 201
             );
-        } catch (\RuntimeException $e) {
+        } catch (RuntimeException $e) {
             return $this->error(null, $e->getMessage(), 422);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return $this->error(null, 'Failed to place order. Please try again.');
         }
     }
@@ -153,11 +155,11 @@ class OrderController extends Controller
                 $this->formatOrder($order),
                 201
             );
-        } catch (\RuntimeException $e) {
+        } catch (RuntimeException $e) {
             return $this->error(null, $e->getMessage(), 422);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        } catch (ModelNotFoundException $e) {
             return $this->notFound('Product not found.');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return $this->error(null, 'Failed to place order. Please try again.');
         }
     }
@@ -186,7 +188,15 @@ class OrderController extends Controller
                 return $this->formatOrder($order);
             });
 
-            return $this->success('Orders retrieved successfully.', $orders);
+            return $this->success('Orders retrieved successfully.', [
+                'data' => $orders->items(),
+                'pagination' => [
+                    'total' => $orders->total(),
+                    'per_page' => $orders->perPage(),
+                    'current_page' => $orders->currentPage(),
+                    'last_page' => $orders->lastPage(),
+                ],
+            ]);
         } catch (Exception $e) {
             return $this->error(null, 'Failed to retrieve orders. Please try again.');
         }
@@ -207,9 +217,9 @@ class OrderController extends Controller
                 'Order retrieved successfully.',
                 $this->formatOrder($orderModel, true)
             );
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        } catch (ModelNotFoundException $e) {
             return $this->notFound('Order not found.');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return $this->error(null, 'Failed to retrieve order. Please try again.');
         }
     }
@@ -241,11 +251,11 @@ class OrderController extends Controller
                 'Order cancelled successfully.',
                 $this->formatOrder($orderModel, true)
             );
-        } catch (\RuntimeException $e) {
+        } catch (RuntimeException $e) {
             return $this->error(null, $e->getMessage(), 422);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        } catch (ModelNotFoundException $e) {
             return $this->notFound('Order not found.');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return $this->error(null, 'Failed to cancel order. Please try again.');
         }
     }
@@ -256,55 +266,55 @@ class OrderController extends Controller
     private function formatOrder($order, bool $includeTimestamps = false): array
     {
         $data = [
-            'id'              => $order->id,
-            'order_number'    => $order->order_number,
-            'subtotal'        => (float) $order->subtotal,
-            'tax'             => (float) $order->tax,
-            'shipping_cost'   => (float) $order->shipping_cost,
-            'discount'        => (float) $order->discount,
-            'total'           => (float) $order->total,
-            'status'          => $order->status,
-            'payment_status'  => $order->payment_status,
-            'payment_method'  => $order->payment_method,
-            'items'           => $order->items->map(function ($item) {
+            'id' => $order->id,
+            'order_number' => $order->order_number,
+            'subtotal' => (float) $order->subtotal,
+            'tax' => (float) $order->tax,
+            'shipping_cost' => (float) $order->shipping_cost,
+            'discount' => (float) $order->discount,
+            'total' => (float) $order->total,
+            'status' => $order->status,
+            'payment_status' => $order->payment_status,
+            'payment_method' => $order->payment_method,
+            'items' => $order->items->map(function ($item) {
                 return [
-                    'id'         => $item->id,
+                    'id' => $item->id,
                     'product_id' => $item->product_id,
-                    'name'       => $item->product_name,
-                    'price'      => (float) $item->product_price,
+                    'name' => $item->product_name,
+                    'price' => (float) $item->product_price,
                     'sale_price' => $item->sale_price ? (float) $item->sale_price : null,
-                    'quantity'   => $item->quantity,
-                    'subtotal'   => (float) $item->subtotal,
-                    'thumbnail'  => $item->product_thumbnail ? url('/' . $item->product_thumbnail) : null,
+                    'quantity' => $item->quantity,
+                    'subtotal' => (float) $item->subtotal,
+                    'thumbnail' => $item->product_thumbnail ? url('/' . $item->product_thumbnail) : null,
                 ];
             }),
             'shipping_address' => $order->shippingAddress ? [
-                'name'          => $order->shippingAddress->name,
-                'phone'         => $order->shippingAddress->phone,
-                'email'         => $order->shippingAddress->email,
+                'name' => $order->shippingAddress->name,
+                'phone' => $order->shippingAddress->phone,
+                'email' => $order->shippingAddress->email,
                 'address_line1' => $order->shippingAddress->address_line1,
                 'address_line2' => $order->shippingAddress->address_line2,
-                'city'          => $order->shippingAddress->city,
-                'state'         => $order->shippingAddress->state,
-                'zip'           => $order->shippingAddress->zip,
-                'country'       => $order->shippingAddress->country,
-                'full_address'  => $order->shippingAddress->full_address,
+                'city' => $order->shippingAddress->city,
+                'state' => $order->shippingAddress->state,
+                'zip' => $order->shippingAddress->zip,
+                'country' => $order->shippingAddress->country,
+                'full_address' => $order->shippingAddress->full_address,
             ] : null,
-            'created_at'      => $order->created_at->toISOString(),
+            'created_at' => $order->created_at->toISOString(),
         ];
 
         if ($includeTimestamps) {
             $data['billing_address'] = $order->billingAddress ? [
-                'name'          => $order->billingAddress->name,
-                'phone'         => $order->billingAddress->phone,
-                'email'         => $order->billingAddress->email,
+                'name' => $order->billingAddress->name,
+                'phone' => $order->billingAddress->phone,
+                'email' => $order->billingAddress->email,
                 'address_line1' => $order->billingAddress->address_line1,
                 'address_line2' => $order->billingAddress->address_line2,
-                'city'          => $order->billingAddress->city,
-                'state'         => $order->billingAddress->state,
-                'zip'           => $order->billingAddress->zip,
-                'country'       => $order->billingAddress->country,
-                'full_address'  => $order->billingAddress->full_address,
+                'city' => $order->billingAddress->city,
+                'state' => $order->billingAddress->state,
+                'zip' => $order->billingAddress->zip,
+                'country' => $order->billingAddress->country,
+                'full_address' => $order->billingAddress->full_address,
             ] : null;
             $data['notes'] = $order->notes;
             $data['confirmed_at'] = $order->confirmed_at?->toISOString();

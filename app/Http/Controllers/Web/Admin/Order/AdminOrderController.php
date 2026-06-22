@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Web\Admin\Order;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Services\OrderService;
+use Exception;
 use Illuminate\Http\Request;
+use RuntimeException;
 use Yajra\DataTables\Facades\DataTables;
 
 class AdminOrderController extends Controller
@@ -79,7 +81,8 @@ class AdminOrderController extends Controller
             })
             ->addColumn('action', function ($row) {
                 $showBtn = '<a href="' . route('admin.orders.show', $row->id) . '" class="btn btn-sm btn-soft-info" title="View"><i class="ri-eye-line"></i></a>';
-                return '<div class="d-flex gap-1 justify-content-center">' . $showBtn . '</div>';
+                $deleteBtn = '<button class="btn btn-sm btn-soft-danger delete-btn" data-id="' . $row->id . '" title="Delete"><i class="ri-delete-bin-line"></i></button>';
+                return '<div class="d-flex gap-1 justify-content-center">' . $showBtn . $deleteBtn . '</div>';
             })
             ->filterColumn('order_info', function ($query, $keyword) {
                 $query->where('order_number', 'like', "%{$keyword}%");
@@ -141,12 +144,12 @@ class AdminOrderController extends Controller
                     'status' => $updatedOrder->status,
                 ],
             ]);
-        } catch (\RuntimeException $e) {
+        } catch (RuntimeException $e) {
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
             ], 422);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to update order status.',
@@ -160,8 +163,8 @@ class AdminOrderController extends Controller
     public function updatePaymentStatus(Request $request, Order $order)
     {
         $request->validate([
-            'payment_status'  => 'required|in:unpaid,paid,refunded,partially_refunded',
-            'transaction_id'  => 'nullable|string|max:255',
+            'payment_status' => 'required|in:unpaid,paid,refunded,partially_refunded',
+            'transaction_id' => 'nullable|string|max:255',
         ]);
 
         try {
@@ -174,17 +177,17 @@ class AdminOrderController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Payment status updated to "' . str_replace('_', ' ', ucfirst($request->payment_status)) . '".',
-                'data'    => [
+                'data' => [
                     'payment_status' => $updatedOrder->payment_status,
-                    'status'         => $updatedOrder->status,
+                    'status' => $updatedOrder->status,
                 ],
             ]);
-        } catch (\RuntimeException $e) {
+        } catch (RuntimeException $e) {
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
             ], 422);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to update payment status.',
@@ -210,20 +213,40 @@ class AdminOrderController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Order refunded successfully.',
-                'data'    => [
-                    'status'         => $updatedOrder->status,
+                'data' => [
+                    'status' => $updatedOrder->status,
                     'payment_status' => $updatedOrder->payment_status,
                 ],
             ]);
-        } catch (\RuntimeException $e) {
+        } catch (RuntimeException $e) {
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
             ], 422);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to process refund.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete the specified order.
+     */
+    public function destroy(Order $order)
+    {
+        try {
+            $order->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Order deleted successfully.',
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete order.',
             ], 500);
         }
     }

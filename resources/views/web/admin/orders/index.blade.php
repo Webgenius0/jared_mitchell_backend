@@ -104,6 +104,28 @@
         $('#statusFilter, #paymentFilter').on('change', function () {
             table.ajax.reload();
         });
+
+        $('#ordersTable').on('click', '.delete-btn', function () {
+            const orderId = $(this).data('id');
+            let deleteUrl = '{{ route("admin.orders.destroy", ":id") }}';
+            deleteUrl = deleteUrl.replace(':id', orderId);
+
+            Alert.confirm('This will permanently delete the order.', {
+                type: 'danger',
+                confirmText: 'Yes, delete it'
+            }).then(confirmed => {
+                if (!confirmed) return;
+                
+                axios.delete(deleteUrl)
+                    .then(res => {
+                        Toast.success(res.data.message);
+                        table.ajax.reload();
+                    })
+                    .catch(err => {
+                        Toast.error(err.response?.data?.message || 'Failed to delete order.');
+                    });
+            });
+        });
     })();
 </script>
 @endpush

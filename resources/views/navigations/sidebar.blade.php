@@ -241,7 +241,7 @@
 
                 {{-- Product Manage --}}
                 @php
-                    $productManageOpen = request()->routeIs('admin.product-categories.*', 'admin.products.*');
+                    $productManageOpen = request()->routeIs('admin.product-categories.*', 'admin.products.*', 'admin.orders.*');
                 @endphp
 
                 <li class="nav-item">

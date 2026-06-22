@@ -4,12 +4,13 @@ namespace App\Services;
 
 use App\Models\Cart;
 use App\Models\Order;
-use App\Models\OrderItem;
 use App\Models\OrderAddress;
+use App\Models\OrderItem;
 use App\Models\Product;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use RuntimeException;
 
 class OrderService
 {
@@ -23,18 +24,12 @@ class OrderService
      *
      * @return Order
      */
-    public function placeFromCart(
-        int $userId,
-        array $shipping,
-        ?array $billing = null,
-        array $options = []
-    ): Order {
-        $cartItems = Cart::where('user_id', $userId)
-            ->with('product')
-            ->get();
+    public function placeFromCart(int $userId, array $shipping, ?array $billing = null, array $options = []): Order
+    {
+        $cartItems = Cart::where('user_id', $userId)->with('product')->get();
 
         if ($cartItems->isEmpty()) {
-            throw new \RuntimeException('Your cart is empty.');
+            throw new RuntimeException('Your cart is empty.');
         }
 
         // Validate stock for all items before proceeding
@@ -44,10 +39,7 @@ class OrderService
         $shippingCost = $options['shipping_cost'] ?? 0;
         $notes = $options['notes'] ?? null;
 
-        return DB::transaction(function () use (
-            $userId, $cartItems, $shipping, $billing,
-            $taxRate, $shippingCost, $notes, $options
-        ) {
+        return DB::transaction(function () use ($userId, $cartItems, $shipping, $billing, $taxRate, $shippingCost, $notes, $options) {
             // Calculate totals
             $subtotal = $cartItems->sum(function (Cart $item) {
                 return $item->quantity * $item->product->display_price;
@@ -59,17 +51,17 @@ class OrderService
 
             // Create the order
             $order = Order::create([
-                'user_id'        => $userId,
-                'order_number'   => $this->generateOrderNumber(),
-                'subtotal'       => $subtotal,
-                'tax'            => $tax,
-                'shipping_cost'  => $shippingCost,
-                'discount'       => $discount,
-                'total'          => $total,
-                'status'         => Order::STATUS_PENDING,
+                'user_id' => $userId,
+                'order_number' => $this->generateOrderNumber(),
+                'subtotal' => $subtotal,
+                'tax' => $tax,
+                'shipping_cost' => $shippingCost,
+                'discount' => $discount,
+                'total' => $total,
+                'status' => Order::STATUS_PENDING,
                 'payment_status' => Order::PAYMENT_UNPAID,
                 'payment_method' => $options['payment_method'] ?? null,
-                'notes'          => $notes,
+                'notes' => $notes,
             ]);
 
             // Create order items from cart
@@ -78,14 +70,14 @@ class OrderService
                 $itemSubtotal = $cartItem->quantity * $product->display_price;
 
                 OrderItem::create([
-                    'order_id'         => $order->id,
-                    'product_id'       => $product->id,
-                    'product_name'     => $product->name,
-                    'product_price'    => $product->price,
-                    'sale_price'       => $product->sale_price,
-                    'product_thumbnail'=> $product->thumbnail,
-                    'quantity'         => $cartItem->quantity,
-                    'subtotal'         => $itemSubtotal,
+                    'order_id' => $order->id,
+                    'product_id' => $product->id,
+                    'product_name' => $product->name,
+                    'product_price' => $product->price,
+                    'sale_price' => $product->sale_price,
+                    'product_thumbnail' => $product->thumbnail,
+                    'quantity' => $cartItem->quantity,
+                    'subtotal' => $itemSubtotal,
                 ]);
 
                 // Decrement stock
@@ -95,17 +87,11 @@ class OrderService
             }
 
             // Create shipping address
-            OrderAddress::create(array_merge(
-                $shipping,
-                ['order_id' => $order->id, 'type' => 'shipping']
-            ));
+            OrderAddress::create(array_merge($shipping, ['order_id' => $order->id, 'type' => 'shipping']));
 
             // Create billing address (defaults to shipping if not provided)
             $billingData = $billing ?? $shipping;
-            OrderAddress::create(array_merge(
-                $billingData,
-                ['order_id' => $order->id, 'type' => 'billing']
-            ));
+            OrderAddress::create(array_merge($billingData, ['order_id' => $order->id, 'type' => 'billing']));
 
             // Clear the cart
             Cart::where('user_id', $userId)->delete();
