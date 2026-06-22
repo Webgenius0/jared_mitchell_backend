@@ -241,12 +241,6 @@ class OrderService
         return $order->fresh(['items', 'shippingAddress', 'billingAddress']);
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Admin Methods
-    |--------------------------------------------------------------------------
-    */
-
     /**
      * Update order status.
      */

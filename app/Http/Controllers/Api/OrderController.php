@@ -101,30 +101,30 @@ class OrderController extends Controller
             'quantity'   => 'required|integer|min:1|max:100',
 
             // Shipping address
-            'shipping.name'          => 'required|string|max:255',
-            'shipping.phone'         => 'nullable|string|max:20',
-            'shipping.email'         => 'nullable|email|max:255',
+            'shipping.name' => 'required|string|max:255',
+            'shipping.phone' => 'nullable|string|max:20',
+            'shipping.email' => 'nullable|email|max:255',
             'shipping.address_line1' => 'required|string|max:255',
             'shipping.address_line2' => 'nullable|string|max:255',
-            'shipping.city'          => 'required|string|max:255',
-            'shipping.state'         => 'nullable|string|max:255',
-            'shipping.zip'           => 'nullable|string|max:20',
-            'shipping.country'       => 'nullable|string|max:2',
+            'shipping.city' => 'required|string|max:255',
+            'shipping.state' => 'nullable|string|max:255',
+            'shipping.zip' => 'nullable|string|max:20',
+            'shipping.country' => 'nullable|string|max:2',
 
             // Billing address (optional — if billing group is provided, all required fields become required)
-            'billing'              => 'nullable|array',
-            'billing.name'          => 'required_with:billing|string|max:255',
-            'billing.phone'         => 'nullable|string|max:20',
-            'billing.email'         => 'nullable|email|max:255',
+            'billing' => 'nullable|array',
+            'billing.name' => 'required_with:billing|string|max:255',
+            'billing.phone' => 'nullable|string|max:20',
+            'billing.email' => 'nullable|email|max:255',
             'billing.address_line1' => 'required_with:billing|string|max:255',
             'billing.address_line2' => 'nullable|string|max:255',
-            'billing.city'          => 'required_with:billing|string|max:255',
-            'billing.state'         => 'nullable|string|max:255',
-            'billing.zip'           => 'nullable|string|max:20',
-            'billing.country'       => 'nullable|string|max:2',
+            'billing.city' => 'required_with:billing|string|max:255',
+            'billing.state' => 'nullable|string|max:255',
+            'billing.zip' => 'nullable|string|max:20',
+            'billing.country' => 'nullable|string|max:2',
 
             'payment_method' => 'nullable|string|max:50',
-            'notes'          => 'nullable|string|max:1000',
+            'notes' => 'nullable|string|max:1000',
         ]);
 
         if ($validator->fails()) {
@@ -145,7 +145,7 @@ class OrderController extends Controller
                 $request->input('shipping'),
                 $billing,
                 [
-                    'notes'          => $request->input('notes'),
+                    'notes' => $request->input('notes'),
                     'payment_method' => $request->input('payment_method'),
                 ]
             );
