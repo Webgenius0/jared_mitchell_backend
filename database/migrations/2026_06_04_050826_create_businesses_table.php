@@ -21,16 +21,15 @@ return new class extends Migration
             $table->foreignId('business_category_id')->constrained()->restrictOnDelete();
 
             // Basic Information
-            $table->string('owner_name');
-            $table->string('business_name');
+            $table->string('owner_name')->nullable();
+            $table->string('business_name')->nullable();
             $table->string('slug')->unique();
 
-            $table->year('year_founded');
+            $table->year('year_founded')->nullable();
 
             $table->string('website')->nullable();
-
-            $table->string('city');
-            $table->string('state');
+            $table->string('city')->nullable();
+            $table->string('state')->nullable();
 
             // Additional Information
             $table->text('description')->nullable();
