@@ -59,27 +59,38 @@ class BusinessService
     {
         DB::beginTransaction();
 
-        $data['slug'] = $data['slug'] ?? Str::slug($data['business_name']);
+        $slug = Str::slug($data['business_name']);
+        // Ensure slug is unique
+        $originalSlug = $slug;
+        $counter = 1;
+        while (Business::where('slug', $slug)->exists()) {
+            $slug = $originalSlug . '-' . $counter;
+            $counter++;
+        }
+
+        $photoVideoPath = null;
+        if (request()->hasFile('photo_video')) {
+            $photoVideoPath = request()->file('photo_video')->store('businesses/media', 'public');
+        }
 
         $business = Business::create([
-            'user_id' => auth('api')->user()->id,
-            'business_category_id' => $data['business_category_id'],
-            'owner_name'           => $data['owner_name'],
-            'business_name'        => $data['business_name'],
-            'slug'                 => $data['slug'],
-            'year_founded'         => $data['year_founded'],
-            'website'              => $data['website'] ?? null,
-            'city'                 => $data['city'],
-            'state'                => $data['state'],
-            'description'         => $data['description'] ?? null,
-            'logo'                => $data['logo'] ?? null,
-            'status'              => $data['status'] ?? 'active',
-            'is_featured'         => $data['is_featured'] ?? false,
+            'user_id' => auth('api')->id(),
+            'business_name' => $data['business_name'],
+            'slug' => $slug,
+            'owner_founder_name' => $data['owner_founder_name'] ?? null,
+            'story' => $data['story'] ?? null,
+            'mission' => $data['mission'] ?? null,
+            'website_social_media' => $data['website_social_media'] ?? null,
+            'community_impact_statement' => $data['community_impact_statement'] ?? null,
+            'revenue_stage' => $data['revenue_stage'] ?? null,
+            'why_they_deserve_to_compete' => $data['why_they_deserve_to_compete'] ?? null,
+            'photo_video' => $photoVideoPath,
+            'status' => $data['status'] ?? 'active',
         ]);
 
         DB::commit();
 
-        return $business->load(['user.profile', 'category']);
+        return $business->load(['user.profile']);
     }
 
     /**
@@ -91,49 +102,46 @@ class BusinessService
 
         $updateData = [];
 
-        if (array_key_exists('business_category_id', $data)) {
-            $updateData['business_category_id'] = $data['business_category_id'];
+        $fields = [
+            'business_name',
+            'owner_founder_name',
+            'story',
+            'mission',
+            'website_social_media',
+            'community_impact_statement',
+            'revenue_stage',
+            'why_they_deserve_to_compete'
+        ];
+
+        foreach ($fields as $field) {
+            if (array_key_exists($field, $data)) {
+                $updateData[$field] = $data[$field];
+            }
         }
-        if (array_key_exists('owner_name', $data)) {
-            $updateData['owner_name'] = $data['owner_name'];
+
+        if (array_key_exists('business_name', $data) && $data['business_name'] !== $business->business_name) {
+            $slug = Str::slug($data['business_name']);
+            $originalSlug = $slug;
+            $counter = 1;
+            while (Business::where('slug', $slug)->where('id', '!=', $business->id)->exists()) {
+                $slug = $originalSlug . '-' . $counter;
+                $counter++;
+            }
+            $updateData['slug'] = $slug;
         }
-        if (array_key_exists('business_name', $data)) {
-            $updateData['business_name'] = $data['business_name'];
-            $updateData['slug'] = Str::slug($data['business_name']);
-        }
-        if (array_key_exists('slug', $data)) {
-            $updateData['slug'] = Str::slug($data['slug']);
-        }
-        if (array_key_exists('year_founded', $data)) {
-            $updateData['year_founded'] = $data['year_founded'];
-        }
-        if (array_key_exists('website', $data)) {
-            $updateData['website'] = $data['website'];
-        }
-        if (array_key_exists('city', $data)) {
-            $updateData['city'] = $data['city'];
-        }
-        if (array_key_exists('state', $data)) {
-            $updateData['state'] = $data['state'];
-        }
-        if (array_key_exists('description', $data)) {
-            $updateData['description'] = $data['description'];
-        }
-        if (array_key_exists('logo', $data)) {
-            $updateData['logo'] = $data['logo'];
-        }
-        if (array_key_exists('status', $data)) {
-            $updateData['status'] = $data['status'];
-        }
-        if (array_key_exists('is_featured', $data)) {
-            $updateData['is_featured'] = filter_var($data['is_featured'], FILTER_VALIDATE_BOOLEAN);
+
+        if (request()->hasFile('photo_video')) {
+            if ($business->photo_video) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($business->photo_video);
+            }
+            $updateData['photo_video'] = request()->file('photo_video')->store('businesses/media', 'public');
         }
 
         $business->update($updateData);
 
         DB::commit();
 
-        return $business->load(['user.profile', 'category']);
+        return $business->load(['user.profile']);
     }
 
     /**
@@ -197,10 +205,10 @@ class BusinessService
         }
 
         BusinessInteraction::create([
-            'user_id'    => $userId,
-            'business_id'=> $business->id,
-            'action_type'=> 'clap',
-            'ip'         => $ip,
+            'user_id' => $userId,
+            'business_id' => $business->id,
+            'action_type' => 'clap',
+            'ip' => $ip,
             'user_agent' => $userAgent,
         ]);
 
@@ -239,10 +247,10 @@ class BusinessService
         }
 
         BusinessInteraction::create([
-            'user_id'    => $userId,
-            'business_id'=> $business->id,
-            'action_type'=> 'save',
-            'ip'         => $ip,
+            'user_id' => $userId,
+            'business_id' => $business->id,
+            'action_type' => 'save',
+            'ip' => $ip,
             'user_agent' => $userAgent,
         ]);
 
@@ -281,10 +289,10 @@ class BusinessService
         }
 
         BusinessInteraction::create([
-            'user_id'    => $userId,
-            'business_id'=> $business->id,
-            'action_type'=> 'share',
-            'ip'         => $ip,
+            'user_id' => $userId,
+            'business_id' => $business->id,
+            'action_type' => 'share',
+            'ip' => $ip,
             'user_agent' => $userAgent,
         ]);
 
@@ -305,8 +313,8 @@ class BusinessService
     {
         return [
             'is_clapped' => BusinessInteraction::where('business_id', $business->id)->where('user_id', $userId)->where('action_type', 'clap')->exists(),
-            'is_saved'   => BusinessInteraction::where('business_id', $business->id)->where('user_id', $userId)->where('action_type', 'save')->exists(),
-            'is_shared'  => BusinessInteraction::where('business_id', $business->id)->where('user_id', $userId)->where('action_type', 'share')->exists(),
+            'is_saved' => BusinessInteraction::where('business_id', $business->id)->where('user_id', $userId)->where('action_type', 'save')->exists(),
+            'is_shared' => BusinessInteraction::where('business_id', $business->id)->where('user_id', $userId)->where('action_type', 'share')->exists(),
         ];
     }
 }

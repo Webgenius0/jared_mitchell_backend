@@ -22,7 +22,7 @@
 
             {{-- Stats Cards --}}
             <div class="row">
-                <div class="col-xl-2 col-md-4">
+                <div class="col-xl-3 col-md-6">
                     <div class="card card-animate">
                         <div class="card-body">
                             <div class="d-flex align-items-center">
@@ -37,7 +37,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-xl-2 col-md-4">
+                <div class="col-xl-3 col-md-6">
                     <div class="card card-animate">
                         <div class="card-body">
                             <div class="d-flex align-items-center">
@@ -52,7 +52,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-xl-2 col-md-4">
+                <div class="col-xl-3 col-md-6">
                     <div class="card card-animate">
                         <div class="card-body">
                             <div class="d-flex align-items-center">
@@ -82,21 +82,6 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-xl-3 col-md-6">
-                    <div class="card card-animate">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center">
-                                <div class="flex-grow-1 overflow-hidden">
-                                    <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Featured</p>
-                                </div>
-                                <div class="flex-shrink-0">
-                                    <i class="ri-star-fill fs-24 text-warning"></i>
-                                </div>
-                            </div>
-                            <h4 class="mt-3 mb-0 text-warning">{{ number_format($stats['featured']) }}</h4>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             {{-- Table Card --}}
@@ -110,34 +95,19 @@
                         {{-- Filters --}}
                         <div class="card-body border-bottom pb-3">
                             <div class="row g-3">
-                                <div class="col-xl-3 col-md-6">
+                                <div class="col-xl-4 col-md-6">
                                     <div class="search-box">
                                         <input type="text" id="dtSearch" class="form-control search"
-                                            placeholder="Search business, owner, location...">
+                                            placeholder="Search business, owner, story, mission...">
                                         <i class="ri-search-line search-icon"></i>
                                     </div>
                                 </div>
-                                <div class="col-xl-2 col-md-4">
+                                <div class="col-xl-3 col-md-4">
                                     <select id="filterStatus" class="form-select">
                                         <option value="">All Status</option>
                                         <option value="active">Active</option>
                                         <option value="inactive">Inactive</option>
                                         <option value="terminated">Terminated</option>
-                                    </select>
-                                </div>
-                                <div class="col-xl-2 col-md-4">
-                                    <select id="filterCategory" class="form-select">
-                                        <option value="">All Categories</option>
-                                        @foreach ($categories as $category)
-                                            <option value="{{ $category->id }}">{{ $category->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="col-xl-2 col-md-4">
-                                    <select id="filterFeatured" class="form-select">
-                                        <option value="">All</option>
-                                        <option value="yes">Featured Only</option>
-                                        <option value="no">Non-Featured</option>
                                     </select>
                                 </div>
                                 <div class="col-xl-2 col-md-4">
@@ -157,10 +127,13 @@
                                             <th style="width:50px;">#</th>
                                             <th>Business</th>
                                             <th>Owner</th>
-                                            <th>Location</th>
+                                            <th>Story</th>
+                                            <th>Mission</th>
+                                            <th>Website</th>
+                                            <th>Revenue Stage</th>
+                                            <th>Media</th>
                                             <th class="text-center">Status</th>
-                                            <th class="text-center">Featured</th>
-                                            <th>Engagement</th>
+                                            <th>Created</th>
                                             <th class="text-center" style="width:130px;">Action</th>
                                         </tr>
                                     </thead>
@@ -201,7 +174,7 @@
 
 @push('scripts')
     <script>
-        (function() {
+        (function () {
             'use strict';
 
             let currentBusinessId = null;
@@ -222,8 +195,8 @@
                 Toast.info(@json(session('info')));
             @endif
 
-            // DataTable Initialisation
-            const table = $('#businessesTable').DataTable({
+                // DataTable Initialisation
+                const table = $('#businessesTable').DataTable({
                 processing: true,
                 serverSide: true,
                 responsive: true,
@@ -242,92 +215,105 @@
                 ajax: {
                     url: '{{ route('admin.businesses.index') }}',
                     type: 'GET',
-                    data: function(d) {
+                    data: function (d) {
                         d.status = $('#filterStatus').val();
-                        d.business_category_id = $('#filterCategory').val();
-                        d.is_featured = $('#filterFeatured').val();
                         d.search_term = $('#dtSearch').val();
                     },
                 },
                 columns: [{
-                        data: 'DT_RowIndex',
-                        name: 'DT_RowIndex',
-                        orderable: false,
-                        searchable: false
-                    },
-                    {
-                        data: 'business',
-                        name: 'business_name',
-                        orderable: true,
-                        searchable: true
-                    },
-                    {
-                        data: 'owner',
-                        name: 'owner_name',
-                        orderable: true,
-                        searchable: true
-                    },
-                    {
-                        data: 'location',
-                        name: 'city',
-                        orderable: true,
-                        searchable: true
-                    },
-                    {
-                        data: 'status',
-                        name: 'status',
-                        orderable: true,
-                        searchable: false,
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'featured',
-                        name: 'is_featured',
-                        orderable: true,
-                        searchable: false,
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'engagement',
-                        name: 'total_points',
-                        orderable: true,
-                        searchable: false
-                    },
-                    {
-                        data: 'action',
-                        name: 'action',
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-center'
-                    },
+                    data: 'DT_RowIndex',
+                    name: 'DT_RowIndex',
+                    orderable: false,
+                    searchable: false
+                },
+                {
+                    data: 'business',
+                    name: 'business_name',
+                    orderable: true,
+                    searchable: true
+                },
+                {
+                    data: 'owner',
+                    name: 'owner_founder_name',
+                    orderable: true,
+                    searchable: true
+                },
+                {
+                    data: 'story',
+                    name: 'story',
+                    orderable: false,
+                    searchable: true
+                },
+                {
+                    data: 'mission',
+                    name: 'mission',
+                    orderable: false,
+                    searchable: true
+                },
+                {
+                    data: 'website',
+                    name: 'website_social_media',
+                    orderable: false,
+                    searchable: true,
+                    className: 'text-center'
+                },
+                {
+                    data: 'revenue_stage',
+                    name: 'revenue_stage',
+                    orderable: true,
+                    searchable: true
+                },
+                {
+                    data: 'media',
+                    name: 'photo_video',
+                    orderable: false,
+                    searchable: false,
+                    className: 'text-center'
+                },
+                {
+                    data: 'status',
+                    name: 'status',
+                    orderable: true,
+                    searchable: false,
+                    className: 'text-center'
+                },
+                {
+                    data: 'created_at',
+                    name: 'created_at',
+                    orderable: true,
+                    searchable: false
+                },
+                {
+                    data: 'action',
+                    name: 'action',
+                    orderable: false,
+                    searchable: false,
+                    className: 'text-center'
+                },
                 ],
             });
 
             // Search with debounce
             let searchTimer;
-            document.getElementById('dtSearch').addEventListener('input', function() {
+            document.getElementById('dtSearch').addEventListener('input', function () {
                 clearTimeout(searchTimer);
                 searchTimer = setTimeout(() => table.draw(), 400);
             });
 
-            // Dropdown filters
-            ['filterStatus', 'filterCategory', 'filterFeatured'].forEach(function(id) {
-                document.getElementById(id).addEventListener('change', function() {
-                    table.draw();
-                });
+            // Status filter
+            document.getElementById('filterStatus').addEventListener('change', function () {
+                table.draw();
             });
 
             // Reset
-            document.getElementById('resetFilters').addEventListener('click', function() {
+            document.getElementById('resetFilters').addEventListener('click', function () {
                 document.getElementById('dtSearch').value = '';
                 document.getElementById('filterStatus').value = '';
-                document.getElementById('filterCategory').value = '';
-                document.getElementById('filterFeatured').value = '';
                 table.draw();
             });
 
             // View Details
-            $(document).on('click', '.view-btn', function() {
+            $(document).on('click', '.view-btn', function () {
                 currentBusinessId = $(this).data('id');
                 loadBusinessDetails(currentBusinessId);
                 $('#viewModal').modal('show');
@@ -338,7 +324,7 @@
                     '<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>');
 
                 axios.get('{{ url('businesses') }}/' + id)
-                    .then(function(res) {
+                    .then(function (res) {
                         const d = res.data.data;
                         let html = buildDetailsHtml(d);
                         $('#viewModalBody').html(html);
@@ -355,110 +341,85 @@
                                 '<i class="ri-play-circle-line me-1"></i> Activate';
                         }
                     })
-                    .catch(function() {
+                    .catch(function () {
                         $('#viewModalBody').html(
                             '<div class="alert alert-danger">Failed to load business details.</div>');
                     });
             }
 
             function buildDetailsHtml(d) {
-                const logoHtml = d.logo ?
-                    '<img src="' + d.logo + '" class="img-fluid rounded" style="max-height:80px;" alt="Logo">' :
+                const mediaHtml = d.photo_video ?
+                    (/\.(jpg|jpeg|png|webp)$/i.test(d.photo_video) ?
+                        '<img src="' + d.photo_video + '" class="img-fluid rounded" style="max-height:120px;" alt="Media">' :
+                        '<a href="' + d.photo_video + '" target="_blank" class="btn btn-sm btn-primary">View Video</a>') :
                     '<span class="text-muted">—</span>';
 
                 const statusBadge = {
                     'active': '<span class="badge bg-success-subtle text-success">Active</span>',
                     'inactive': '<span class="badge bg-secondary-subtle text-secondary">Inactive</span>',
                     'terminated': '<span class="badge bg-danger-subtle text-danger">Terminated</span>',
-                } [d.status] || d.status;
-
-                const featuredBadge = d.is_featured ?
-                    '<span class="badge bg-warning-subtle text-warning"><i class="ri-star-fill me-1"></i>Featured</span>' :
-                    '<span class="badge bg-light text-muted">Not Featured</span>';
+                }[d.status] || d.status;
 
                 return `
-            <div class="row">
-                <div class="col-md-2 text-center mb-3">
-                    ${logoHtml}
-                </div>
-                <div class="col-md-10">
-                    <h5 class="mb-1">${d.business_name}</h5>
-                    <p class="text-muted mb-0"><i class="ri-user-line me-1"></i>${d.owner_name}</p>
-                    <p class="text-muted mb-0"><i class="ri-map-pin-line me-1"></i>${d.city}, ${d.state}</p>
-                    <p class="mb-0 mt-1">${statusBadge} ${featuredBadge}</p>
-                </div>
-            </div>
-
-            <hr>
-
-            <div class="row">
-                <div class="col-md-6">
-                    <h6 class="text-primary"><i class="ri-information-line me-1"></i>Basic Information</h6>
-                    <table class="table table-sm table-borderless">
-                        <tr><th width="40%">Category</th><td>${d.category_name || '—'}</td></tr>
-                        <tr><th>Year Founded</th><td>${d.year_founded || '—'}</td></tr>
-                        <tr><th>Website</th><td>${d.website ? '<a href="' + d.website + '" target="_blank">' + d.website + '</a>' : '—'}</td></tr>
-                        <tr><th>Slug</th><td><code>${d.slug || '—'}</code></td></tr>
-                    </table>
-
-                    <h6 class="text-primary mt-3"><i class="ri-user-line me-1"></i>Owner Information</h6>
-                    <table class="table table-sm table-borderless">
-                        <tr><th width="40%">Name</th><td>${d.user_name}</td></tr>
-                        <tr><th>Email</th><td>${d.user_email}</td></tr>
-                        <tr><th>Owner Name</th><td>${d.owner_name}</td></tr>
-                    </table>
-                </div>
-                <div class="col-md-6">
-                    <h6 class="text-primary"><i class="ri-megaphone-line me-1"></i>Engagement</h6>
-                    <div class="row g-2 mb-3">
-                        <div class="col-6">
-                            <div class="border rounded p-2 text-center">
-                                <h5 class="mb-0 text-primary">${d.total_claps.toLocaleString()}</h5>
-                                <small class="text-muted"><i class="ri-hand-heart-line"></i> Claps</small>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="border rounded p-2 text-center">
-                                <h5 class="mb-0 text-info">${d.total_saves.toLocaleString()}</h5>
-                                <small class="text-muted"><i class="ri-bookmark-line"></i> Saves</small>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="border rounded p-2 text-center">
-                                <h5 class="mb-0 text-success">${d.total_shares.toLocaleString()}</h5>
-                                <small class="text-muted"><i class="ri-share-line"></i> Shares</small>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="border rounded p-2 text-center">
-                                <h5 class="mb-0 text-warning">${d.total_points.toLocaleString()}</h5>
-                                <small class="text-muted"><i class="ri-fire-line"></i> Points</small>
-                            </div>
-                        </div>
+                <div class="row">
+                    <div class="col-md-3 text-center mb-3">
+                        ${mediaHtml}
                     </div>
-
-                    <h6 class="text-primary mt-3"><i class="ri-timer-line me-1"></i>Timestamps</h6>
-                    <table class="table table-sm table-borderless">
-                        <tr><th width="40%">Created</th><td>${d.created_at || '—'}</td></tr>
-                        <tr><th>Updated</th><td>${d.updated_at || '—'}</td></tr>
-                    </table>
+                    <div class="col-md-9">
+                        <h5 class="mb-1">${d.business_name || '—'}</h5>
+                        <p class="text-muted mb-0"><i class="ri-user-line me-1"></i>${d.owner_founder_name || '—'}</p>
+                        <p class="mb-0 mt-1">${statusBadge}</p>
+                    </div>
                 </div>
-            </div>
 
-            ${d.description ? `
                 <hr>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-primary"><i class="ri-information-line me-1"></i>Basic Information</h6>
+                        <table class="table table-sm table-borderless">
+                            <tr><th width="40%">Slug</th><td><code>${d.slug || '—'}</code></td></tr>
+                            <tr><th>Revenue Stage</th><td>${d.revenue_stage || '—'}</td></tr>
+                            <tr><th>Website / Social</th><td>${d.website_social_media ? '<a href="' + d.website_social_media + '" target="_blank">' + d.website_social_media + '</a>' : '—'}</td></tr>
+                        </table>
+
+                        <h6 class="text-primary mt-3"><i class="ri-user-line me-1"></i>Account</h6>
+                        <table class="table table-sm table-borderless">
+                            <tr><th width="40%">User Name</th><td>${d.user_name || '—'}</td></tr>
+                            <tr><th>Email</th><td>${d.user_email || '—'}</td></tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-primary"><i class="ri-timer-line me-1"></i>Timestamps</h6>
+                        <table class="table table-sm table-borderless">
+                            <tr><th width="40%">Created</th><td>${d.created_at || '—'}</td></tr>
+                            <tr><th>Updated</th><td>${d.updated_at || '—'}</td></tr>
+                        </table>
+                    </div>
+                </div>
+
+                <hr>
+
                 <div class="row">
                     <div class="col-12">
-                        <h6 class="text-primary"><i class="ri-file-text-line me-1"></i>Description</h6>
-                        <p class="mb-0">${d.description}</p>
+                        <h6 class="text-primary"><i class="ri-file-text-line me-1"></i>Story</h6>
+                        <p class="mb-3">${d.story || '—'}</p>
+
+                        <h6 class="text-primary"><i class="ri-flag-line me-1"></i>Mission</h6>
+                        <p class="mb-3">${d.mission || '—'}</p>
+
+                        <h6 class="text-primary"><i class="ri-community-line me-1"></i>Community Impact Statement</h6>
+                        <p class="mb-3">${d.community_impact_statement || '—'}</p>
+
+                        <h6 class="text-primary"><i class="ri-trophy-line me-1"></i>Why They Deserve To Compete</h6>
+                        <p class="mb-0">${d.why_they_deserve_to_compete || '—'}</p>
                     </div>
                 </div>
-                ` : ''}
-        `;
+            `;
             }
 
             // Toggle Status from Modal
-            document.getElementById('modalToggleStatusBtn').addEventListener('click', function() {
+            document.getElementById('modalToggleStatusBtn').addEventListener('click', function () {
                 if (!currentBusinessId) return;
 
                 const isActive = this.innerHTML.includes('Deactivate');
@@ -468,24 +429,24 @@
                     title: (isActive ? 'Deactivate' : 'Activate') + ' Business?',
                     type: 'warning',
                     confirmText: 'Yes, ' + actionLabel,
-                }).then(function(confirmed) {
+                }).then(function (confirmed) {
                     if (!confirmed) return;
 
                     axios.patch('{{ url('businesses') }}/' + currentBusinessId +
-                            '/toggle-status')
-                        .then(function(res) {
+                        '/toggle-status')
+                        .then(function (res) {
                             Toast.success(res.data.message);
                             $('#viewModal').modal('hide');
                             table.draw(false);
                         })
-                        .catch(function(err) {
+                        .catch(function (err) {
                             Toast.error(err.response?.data?.message || 'Failed to toggle status.');
                         });
                 });
             });
 
             // Toggle Status from Table
-            $(document).on('click', '.toggle-status-btn', function() {
+            $(document).on('click', '.toggle-status-btn', function () {
                 const id = $(this).data('id');
                 const currentStatus = $(this).data('status');
                 const isActive = currentStatus === 'active';
@@ -495,39 +456,39 @@
                     title: (isActive ? 'Deactivate' : 'Activate') + ' Business?',
                     type: 'warning',
                     confirmText: 'Yes, ' + actionLabel,
-                }).then(function(confirmed) {
+                }).then(function (confirmed) {
                     if (!confirmed) return;
 
                     axios.patch('{{ url('businesses') }}/' + id + '/toggle-status')
-                        .then(function(res) {
+                        .then(function (res) {
                             Toast.success(res.data.message);
                             table.draw(false);
                         })
-                        .catch(function(err) {
+                        .catch(function (err) {
                             Toast.error(err.response?.data?.message || 'Failed to toggle status.');
                         });
                 });
             });
 
             // Delete
-            $(document).on('click', '.delete-btn', function() {
+            $(document).on('click', '.delete-btn', function () {
                 const id = $(this).data('id');
 
                 Alert.confirm('This business will be permanently deleted and cannot be restored.', {
                     title: 'Delete Business?',
                     type: 'danger',
                     confirmText: 'Yes, delete it',
-                }).then(function(confirmed) {
+                }).then(function (confirmed) {
                     if (!confirmed) return;
 
                     axios.delete('{{ url('businesses') }}/' + id)
-                        .then(function(res) {
+                        .then(function (res) {
                             Toast.success(res.data.message);
                             table.draw(false);
                         })
-                        .catch(function(err) {
+                        .catch(function (err) {
                             Toast.error(err.response?.data?.message ||
-                            'Failed to delete business.');
+                                'Failed to delete business.');
                         });
                 });
             });

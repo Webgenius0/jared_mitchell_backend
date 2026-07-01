@@ -11,18 +11,17 @@ class Business extends Model
 
     protected $fillable = [
         'user_id',
-        'business_category_id',
-        'owner_name',
-        'business_name',
         'slug',
-        'year_founded',
-        'website',
-        'city',
-        'state',
-        'description',
-        'logo',
+        'business_name',
+        'owner_founder_name',
+        'story',
+        'mission',
+        'website_social_media',
+        'community_impact_statement',
+        'revenue_stage',
+        'why_they_deserve_to_compete',
+        'photo_video',
         'status',
-        'is_featured',
     ];
 
     public function user()
@@ -43,5 +42,14 @@ class Business extends Model
     public function claps()
     {
         return $this->interactions()->where('action_type', 'clap');
+    }
+
+    public function getPhotoVideoUrlAttribute(): ?string
+    {
+        if (!$this->photo_video) {
+            return null;
+        }
+
+        return \Illuminate\Support\Facades\Storage::url($this->photo_video);
     }
 }

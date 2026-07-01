@@ -20,18 +20,16 @@ class StoreBusinessRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'business_category_id' => 'required|exists:business_categories,id',
-            'owner_name'           => 'required|string|max:255',
-            'business_name'        => 'required|string|max:255',
-            'slug'                 => 'nullable|string|max:255|unique:businesses,slug',
-            'year_founded'         => 'required|integer|min:1800|max:' . date('Y'),
-            'website'              => 'nullable|string|url|max:255',
-            'city'                 => 'required|string|max:255',
-            'state'                => 'required|string|max:255',
-            'description'          => 'nullable|string',
-            'logo'                 => 'nullable|string|max:255',
-            'status'               => 'nullable|in:active,inactive,terminated',
-            'is_featured'          => 'nullable|boolean',
+            'business_name' => 'required|string|max:255',
+            'owner_founder_name' => 'nullable|string|max:255',
+            'story' => 'nullable|string',
+            'mission' => 'nullable|string',
+            'website_social_media' => 'nullable|string',
+            'community_impact_statement' => 'nullable|string',
+            'revenue_stage' => 'nullable|string',
+            'why_they_deserve_to_compete' => 'nullable|string',
+            'photo_video' => 'nullable|file|mimes:jpeg,png,jpg,mp4,mov|max:51200',
+            'status' => 'nullable|in:active,inactive,terminated',
         ];
     }
 }

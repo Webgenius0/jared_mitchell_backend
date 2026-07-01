@@ -13,7 +13,8 @@ class UserSeeder extends Seeder
     {
         // Create Roles
         $adminRole = Role::firstOrCreate(['name' => 'admin']);
-        $userRole  = Role::firstOrCreate(['name' => 'user']);
+        $userRole = Role::firstOrCreate(['name' => 'user']);
+        $bossRole = Role::firstOrCreate(['name' => 'boss']);
 
         // Admin Users
         $admin1 = User::create([
@@ -48,6 +49,20 @@ class UserSeeder extends Seeder
             ]);
 
             $user->assignRole($userRole);
+        }
+
+        // Boss Users
+        for ($i = 1; $i <= 10; $i++) {
+
+            $boss = User::create([
+                'email' => "boss{$i}@gmail.com",
+                'phone' => "0191000000{$i}",
+                'password' => Hash::make('12345678'),
+                'status' => 'active',
+                'email_verified_at' => now(),
+            ]);
+
+            $boss->assignRole($bossRole);
         }
     }
 }

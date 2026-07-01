@@ -20,139 +20,214 @@ class AdminBusinessController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $query = Business::with(['user.profile', 'category'])->latest();
 
-            // Filter by status
+            $query = Business::with(['user.profile'])->latest();
+
+            // Status Filter
             if ($request->filled('status')) {
                 $query->where('status', $request->status);
             }
 
-            // Filter by category
-            if ($request->filled('business_category_id')) {
-                $query->where('business_category_id', $request->business_category_id);
-            }
-
-            // Filter by featured
-            if ($request->filled('is_featured')) {
-                $query->where('is_featured', $request->is_featured === 'yes');
-            }
-
-            // Custom search
+            // Search
             if ($request->filled('search_term')) {
                 $search = $request->search_term;
+
                 $query->where(function ($q) use ($search) {
                     $q->where('business_name', 'like', "%{$search}%")
-                        ->orWhere('owner_name', 'like', "%{$search}%")
-                        ->orWhere('city', 'like', "%{$search}%")
-                        ->orWhere('state', 'like', "%{$search}%");
+                        ->orWhere('owner_founder_name', 'like', "%{$search}%")
+                        ->orWhere('story', 'like', "%{$search}%")
+                        ->orWhere('mission', 'like', "%{$search}%")
+                        ->orWhere('website_social_media', 'like', "%{$search}%")
+                        ->orWhere('community_impact_statement', 'like', "%{$search}%")
+                        ->orWhere('revenue_stage', 'like', "%{$search}%")
+                        ->orWhere('why_they_deserve_to_compete', 'like', "%{$search}%");
                 });
             }
 
             return DataTables::of($query)
                 ->addIndexColumn()
-                ->addColumn('owner', function (Business $business) {
-                    $name = $business->user?->profile?->name ?? $business->user?->email ?? '—';
-                    return '<div>
-                        <strong>' . e($business->owner_name) . '</strong>
-                        <br><small class="text-muted">' . e($name) . '</small>
-                    </div>';
-                })
+
                 ->addColumn('business', function (Business $business) {
-                    $category = $business->category?->name ?? '—';
-                    return '<div>
+                    return '
+                    <div>
                         <strong>' . e($business->business_name) . '</strong>
-                        <br><small class="text-muted">' . e($category) . '</small>
-                    </div>';
+                        <br>
+                        <small class="text-muted">' . e($business->slug) . '</small>
+                    </div>
+                ';
                 })
-                ->addColumn('location', function (Business $business) {
-                    return e($business->city) . ', ' . e($business->state);
+
+                ->addColumn('owner', function (Business $business) {
+                    return e($business->owner_founder_name ?? '—');
                 })
+
+                ->addColumn('story', function (Business $business) {
+                    return \Illuminate\Support\Str::limit(strip_tags($business->story), 60);
+                })
+
+                ->addColumn('mission', function (Business $business) {
+                    return \Illuminate\Support\Str::limit(strip_tags($business->mission), 60);
+                })
+
+                ->addColumn('website', function (Business $business) {
+                    if (!$business->website_social_media) {
+                        return '—';
+                    }
+
+                    return '<a href="' . e($business->website_social_media) . '" target="_blank">
+                            Visit
+                        </a>';
+                })
+
+                ->addColumn('revenue_stage', function (Business $business) {
+                    return e($business->revenue_stage ?? '—');
+                })
+
+                ->addColumn('media', function (Business $business) {
+
+                    if (!$business->photo_video) {
+                        return '—';
+                    }
+
+                    $url = asset('storage/' . $business->photo_video);
+
+                    $extension = strtolower(pathinfo($business->photo_video, PATHINFO_EXTENSION));
+
+                    if (in_array($extension, ['jpg', 'jpeg', 'png', 'webp'])) {
+                        return '<img src="' . $url . '" width="60" class="rounded border">';
+                    }
+
+                    return '<a href="' . $url . '" target="_blank" class="btn btn-sm btn-primary">
+                            View Video
+                        </a>';
+                })
+
                 ->editColumn('status', function (Business $business) {
+
                     $badges = [
-                        'active'     => 'bg-success-subtle text-success',
-                        'inactive'   => 'bg-secondary-subtle text-secondary',
+                        'active' => 'bg-success-subtle text-success',
+                        'inactive' => 'bg-secondary-subtle text-secondary',
                         'terminated' => 'bg-danger-subtle text-danger',
                     ];
+
                     $class = $badges[$business->status] ?? 'bg-secondary-subtle text-secondary';
-                    $label = ucfirst($business->status);
-                    return '<span class="badge ' . $class . '">' . $label . '</span>';
+
+                    return '<span class="badge ' . $class . '">' . ucfirst($business->status) . '</span>';
                 })
-                ->addColumn('featured', function (Business $business) {
-                    return $business->is_featured
-                        ? '<span class="badge bg-warning-subtle text-warning"><i class="ri-star-fill me-1"></i>Featured</span>'
-                        : '<span class="badge bg-light text-muted">—</span>';
+
+                ->addColumn('created_at', function (Business $business) {
+                    return $business->created_at->format('d M Y');
                 })
-                ->addColumn('engagement', function (Business $business) {
-                    return '<div class="text-nowrap">
-                        <i class="ri-hand-heart-line text-muted me-1" title="Claps"></i>' . number_format($business->total_claps) . '
-                        <i class="ri-bookmark-line text-muted ms-2 me-1" title="Saves"></i>' . number_format($business->total_saves) . '
-                        <i class="ri-share-line text-muted ms-2 me-1" title="Shares"></i>' . number_format($business->total_shares) . '
-                        <i class="ri-fire-line text-muted ms-2 me-1" title="Points"></i>' . number_format($business->total_points) . '
-                    </div>';
-                })
+
                 ->addColumn('action', function (Business $business) {
-                    $viewBtn = '<button class="btn btn-sm btn-soft-info view-btn" data-id="' . $business->id . '" title="View"><i class="ri-eye-line"></i></button>';
 
-                    $statusIcon = $business->status === 'active' ? 'ri-pause-circle-line' : 'ri-play-circle-line';
-                    $statusTitle = $business->status === 'active' ? 'Deactivate' : 'Activate';
-                    $toggleBtn = '<button class="btn btn-sm btn-soft-warning toggle-status-btn" data-id="' . $business->id . '" data-status="' . $business->status . '" title="' . $statusTitle . '"><i class="' . $statusIcon . '"></i></button>';
+                    $viewBtn = '
+                    <button
+                        class="btn btn-sm btn-soft-info view-btn"
+                        data-id="' . $business->id . '"
+                        title="View">
+                        <i class="ri-eye-line"></i>
+                    </button>
+                ';
 
-                    $deleteBtn = '<button class="btn btn-sm btn-soft-danger delete-btn" data-id="' . $business->id . '" title="Delete"><i class="ri-delete-bin-line"></i></button>';
+                    $statusIcon = $business->status == 'active'
+                        ? 'ri-pause-circle-line'
+                        : 'ri-play-circle-line';
 
-                    return '<div class="d-flex gap-1 justify-content-center">' . $viewBtn . $toggleBtn . $deleteBtn . '</div>';
+                    $statusTitle = $business->status == 'active'
+                        ? 'Deactivate'
+                        : 'Activate';
+
+                    $toggleBtn = '
+                    <button
+                        class="btn btn-sm btn-soft-warning toggle-status-btn"
+                        data-id="' . $business->id . '"
+                        data-status="' . $business->status . '"
+                        title="' . $statusTitle . '">
+                        <i class="' . $statusIcon . '"></i>
+                    </button>
+                ';
+
+                    $deleteBtn = '
+                    <button
+                        class="btn btn-sm btn-soft-danger delete-btn"
+                        data-id="' . $business->id . '"
+                        title="Delete">
+                        <i class="ri-delete-bin-line"></i>
+                    </button>
+                ';
+
+                    return '
+                    <div class="d-flex gap-1 justify-content-center">
+                        ' . $viewBtn . '
+                        ' . $toggleBtn . '
+                        ' . $deleteBtn . '
+                    </div>
+                ';
                 })
-                ->rawColumns(['owner', 'business', 'status', 'featured', 'engagement', 'action'])
+
+                ->rawColumns([
+                    'business',
+                    'website',
+                    'media',
+                    'status',
+                    'action',
+                ])
+
                 ->make(true);
         }
 
-        $categories = BusinessCategory::orderBy('name')->get(['id', 'name']);
         $stats = [
-            'total'       => Business::count(),
-            'active'      => Business::where('status', 'active')->count(),
-            'inactive'    => Business::where('status', 'inactive')->count(),
-            'terminated'  => Business::where('status', 'terminated')->count(),
-            'featured'    => Business::where('is_featured', true)->count(),
+            'total' => Business::count(),
+            'active' => Business::where('status', 'active')->count(),
+            'inactive' => Business::where('status', 'inactive')->count(),
+            'terminated' => Business::where('status', 'terminated')->count(),
         ];
 
-        return view('web.admin.businesses.index', compact('categories', 'stats'));
+        return view('web.admin.businesses.index', compact('stats'));
     }
 
     /**
      * Get a single business for the details modal.
      */
-    public function show(Business $business)
-    {
-        $business->load(['user.profile', 'category']);
+public function show(Business $business)
+{
+    $business->load('user.profile');
 
-        return response()->json([
-            'success' => true,
-            'data'    => [
-                'id'                   => $business->id,
-                'user_id'              => $business->user_id,
-                'business_category_id' => $business->business_category_id,
-                'owner_name'           => $business->owner_name,
-                'business_name'        => $business->business_name,
-                'slug'                 => $business->slug,
-                'year_founded'         => $business->year_founded,
-                'website'              => $business->website,
-                'city'                 => $business->city,
-                'state'                => $business->state,
-                'description'          => $business->description,
-                'logo'                 => $business->logo ? asset('storage/' . $business->logo) : null,
-                'status'               => $business->status,
-                'is_featured'          => (bool) $business->is_featured,
-                'category_name'        => $business->category?->name,
-                'user_name'            => $business->user?->profile?->name ?? $business->user?->email ?? '—',
-                'user_email'           => $business->user?->email ?? '—',
-                'total_claps'          => (int) $business->total_claps,
-                'total_saves'          => (int) $business->total_saves,
-                'total_shares'         => (int) $business->total_shares,
-                'total_points'         => (int) $business->total_points,
-                'created_at'           => $business->created_at?->format('M d, Y h:i A'),
-                'updated_at'           => $business->updated_at?->format('M d, Y h:i A'),
-            ],
-        ]);
-    }
+    return response()->json([
+        'success' => true,
+        'data' => [
+            'id' => $business->id,
+            'user_id' => $business->user_id,
+
+            'business_name' => $business->business_name,
+            'slug' => $business->slug,
+            'owner_founder_name' => $business->owner_founder_name,
+
+            'story' => $business->story,
+            'mission' => $business->mission,
+            'website_social_media' => $business->website_social_media,
+            'community_impact_statement' => $business->community_impact_statement,
+            'revenue_stage' => $business->revenue_stage,
+            'why_they_deserve_to_compete' => $business->why_they_deserve_to_compete,
+
+            'photo_video' => $business->photo_video
+                ? asset('storage/' . $business->photo_video)
+                : null,
+
+            'status' => $business->status,
+
+            'user_name' => $business->user?->profile?->name
+                ?? $business->user?->email
+                ?? '—',
+
+            'user_email' => $business->user?->email ?? '—',
+
+            'created_at' => $business->created_at?->format('M d, Y h:i A'),
+            'updated_at' => $business->updated_at?->format('M d, Y h:i A'),
+        ],
+    ]);
+}
 
     /**
      * Toggle business status between active and inactive.
@@ -173,7 +248,7 @@ class AdminBusinessController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => "Business status changed to {$newStatus} successfully.",
-                'data'    => ['status' => $newStatus],
+                'data' => ['status' => $newStatus],
             ]);
         } catch (Exception $e) {
             Log::error('Business status toggle failed: ' . $e->getMessage());

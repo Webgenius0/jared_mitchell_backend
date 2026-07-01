@@ -18,7 +18,8 @@ class BusinessController extends Controller
 
     public function __construct(
         protected BusinessService $businessService
-    ) {}
+    ) {
+    }
 
     /**
      * GET /api/v1/businesses
@@ -35,9 +36,9 @@ class BusinessController extends Controller
                 'businesses' => BusinessResource::collection($businesses),
                 'pagination' => [
                     'current_page' => $businesses->currentPage(),
-                    'per_page'     => $businesses->perPage(),
-                    'total'        => $businesses->total(),
-                    'last_page'    => $businesses->lastPage(),
+                    'per_page' => $businesses->perPage(),
+                    'total' => $businesses->total(),
+                    'last_page' => $businesses->lastPage(),
                 ],
             ]
         );
@@ -50,6 +51,10 @@ class BusinessController extends Controller
      */
     public function show(Business $business): JsonResponse
     {
+        if ($business->user_id !== auth('api')->id()) {
+            return $this->error('You are not authorized to view this business.', 403);
+        }
+
         $business->load(['user.profile', 'category']);
 
         return $this->success(
@@ -81,6 +86,10 @@ class BusinessController extends Controller
      */
     public function update(UpdateBusinessRequest $request, Business $business): JsonResponse
     {
+        if ($business->user_id !== auth('api')->id()) {
+            return $this->error('You are not authorized to update this business.', 403);
+        }
+
         $business = $this->businessService->update($business, $request->validated());
 
         return $this->success(
@@ -96,6 +105,10 @@ class BusinessController extends Controller
      */
     public function destroy(Business $business): JsonResponse
     {
+        if ($business->user_id !== auth('api')->id()) {
+            return $this->error('You are not authorized to delete this business.', 403);
+        }
+
         $this->businessService->delete($business);
 
         return $this->success('Business deleted successfully.');
