@@ -4,9 +4,11 @@ namespace App\Services;
 
 use App\Models\Business;
 use App\Models\BusinessInteraction;
+use App\Models\BusinessMedia;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class BusinessService
@@ -16,7 +18,7 @@ class BusinessService
      */
     public function list(array $filters = []): LengthAwarePaginator
     {
-        $query = Business::with(['user.profile', 'category']);
+        $query = Business::with(['user.profile', 'category', 'media']);
 
         // Search by business name or owner name
         if (!empty($filters['search'])) {
@@ -68,29 +70,26 @@ class BusinessService
             $counter++;
         }
 
-        $photoVideoPath = null;
-        if (request()->hasFile('photo_video')) {
-            $photoVideoPath = request()->file('photo_video')->store('businesses/media', 'public');
-        }
-
         $business = Business::create([
-            'user_id' => auth('api')->id(),
-            'business_name' => $data['business_name'],
-            'slug' => $slug,
-            'owner_founder_name' => $data['owner_founder_name'] ?? null,
-            'story' => $data['story'] ?? null,
-            'mission' => $data['mission'] ?? null,
-            'website_social_media' => $data['website_social_media'] ?? null,
+            'user_id'                    => auth('api')->id(),
+            'business_name'              => $data['business_name'],
+            'slug'                       => $slug,
+            'owner_founder_name'         => $data['owner_founder_name'] ?? null,
+            'story'                      => $data['story'] ?? null,
+            'mission'                    => $data['mission'] ?? null,
+            'website_social_media'       => $data['website_social_media'] ?? null,
             'community_impact_statement' => $data['community_impact_statement'] ?? null,
-            'revenue_stage' => $data['revenue_stage'] ?? null,
-            'why_they_deserve_to_compete' => $data['why_they_deserve_to_compete'] ?? null,
-            'photo_video' => $photoVideoPath,
-            'status' => $data['status'] ?? 'active',
+            'revenue_stage'              => $data['revenue_stage'] ?? null,
+            'why_they_deserve_to_compete'=> $data['why_they_deserve_to_compete'] ?? null,
+            'status'                     => $data['status'] ?? 'active',
         ]);
+
+        // Handle multiple file uploads
+        $this->storeMediaFiles($business);
 
         DB::commit();
 
-        return $business->load(['user.profile']);
+        return $business->load(['user.profile', 'media']);
     }
 
     /**
@@ -130,30 +129,68 @@ class BusinessService
             $updateData['slug'] = $slug;
         }
 
-        if (request()->hasFile('photo_video')) {
-            if ($business->photo_video) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($business->photo_video);
+        $business->update($updateData);
+
+        // Remove specific media records requested by the client
+        if (!empty($data['remove_media_ids'])) {
+            $toRemove = BusinessMedia::where('business_id', $business->id)
+                ->whereIn('id', $data['remove_media_ids'])
+                ->get();
+
+            foreach ($toRemove as $media) {
+                Storage::disk('local')->delete($media->file_path);
+                $media->delete();
             }
-            $updateData['photo_video'] = request()->file('photo_video')->store('businesses/media', 'public');
         }
 
-        $business->update($updateData);
+        // Append newly uploaded files
+        $this->storeMediaFiles($business);
 
         DB::commit();
 
-        return $business->load(['user.profile']);
+        return $business->load(['user.profile', 'media']);
     }
 
     /**
-     * Delete (soft delete) a business.
+     * Delete (soft delete) a business, removing all media files first.
      */
     public function delete(Business $business): bool
     {
         DB::beginTransaction();
+
+        // Delete all physical media files before soft-deleting the business
+        foreach ($business->media as $media) {
+            Storage::disk('local')->delete($media->file_path);
+            $media->delete();
+        }
+
         $result = $business->delete();
+
         DB::commit();
 
         return $result;
+    }
+
+    /**
+     * Store multiple uploaded files from the current request as BusinessMedia records.
+     */
+    protected function storeMediaFiles(Business $business): void
+    {
+        if (!request()->hasFile('photo_video')) {
+            return;
+        }
+
+        foreach (request()->file('photo_video') as $file) {
+            $path = $file->store('businesses/media', 'local');
+
+            BusinessMedia::create([
+                'business_id' => $business->id,
+                'file_path'   => $path,
+                'file_name'   => $file->getClientOriginalName(),
+                'mime_type'   => $file->getMimeType(),
+                'file_size'   => $file->getSize(),
+            ]);
+        }
     }
 
     /**

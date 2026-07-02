@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Helpers\FileHandle;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BusinessSpotlightRequest;
+use App\Http\Requests\UpdateBusinessSpotlightRequest;
 use App\Http\Resources\BusinessSpotlightResource;
 use App\Models\BusinessSpotlight;
 use App\Traits\ApiResponse;
@@ -35,7 +36,7 @@ class BusinessSpotlightController extends Controller
             ->findOrFail($id);
 
         return new BusinessSpotlightResource($spotlight);
-    }   
+    }
 
     /**
      * Store a new business spotlight submission.
@@ -213,6 +214,94 @@ class BusinessSpotlightController extends Controller
     }
 
     /**
+     * POST /api/business-spotlight/{id}/update
+     *
+     * Full update for an existing business spotlight.
+     * Only fields that are sent will be updated; omitted fields keep their current values.
+     * Photos are replaced only when a new file is uploaded; otherwise the existing path is kept.
+     */
+    public function update(UpdateBusinessSpotlightRequest $request, $id)
+    {
+        $spotlight = BusinessSpotlight::findOrFail($id);
+
+        try {
+            DB::beginTransaction();
+
+            $data = $request->validated();
+
+            // --- Portrait photo ---
+            if ($request->hasFile('portrait_photo')) {
+                FileHandle::fileDelete($spotlight->portrait_photo_path);
+                $path = FileHandle::fileUpload($request->file('portrait_photo'), 'business-spotlights/portraits');
+                if ($path) {
+                    $data['portrait_photo_path'] = $path;
+                }
+            }
+            unset($data['portrait_photo']);
+
+            // --- Storefront / workspace photo ---
+            if ($request->hasFile('storefront_workspace_photo')) {
+                FileHandle::fileDelete($spotlight->storefront_workspace_photo_path);
+                $path = FileHandle::fileUpload($request->file('storefront_workspace_photo'), 'business-spotlights/storefronts');
+                if ($path) {
+                    $data['storefront_workspace_photo_path'] = $path;
+                }
+            }
+            unset($data['storefront_workspace_photo']);
+
+            // --- Team photo ---
+            if ($request->hasFile('team_photo')) {
+                FileHandle::fileDelete($spotlight->team_photo_path);
+                $path = FileHandle::fileUpload($request->file('team_photo'), 'business-spotlights/teams');
+                if ($path) {
+                    $data['team_photo_path'] = $path;
+                }
+            }
+            unset($data['team_photo']);
+
+            // --- Product / service photos (multiple) ---
+            if ($request->hasFile('product_service_photos')) {
+                // Delete old product photos
+                if (!empty($spotlight->product_service_photo_paths)) {
+                    foreach ($spotlight->product_service_photo_paths as $oldPath) {
+                        FileHandle::fileDelete($oldPath);
+                    }
+                }
+                $paths = [];
+                foreach ($request->file('product_service_photos') as $photo) {
+                    $path = FileHandle::fileUpload($photo, 'business-spotlights/products');
+                    if ($path) {
+                        $paths[] = $path;
+                    }
+                }
+                $data['product_service_photo_paths'] = $paths;
+            }
+            unset($data['product_service_photos']);
+
+            // Remove null values so existing DB values are not overwritten with null
+            $data = array_filter($data, fn($v) => $v !== null);
+
+            $spotlight->update($data);
+
+            DB::commit();
+
+            return $this->success(
+                'Business spotlight updated successfully.',
+                new BusinessSpotlightResource($spotlight->fresh())
+            );
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error('Business spotlight update failed: ' . $e->getMessage());
+
+            return $this->error(
+                ['exception' => $e->getMessage()],
+                'Failed to update business spotlight. Please try again.',
+                500
+            );
+        }
+    }
+
+    /**
      * Handle file uploads for the business spotlight.
      */
     private function handleFileUploads(Request $request, array $data): array
@@ -307,5 +396,45 @@ class BusinessSpotlightController extends Controller
             // Tracking
             'current_step',
         ];
+    }
+
+    public function destroy($id)
+    {
+        $spotlight = BusinessSpotlight::findOrFail($id);
+
+        try {
+            DB::beginTransaction();
+
+            // Delete files
+            if ($spotlight->portrait_photo_path) {
+                FileHandle::fileDelete($spotlight->portrait_photo_path);
+            }
+            if ($spotlight->storefront_workspace_photo_path) {
+                FileHandle::fileDelete($spotlight->storefront_workspace_photo_path);
+            }
+            if ($spotlight->team_photo_path) {
+                FileHandle::fileDelete($spotlight->team_photo_path);
+            }
+            if ($spotlight->product_service_photo_paths) {
+                foreach ($spotlight->product_service_photo_paths as $path) {
+                    FileHandle::fileDelete($path);
+                }
+            }
+
+            $spotlight->delete();
+
+            DB::commit();
+
+            return $this->success('Business spotlight deleted successfully.');
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error('Business spotlight deletion failed: ' . $e->getMessage());
+
+            return $this->error(
+                ['exception' => $e->getMessage()],
+                'Failed to delete business spotlight. Please try again.',
+                500
+            );
+        }
     }
 }

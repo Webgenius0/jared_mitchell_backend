@@ -20,7 +20,6 @@ class Business extends Model
         'community_impact_statement',
         'revenue_stage',
         'why_they_deserve_to_compete',
-        'photo_video',
         'status',
     ];
 
@@ -34,6 +33,14 @@ class Business extends Model
         return $this->belongsTo(BusinessCategory::class, 'business_category_id');
     }
 
+    /**
+     * All uploaded media files for this business.
+     */
+    public function media()
+    {
+        return $this->hasMany(BusinessMedia::class);
+    }
+
     public function interactions()
     {
         return $this->hasMany(BusinessInteraction::class);
@@ -42,14 +49,5 @@ class Business extends Model
     public function claps()
     {
         return $this->interactions()->where('action_type', 'clap');
-    }
-
-    public function getPhotoVideoUrlAttribute(): ?string
-    {
-        if (!$this->photo_video) {
-            return null;
-        }
-
-        return \Illuminate\Support\Facades\Storage::url($this->photo_video);
     }
 }

@@ -28,7 +28,10 @@ class UpdateBusinessRequest extends FormRequest
             'community_impact_statement' => 'nullable|string',
             'revenue_stage' => 'nullable|string',
             'why_they_deserve_to_compete' => 'nullable|string',
-            'photo_video' => 'nullable|file|mimes:jpeg,png,jpg,mp4,mov|max:51200',
+            'photo_video'      => 'nullable|array',
+            'photo_video.*'    => 'file|mimes:jpeg,png,jpg,mp4,mov|max:51200',
+            'remove_media_ids' => 'nullable|array',
+            'remove_media_ids.*' => 'integer|exists:business_media,id',
             'status' => 'nullable|in:active,inactive,terminated',
         ];
     }

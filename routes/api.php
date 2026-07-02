@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\Auth\V2\ForgotPasswordController as V2ForgotPasswor
 use App\Http\Controllers\Api\Auth\V2\RegisterController as V2RegisterController;
 use App\Http\Controllers\Api\BusinessCategoryController;
 use App\Http\Controllers\Api\BusinessController;
+use App\Http\Controllers\Api\BusinessMediaController;
 use App\Http\Controllers\Api\BusinessSpotlightController;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\Chat\ConversationController;
@@ -54,6 +55,14 @@ Route::get('/health-check', function () {
         'Message' => "Project is ready to serve",
     ], 200);
 });
+
+/*
+ |--------------------------------------------------------------------------
+ | Business Media — private file serving (signed URL, no auth required)
+ |--------------------------------------------------------------------------
+*/
+Route::get('/media/business/{media}', [BusinessMediaController::class, 'serve'])
+    ->name('business.media.serve');
 
 /*
 |--------------------------------------------------------------------------
@@ -110,14 +119,6 @@ Route::group(['prefix' => 'v1'], function ($router) {
 
         });
 
-        // Business Sportlight
-        Route::prefix('business-spotlight')->group(function () {
-            Route::get('/', [BusinessSpotlightController::class, 'index']);
-            Route::post('/', [BusinessSpotlightController::class, 'store']); // Submit complete form
-            Route::post('/draft', [BusinessSpotlightController::class, 'saveDraft']); // Save draft (partial)
-            Route::get('/draft', [BusinessSpotlightController::class, 'getDraft']);  // Retrieve draft by email
-            Route::get('/{id}', [BusinessSpotlightController::class, 'show']);  // Retrieve draft by email
-        });
 
         // Artist Spotlight
         Route::prefix('artist-spotlight')->group(function () {
@@ -280,6 +281,21 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::delete('/delete/{business}', [BusinessController::class, 'destroy']); // Delete
             Route::patch('/{business}/toggle-status', [BusinessController::class, 'toggleStatus']); // Toggle active/inactive
             Route::patch('/{business}/terminate', [BusinessController::class, 'terminate']); // Terminate
+        });
+
+        /*
+        |--------------------------------------------------------------------------
+        | Business Spotlight — management (protected by boss role)
+        |--------------------------------------------------------------------------
+        */
+        Route::middleware('role:boss,api')->prefix('business-spotlight')->group(function () {
+            Route::get('/', [BusinessSpotlightController::class, 'index']);                  // List all
+            Route::post('/', [BusinessSpotlightController::class, 'store']);                  // Submit complete form
+            Route::post('/draft', [BusinessSpotlightController::class, 'saveDraft']);         // Save draft (partial)
+            Route::get('/draft', [BusinessSpotlightController::class, 'getDraft']);           // Retrieve draft by email
+            Route::get('/{id}', [BusinessSpotlightController::class, 'show']);               // Get single spotlight
+            Route::post('/update/{id}', [BusinessSpotlightController::class, 'update']);     // Full update
+            Route::delete('/delete/{id}', [BusinessSpotlightController::class, 'destroy']); // Delete spotlight
         });
 
         /*
