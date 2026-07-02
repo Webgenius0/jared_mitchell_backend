@@ -82,7 +82,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
         | User Authentication Routes
         |--------------------------------------------------------------------------
         */
-        Route::group(['middleware' => 'guest:api'], function () {
+        Route::group([], function () {
             //register
             Route::post('/register', [RegisterController::class, 'register']); // DONE: user registraion
             Route::post('/verify-email', [RegisterController::class, 'VerifyEmail']); // DONE: email verification
@@ -120,13 +120,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
         });
 
 
-        // Artist Spotlight
-        Route::prefix('artist-spotlight')->group(function () {
-            Route::get('/', [ArtistSpotlightController::class, 'index']); // Submit complete form
-            Route::post('/', [ArtistSpotlightController::class, 'store']); // Submit complete form
-            Route::post('/draft', [ArtistSpotlightController::class, 'saveDraft']); // Save draft (partial)
-            Route::get('/draft', [ArtistSpotlightController::class, 'getDraft']);  // Retrieve draft by email
-        });
+
 
         // Artist Categories - for artist registering
         Route::get('/artist-categories', [ArtistCategoryController::class, 'index']); // DONE: artist categories
@@ -296,6 +290,20 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::get('/{id}', [BusinessSpotlightController::class, 'show']);               // Get single spotlight
             Route::post('/update/{id}', [BusinessSpotlightController::class, 'update']);     // Full update
             Route::delete('/delete/{id}', [BusinessSpotlightController::class, 'destroy']); // Delete spotlight
+        });
+        /*
+        |--------------------------------------------------------------------------
+        | Artist Spotlight — management (protected by artist role)
+        |--------------------------------------------------------------------------
+        */
+        Route::middleware('role:artist,api')->prefix('artist-spotlight')->group(function () {
+            Route::get('/', [ArtistSpotlightController::class, 'index']);                      // List all
+            Route::post('/', [ArtistSpotlightController::class, 'store']);                     // Submit complete form
+            Route::post('/draft', [ArtistSpotlightController::class, 'saveDraft']);            // Save draft (partial)
+            Route::get('/draft', [ArtistSpotlightController::class, 'getDraft']);              // Retrieve draft by email
+            Route::get('/{id}', [ArtistSpotlightController::class, 'show']);                  // Get single spotlight
+            Route::post('/update/{id}', [ArtistSpotlightController::class, 'update']);        // Full update (owner only)
+            Route::delete('/delete/{id}', [ArtistSpotlightController::class, 'destroy']);     // Delete (owner only)
         });
 
         /*

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Helpers\FileHandle;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ArtistSpotlightRequest;
+use App\Http\Requests\UpdateArtistSpotlightRequest;
 use App\Http\Resources\ArtistSpotlightResource;
 use App\Models\ArtistSpotlight;
 use App\Traits\ApiResponse;
@@ -35,7 +36,7 @@ class ArtistSpotlightController extends Controller
             ->findOrFail($id);
 
         return new ArtistSpotlightResource($spotlight);
-    }   
+    }
 
     /**
      * Store a new artist spotlight submission.
@@ -211,6 +212,135 @@ class ArtistSpotlightController extends Controller
         ]);
 
         return $this->success('Artist spotlight share recorded successfully.');
+    }
+
+    /**
+     * PUT /api/v1/artist-spotlight/{id}
+     *
+     * Full update for an existing artist spotlight.
+     * Only the authenticated artist who submitted it can update it.
+     * Only fields that are sent will be updated; omitted fields keep their current values.
+     * Media files are replaced only when a new file is uploaded.
+     */
+    public function update(UpdateArtistSpotlightRequest $request, $id)
+    {
+        $spotlight = ArtistSpotlight::findOrFail($id);
+
+        try {
+            DB::beginTransaction();
+
+            $data = $request->validated();
+
+            // --- Headshot ---
+            if ($request->hasFile('headshot')) {
+                FileHandle::fileDelete($spotlight->headshot_path);
+                $path = FileHandle::fileUpload($request->file('headshot'), 'artist-spotlights/headshots');
+                if ($path) {
+                    $data['headshot_path'] = $path;
+                }
+            }
+            unset($data['headshot']);
+
+            // --- Behind-the-scenes photo ---
+            if ($request->hasFile('behind_scenes_photo')) {
+                FileHandle::fileDelete($spotlight->behind_scenes_photo_path);
+                $path = FileHandle::fileUpload($request->file('behind_scenes_photo'), 'artist-spotlights/behind-scenes');
+                if ($path) {
+                    $data['behind_scenes_photo_path'] = $path;
+                }
+            }
+            unset($data['behind_scenes_photo']);
+
+            // --- Intro video ---
+            if ($request->hasFile('intro_video')) {
+                FileHandle::fileDelete($spotlight->intro_video_path);
+                $path = FileHandle::fileUpload($request->file('intro_video'), 'artist-spotlights/videos');
+                if ($path) {
+                    $data['intro_video_path'] = $path;
+                }
+            }
+            unset($data['intro_video']);
+
+            // --- Artwork photos (multiple) — replaces ALL existing artwork photos ---
+            if ($request->hasFile('artwork_photos')) {
+                if (!empty($spotlight->artwork_photo_paths)) {
+                    foreach ($spotlight->artwork_photo_paths as $oldPath) {
+                        FileHandle::fileDelete($oldPath);
+                    }
+                }
+                $paths = [];
+                foreach ($request->file('artwork_photos') as $photo) {
+                    $path = FileHandle::fileUpload($photo, 'artist-spotlights/artworks');
+                    if ($path) {
+                        $paths[] = $path;
+                    }
+                }
+                $data['artwork_photo_paths'] = $paths;
+            }
+            unset($data['artwork_photos']);
+
+            // Remove null values so existing DB values are not overwritten with null
+            $data = array_filter($data, fn($v) => $v !== null);
+
+            $spotlight->update($data);
+
+            DB::commit();
+
+            return $this->success(
+                'Artist spotlight updated successfully.',
+                new ArtistSpotlightResource($spotlight->fresh())
+            );
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error('Artist spotlight update failed: ' . $e->getMessage());
+
+            return $this->error(
+                ['exception' => $e->getMessage()],
+                'Failed to update artist spotlight. Please try again.',
+                500
+            );
+        }
+    }
+
+    /**
+     * DELETE /api/v1/artist-spotlight/{id}
+     *
+     * Soft-delete an artist spotlight and remove all associated media files.
+     * Only the authenticated artist who submitted it can delete it.
+     */
+    public function destroy($id)
+    {
+        $spotlight = ArtistSpotlight::findOrFail($id);
+
+        try {
+            DB::beginTransaction();
+
+            // Delete all associated media files from storage
+            FileHandle::fileDelete($spotlight->headshot_path);
+            FileHandle::fileDelete($spotlight->behind_scenes_photo_path);
+            FileHandle::fileDelete($spotlight->intro_video_path);
+
+            if (!empty($spotlight->artwork_photo_paths)) {
+                foreach ($spotlight->artwork_photo_paths as $path) {
+                    FileHandle::fileDelete($path);
+                }
+            }
+
+            $spotlight->delete();
+
+            DB::commit();
+
+            return $this->success('Artist spotlight deleted successfully.');
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error('Artist spotlight deletion failed: ' . $e->getMessage());
+
+            return $this->error(
+                ['exception' => $e->getMessage()],
+                'Failed to delete artist spotlight. Please try again.',
+                500
+            );
+        }
     }
 
     /**
