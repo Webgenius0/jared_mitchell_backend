@@ -28,7 +28,7 @@ return new class extends Migration {
             $table->longText('revenue_stage')->nullable();
             $table->longText('why_they_deserve_to_compete')->nullable();
             $table->string('photo_video')->nullable();
-              $table->enum('status', ['active', 'inactive', 'terminated'])->default('active');
+            $table->enum('status', ['active', 'inactive', 'terminated'])->default('active');
             $table->boolean('is_featured')->default(false);
 
             // Competition Status
