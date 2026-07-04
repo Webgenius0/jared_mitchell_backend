@@ -56,13 +56,7 @@ Route::get('/health-check', function () {
     ], 200);
 });
 
-/*
- |--------------------------------------------------------------------------
- | Business Media — private file serving (signed URL, no auth required)
- |--------------------------------------------------------------------------
-*/
-Route::get('/media/business/{media}', [BusinessMediaController::class, 'serve'])
-    ->name('business.media.serve');
+
 
 /*
 |--------------------------------------------------------------------------
@@ -118,8 +112,6 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::get('/faq', [ApiFAQController::class, 'index']); // Active FAQs
 
         });
-
-
 
 
         // Artist Categories - for artist registering
@@ -418,15 +410,15 @@ Route::group(['prefix' => 'v1'], function ($router) {
 Route::group(['prefix' => 'v2'], function () {
     Route::group(['middleware' => 'guest:api'], function () {
 
-        // ── Registration ──────────────────────────────────────────────────────
+        // Registration
         Route::post('/register', [V2RegisterController::class, 'register']); // DONE: user registration
         Route::get('/verify-email', [V2RegisterController::class, 'verifyEmail']); // DONE: otp verification
         Route::post('/resend-verification', [V2RegisterController::class, 'resendVerification']); // DONE: resend verification token
 
-        // ── Login (reuse v1 LoginController) ─────────────────────────────────
+        // Login (reuse v1 LoginController)
         Route::post('/login', [LoginController::class, 'login']); // DONE: user login
 
-        // ── Forgot Password ───────────────────────────────────────────────────
+        // Forgot Password
         Route::post('/forgot-password', [V2ForgotPasswordController::class, 'sendResetLink']); // DONE: forgot password
         Route::get('/verify-reset-token', [V2ForgotPasswordController::class, 'verifyResetToken']); // DONE: verify password reset token
         Route::post('/reset-password', [V2ForgotPasswordController::class, 'resetPassword']); // DONE: Set new password

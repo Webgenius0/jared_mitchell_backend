@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('event_ticket_tiers', function (Blueprint $table) {
             $table->id();
             $table->foreignId('event_id')->constrained('events')->cascadeOnDelete();
- 
-            $table->string('name');                             // e.g. "Early Bird"
+
+            $table->string('name'); // e.g. "Early Bird"
             $table->text('description')->nullable();
             $table->decimal('price', 8, 2)->unsigned()->default(0.00);
             $table->decimal('service_fee', 8, 2)->unsigned()->default(0.00);
@@ -25,9 +25,9 @@ return new class extends Migration
             $table->dateTime('sale_ends_at')->nullable();
             $table->boolean('is_active')->default(true);
             $table->unsignedTinyInteger('sort_order')->default(0);
- 
+
             $table->timestamps();
- 
+
             $table->index(['event_id', 'is_active']);
         });
     }

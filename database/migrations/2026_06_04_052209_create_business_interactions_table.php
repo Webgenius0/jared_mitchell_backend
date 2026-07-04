@@ -15,14 +15,12 @@ return new class extends Migration
             $table->id();
 
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-
             $table->foreignId('business_id')->constrained()->cascadeOnDelete();
-
-            $table->enum('action_type', ['clap', 'save', 'share']);
-
+            $table->enum('action_type', ['like','reaction','share','save', 'comment', 'profile_visit'])->nullable();
+            $table->text('comment')->nullable();
             $table->ipAddress('ip')->nullable();
             $table->string('user_agent')->nullable();
-
+            
             $table->timestamps();
 
             $table->unique(['user_id', 'business_id', 'action_type']);
