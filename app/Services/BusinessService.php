@@ -71,17 +71,17 @@ class BusinessService
         }
 
         $business = Business::create([
-            'user_id'                    => auth('api')->id(),
-            'business_name'              => $data['business_name'],
-            'slug'                       => $slug,
-            'owner_founder_name'         => $data['owner_founder_name'] ?? null,
-            'story'                      => $data['story'] ?? null,
-            'mission'                    => $data['mission'] ?? null,
-            'website_social_media'       => $data['website_social_media'] ?? null,
+            'user_id' => auth('api')->id(),
+            'business_name' => $data['business_name'],
+            'slug' => $slug,
+            'owner_founder_name' => $data['owner_founder_name'] ?? null,
+            'story' => $data['story'] ?? null,
+            'mission' => $data['mission'] ?? null,
+            'website_social_media' => $data['website_social_media'] ?? null,
             'community_impact_statement' => $data['community_impact_statement'] ?? null,
-            'revenue_stage'              => $data['revenue_stage'] ?? null,
+            'revenue_stage' => $data['revenue_stage'] ?? null,
             'why_they_deserve_to_compete'=> $data['why_they_deserve_to_compete'] ?? null,
-            'status'                     => $data['status'] ?? 'active',
+            'status' => $data['status'] ?? 'active',
         ]);
 
         // Handle multiple file uploads

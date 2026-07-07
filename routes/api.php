@@ -35,10 +35,14 @@ use App\Http\Controllers\Api\Cms\FAQController as ApiFAQController;
 use App\Http\Controllers\Api\Cms\ShopController;
 use App\Http\Controllers\Api\Cms\SponsorsipController;
 use App\Http\Controllers\Api\ContactController;
+use App\Http\Controllers\Api\Contest\LeaderboardController;
+use App\Http\Controllers\Api\Contest\RoundSubmissionController;
+use App\Http\Controllers\Api\Contest\VoteController;
 use App\Http\Controllers\Api\ContestApplicationController;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\FeaturedEventController;
 use App\Http\Controllers\Api\NewsletterController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PricingController;
 use App\Http\Controllers\Api\ProductController;
@@ -188,11 +192,37 @@ Route::group(['prefix' => 'v1'], function ($router) {
         Route::get('/approved/{id}', [ContestApplicationController::class, 'showApprovedBusiness']);
     });
 
+
     /*
     |--------------------------------------------------------------------------
-    | Auth Routes
+    | Contest — Voting, Submissions & Leaderboard
     |--------------------------------------------------------------------------
     */
+    Route::prefix('contest')->group(function () {
+        // Seasons → Leaderboard
+        Route::get('/leaderboard/overall', [LeaderboardController::class, 'activeOverall']);
+        Route::get('/seasons/{season}/leaderboard', [LeaderboardController::class, 'overall']);
+        Route::get('/seasons/{season}/leaderboard/calculate', [LeaderboardController::class, 'recalculate']);
+
+        // Rounds → Submissions, Votes, Leaderboard
+        Route::get('/rounds/{round}/submissions', [RoundSubmissionController::class, 'index']);
+        Route::get('/rounds/{round}/leaderboard', [LeaderboardController::class, 'forRound']);
+        Route::get('/rounds/{round}/votes/counts', [VoteController::class, 'counts']);
+
+        // Auth-protected contest routes
+        Route::middleware('auth:api')->group(function () {
+            // Submissions
+            Route::post('/rounds/{round}/submissions', [RoundSubmissionController::class, 'store']);
+            Route::post('/rounds/{round}/submissions/draft', [RoundSubmissionController::class, 'saveDraft']);
+            Route::get('/rounds/{round}/submissions/my', [RoundSubmissionController::class, 'mySubmission']);
+
+            // Votes
+            Route::post('/rounds/{round}/votes', [VoteController::class, 'store']);
+            Route::get('/rounds/{round}/votes/my', [VoteController::class, 'myVotes']);
+            Route::get('/rounds/{round}/votes/check/{contestant}', [VoteController::class, 'check']);
+        });
+    });
+
     Route::group(['middleware' => 'auth:api'], function ($router) {
         Route::post('/refresh-token', [LoginController::class, 'refreshToken']); // DONE: refresh token
         Route::post('/logout', [LoginController::class, 'logout']); // DONE: logout
@@ -332,6 +362,15 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::post('/{business}/save', [BusinessController::class, 'toggleSave']);
             Route::post('/{business}/share', [BusinessController::class, 'toggleShare']);
             Route::get('/{business}/interactions', [BusinessController::class, 'userInteractions']);
+        });
+
+        // Notifications
+        Route::prefix('notifications')->group(function () {
+            Route::get('/', [NotificationController::class, 'index']);
+            Route::get('/unread-count', [NotificationController::class, 'unreadCount']);
+            Route::post('/mark-as-read', [NotificationController::class, 'markAsRead']);
+            Route::post('/mark-all-as-read', [NotificationController::class, 'markAllAsRead']);
+            Route::post('/{id}/mark-read', [NotificationController::class, 'markOneAsRead']);
         });
 
         // Active round session

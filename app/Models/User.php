@@ -2,16 +2,19 @@
 
 namespace App\Models;
 
+use App\Contracts\Contestable;
+use App\Models\Contest\Contestant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class User extends Authenticatable implements JWTSubject
+class User extends Authenticatable implements JWTSubject, Contestable
 {
     use HasFactory, Notifiable, HasRoles, SoftDeletes;
 
@@ -169,6 +172,42 @@ class User extends Authenticatable implements JWTSubject
     public function bookmarkedArtistSpotlights(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
         return $this->belongsToMany(ArtistSpotlight::class, 'artist_spotlight_bookmarks', 'user_id', 'artist_spotlight_id')->withTimestamps();
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | E-commerce: Wishlist, Cart & Orders
+    |--------------------------------------------------------------------------
+    */
+
+    /*
+    |--------------------------------------------------------------------------
+    | Contestable Interface Implementation
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Get the display name for contest leaderboards.
+     */
+    public function getContestantName(): string
+    {
+        return $this->profile?->name ?? $this->email ?? 'Unknown User';
+    }
+
+    /**
+     * Get the avatar URL for contest cards.
+     */
+    public function getContestantAvatar(): ?string
+    {
+        return $this->profile?->avatar_url;
+    }
+
+    /**
+     * Contestant records for this user across all seasons.
+     */
+    public function contestants(): MorphMany
+    {
+        return $this->morphMany(Contestant::class, 'contestable');
     }
 
     /*

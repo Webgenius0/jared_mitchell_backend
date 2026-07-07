@@ -29,7 +29,7 @@ class StoreBusinessRequest extends FormRequest
             'revenue_stage' => 'nullable|string',
             'why_they_deserve_to_compete' => 'nullable|string',
             'photo_video'   => 'nullable|array',
-            'photo_video.*' => 'file|mimes:jpeg,png,jpg,mp4,mov|max:51200',
+            'photo_video.*' => 'file|mimes:jpeg,png,jpg,mp4,mov,avi|max:51200',
             'status' => 'nullable|in:active,inactive,terminated',
         ];
     }

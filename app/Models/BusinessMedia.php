@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 
 class BusinessMedia extends Model
 {
@@ -30,8 +31,7 @@ class BusinessMedia extends Model
      */
     public function getUrlAttribute(): string
     {
-        return \Illuminate\Support\Facades\URL::temporarySignedRoute(
-            'business.media.serve',
+        return URL::temporarySignedRoute(
             now()->addMinutes(60),
             ['media' => $this->id]
         );

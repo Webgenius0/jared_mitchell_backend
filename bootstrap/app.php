@@ -1,11 +1,13 @@
 <?php
 
 use App\Http\Middleware\AdminAuthCheckMiddleware;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Spatie\Permission\Exceptions\UnauthorizedException;
 use Spatie\Permission\Middleware\PermissionMiddleware;
 use Spatie\Permission\Middleware\RoleMiddleware;
@@ -47,6 +49,29 @@ return Application::configure(basePath: dirname(__DIR__))
                     'message' => 'You do not have the required authorization to perform this action.',
                 ], 403);
             }
+        });
+
+        $exceptions->render(function (NotFoundHttpException $e, Request $request) {
+            if (!$request->wantsJson() && !$request->is('api/*')) {
+                return null;
+            }
+
+            $message = 'Resource not found.';
+            $previous = $e->getPrevious();
+
+            if ($previous instanceof ModelNotFoundException) {
+                $model = class_basename($previous->getModel());
+                $ids = implode(', ', $previous->getIds());
+                $message = "{$model} not found" . ($ids !== '' ? " ({$ids})" : '.');
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => $message,
+                'data'    => null,
+                'errors'  => null,
+                'code'    => 404,
+            ], 404);
         });
     })
     ->create();
