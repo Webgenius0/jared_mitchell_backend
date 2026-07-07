@@ -31,7 +31,7 @@ class BusinessResource extends JsonResource
             'why_they_deserve_to_compete' => $this->why_they_deserve_to_compete,
             'media' => BusinessMediaResource::collection($this->whenLoaded('media')),
             'status' => $this->status,
-            'user' => new UserResource($this->whenLoaded('user')),
+            // 'user' => new UserResource($this->whenLoaded('user')),
             // Interaction counts
             'total_claps'  => (int) ($this->total_claps ?? 0),
             'total_saves'  => (int) ($this->total_saves ?? 0),

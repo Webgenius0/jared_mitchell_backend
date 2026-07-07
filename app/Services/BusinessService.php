@@ -138,7 +138,7 @@ class BusinessService
                 ->get();
 
             foreach ($toRemove as $media) {
-                Storage::disk('local')->delete($media->file_path);
+                Storage::disk('public')->delete($media->file_path);
                 $media->delete();
             }
         }
@@ -160,7 +160,7 @@ class BusinessService
 
         // Delete all physical media files before soft-deleting the business
         foreach ($business->media as $media) {
-            Storage::disk('local')->delete($media->file_path);
+            Storage::disk('public')->delete($media->file_path);
             $media->delete();
         }
 
@@ -181,7 +181,7 @@ class BusinessService
         }
 
         foreach (request()->file('photo_video') as $file) {
-            $path = $file->store('businesses/media', 'local');
+            $path = $file->store('businesses/media', 'public');
 
             BusinessMedia::create([
                 'business_id' => $business->id,
