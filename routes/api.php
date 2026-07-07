@@ -8,14 +8,12 @@ use App\Http\Controllers\Api\Auth\LoginController;
 use App\Http\Controllers\Api\Auth\RegisterController;
 use App\Http\Controllers\Api\Auth\UserProfileController;
 use App\Http\Controllers\Api\Auth\V1\ArtistProfileController;
-use App\Http\Controllers\Api\Auth\V1\BossProfileController;
+use App\Http\Controllers\Api\Auth\V1\BusinessProfileController;
 use App\Http\Controllers\Api\Auth\V1\MemberProfileController;
 use App\Http\Controllers\Api\Auth\V1\SponsorProfileController;
 use App\Http\Controllers\Api\Auth\V2\ForgotPasswordController as V2ForgotPasswordController;
 use App\Http\Controllers\Api\Auth\V2\RegisterController as V2RegisterController;
-use App\Http\Controllers\Api\BusinessCategoryController;
 use App\Http\Controllers\Api\BusinessController;
-use App\Http\Controllers\Api\BusinessMediaController;
 use App\Http\Controllers\Api\BusinessSpotlightController;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\Chat\ConversationController;
@@ -114,9 +112,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::get('/shop', [ShopController::class, 'index']); // Shop page CMS
             Route::get('/sponsorsip', [SponsorsipController::class, 'index']); // Sponsorship page CMS
             Route::get('/faq', [ApiFAQController::class, 'index']); // Active FAQs
-
         });
-
 
         // Artist Categories - for artist registering
         Route::get('/artist-categories', [ArtistCategoryController::class, 'index']); // DONE: artist categories
@@ -182,16 +178,6 @@ Route::group(['prefix' => 'v1'], function ($router) {
     */
     Route::get('/featured-events', [FeaturedEventController::class, 'index']);
 
-    /*
-    |--------------------------------------------------------------------------
-    | Contest Applications — Public routes
-    |--------------------------------------------------------------------------
-    */
-    Route::prefix('contest-applications')->group(function () {
-        Route::get('/approved', [ContestApplicationController::class, 'approvedBusinesses']);
-        Route::get('/approved/{id}', [ContestApplicationController::class, 'showApprovedBusiness']);
-    });
-
 
     /*
     |--------------------------------------------------------------------------
@@ -233,25 +219,97 @@ Route::group(['prefix' => 'v1'], function ($router) {
         Route::delete('/delete-profile', [UserProfileController::class, 'destroy']); // DONE: delete profile
         Route::post('/change-password', [UserProfileController::class, 'changePassword']); // DONE: change password
 
-        // Role-based Profile Routes
-        Route::middleware('role:artist,api')->prefix('artist')->group(function () {
-            Route::post('/profile/store', [ArtistProfileController::class, 'store']);
-            Route::post('/profile/update', [ArtistProfileController::class, 'update']);
+        /*
+        |--------------------------------------------------------------------------
+        | Artist Route
+        |--------------------------------------------------------------------------
+        */
+        Route::middleware('role:artist,api')->prefix('')->group(function () {
+            // Artist profile update
+            Route::group(['prefix' => 'artist'], function () {
+                Route::post('/profile/store', [ArtistProfileController::class, 'store']);
+                Route::post('/profile/update', [ArtistProfileController::class, 'update']);
+            });
+
+            // Artist Spotlight
+            Route::group(['prefix' => 'artist-spotlight'], function () {
+                Route::get('/', [ArtistSpotlightController::class, 'index']); // List all
+                Route::post('/', [ArtistSpotlightController::class, 'store']); // Submit complete form
+                Route::post('/draft', [ArtistSpotlightController::class, 'saveDraft']); // Save draft (partial)
+                Route::get('/draft', [ArtistSpotlightController::class, 'getDraft']); // Retrieve draft by email
+                Route::get('/{id}', [ArtistSpotlightController::class, 'show']); // Get single spotlight
+                Route::post('/update/{id}', [ArtistSpotlightController::class, 'update']); // Full update (owner only)
+                Route::delete('/delete/{id}', [ArtistSpotlightController::class, 'destroy']); // Delete (owner only)
+            });
         });
 
-        Route::middleware('role:member,api')->prefix('member')->group(function () {
-            Route::post('/profile/store', [MemberProfileController::class, 'store']);
-            Route::post('/profile/update', [MemberProfileController::class, 'update']);
+        /*
+        |--------------------------------------------------------------------------
+        | Businesses/Boss Route (protected by boss role) - Business Dashboard
+        |--------------------------------------------------------------------------
+        */
+        Route::middleware('role:boss,api')->group(function () {
+            // Profile manage
+            Route::group(['prefix' => 'businesses'], function () {
+                Route::post('/profile/store', [BusinessProfileController::class, 'store']);
+                Route::post('/profile/update', [BusinessProfileController::class, 'update']);
+            });
+
+            // Business management
+            Route::group(['prefix' => 'businesses'], function () {
+                Route::get('/list', [BusinessController::class, 'index']); // DONE: List all
+                Route::post('/store', [BusinessController::class, 'store']); // DONE: Store new business
+                Route::get('/details/{business}', [BusinessController::class, 'show']); // DONE: Business details
+                Route::post('/update/{business}', [BusinessController::class, 'update']); // DONE: Update business
+                Route::delete('/delete/{business}', [BusinessController::class, 'destroy']); // DONE: Delete business
+                Route::patch('/{business}/toggle-status', [BusinessController::class, 'toggleStatus']); // DONE: Toggle active/inactive
+                Route::patch('/{business}/terminate', [BusinessController::class, 'terminate']); // DONE: Terminate
+            });
+
+            // Contestent application
+            Route::group(['prefix' => 'contest-applications'], function () {
+                Route::post('/', [ContestApplicationController::class, 'store']); // Apply to contest
+                Route::get('/my', [ContestApplicationController::class, 'myApplications']); // My applications
+                Route::get('/session/{roundSession}', [ContestApplicationController::class, 'listBySession']); // List by session (admin)
+                Route::get('/{application}', [ContestApplicationController::class, 'show']); // Show application
+                Route::post('/{application}/withdraw', [ContestApplicationController::class, 'withdraw']); // Withdraw application
+                Route::patch('/{application}/approve', [ContestApplicationController::class, 'approve']); // Approve (admin)
+                Route::patch('/{application}/reject', [ContestApplicationController::class, 'reject']); // Reject (admin)
+            });
+
+            // Business Spotlight
+            Route::group(['prefix' => 'business-spotlight'], function () {
+                Route::get('/', [BusinessSpotlightController::class, 'index']); // List all
+                Route::post('/', [BusinessSpotlightController::class, 'store']); // Submit complete form
+                Route::post('/draft', [BusinessSpotlightController::class, 'saveDraft']); // Save draft (partial)
+                Route::get('/draft', [BusinessSpotlightController::class, 'getDraft']); // Retrieve draft by email
+                Route::get('/{id}', [BusinessSpotlightController::class, 'show']); // Get single spotlight
+                Route::post('/update/{id}', [BusinessSpotlightController::class, 'update']); // Full update
+                Route::delete('/delete/{id}', [BusinessSpotlightController::class, 'destroy']); // Delete spotlight
+            });
         });
 
+        /*
+        |--------------------------------------------------------------------------
+        | Member Route (protected by member role) - Member Dashboard
+        |--------------------------------------------------------------------------
+        */
+        Route::middleware('role:member,api')->group(function () {
+            // Profile manage
+            Route::group(['prefix' => 'member'], function () {
+                Route::post('/profile/store', [MemberProfileController::class, 'store']);
+                Route::post('/profile/update', [MemberProfileController::class, 'update']);
+            });
+        });
+
+        /*
+        |--------------------------------------------------------------------------
+        | Sponsor Route (protected by sponsor role) - Sponsor Dashboard
+        |--------------------------------------------------------------------------
+        */
         Route::middleware('role:sponsor,api')->prefix('sponsor')->group(function () {
             Route::post('/profile/store', [SponsorProfileController::class, 'store']);
             Route::post('/profile/update', [SponsorProfileController::class, 'update']);
-        });
-
-        Route::middleware('role:boss,api')->prefix('boss')->group(function () {
-            Route::post('/profile/store', [BossProfileController::class, 'store']);
-            Route::post('/profile/update', [BossProfileController::class, 'update']);
         });
 
         // Artist interactions
@@ -279,53 +337,6 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::post('/{id}/like', [ArtistSpotlightController::class, 'toggleLike']);
             Route::post('/{id}/bookmark', [ArtistSpotlightController::class, 'toggleBookmark']);
             Route::post('/{id}/share', [ArtistSpotlightController::class, 'recordShare']);
-        });
-
-        // Business category list
-        Route::get('/business-categories', [BusinessCategoryController::class, 'index']);
-
-        /*
-        |--------------------------------------------------------------------------
-        | Businesses — management (protected by boss role)
-        |--------------------------------------------------------------------------
-        */
-        Route::middleware('role:boss,api')->prefix('businesses')->group(function () {
-            Route::get('/list', [BusinessController::class, 'index']); // List all
-            Route::post('/store', [BusinessController::class, 'store']); // Create
-            Route::get('/details/{business}', [BusinessController::class, 'show']); // Show
-            Route::post('/update/{business}', [BusinessController::class, 'update']); // Update
-            Route::delete('/delete/{business}', [BusinessController::class, 'destroy']); // Delete
-            Route::patch('/{business}/toggle-status', [BusinessController::class, 'toggleStatus']); // Toggle active/inactive
-            Route::patch('/{business}/terminate', [BusinessController::class, 'terminate']); // Terminate
-        });
-
-        /*
-        |--------------------------------------------------------------------------
-        | Business Spotlight — management (protected by boss role)
-        |--------------------------------------------------------------------------
-        */
-        Route::middleware('role:boss,api')->prefix('business-spotlight')->group(function () {
-            Route::get('/', [BusinessSpotlightController::class, 'index']);                  // List all
-            Route::post('/', [BusinessSpotlightController::class, 'store']);                  // Submit complete form
-            Route::post('/draft', [BusinessSpotlightController::class, 'saveDraft']);         // Save draft (partial)
-            Route::get('/draft', [BusinessSpotlightController::class, 'getDraft']);           // Retrieve draft by email
-            Route::get('/{id}', [BusinessSpotlightController::class, 'show']);               // Get single spotlight
-            Route::post('/update/{id}', [BusinessSpotlightController::class, 'update']);     // Full update
-            Route::delete('/delete/{id}', [BusinessSpotlightController::class, 'destroy']); // Delete spotlight
-        });
-        /*
-        |--------------------------------------------------------------------------
-        | Artist Spotlight — management (protected by artist role)
-        |--------------------------------------------------------------------------
-        */
-        Route::middleware('role:artist,api')->prefix('artist-spotlight')->group(function () {
-            Route::get('/', [ArtistSpotlightController::class, 'index']);                      // List all
-            Route::post('/', [ArtistSpotlightController::class, 'store']);                     // Submit complete form
-            Route::post('/draft', [ArtistSpotlightController::class, 'saveDraft']);            // Save draft (partial)
-            Route::get('/draft', [ArtistSpotlightController::class, 'getDraft']);              // Retrieve draft by email
-            Route::get('/{id}', [ArtistSpotlightController::class, 'show']);                  // Get single spotlight
-            Route::post('/update/{id}', [ArtistSpotlightController::class, 'update']);        // Full update (owner only)
-            Route::delete('/delete/{id}', [ArtistSpotlightController::class, 'destroy']);     // Delete (owner only)
         });
 
         /*
@@ -375,21 +386,6 @@ Route::group(['prefix' => 'v1'], function ($router) {
 
         // Active round session
         Route::get('/active-round-session', [ContestApplicationController::class, 'activeRoundSession']);
-
-        /*
-        |--------------------------------------------------------------------------
-        | Contest Applications (protected by boss role)
-        |--------------------------------------------------------------------------
-        */
-        Route::middleware('role:boss,api')->prefix('contest-applications')->group(function () {
-            Route::post('/', [ContestApplicationController::class, 'store']); // Apply to contest
-            Route::get('/my', [ContestApplicationController::class, 'myApplications']); // My applications
-            Route::get('/session/{roundSession}', [ContestApplicationController::class, 'listBySession']); // List by session (admin)
-            Route::get('/{application}', [ContestApplicationController::class, 'show']); // Show application
-            Route::post('/{application}/withdraw', [ContestApplicationController::class, 'withdraw']); // Withdraw application
-            Route::patch('/{application}/approve', [ContestApplicationController::class, 'approve']); // Approve (admin)
-            Route::patch('/{application}/reject', [ContestApplicationController::class, 'reject']); // Reject (admin)
-        });
 
         Route::prefix('events')->group(function () {
             Route::get('/{slug}', [EventController::class, 'show']); // Detail
@@ -469,9 +465,6 @@ Route::group(['prefix' => 'v2'], function () {
         Route::post('/logout', [LoginController::class, 'logout']); // DONE: logout
     });
 });
-
-// Legacy alias — now delegates to the proper CMS controller
-Route::get('/pricing-plans', [CmsPricingController::class, 'index']);
 
 /*
 |--------------------------------------------------------------------------

@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
-class BossProfileController extends Controller
+class BusinessProfileController extends Controller
 {
     use ApiResponse;
 
