@@ -4,26 +4,33 @@ namespace App\Services;
 
 use App\Models\Business;
 use App\Models\ContestApplication;
-use App\Models\RoundSession;
+use App\Models\Contest\Season;
+use App\Services\Contest\AiReviewService;
 use Illuminate\Support\Facades\DB;
 
 class ContestApplicationService
 {
+    public function __construct(
+        protected AiReviewService $aiReviewService,
+    ) {}
+
     /**
-     * Get the currently active round session.
+     * Get the currently active season.
      */
-    public function activeRoundSession(): ?RoundSession
+    public function activeSeason(): ?Season
     {
-        return RoundSession::where('is_active', true)->latest()->first();
+        return Season::active();
     }
 
     /**
-     * Apply a business to a round session.
+     * Apply a business to a season.
      *
-     * Returns ['success' => true, 'application' => ContestApplication]
+     * AI review runs synchronously immediately after creation.
+     *
+     * Returns ['success' => true, 'application' => ContestApplication, 'ai_review' => AiReview|null]
      * or     ['success' => false, 'message' => '...']
      */
-    public function apply(Business $business, RoundSession $roundSession): array
+    public function apply(Business $business, Season $season): array
     {
         // 1. Business must belong to the authenticated user
         if ($business->user_id !== auth('api')->id()) {
@@ -35,37 +42,58 @@ class ContestApplicationService
             return ['success' => false, 'message' => 'Only active businesses can apply for a contest.'];
         }
 
-        // 3. Business must not already have an application (unique constraint on business_id)
-        $existingApplication = ContestApplication::where('business_id', $business->id)->first();
+        // 3. Business must not already have an application for this season
+        $existingApplication = ContestApplication::where('business_id', $business->id)
+            ->where('season_id', $season->id)
+            ->first();
 
         if ($existingApplication) {
-            return ['success' => false, 'message' => 'This business has already been applied to a contest.'];
+            return ['success' => false, 'message' => 'This business has already applied to this season.'];
         }
 
-        // 4. Round session must be active
-        if (!$roundSession->is_active) {
-            return ['success' => false, 'message' => 'This round session is not currently active.'];
+        // 4. Season must be accepting applications
+        if (!$season->canApply()) {
+            return ['success' => false, 'message' => 'This season is not currently accepting applications.'];
         }
 
-        // 5. Round session must not have reached the 100-business cap
-        $approvedCount = ContestApplication::where('round_session_id', $roundSession->id)
+        // 5. Season must not have reached the contestant cap
+        $maxContestants = $season->configuration['max_contestants'] ?? 100;
+        $approvedCount = ContestApplication::where('season_id', $season->id)
             ->where('status', 'approved')
             ->count();
 
-        if ($approvedCount >= 100) {
-            return ['success' => false, 'message' => 'This round session has reached the maximum of 100 approved businesses.'];
+        if ($approvedCount >= $maxContestants) {
+            return ['success' => false, 'message' => "This season has reached the maximum of {$maxContestants} contestants."];
         }
 
         // 6. Create the application
-        $application = DB::transaction(function () use ($business, $roundSession) {
+        $application = DB::transaction(function () use ($business, $season) {
             return ContestApplication::create([
-                'business_id'      => $business->id,
-                'round_session_id' => $roundSession->id,
-                'status'           => 'pending',
+                'business_id' => $business->id,
+                'season_id'   => $season->id,
+                'status'      => 'pending',
             ]);
         });
 
-        return ['success' => true, 'application' => $application];
+        // 7. Run synchronous AI review (skip if AI is not configured)
+        $aiReview = null;
+        if (app(\App\Services\AiService::class)->isConfigured()) {
+            try {
+                $aiReview = $this->aiReviewService->review($application);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('AI review failed, flagged for admin', [
+                    'application_id' => $application->id,
+                    'error'          => $e->getMessage(),
+                ]);
+                $application->update(['status' => 'needs_review']);
+            }
+        }
+
+        return [
+            'success'     => true,
+            'application' => $application->fresh(['business', 'season']),
+            'ai_review'   => $aiReview,
+        ];
     }
 
     /**
@@ -95,7 +123,7 @@ class ContestApplicationService
     {
         return ContestApplication::whereHas('business', function ($query) {
             $query->where('user_id', auth('api')->id());
-        })->with(['business', 'roundSession'])->latest()->get();
+        })->with(['business', 'season'])->latest()->get();
     }
 
     /**
@@ -103,15 +131,15 @@ class ContestApplicationService
      */
     public function show(ContestApplication $application): ContestApplication
     {
-        return $application->load(['business', 'roundSession', 'approver']);
+        return $application->load(['business', 'season', 'approver']);
     }
 
     /**
-     * List all contest applications for a round session (admin/management).
+     * List all contest applications for a season (admin/management).
      */
-    public function listBySession(RoundSession $roundSession)
+    public function listBySession(Season $season)
     {
-        return ContestApplication::where('round_session_id', $roundSession->id)
+        return ContestApplication::where('season_id', $season->id)
             ->with(['business.user.profile', 'approver'])
             ->latest()
             ->paginate(15);
@@ -122,13 +150,14 @@ class ContestApplicationService
      */
     public function approve(ContestApplication $application): array
     {
-        // Check the 100-business cap before approving
-        $approvedCount = ContestApplication::where('round_session_id', $application->round_session_id)
+        // Check the contestant cap before approving
+        $maxContestants = $application->season->configuration['max_contestants'] ?? 100;
+        $approvedCount = ContestApplication::where('season_id', $application->season_id)
             ->where('status', 'approved')
             ->count();
 
-        if ($approvedCount >= 100) {
-            return ['success' => false, 'message' => 'This round session has reached the maximum of 100 approved businesses.'];
+        if ($approvedCount >= $maxContestants) {
+            return ['success' => false, 'message' => "This season has reached the maximum of {$maxContestants} contestants."];
         }
 
         $application->update([
@@ -137,7 +166,7 @@ class ContestApplicationService
             'approved_by' => auth('api')->id(),
         ]);
 
-        return ['success' => true, 'application' => $application->fresh(['business', 'roundSession', 'approver'])];
+        return ['success' => true, 'application' => $application->fresh(['business', 'season', 'approver'])];
     }
 
     /**
@@ -150,6 +179,6 @@ class ContestApplicationService
             'admin_note' => $note,
         ]);
 
-        return ['success' => true, 'application' => $application->fresh(['business', 'roundSession', 'approver'])];
+        return ['success' => true, 'application' => $application->fresh(['business', 'season', 'approver'])];
     }
 }

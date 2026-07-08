@@ -4,7 +4,6 @@ namespace App\Services\Contest;
 
 use App\Models\Contest\Vote;
 use App\Models\Contest\Contestant;
-use App\Models\Contest\LeaderboardEntry;
 use App\Models\Round;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;

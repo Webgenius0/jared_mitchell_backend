@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreContestApplicationRequest;
 use App\Models\Business;
 use App\Models\ContestApplication;
-use App\Models\RoundSession;
+use App\Models\Contest\Season;
 use App\Services\ContestApplicationService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
@@ -22,28 +22,32 @@ class ContestApplicationController extends Controller
     }
 
     /**
-     * GET /api/v1/contest-applications/active-round-session
+     * GET /api/v1/active-round-session
      *
-     * Get the currently active round session.
+     * Get the currently active season.
      */
     public function activeRoundSession(): JsonResponse
     {
-        $roundSession = $this->contestApplicationService->activeRoundSession();
+        $season = $this->contestApplicationService->activeSeason();
 
-        if (!$roundSession) {
-            return $this->error(null, 'No active round session found.', 404);
+        if (!$season) {
+            return $this->error(null, 'No active season found.', 404);
         }
 
         return $this->success(
-            'Active round session retrieved successfully.',
+            'Active season retrieved successfully.',
             [
-                'id' => $roundSession->id,
-                'title' => $roundSession->title,
-                'slug' => $roundSession->slug,
-                'description' => $roundSession->description,
-                'is_active' => $roundSession->is_active,
-                'starts_at' => $roundSession->starts_at,
-                'ends_at' => $roundSession->ends_at,
+                'id' => $season->id,
+                'title' => $season->title,
+                'slug' => $season->slug,
+                'description' => $season->description,
+                'contest_type' => $season->contest_type,
+                'is_active' => $season->is_active,
+                'status' => $season->status,
+                'applications_starts_at' => $season->applications_starts_at,
+                'applications_ends_at' => $season->applications_ends_at,
+                'starts_at' => $season->starts_at,
+                'ends_at' => $season->ends_at,
             ]
         );
     }
@@ -51,14 +55,14 @@ class ContestApplicationController extends Controller
     /**
      * POST /api/v1/contest-applications
      *
-     * Apply a business to a round session.
+     * Apply a business to a season.
      */
     public function store(StoreContestApplicationRequest $request): JsonResponse
     {
         $business = Business::findOrFail($request->business_id);
-        $roundSession = RoundSession::findOrFail($request->round_session_id);
+        $season = Season::findOrFail($request->season_id);
 
-        $result = $this->contestApplicationService->apply($business, $roundSession);
+        $result = $this->contestApplicationService->apply($business, $season);
 
         if (!$result['success']) {
             return $this->error(null, $result['message'], 422);
@@ -69,7 +73,7 @@ class ContestApplicationController extends Controller
             [
                 'id' => $result['application']->id,
                 'business_id' => $result['application']->business_id,
-                'round_session_id' => $result['application']->round_session_id,
+                'season_id' => $result['application']->season_id,
                 'status' => $result['application']->status,
                 'created_at' => $result['application']->created_at,
             ],
@@ -124,13 +128,13 @@ class ContestApplicationController extends Controller
     }
 
     /**
-     * GET /api/v1/contest-applications/session/{roundSession}
+     * GET /api/v1/contest-applications/session/{season}
      *
-     * List all contest applications for a round session (admin).
+     * List all contest applications for a season (admin).
      */
-    public function listBySession(RoundSession $roundSession): JsonResponse
+    public function listBySession(Season $season): JsonResponse
     {
-        $applications = $this->contestApplicationService->listBySession($roundSession);
+        $applications = $this->contestApplicationService->listBySession($season);
 
         return $this->success(
             'Contest applications retrieved successfully.',
@@ -199,32 +203,21 @@ class ContestApplicationController extends Controller
     /**
      * GET /api/v1/contest-applications/approved
      *
-     * Get approved businesses for a specific round session.
+     * Get approved businesses for a specific season.
      */
     public function approvedBusinesses(Request $request): JsonResponse
     {
         $request->validate([
-            'round_session_id' => 'required|integer',
+            'season_id' => 'required|integer|exists:seasons,id',
         ]);
 
-        $roundSessionId = $request->round_session_id;
+        $seasonId = $request->season_id;
         $perPage = min((int) $request->input('per_page', 100), 100);
-
-        // Check if round session exists
-        $roundSession = RoundSession::find($roundSessionId);
-
-        if (!$roundSession) {
-            return $this->error(
-                null,
-                'Round session not found.',
-                404
-            );
-        }
 
         // Fetch approved businesses
         $businesses = Business::select('businesses.*')
             ->join('contest_applications', 'businesses.id', '=', 'contest_applications.business_id')
-            ->where('contest_applications.round_session_id', $roundSessionId)
+            ->where('contest_applications.season_id', $seasonId)
             ->where('contest_applications.status', 'approved')
             ->orderByDesc('contest_applications.approved_at')
             ->with(['user.profile', 'category'])
@@ -234,7 +227,7 @@ class ContestApplicationController extends Controller
         if ($businesses->total() === 0) {
             return $this->error(
                 null,
-                'No approved businesses found for this round session.',
+                'No approved businesses found for this season.',
                 404
             );
         }
@@ -256,7 +249,7 @@ class ContestApplicationController extends Controller
     /**
      * GET /api/v1/contest-applications/approved/{id}
      *
-     * Get a single approved business for a specific round session.
+     * Get a single approved business for a specific season.
      */
     public function showApprovedBusiness($id): JsonResponse
     {

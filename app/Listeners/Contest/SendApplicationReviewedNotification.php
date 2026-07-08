@@ -22,19 +22,15 @@ class SendApplicationReviewedNotification implements ShouldQueue
     public function handle(ApplicationReviewed $event): void
     {
         $application = $event->application;
-        $application->loadMissing(['season']);
+        $application->loadMissing(['season', 'business.user']);
 
         $season = $application->season;
         if (!$season) {
             return;
         }
 
-        // Resolve the applicant user
-        $user = $this->notificationService->resolveContestableUser(
-            $application->contestable_type,
-            $application->contestable_id,
-        );
-
+        // Notify the business owner
+        $user = $application->business?->user;
         if (!$user) {
             return;
         }

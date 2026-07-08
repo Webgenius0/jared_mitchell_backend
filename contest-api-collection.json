@@ -1,0 +1,588 @@
+{
+  "info": {
+    "name": "Contest API — Boss Beginnings",
+    "description": "Complete API collection for the Boss Beginnings contest system.\n\nBase URL: {{base_url}}/api/v1\nAuth: Bearer token passed as {{token}}\n\n## Auth Setup\n1. Register/Login to get a token\n2. Set environment variable `token` = the bearer token\n3. Set environment variable `base_url` = your app URL (e.g. http://localhost:8000)\n4. Set `business_id`, `season_id`, `round_id`, `contestant_id`, `application_id` from responses",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "codebuff"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000" },
+    { "key": "token", "value": "" },
+    { "key": "business_id", "value": "" },
+    { "key": "season_id", "value": "" },
+    { "key": "round_id", "value": "" },
+    { "key": "contestant_id", "value": "" },
+    { "key": "application_id", "value": "" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      { "key": "token", "value": "{{token}}", "type": "string" }
+    ]
+  },
+  "item": [
+
+    /* Done */
+    {
+      "name": "🏢 Businesses",
+      "description": "Business CRUD — requires `boss` role",
+      "item": [
+        {
+          "name": "List Businesses",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/businesses/list?search=&status=&business_category_id=&is_featured=&sort_by=created_at&sort_order=desc&per_page=15",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "businesses", "list"],
+              "query": [
+                { "key": "search", "value": "", "description": "Search by name, owner, or story" },
+                { "key": "status", "value": "", "description": "active | inactive | terminated" },
+                { "key": "business_category_id", "value": "", "description": "Filter by category ID" },
+                { "key": "is_featured", "value": "", "description": "true | false" },
+                { "key": "sort_by", "value": "created_at" },
+                { "key": "sort_order", "value": "desc" },
+                { "key": "per_page", "value": "15" }
+              ]
+            },
+            "description": "Get paginated list of businesses owned by the authenticated user.",
+            "headers": []
+          }
+        },
+
+
+
+        {
+          "name": "Create Business",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/api/v1/businesses/store",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "businesses", "store"]
+            },
+            "description": "Create a new business. Accepts multipart form data for media uploads.",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "business_name", "value": "Acme Corp", "type": "text" },
+                { "key": "owner_founder_name", "value": "John Doe", "type": "text" },
+                { "key": "story", "value": "Our story of building amazing things...", "type": "text" },
+                { "key": "mission", "value": "To innovate and inspire.", "type": "text" },
+                { "key": "website_social_media", "value": "https://acme.com", "type": "text" },
+                { "key": "community_impact_statement", "value": "We give back 10% of profits.", "type": "text" },
+                { "key": "revenue_stage", "value": "seed", "type": "text" },
+                { "key": "why_they_deserve_to_compete", "value": "We have the most innovative solution.", "type": "text" }
+              ]
+            }
+          }
+        },
+
+
+
+
+        {
+          "name": "Get Business Details",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/businesses/details/{{business_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "businesses", "details", "{{business_id}}"]
+            },
+            "description": "Get single business with media, interactions, and category."
+          }
+        },
+
+
+
+
+        {
+          "name": "Update Business",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/api/v1/businesses/update/{{business_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "businesses", "update", "{{business_id}}"]
+            },
+            "description": "Update business fields. Can also upload new media and remove existing media.",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "business_name", "value": "Acme Corp Updated", "type": "text" },
+                { "key": "owner_founder_name", "value": "Jane Doe", "type": "text" },
+                { "key": "remove_media_ids", "value": "[1, 2]", "type": "text", "description": "JSON array of media IDs to delete" }
+              ]
+            }
+          }
+        },
+
+
+
+        {
+          "name": "Delete Business",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/api/v1/businesses/delete/{{business_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "businesses", "delete", "{{business_id}}"]
+            },
+            "description": "Soft-delete a business. Removes media files from storage."
+          }
+        },
+
+
+        {
+          "name": "Toggle Business Status",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{base_url}}/api/v1/businesses/{{business_id}}/toggle-status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "businesses", "{{business_id}}", "toggle-status"]
+            },
+            "description": "Toggle between active and inactive status."
+          }
+        },
+
+
+
+        {
+          "name": "Terminate Business",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{base_url}}/api/v1/businesses/{{business_id}}/terminate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "businesses", "{{business_id}}", "terminate"]
+            },
+            "description": "Set business status to terminated."
+          }
+        },
+
+
+        {
+          "name": "✋ Toggle Clap",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/api/v1/businesses/{{business_id}}/clap",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "businesses", "{{business_id}}", "clap"]
+            },
+            "description": "Toggle clap on/off. Each clap = 1 point."
+          }
+        },
+
+
+        {
+          "name": "✋ Toggle Save",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/api/v1/businesses/{{business_id}}/save",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "businesses", "{{business_id}}", "save"]
+            },
+            "description": "Toggle save on/off. Each save = 3 points."
+          }
+        },
+
+
+        {
+          "name": "✋ Toggle Share",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/api/v1/businesses/{{business_id}}/share",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "businesses", "{{business_id}}", "share"]
+            },
+            "description": "Toggle share on/off. Each share = 5 points."
+          }
+        },
+
+
+        {
+          "name": "✋ Get Interaction State",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/businesses/{{business_id}}/interactions",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "businesses", "{{business_id}}", "interactions"]
+            },
+            "description": "Get is_clapped, is_saved, is_shared for the current user."
+          }
+        }
+
+      ]
+    },
+
+    /* Done */
+    {
+      "name": "🏆 Seasons & Active Session",
+      "item": [
+        {
+          "name": "Get Active Season",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/active-round-session",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "active-round-session"]
+            },
+            "description": "Get the currently active season (open or in-progress)."
+          }
+        },
+        {
+          "name": "Round Countdown",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/round-countdown{{?round_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "round-countdown"],
+              "query": [
+                { "key": "round_id", "value": "{{round_id}}", "description": "Optional. Defaults to latest round." }
+              ]
+            },
+            "description": "Get countdown timer for a round's start date."
+          }
+        }
+      ]
+    },
+
+    /* Done */
+    {
+      "name": "📝 Contest Applications",
+      "description": "Requires `boss` role",
+      "item": [
+        {
+          "name": "Apply to Season",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/api/v1/contest-applications",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "contest-applications"]
+            },
+            "description": "Submit a contest application. AI review runs synchronously — status in response reflects AI verdict.",
+            "header": [{
+              "key": "Content-Type",
+              "value": "application/json",
+              "type": "text"
+            }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"business_id\": {{business_id}},\n  \"season_id\": {{season_id}}\n}"
+            }
+          }
+        },
+        {
+          "name": "My Applications",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/contest-applications/my",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "contest-applications", "my"]
+            },
+            "description": "List all contest applications for the authenticated user."
+          }
+        },
+        {
+          "name": "Show Application",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/contest-applications/{{application_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "contest-applications", "{{application_id}}"]
+            },
+            "description": "Get a single contest application with business, season, and approver."
+          }
+        },
+        {
+          "name": "List by Season (Admin)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/contest-applications/session/{{season_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "contest-applications", "session", "{{season_id}}"]
+            },
+            "description": "Paginated list of applications for a season."
+          }
+        },
+        {
+          "name": "Withdraw Application",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/api/v1/contest-applications/{{application_id}}/withdraw",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "contest-applications", "{{application_id}}", "withdraw"]
+            },
+            "description": "Withdraw a pending application."
+          }
+        },
+        {
+          "name": "Approve Application (Admin)",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{base_url}}/api/v1/contest-applications/{{application_id}}/approve",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "contest-applications", "{{application_id}}", "approve"]
+            },
+            "description": "Admin approve a contest application."
+          }
+        },
+        {
+          "name": "Reject Application (Admin)",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{base_url}}/api/v1/contest-applications/{{application_id}}/reject",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "contest-applications", "{{application_id}}", "reject"]
+            },
+            "description": "Reject with optional admin note.",
+            "header": [{
+              "key": "Content-Type",
+              "value": "application/json",
+              "type": "text"
+            }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"admin_note\": \"Does not meet eligibility criteria.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Approved Businesses (Season)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/contest-applications/approved?season_id={{season_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "contest-applications", "approved"],
+              "query": [
+                { "key": "season_id", "value": "{{season_id}}", "description": "Required" },
+                { "key": "per_page", "value": "100" }
+              ]
+            },
+            "description": "Get approved businesses for a season."
+          }
+        },
+        {
+          "name": "Show Approved Business",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/contest-applications/approved/{{business_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "contest-applications", "approved", "{{business_id}}"]
+            },
+            "description": "Get a single approved business."
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "🗳️ Voting",
+      "item": [
+        {
+          "name": "Cast / Toggle Vote",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/api/v1/contest/rounds/{{round_id}}/votes",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "contest", "rounds", "{{round_id}}", "votes"]
+            },
+            "description": "Cast a vote or toggle it off. Sends 'cast' or 'removed' in response action.",
+            "header": [{
+              "key": "Content-Type",
+              "value": "application/json",
+              "type": "text"
+            }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"votable_type\": \"App\\\\Models\\\\Contest\\\\Contestant\",\n  \"votable_id\": {{contestant_id}},\n  \"vote_type\": \"upvote\"\n}"
+            }
+          }
+        },
+        {
+          "name": "My Votes in Round",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/contest/rounds/{{round_id}}/votes/my",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "contest", "rounds", "{{round_id}}", "votes", "my"]
+            },
+            "description": "Get all votes cast by the authenticated user in a round."
+          }
+        },
+        {
+          "name": "Vote Counts (Public)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/contest/rounds/{{round_id}}/votes/counts",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "contest", "rounds", "{{round_id}}", "votes", "counts"]
+            },
+            "description": "Get aggregated vote counts for all contestants in a round. Sorted by net_score desc."
+          }
+        },
+        {
+          "name": "Check Vote Status",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/contest/rounds/{{round_id}}/votes/check/{{contestant_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "contest", "rounds", "{{round_id}}", "votes", "check", "{{contestant_id}}"]
+            },
+            "description": "Check if the authenticated user has voted for a specific contestant."
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "📤 Round Submissions",
+      "item": [
+        {
+          "name": "List Submissions (Public)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/contest/rounds/{{round_id}}/submissions",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "contest", "rounds", "{{round_id}}", "submissions"]
+            },
+            "description": "Get all submissions for a round."
+          }
+        },
+        {
+          "name": "Submit Entry",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/api/v1/contest/rounds/{{round_id}}/submissions",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "contest", "rounds", "{{round_id}}", "submissions"]
+            },
+            "description": "Submit or update your contest entry for a round.",
+            "header": [{
+              "key": "Content-Type",
+              "value": "application/json",
+              "type": "text"
+            }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"My Business Pitch\",\n  \"description\": \"A compelling pitch describing why my business deserves to win.\",\n  \"media_urls\": [\n    \"https://example.com/pitch-deck.pdf\",\n    \"https://example.com/product-demo.mp4\"\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Save Draft",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/api/v1/contest/rounds/{{round_id}}/submissions/draft",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "contest", "rounds", "{{round_id}}", "submissions", "draft"]
+            },
+            "description": "Save a draft submission (not yet final). All fields optional.",
+            "header": [{
+              "key": "Content-Type",
+              "value": "application/json",
+              "type": "text"
+            }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Draft title\",\n  \"description\": \"Work in progress...\"\n}"
+            }
+          }
+        },
+        {
+          "name": "My Submission",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/contest/rounds/{{round_id}}/submissions/my",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "contest", "rounds", "{{round_id}}", "submissions", "my"]
+            },
+            "description": "Get the authenticated user's submission for a round."
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "🏅 Leaderboard",
+      "item": [
+        {
+          "name": "Active Season Overall",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/contest/leaderboard/overall",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "contest", "leaderboard", "overall"]
+            },
+            "description": "Overall leaderboard for the currently active season."
+          }
+        },
+        {
+          "name": "Season Overall Leaderboard",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/contest/seasons/{{season_id}}/leaderboard",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "contest", "seasons", "{{season_id}}", "leaderboard"]
+            },
+            "description": "Overall leaderboard aggregated across all rounds in a season."
+          }
+        },
+        {
+          "name": "Round Leaderboard",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/contest/rounds/{{round_id}}/leaderboard",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "contest", "rounds", "{{round_id}}", "leaderboard"]
+            },
+            "description": "Leaderboard for a specific round, calculated on-demand from votes."
+          }
+        },
+        {
+          "name": "Latest Round Leaderboard",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/contest/seasons/{{season_id}}/leaderboard/calculate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "contest", "seasons", "{{season_id}}", "leaderboard", "calculate"]
+            },
+            "description": "Leaderboard for the latest round in the season."
+          }
+        }
+      ]
+    }
+
+  ]
+}

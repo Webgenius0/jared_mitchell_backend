@@ -30,7 +30,7 @@
             </div>
         @endif
 
-        <form action="{{ route('admin.round-sessions.update', $roundSession->id) }}" method="POST">
+        <form action="{{ route('admin.round-sessions.update', $season->id) }}" method="POST">
             @csrf
             @method('PUT')
 
@@ -45,21 +45,21 @@
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Title <span class="text-danger">*</span></label>
                                 <input type="text" name="title" class="form-control @error('title') is-invalid @enderror"
-                                    value="{{ old('title', $roundSession->title) }}" required>
+                                    value="{{ old('title', $season->title) }}" required>
                                 @error('title') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
 
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Slug</label>
                                 <input type="text" name="slug" class="form-control @error('slug') is-invalid @enderror"
-                                    value="{{ old('slug', $roundSession->slug) }}" placeholder="Leave blank to auto-generate">
+                                    value="{{ old('slug', $season->slug) }}" placeholder="Leave blank to auto-generate">
                                 @error('slug') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
 
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Description</label>
                                 <textarea name="description" class="form-control @error('description') is-invalid @enderror"
-                                    rows="4" placeholder="Describe this round session...">{{ old('description', $roundSession->description) }}</textarea>
+                                    rows="4" placeholder="Describe this round session...">{{ old('description', $season->description) }}</textarea>
                                 @error('description') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                         </div>
@@ -78,7 +78,7 @@
                             </div>
                         </div>
                         <div class="card-body" id="rounds-container">
-                            @forelse ($roundSession->rounds as $idx => $round)
+                            @forelse ($season->rounds as $idx => $round)
                                 <div class="round-item border p-3 rounded mb-3 bg-light position-relative">
                                     <div class="position-absolute top-0 end-0 mt-2 me-2">
                                         <span class="badge bg-primary round-number-badge">Round {{ $loop->iteration }}</span>
@@ -238,7 +238,7 @@
                                 <input type="text" name="starts_at"
                                     class="form-control flatpickr-input @error('starts_at') is-invalid @enderror"
                                     data-provider="flatpickr" data-date-format="Y-m-d" data-enable-time="true"
-                                    value="{{ old('starts_at', $roundSession->starts_at?->format('Y-m-d H:i')) }}">
+                                    value="{{ old('starts_at', $season->starts_at?->format('Y-m-d H:i')) }}">
                                 @error('starts_at') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                             <div class="mb-3">
@@ -246,13 +246,13 @@
                                 <input type="text" name="ends_at"
                                     class="form-control flatpickr-input @error('ends_at') is-invalid @enderror"
                                     data-provider="flatpickr" data-date-format="Y-m-d" data-enable-time="true"
-                                    value="{{ old('ends_at', $roundSession->ends_at?->format('Y-m-d H:i')) }}">
+                                    value="{{ old('ends_at', $season->ends_at?->format('Y-m-d H:i')) }}">
                                 @error('ends_at') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                             <div class="mb-3">
                                 <div class="form-check form-switch form-switch-md">
                                     <input class="form-check-input" type="checkbox" id="is_active" name="is_active"
-                                        value="1" {{ old('is_active', $roundSession->is_active) ? 'checked' : '' }}>
+                                        value="1" {{ old('is_active', $season->is_active) ? 'checked' : '' }}>
                                     <label class="form-check-label fw-semibold" for="is_active">Active</label>
                                 </div>
                             </div>
@@ -276,7 +276,7 @@
 @push('scripts')
 <script>
     (function() {
-        let roundIndex = {{ count($roundSession->rounds) }};
+        let roundIndex = {{ count($season->rounds) }};
 
         const container = document.getElementById('rounds-container');
         const addBtn = document.getElementById('add-round');

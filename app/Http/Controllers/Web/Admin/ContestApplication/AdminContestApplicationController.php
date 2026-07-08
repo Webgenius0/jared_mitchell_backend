@@ -14,7 +14,7 @@ class AdminContestApplicationController extends Controller
      */
     public function index(): View
     {
-        $applications = ContestApplication::with(['business.user.profile', 'roundSession', 'approver'])
+        $applications = ContestApplication::with(['business.user.profile', 'season', 'approver'])
             ->latest()
             ->paginate(15);
 
@@ -33,7 +33,7 @@ class AdminContestApplicationController extends Controller
      */
     public function show(ContestApplication $contestApplication)
     {
-        $contestApplication->load(['business.user.profile', 'roundSession', 'approver']);
+        $contestApplication->load(['business.user.profile', 'season', 'approver']);
 
         return response()->json([
             'success' => true,
@@ -50,8 +50,8 @@ class AdminContestApplicationController extends Controller
                     : null,
                 'owner_name'         => $contestApplication->business?->user?->profile?->name ?? '—',
                 'owner_email'        => $contestApplication->business?->user?->email ?? '—',
-                'round_session_name' => $contestApplication->roundSession?->title ?? '—',
-                'round_session_id'   => $contestApplication->roundSession?->id,
+                'season_name'        => $contestApplication->season?->title ?? '—',
+                'season_id'          => $contestApplication->season?->id,
                 'approver_name'      => $contestApplication->approver?->profile?->name
                     ?? $contestApplication->approver?->email
                     ?? '—',
@@ -68,13 +68,14 @@ class AdminContestApplicationController extends Controller
             return back()->with('warning', 'This application is already approved.');
         }
 
-        // Check the 100-business cap
-        $approvedCount = ContestApplication::where('round_session_id', $contestApplication->round_session_id)
+        // Check the contestant cap
+        $maxContestants = $contestApplication->season?->configuration['max_contestants'] ?? 100;
+        $approvedCount = ContestApplication::where('season_id', $contestApplication->season_id)
             ->where('status', 'approved')
             ->count();
 
-        if ($approvedCount >= 100) {
-            return back()->with('error', 'This round session has reached the maximum of 100 approved businesses.');
+        if ($approvedCount >= $maxContestants) {
+            return back()->with('error', "This season has reached the maximum of {$maxContestants} approved contestants.");
         }
 
         $contestApplication->update([

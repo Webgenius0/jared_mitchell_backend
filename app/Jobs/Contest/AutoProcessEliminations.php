@@ -19,7 +19,6 @@ class AutoProcessEliminations implements ShouldQueue
 
     /**
      * Process all rounds that have ended and need transitions.
-     * This job is designed to be run on a schedule (e.g., every 5 minutes).
      */
     public function handle(EliminationService $eliminationService): void
     {

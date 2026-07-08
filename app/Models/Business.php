@@ -26,6 +26,14 @@ class Business extends Model implements Contestable
         'status',
     ];
 
+    protected $casts = [
+        'is_featured'   => 'boolean',
+        'total_claps'   => 'integer',
+        'total_saves'   => 'integer',
+        'total_shares'  => 'integer',
+        'total_points'  => 'integer',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);

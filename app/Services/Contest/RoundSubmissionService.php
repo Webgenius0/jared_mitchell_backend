@@ -17,33 +17,33 @@ class RoundSubmissionService
      */
     public function submit(
         Contestant $contestant,
-        Round      $round,
-        string     $title,
-        ?string    $description = null,
-        ?array     $mediaUrls = null,
-        ?array     $metadata = null,
+        Round $round,
+        string $title,
+        ?string $description = null,
+        ?array $mediaUrls = null,
+        ?array $metadata = null,
     ): RoundSubmission {
         return DB::transaction(function () use ($contestant, $round, $title, $description, $mediaUrls, $metadata) {
             $submission = RoundSubmission::updateOrCreate(
                 [
                     'contestant_id' => $contestant->id,
-                    'round_id'      => $round->id,
+                    'round_id' => $round->id,
                 ],
                 [
-                    'title'       => $title,
+                    'title' => $title,
                     'description' => $description,
-                    'media_urls'  => $mediaUrls,
-                    'status'      => 'submitted',
+                    'media_urls' => $mediaUrls,
+                    'status' => 'submitted',
                     'submitted_at' => now(),
-                    'metadata'    => $metadata,
+                    'metadata' => $metadata,
                 ]
             );
 
             Log::info('Round submission saved', [
                 'contestant_id' => $contestant->id,
-                'round_id'      => $round->id,
+                'round_id' => $round->id,
                 'submission_id' => $submission->id,
-                'title'         => $title,
+                'title' => $title,
             ]);
 
             return $submission;
@@ -55,21 +55,21 @@ class RoundSubmissionService
      */
     public function saveDraft(
         Contestant $contestant,
-        Round      $round,
-        ?string    $title = null,
-        ?string    $description = null,
-        ?array     $mediaUrls = null,
+        Round $round,
+        ?string $title = null,
+        ?string $description = null,
+        ?array $mediaUrls = null,
     ): RoundSubmission {
         return RoundSubmission::updateOrCreate(
             [
                 'contestant_id' => $contestant->id,
-                'round_id'      => $round->id,
+                'round_id' => $round->id,
             ],
             [
-                'title'      => $title,
+                'title' => $title,
                 'description'=> $description,
                 'media_urls' => $mediaUrls,
-                'status'     => 'draft',
+                'status' => 'draft',
             ]
         );
     }

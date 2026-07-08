@@ -52,21 +52,17 @@ PROMPT;
 
     /**
      * Build the user prompt by injecting contest application data.
-     * Handles polymorphic contestable entities (Business, User, etc.).
      */
     public function build(ContestApplication $application): string
     {
-        $contestable = $application->contestable;
+        $business = $application->business;
 
-        $name   = method_exists($contestable, 'getContestantName')
-            ? $contestable->getContestantName()
-            : 'Unknown';
-
-        $story  = $this->extractField($contestable, ['story', 'business_story', 'full_artist_story', 'bio']);
-        $mission = $this->extractField($contestable, ['mission', 'why_featured', 'current_goals', 'why_spotlighted']);
-        $impact = $this->extractField($contestable, ['community_impact_statement', 'community_message']);
-        $revenue = $this->extractField($contestable, ['revenue_stage', 'growth_vision']);
-        $pitch  = $this->extractField($contestable, ['why_they_deserve_to_compete', 'why_featured']);
+        $name    = $business?->getContestantName() ?? 'Unknown';
+        $story   = $this->extractField($business, ['story', 'business_story', 'bio']);
+        $mission = $this->extractField($business, ['mission', 'current_goals']);
+        $impact  = $this->extractField($business, ['community_impact_statement', 'community_message']);
+        $revenue = $this->extractField($business, ['revenue_stage', 'growth_vision']);
+        $pitch   = $this->extractField($business, ['why_they_deserve_to_compete', 'why_featured']);
 
         return <<<PROMPT
 Please evaluate this contest application:
@@ -97,6 +93,10 @@ PROMPT;
      */
     private function extractField($model, array $fields): string
     {
+        if (!$model) {
+            return 'Not provided';
+        }
+
         foreach ($fields as $field) {
             $value = $model->{$field} ?? null;
             if (!empty($value)) {

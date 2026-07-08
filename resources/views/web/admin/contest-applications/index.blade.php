@@ -100,7 +100,7 @@
                                         <th style="width: 50px;">#</th>
                                         <th>Business</th>
                                         <th>Owner</th>
-                                        <th>Round Session</th>
+                                        <th>Season</th>
                                         <th>Status</th>
                                         <th>Applied Date</th>
                                         <th class="text-center" style="width: 180px;">Action</th>
@@ -125,7 +125,7 @@
                                                 </div>
                                             </div>
                                         </td>
-                                        <td>{{ $application->roundSession?->title ?? '—' }}</td>
+                                        <td>{{ $application->season?->title ?? '—' }}</td>
                                         <td>
                                             @if($application->status == 'pending')
                                                 <span class="badge bg-warning-subtle text-warning">Pending</span>
@@ -312,7 +312,7 @@
                         <h6 class="text-primary"><i class="ri-information-line me-1"></i>Application Info</h6>
                         <table class="table table-sm table-borderless">
                             <tr><th width="40%">Application ID</th><td>#${d.id}</td></tr>
-                            <tr><th>Round Session</th><td>${d.round_session_name}</td></tr>
+                            <tr><th>Season</th><td>${d.season_name}</td></tr>
                             <tr><th>Status</th><td>${statusBadge}</td></tr>
                             <tr><th>Applied Date</th><td>${d.created_at}</td></tr>
                         </table>

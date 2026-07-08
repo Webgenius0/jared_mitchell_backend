@@ -7,8 +7,6 @@ use App\Models\Contest\Contestant;
 use App\Models\Round;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class Season extends Model
@@ -76,7 +74,7 @@ class Season extends Model
     }
 
     /**
-     * Resolve route binding by id, slug, or legacy round_session id.
+     * Resolve route binding by id or slug.
      */
     public function resolveRouteBinding($value, $field = null): ?self
     {
@@ -85,23 +83,7 @@ class Season extends Model
         }
 
         if (is_numeric($value)) {
-            $season = static::find((int) $value);
-
-            if ($season) {
-                return $season;
-            }
-
-            if (Schema::hasTable('season_migration_map')) {
-                $seasonId = DB::table('season_migration_map')
-                    ->where('round_session_id', (int) $value)
-                    ->value('season_id');
-
-                if ($seasonId) {
-                    return static::find($seasonId);
-                }
-            }
-
-            return null;
+            return static::find((int) $value);
         }
 
         return static::where('slug', $value)->first();

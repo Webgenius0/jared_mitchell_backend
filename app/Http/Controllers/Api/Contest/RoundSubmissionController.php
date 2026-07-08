@@ -19,37 +19,6 @@ class RoundSubmissionController extends Controller
         protected RoundSubmissionService $submissionService
     ) {}
 
-    /**
-     * Resolve the current contestant for a user in a given round.
-     * Searches through the user's own contestant records AND
-     * contestant records of businesses the user owns.
-     */
-    private function resolveContestantForRound($user, Round $round): ?Contestant
-    {
-        // 1. Check if the user themselves is a contestant
-        $contestant = Contestant::where('current_round_id', $round->id)
-            ->where('contestable_type', $user->getMorphClass())
-            ->where('contestable_id', $user->id)
-            ->active()
-            ->first();
-
-        if ($contestant) {
-            return $contestant;
-        }
-
-        // 2. Check if any of the user's businesses are contestants
-        $businessIds = Business::where('user_id', $user->id)->pluck('id');
-
-        if ($businessIds->isNotEmpty()) {
-            $contestant = Contestant::where('current_round_id', $round->id)
-                ->where('contestable_type', 'App\\Models\\Business')
-                ->whereIn('contestable_id', $businessIds)
-                ->active()
-                ->first();
-        }
-
-        return $contestant;
-    }
 
     /**
      * POST /api/v1/contest/rounds/{round}/submissions
@@ -63,10 +32,10 @@ class RoundSubmissionController extends Controller
     public function store(Request $request, Round $round): JsonResponse
     {
         $validated = $request->validate([
-            'title'  => 'required|string|max:255',
+            'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:10000',
-            'media_urls'  => 'nullable|array',
-            'media_urls.*'=> 'nullable|string|max:2048',
+            'media_urls' => 'nullable|array',
+            'media_urls.*' => 'nullable|string|max:2048',
         ]);
 
         $user = auth('api')->user();
@@ -112,7 +81,7 @@ class RoundSubmissionController extends Controller
             'title'       => 'nullable|string|max:255',
             'description' => 'nullable|string|max:10000',
             'media_urls'  => 'nullable|array',
-            'media_urls.*'=> 'nullable|string|max:2048',
+            'media_urls.*' => 'nullable|string|max:2048',
         ]);
 
         $user       = auth('api')->user();
@@ -174,5 +143,37 @@ class RoundSubmissionController extends Controller
         return $this->success('Submissions retrieved successfully.', [
             'submissions' => $submissions,
         ]);
+    }
+
+    /**
+     * Resolve the current contestant for a user in a given round.
+     * Searches through the user's own contestant records AND
+     * contestant records of businesses the user owns.
+     */
+    private function resolveContestantForRound($user, Round $round): ?Contestant
+    {
+        // 1. Check if the user themselves is a contestant
+        $contestant = Contestant::where('current_round_id', $round->id)
+            ->where('contestable_type', $user->getMorphClass())
+            ->where('contestable_id', $user->id)
+            ->active()
+            ->first();
+
+        if ($contestant) {
+            return $contestant;
+        }
+
+        // 2. Check if any of the user's businesses are contestants
+        $businessIds = Business::where('user_id', $user->id)->pluck('id');
+
+        if ($businessIds->isNotEmpty()) {
+            $contestant = Contestant::where('current_round_id', $round->id)
+                ->where('contestable_type', 'App\\Models\\Business')
+                ->whereIn('contestable_id', $businessIds)
+                ->active()
+                ->first();
+        }
+
+        return $contestant;
     }
 }

@@ -32,7 +32,6 @@ class ProcessRoundTransitions extends Command
             $rounds = $eliminationService->findRoundsNeedingTransition();
 
             if ($force) {
-                // Include all ended rounds regardless of transition status
                 $rounds = Round::ended()->get()->all();
             }
         }
@@ -53,12 +52,10 @@ class ProcessRoundTransitions extends Command
             $this->line("  Round #{$round->id} ({$round->title}) — {$round->elimination_rule}");
 
             if ($dryRun) {
-                // Show what would happen without executing
                 $this->line("[DRY RUN] Would dispatch transition job.");
                 continue;
             }
 
-            // Dispatch the transition job
             ProcessRoundTransition::dispatch($round);
             $this->info("Transition job dispatched.");
         }

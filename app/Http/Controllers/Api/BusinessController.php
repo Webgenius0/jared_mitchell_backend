@@ -55,7 +55,7 @@ class BusinessController extends Controller
             return $this->error('You are not authorized to view this business.', 403);
         }
 
-        $business->load(['user.profile', 'category', 'media']);
+        $business->load(['user.profile', 'category', 'media', 'interactions']);
 
         return $this->success(
             'Business retrieved successfully.',

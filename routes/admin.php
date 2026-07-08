@@ -6,7 +6,6 @@ use App\Http\Controllers\Web\Admin\Business\AdminBusinessController;
 use App\Http\Controllers\Web\Admin\BusinessSpotlight\AdminBusinessSpotlightController;
 use App\Http\Controllers\Web\Admin\Cms\AboutCmsController;
 use App\Http\Controllers\Web\Admin\Cms\AdminArtistCategoryController;
-use App\Http\Controllers\Web\Admin\Cms\AdminBusinessCategoryController;
 use App\Http\Controllers\Web\Admin\Cms\ArtistSpotlightCmsController;
 use App\Http\Controllers\Web\Admin\Cms\BossBeginningsCmsController;
 use App\Http\Controllers\Web\Admin\Cms\BossBeginningWinnerChossenCMSController;
@@ -282,19 +281,6 @@ Route::prefix('artist-categories')->name('admin.artist-categories.')->group(func
 
 /*
 |--------------------------------------------------------------------------
-| Business Categories
-|--------------------------------------------------------------------------
-*/
-Route::prefix('business-categories')->name('admin.business-categories.')->group(function () {
-    Route::get('/', [AdminBusinessCategoryController::class, 'index'])->name('index');
-    Route::get('/data', [AdminBusinessCategoryController::class, 'getData'])->name('data');
-    Route::post('/', [AdminBusinessCategoryController::class, 'store'])->name('store');
-    Route::put('/{category}', [AdminBusinessCategoryController::class, 'update'])->name('update');
-    Route::delete('/{category}', [AdminBusinessCategoryController::class, 'destroy'])->name('destroy');
-});
-
-/*
-|--------------------------------------------------------------------------
 | Events Management
 |--------------------------------------------------------------------------
 */
@@ -331,9 +317,9 @@ Route::prefix('round-sessions')->name('admin.round-sessions.')->group(function (
     Route::get('/', [RoundSessionController::class, 'index'])->name('index');
     Route::get('/create', [RoundSessionController::class, 'create'])->name('create');
     Route::post('/', [RoundSessionController::class, 'store'])->name('store');
-    Route::get('/{roundSession}/edit', [RoundSessionController::class, 'edit'])->name('edit');
-    Route::put('/{roundSession}', [RoundSessionController::class, 'update'])->name('update');
-    Route::delete('/{roundSession}', [RoundSessionController::class, 'destroy'])->name('destroy');
+    Route::get('/{season}/edit', [RoundSessionController::class, 'edit'])->name('edit');
+    Route::put('/{season}', [RoundSessionController::class, 'update'])->name('update');
+    Route::delete('/{season}', [RoundSessionController::class, 'destroy'])->name('destroy');
 });
 
 /*

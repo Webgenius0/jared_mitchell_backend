@@ -6,37 +6,22 @@ use App\Models\Contest\Season;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class ContestApplication extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        // Polymorphic contestable (replaces business_id)
-        'contestable_type',
-        'contestable_id',
-        'business_id', // Kept for backward compatibility during Phase 1
-
-        // Season (replaces round_session_id)
+        'business_id',
         'season_id',
-        'round_session_id', // Kept for backward compatibility
-
-        // Status
         'status',
-
-        // AI Review
         'ai_reviewed_at',
         'ai_verdict',
         'ai_confidence',
-
-        // Admin actions
         'approved_at',
         'approved_by',
         'admin_note',
         'rejected_reason',
-
-        // Flexible
         'metadata',
     ];
 
@@ -56,21 +41,11 @@ class ContestApplication extends Model
     */
 
     /**
-     * The polymorphic contestable entity (Business, User, etc.).
-     */
-    public function contestable(): MorphTo
-    {
-        return $this->morphTo();
-    }
-
-    /**
-     * Business relationship (backward compat — reads through polymorphic).
-     * Uses dynamic table name to stay compatible with query aliases.
+     * The business that applied.
      */
     public function business(): BelongsTo
     {
-        return $this->belongsTo(Business::class, 'contestable_id')
-            ->where($this->getTable() . '.contestable_type', 'App\\Models\\Business');
+        return $this->belongsTo(Business::class);
     }
 
     /**
@@ -79,16 +54,6 @@ class ContestApplication extends Model
     public function season(): BelongsTo
     {
         return $this->belongsTo(Season::class, 'season_id');
-    }
-
-    /**
-     * Old-style RoundSession relationship (backward compat).
-     *
-     * @deprecated Use season() instead.
-     */
-    public function roundSession(): BelongsTo
-    {
-        return $this->belongsTo(RoundSession::class, 'season_id');
     }
 
     /**

@@ -11,8 +11,6 @@ use Illuminate\Support\Facades\Log;
 
 class AiReviewService
 {
-    const MAX_RETRIES = 2;
-
     public function __construct(
         private AiService          $ai,
         private AiPromptBuilder    $promptBuilder,
@@ -22,19 +20,22 @@ class AiReviewService
     ) {}
 
     /**
-     * Review a contest application using AI.
-     * Called by the ProcessAiReview queued job.
+     * Review a contest application using AI — runs synchronously.
+     *
+     * Called immediately after an application is submitted.
+     * On success, auto-approves (creates a contestant), auto-rejects, or flags for admin.
+     * On failure, the caller should mark the application as needs_review.
      */
     public function review(ContestApplication $application): AiReview
     {
-        // 1. Build the prompt
+        // Build the prompt
         $prompt       = $this->promptBuilder->build($application);
         $systemPrompt = $this->promptBuilder->systemPrompt();
 
-        // 2. Determine which model to use
+        // Resolve which model to use
         $model = $this->resolveModel($application);
 
-        // 3. Call the AI provider
+        // Call the AI provider
         $rawResponse = $this->ai->ask(
             prompt: $prompt,
             systemPrompt: $systemPrompt,
@@ -45,17 +46,16 @@ class AiReviewService
             ]
         );
 
-        // 4. Parse the response
+        // Parse the response
         $parsed = $this->responseParser->parse($rawResponse);
 
-        // 5. Calculate confidence
+        // Calculate confidence
         $completeness = $this->calculateCompleteness($application);
         $confidence   = $this->confidenceEngine->calculate($parsed, $completeness);
 
-        // 6. Determine verdict
         $verdict = $parsed['verdict'];
 
-        // 7. Persist the review
+        // Persist the review and process the verdict
         return DB::transaction(function () use (
             $application, $parsed, $confidence, $verdict, $rawResponse, $model
         ) {
@@ -83,10 +83,23 @@ class AiReviewService
                 'ai_confidence'  => $confidence,
             ]);
 
-            // Process the verdict
-            $this->processVerdict($application, $review, $verdict, $confidence);
+            // Process the verdict: auto-approve, auto-reject, or flag for admin
+            if ($this->confidenceEngine->canAutoProcess($confidence)) {
+                if ($verdict === 'approve') {
+                    $this->contestantService->createFromApplication($application, $review);
+                } else {
+                    $application->update([
+                        'status'          => 'rejected',
+                        'rejected_reason' => 'AI review determined the application does not meet criteria. '
+                            . ($review->review_notes ?? ''),
+                    ]);
+                }
+            } else {
+                // Not confident enough — flag for admin review
+                $application->update(['status' => 'needs_review']);
+            }
 
-            // Fire event
+            // Fire event for notification
             ApplicationReviewed::dispatch($application, $review, $verdict);
 
             Log::info('AiReview completed', [
@@ -96,100 +109,12 @@ class AiReviewService
                 'score'          => $parsed['score'],
                 'provider'       => $this->ai->provider(),
                 'model'          => $model,
-                'tokens_used'    => $review->total_tokens,
             ]);
 
             return $review;
         });
     }
 
-    /**
-     * Retry with a different AI model/provider for low-confidence reviews.
-     */
-    public function retryWithDifferentModel(ContestApplication $application): ?AiReview
-    {
-        $retries = $application->metadata['ai_retries'] ?? 0;
-
-        if ($retries >= self::MAX_RETRIES) {
-            $this->forceFlagForAdmin($application);
-            return null;
-        }
-
-        // Update retry count
-        $metadata = $application->metadata ?? [];
-        $metadata['ai_retries'] = $retries + 1;
-        $application->update(['metadata' => $metadata]);
-
-        return $this->review($application);
-    }
-
-    /**
-     * Force-flag an application for admin after retries exhausted.
-     */
-    private function forceFlagForAdmin(ContestApplication $application): void
-    {
-        $application->update([
-            'ai_reviewed_at' => now(),
-            'ai_verdict'     => 'needs_review',
-            'ai_confidence'  => 0.0,
-            'status'         => 'needs_review',
-        ]);
-
-        Log::warning('AiReview: Max retries exceeded, flagged for admin', [
-            'application_id' => $application->id,
-        ]);
-    }
-
-    /**
-     * Process the AI verdict: auto-approve, auto-reject, or flag for admin.
-     */
-    private function processVerdict(
-        ContestApplication $application,
-        AiReview $review,
-        string $verdict,
-        float $confidence
-    ): void {
-        if ($this->confidenceEngine->canAutoProcess($confidence)) {
-            if ($verdict === 'approve') {
-                $this->autoApprove($application, $review);
-            } else {
-                $this->autoReject($application, $review);
-            }
-        } elseif ($this->confidenceEngine->shouldRetry($confidence)) {
-            // Low confidence — retry with different model
-            $this->retryWithDifferentModel($application);
-        } else {
-            // Flag for admin review
-            $application->update(['status' => 'needs_review']);
-        }
-    }
-
-    /**
-     * Auto-approve an application and create a contestant.
-     */
-    private function autoApprove(ContestApplication $application, AiReview $review): void
-    {
-        $this->contestantService->createFromApplication(
-            $application,
-            $review
-        );
-    }
-
-    /**
-     * Auto-reject an application.
-     */
-    private function autoReject(ContestApplication $application, AiReview $review): void
-    {
-        $application->update([
-            'status'          => 'rejected',
-            'rejected_reason' => 'AI review determined the application does not meet criteria. '
-                . $review->review_notes,
-        ]);
-    }
-
-    /**
-     * Resolve which AI model to use for a given contest type.
-     */
     private function resolveModel(ContestApplication $application): string
     {
         $contestType = $application->season->contest_type ?? 'business';
@@ -201,16 +126,12 @@ class AiReviewService
         };
     }
 
-    /**
-     * Calculate how complete the application is (0.0 - 1.0).
-     * Based on how many fields are filled in the contestable entity.
-     */
     private function calculateCompleteness(ContestApplication $application): float
     {
-        $contestable = $application->contestable;
+        $business = $application->business;
         $fields = ['story', 'mission', 'community_impact_statement', 'revenue_stage', 'why_they_deserve_to_compete'];
 
-        if (!$contestable) {
+        if (!$business) {
             return 0.5;
         }
 
@@ -218,7 +139,7 @@ class AiReviewService
         $total = count($fields);
 
         foreach ($fields as $field) {
-            $value = $contestable->{$field} ?? null;
+            $value = $business->{$field} ?? null;
             if (!empty($value)) {
                 $filled++;
             }

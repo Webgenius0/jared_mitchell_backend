@@ -20,12 +20,21 @@ class BusinessService
     {
         $query = Business::with(['user.profile', 'category', 'media']);
 
-        // Search by business name or owner name
+        // Eager load the current user's interactions for interaction state checking
+        $userId = auth('api')->id();
+        if ($userId) {
+            $query->with(['interactions' => function ($q) use ($userId) {
+                $q->where('user_id', $userId)->whereIn('action_type', ['clap', 'save', 'share']);
+            }]);
+        }
+
+        // Search by business name or owner/founder name
         if (!empty($filters['search'])) {
             $search = $filters['search'];
             $query->where(function (Builder $q) use ($search) {
                 $q->where('business_name', 'like', "%{$search}%")
-                    ->orWhere('owner_name', 'like', "%{$search}%");
+                  ->orWhere('owner_founder_name', 'like', "%{$search}%")
+                  ->orWhere('story', 'like', "%{$search}%");
             });
         }
 

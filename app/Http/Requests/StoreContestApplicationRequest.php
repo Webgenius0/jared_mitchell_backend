@@ -21,7 +21,7 @@ class StoreContestApplicationRequest extends FormRequest
     {
         return [
             'business_id' => 'required|exists:businesses,id',
-            'round_session_id' => 'required|exists:round_sessions,id',
+            'season_id' => 'required|exists:seasons,id',
         ];
     }
 }

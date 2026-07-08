@@ -257,13 +257,17 @@ Route::group(['prefix' => 'v1'], function ($router) {
                 Route::patch('/{business}/terminate', [BusinessController::class, 'terminate']); // DONE: Terminate
             });
 
+            // Active round session
+            Route::get('/active-round-session', [ContestApplicationController::class, 'activeRoundSession']); // DONE: current active session
+
             // Contestent application
             Route::group(['prefix' => 'contest-applications'], function () {
-                Route::post('/', [ContestApplicationController::class, 'store']); // Apply to contest
-                Route::get('/my', [ContestApplicationController::class, 'myApplications']); // My applications
-                Route::get('/session/{roundSession}', [ContestApplicationController::class, 'listBySession']); // List by session (admin)
-                Route::get('/{application}', [ContestApplicationController::class, 'show']); // Show application
-                Route::post('/{application}/withdraw', [ContestApplicationController::class, 'withdraw']); // Withdraw application
+                Route::post('/', [ContestApplicationController::class, 'store']); // DONE: Apply to contest
+                Route::get('/my', [ContestApplicationController::class, 'myApplications']); // DONE: My applications
+                Route::get('/{application}', [ContestApplicationController::class, 'show']); // DONE: Show application
+                Route::post('/{application}/withdraw', [ContestApplicationController::class, 'withdraw']); // DONE: Withdraw application
+
+                Route::get('/session/{season}', [ContestApplicationController::class, 'listBySession']); // List by session (admin)
                 Route::patch('/{application}/approve', [ContestApplicationController::class, 'approve']); // Approve (admin)
                 Route::patch('/{application}/reject', [ContestApplicationController::class, 'reject']); // Reject (admin)
             });
@@ -278,6 +282,14 @@ Route::group(['prefix' => 'v1'], function ($router) {
                 Route::post('/update/{id}', [BusinessSpotlightController::class, 'update']); // Full update
                 Route::delete('/delete/{id}', [BusinessSpotlightController::class, 'destroy']); // Delete spotlight
             });
+        });
+
+        // Business interactions (clap, save, share)
+        Route::group(['prefix' => 'businesses', 'role:boss|member|artist|sponsor,api'], function () {
+            Route::post('/{business}/clap', [BusinessController::class, 'toggleClap']);
+            Route::post('/{business}/save', [BusinessController::class, 'toggleSave']);
+            Route::post('/{business}/share', [BusinessController::class, 'toggleShare']);
+            Route::get('/{business}/interactions', [BusinessController::class, 'userInteractions']);
         });
 
         /*
@@ -335,6 +347,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
         | E-commerce: Wishlist, Cart & Orders
         |--------------------------------------------------------------------------
         */
+
         // Wishlist
         Route::prefix('wishlist')->group(function () {
             Route::get('/', [WishlistController::class, 'index']); // DONE: get all wishlist product
@@ -361,13 +374,6 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::post('/{order}/cancel', [OrderController::class, 'cancel']); // DONE: cancel order
         });
 
-        // Business interactions (clap, save, share)
-        Route::prefix('businesses')->group(function () {
-            Route::post('/{business}/clap', [BusinessController::class, 'toggleClap']);
-            Route::post('/{business}/save', [BusinessController::class, 'toggleSave']);
-            Route::post('/{business}/share', [BusinessController::class, 'toggleShare']);
-            Route::get('/{business}/interactions', [BusinessController::class, 'userInteractions']);
-        });
 
         // Notifications
         Route::prefix('notifications')->group(function () {
@@ -378,8 +384,6 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::post('/{id}/mark-read', [NotificationController::class, 'markOneAsRead']);
         });
 
-        // Active round session
-        Route::get('/active-round-session', [ContestApplicationController::class, 'activeRoundSession']);
 
         // Event
         Route::prefix('events')->group(function () {

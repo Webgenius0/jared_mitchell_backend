@@ -19,10 +19,10 @@ class ContestantService
     public function createFromApplication(ContestApplication $application, AiReview $review): Contestant
     {
         return DB::transaction(function () use ($application, $review) {
-            $contestable = $application->contestable;
+            $business = $application->business;
 
-            if (!$contestable) {
-                throw new \RuntimeException('Cannot create contestant: no contestable entity found for application #' . $application->id);
+            if (!$business) {
+                throw new \RuntimeException('Cannot create contestant: no business found for application #' . $application->id);
             }
 
             $season    = $application->season;
@@ -32,17 +32,17 @@ class ContestantService
                 throw new \RuntimeException('Cannot create contestant: no rounds defined for season #' . $season->id);
             }
 
-            $displayName = $contestable instanceof Contestable
-                ? $contestable->getContestantName()
-                : ($contestable->name ?? $contestable->id);
+            $displayName = $business instanceof Contestable
+                ? $business->getContestantName()
+                : ($business->business_name ?? $business->id);
 
             $contestant = Contestant::create([
                 'season_id'         => $season->id,
-                'contestable_type'  => get_class($contestable),
-                'contestable_id'    => $contestable->id,
+                'contestable_type'  => get_class($business),
+                'contestable_id'    => $business->id,
                 'display_name'      => $displayName,
                 'slug'              => Str::slug($displayName) . '-' . Str::random(6),
-                'avatar_url'        => $contestable instanceof Contestable ? $contestable->getContestantAvatar() : null,
+                'avatar_url'        => $business instanceof Contestable ? $business->getContestantAvatar() : null,
                 'status'            => 'active',
                 'current_round_id'  => $firstRound->id,
                 'entered_at'        => now(),

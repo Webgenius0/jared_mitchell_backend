@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api\Contest;
 
 use App\Http\Controllers\Controller;
-use App\Models\Contest\Contestant;
 use App\Models\Contest\Season;
 use App\Models\Round;
 use App\Services\Contest\LeaderboardService;
@@ -74,7 +73,7 @@ class LeaderboardController extends Controller
     /**
      * GET /api/v1/contest/seasons/{season}/leaderboard/calculate
      *
-     * Trigger a leaderboard recalculation (admin only).
+     * Fetch the leaderboard (on-demand calculation, no caching needed).
      */
     public function recalculate(Season $season): JsonResponse
     {
@@ -86,8 +85,11 @@ class LeaderboardController extends Controller
             return $this->error(null, 'No rounds found for this season.', 404);
         }
 
-        $this->leaderboardService->calculateLeaderboard($latestRound);
+        $entries = $this->leaderboardService->getLeaderboard($latestRound);
 
-        return $this->success('Leaderboard recalculated successfully.');
+        return $this->success('Leaderboard retrieved successfully.', [
+            'round_id' => $latestRound->id,
+            'entries'  => $entries,
+        ]);
     }
 }
