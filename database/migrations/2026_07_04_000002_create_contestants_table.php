@@ -12,14 +12,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // ── 1. Create the contestants table ────────────────────────────
+        // 1. Create the contestants table
         Schema::create('contestants', function (Blueprint $table) {
             $table->id();
 
             // Season
-            $table->foreignId('season_id')
-                  ->constrained()
-                  ->cascadeOnDelete();
+            $table->foreignId('season_id')->constrained()->cascadeOnDelete();
 
             // Polymorphic contestable (Business, User, etc.)
             $table->string('contestable_type', 100);
@@ -38,15 +36,8 @@ return new class extends Migration
             $table->decimal('total_score', 12, 2)->default(0);
 
             // Round tracking
-            $table->foreignId('current_round_id')
-                  ->nullable()
-                  ->constrained('rounds')
-                  ->nullOnDelete();
-
-            $table->foreignId('eliminated_in_round_id')
-                  ->nullable()
-                  ->constrained('rounds')
-                  ->nullOnDelete();
+            $table->foreignId('current_round_id')->nullable()->constrained('rounds')->nullOnDelete();
+            $table->foreignId('eliminated_in_round_id')->nullable()->constrained('rounds')->nullOnDelete();
 
             // Timeline
             $table->timestamp('entered_at')->nullable();
@@ -58,8 +49,7 @@ return new class extends Migration
             $table->timestamps();
 
             // A contestable entity can only be a contestant once per season
-            $table->unique(['contestable_type', 'contestable_id', 'season_id'],
-                           'contestant_unique_per_season');
+            $table->unique(['contestable_type', 'contestable_id', 'season_id'],'contestant_unique_per_season');
 
             // Indexes for common queries
             $table->index(['season_id', 'status']);

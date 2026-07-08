@@ -12,28 +12,18 @@ return new class extends Migration
             $table->id();
 
             // Which round this transition came from
-            $table->foreignId('from_round_id')
-                  ->constrained('rounds')
-                  ->cascadeOnDelete();
+            $table->foreignId('from_round_id')->constrained('rounds')->cascadeOnDelete();
 
             // Which round contestants advanced to (null if season ended)
-            $table->foreignId('to_round_id')
-                  ->nullable()
-                  ->constrained('rounds')
-                  ->nullOnDelete();
+            $table->foreignId('to_round_id')->nullable()->constrained('rounds')->nullOnDelete();
 
             // Season context
-            $table->foreignId('season_id')
-                  ->constrained('seasons')
-                  ->cascadeOnDelete();
+            $table->foreignId('season_id')->constrained('seasons')->cascadeOnDelete();
 
             // Transition data
-            $table->string('status', 30)->default('pending')
-                  ->comment('pending, processing, completed, failed');
-            $table->string('elimination_rule', 50)
-                  ->comment('Which rule was applied (snapshot at transition time)');
-            $table->json('transition_config')->nullable()
-                  ->comment('Snapshot of the round advancement_config at transition time');
+            $table->string('status', 30)->default('pending')->comment('pending, processing, completed, failed');
+            $table->string('elimination_rule', 50)->comment('Which rule was applied (snapshot at transition time)');
+            $table->json('transition_config')->nullable()->comment('Snapshot of the round advancement_config at transition time');
 
             // Counts
             $table->unsignedInteger('total_contestants')->default(0);
@@ -41,12 +31,9 @@ return new class extends Migration
             $table->unsignedInteger('eliminated_count')->default(0);
 
             // Results
-            $table->json('advanced_contestants')->nullable()
-                  ->comment('Array of {id, display_name, rank, score}');
-            $table->json('eliminated_contestants')->nullable()
-                  ->comment('Array of {id, display_name, rank, score}');
-            $table->json('metadata')->nullable()
-                  ->comment('Errors, warnings, or extra processing data');
+            $table->json('advanced_contestants')->nullable()->comment('Array of {id, display_name, rank, score}');
+            $table->json('eliminated_contestants')->nullable()->comment('Array of {id, display_name, rank, score}');
+            $table->json('metadata')->nullable()->comment('Errors, warnings, or extra processing data');
 
             // Timing
             $table->timestamp('processed_at')->nullable();

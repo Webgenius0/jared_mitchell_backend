@@ -153,62 +153,53 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::get('/{id}', [ArtistController::class, 'show']); // Artist detail
             Route::post('/{id}/share', [ArtistController::class, 'recordShare']); // Public share (optional auth)
         });
-    });
 
-    /*
-    |--------------------------------------------------------------------------
-    | Spotlights (Accessible by both guest and authenticated users)
-    |--------------------------------------------------------------------------
-    */
-    Route::get('/spotlight', [SpotlightController::class, 'index']);
-    Route::get('/round-countdown', [RoundSessionApiController::class, 'countdown']);
+        /*
+        |--------------------------------------------------------------------------
+        | Spotlights (Accessible by both guest and authenticated users)
+        |--------------------------------------------------------------------------
+        */
+        Route::get('/spotlight', [SpotlightController::class, 'index']);
+        Route::get('/round-countdown', [RoundSessionApiController::class, 'countdown']);
 
+        /*
+        |--------------------------------------------------------------------------
+        | Pricing (Accessible by both guest and authenticated users)
+        |--------------------------------------------------------------------------
+        */
+        Route::get('/pricing', [PricingController::class, 'index']);
 
-    /*
-    |--------------------------------------------------------------------------
-    | Pricing (Accessible by both guest and authenticated users)
-    |--------------------------------------------------------------------------
-    */
-    Route::get('/pricing', [PricingController::class, 'index']);
+        /*
+        |--------------------------------------------------------------------------
+        | Featured Events (Accessible by both guest and authenticated users)
+        |--------------------------------------------------------------------------
+        */
+        Route::get('/featured-events', [FeaturedEventController::class, 'index']);
 
-    /*
-    |--------------------------------------------------------------------------
-    | Featured Events (Accessible by both guest and authenticated users)
-    |--------------------------------------------------------------------------
-    */
-    Route::get('/featured-events', [FeaturedEventController::class, 'index']);
+        /*
+        |--------------------------------------------------------------------------
+        | Contest — Voting, Submissions & Leaderboard
+        |--------------------------------------------------------------------------
+        */
+        Route::prefix('contest')->group(function () {
+            // Seasons → Leaderboard
+            Route::get('/leaderboard/overall', [LeaderboardController::class, 'activeOverall']);
+            Route::get('/seasons/{season}/leaderboard', [LeaderboardController::class, 'overall']);
+            Route::get('/seasons/{season}/leaderboard/calculate', [LeaderboardController::class, 'recalculate']);
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Contest — Voting, Submissions & Leaderboard
-    |--------------------------------------------------------------------------
-    */
-    Route::prefix('contest')->group(function () {
-        // Seasons → Leaderboard
-        Route::get('/leaderboard/overall', [LeaderboardController::class, 'activeOverall']);
-        Route::get('/seasons/{season}/leaderboard', [LeaderboardController::class, 'overall']);
-        Route::get('/seasons/{season}/leaderboard/calculate', [LeaderboardController::class, 'recalculate']);
-
-        // Rounds → Submissions, Votes, Leaderboard
-        Route::get('/rounds/{round}/submissions', [RoundSubmissionController::class, 'index']);
-        Route::get('/rounds/{round}/leaderboard', [LeaderboardController::class, 'forRound']);
-        Route::get('/rounds/{round}/votes/counts', [VoteController::class, 'counts']);
-
-        // Auth-protected contest routes
-        Route::middleware('auth:api')->group(function () {
-            // Submissions
-            Route::post('/rounds/{round}/submissions', [RoundSubmissionController::class, 'store']);
-            Route::post('/rounds/{round}/submissions/draft', [RoundSubmissionController::class, 'saveDraft']);
-            Route::get('/rounds/{round}/submissions/my', [RoundSubmissionController::class, 'mySubmission']);
-
-            // Votes
-            Route::post('/rounds/{round}/votes', [VoteController::class, 'store']);
-            Route::get('/rounds/{round}/votes/my', [VoteController::class, 'myVotes']);
-            Route::get('/rounds/{round}/votes/check/{contestant}', [VoteController::class, 'check']);
+            // Rounds → Submissions, Votes, Leaderboard
+            Route::get('/rounds/{round}/submissions', [RoundSubmissionController::class, 'index']);
+            Route::get('/rounds/{round}/leaderboard', [LeaderboardController::class, 'forRound']);
+            Route::get('/rounds/{round}/votes/counts', [VoteController::class, 'counts']);
         });
     });
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Private route
+    |--------------------------------------------------------------------------
+    */
     Route::group(['middleware' => 'auth:api'], function ($router) {
         Route::post('/refresh-token', [LoginController::class, 'refreshToken']); // DONE: refresh token
         Route::post('/logout', [LoginController::class, 'logout']); // DONE: logout
@@ -344,6 +335,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
         | E-commerce: Wishlist, Cart & Orders
         |--------------------------------------------------------------------------
         */
+        // Wishlist
         Route::prefix('wishlist')->group(function () {
             Route::get('/', [WishlistController::class, 'index']); // DONE: get all wishlist product
             Route::post('/toggle/{product}', [WishlistController::class, 'toggle']); // DONE: toggle wishlist product
@@ -351,6 +343,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::delete('/', [WishlistController::class, 'clear']); // DONE: clear wishlist product
         });
 
+        // Cart
         Route::prefix('cart')->group(function () {
             Route::get('/', [CartController::class, 'index']); // DONE: get all cart product
             Route::post('/add', [CartController::class, 'add']); // DONE: add product to cart
@@ -359,6 +352,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::delete('/clear', [CartController::class, 'clear']); // DONE: clear cart
         });
 
+        // Order
         Route::prefix('orders')->group(function () {
             Route::get('/', [OrderController::class, 'index']); // DONE: get all order
             Route::post('/place', [OrderController::class, 'place']); // DONE: place a new oeder
@@ -387,52 +381,70 @@ Route::group(['prefix' => 'v1'], function ($router) {
         // Active round session
         Route::get('/active-round-session', [ContestApplicationController::class, 'activeRoundSession']);
 
+        // Event
         Route::prefix('events')->group(function () {
             Route::get('/{slug}', [EventController::class, 'show']); // Detail
             Route::get('/{slug}/attendees', [EventController::class, 'attendees']); // Attendees list
             Route::post('/register', [EventController::class, 'register']); // Register
         });
-    });
 
-    /*
-    |--------------------------------------------------------------------------
-    | Messaging/Conversation
-    |--------------------------------------------------------------------------
-    */
-    Route::prefix('conversations')->group(function () {
-        Route::get('/', [ConversationController::class, 'index']);
-        Route::post('/', [ConversationController::class, 'store']);
-        Route::get('/{conversation}', [ConversationController::class, 'show']);
-        Route::post('/{conversation}', [ConversationController::class, 'update']);
-        Route::delete('/{conversation}', [ConversationController::class, 'destroy']);
+        /*
+        |--------------------------------------------------------------------------
+        | Contest — Voting, Submissions & Leaderboard
+        |--------------------------------------------------------------------------
+        */
+        Route::prefix('contest')->group(function () {
+            // Submissions
+            Route::post('/rounds/{round}/submissions', [RoundSubmissionController::class, 'store']);
+            Route::post('/rounds/{round}/submissions/draft', [RoundSubmissionController::class, 'saveDraft']);
+            Route::get('/rounds/{round}/submissions/my', [RoundSubmissionController::class, 'mySubmission']);
 
-        // Group management
-        Route::post('/{conversation}/add-user', [ConversationController::class, 'addUser']);
-        Route::post('/{conversation}/remove-user', [ConversationController::class, 'removeUser']);
-        Route::post('/{conversation}/make-admin', [ConversationController::class, 'makeAdmin']);
+            // Votes
+            Route::post('/rounds/{round}/votes', [VoteController::class, 'store']);
+            Route::get('/rounds/{round}/votes/my', [VoteController::class, 'myVotes']);
+            Route::get('/rounds/{round}/votes/check/{contestant}', [VoteController::class, 'check']);
+        });
 
-        // Conversation settings
-        Route::post('/{conversation}/toggle-mute', [ConversationController::class, 'toggleMute']);
-        Route::post('/{conversation}/toggle-archive', [ConversationController::class, 'toggleArchive']);
+        /*
+        |--------------------------------------------------------------------------
+        | Messaging/Conversation
+        |--------------------------------------------------------------------------
+        */
+        Route::prefix('conversations')->group(function () {
+            Route::get('/', [ConversationController::class, 'index']);
+            Route::post('/', [ConversationController::class, 'store']);
+            Route::get('/{conversation}', [ConversationController::class, 'show']);
+            Route::post('/{conversation}', [ConversationController::class, 'update']);
+            Route::delete('/{conversation}', [ConversationController::class, 'destroy']);
 
-        // Messages in conversation
-        Route::get('/{conversation}/messages', [MessageController::class, 'index']);
+            // Group management
+            Route::post('/{conversation}/add-user', [ConversationController::class, 'addUser']);
+            Route::post('/{conversation}/remove-user', [ConversationController::class, 'removeUser']);
+            Route::post('/{conversation}/make-admin', [ConversationController::class, 'makeAdmin']);
 
-        // Typing indicators
-        Route::post('/{conversation}/typing', [TypingController::class, 'typing']);
-        Route::post('/{conversation}/stop-typing', [TypingController::class, 'stopTyping']);
-        Route::get('/{conversation}/typing-users', [TypingController::class, 'getCurrentlyTyping']);
-    });
+            // Conversation settings
+            Route::post('/{conversation}/toggle-mute', [ConversationController::class, 'toggleMute']);
+            Route::post('/{conversation}/toggle-archive', [ConversationController::class, 'toggleArchive']);
 
-    // Message routes
-    Route::prefix('messages')->group(function () {
-        Route::post('/', [MessageController::class, 'store']);
-        Route::get('/unread-count', [MessageController::class, 'unreadCount']);
-        Route::post('/mark-as-read', [MessageController::class, 'markAsRead']);
-        Route::get('/{message}', [MessageController::class, 'show']);
-        Route::put('/{message}', [MessageController::class, 'update']);
-        Route::delete('/{message}', [MessageController::class, 'destroy']);
-        Route::post('/{message}/reaction', [MessageController::class, 'toggleReaction']);
+            // Messages in conversation
+            Route::get('/{conversation}/messages', [MessageController::class, 'index']);
+
+            // Typing indicators
+            Route::post('/{conversation}/typing', [TypingController::class, 'typing']);
+            Route::post('/{conversation}/stop-typing', [TypingController::class, 'stopTyping']);
+            Route::get('/{conversation}/typing-users', [TypingController::class, 'getCurrentlyTyping']);
+        });
+
+        // Message routes
+        Route::prefix('messages')->group(function () {
+            Route::post('/', [MessageController::class, 'store']);
+            Route::get('/unread-count', [MessageController::class, 'unreadCount']);
+            Route::post('/mark-as-read', [MessageController::class, 'markAsRead']);
+            Route::get('/{message}', [MessageController::class, 'show']);
+            Route::put('/{message}', [MessageController::class, 'update']);
+            Route::delete('/{message}', [MessageController::class, 'destroy']);
+            Route::post('/{message}/reaction', [MessageController::class, 'toggleReaction']);
+        });
     });
 });
 

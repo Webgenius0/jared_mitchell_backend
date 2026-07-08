@@ -13,7 +13,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // ── 1. Preserve existing score data into contestant metadata ──
+        // 1. Preserve existing score data into contestant metadata
         // Before dropping the columns, save legacy scores into each
         // business's contestant metadata for historical reference.
         if (Schema::hasTable('contestants') && Schema::hasTable('contest_applications')) {
