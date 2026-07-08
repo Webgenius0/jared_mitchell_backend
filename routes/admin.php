@@ -329,9 +329,14 @@ Route::prefix('round-sessions')->name('admin.round-sessions.')->group(function (
 */
 Route::prefix('contest-applications')->name('admin.contest-applications.')->group(function () {
     Route::get('/', [AdminContestApplicationController::class, 'index'])->name('index');
+    Route::get('/export/csv', [AdminContestApplicationController::class, 'export'])->name('export.csv');
+    Route::get('/export/excel', [AdminContestApplicationController::class, 'exportExcel'])->name('export.excel');
+    Route::get('/export/pdf', [AdminContestApplicationController::class, 'exportPdf'])->name('export.pdf');
+    Route::get('/rounds-by-season/{season}', [AdminContestApplicationController::class, 'roundsBySeason'])->name('rounds-by-season');
     Route::get('/{contestApplication}', [AdminContestApplicationController::class, 'show'])->name('show');
-    Route::patch('/{contestApplication}/approve', [AdminContestApplicationController::class, 'approve'])->name('approve');
-    Route::patch('/{contestApplication}/cancel', [AdminContestApplicationController::class, 'cancel'])->name('cancel');
+    Route::post('/bulk-status', [AdminContestApplicationController::class, 'bulkUpdateStatus'])->name('bulk-status');
+    Route::post('/bulk-destroy', [AdminContestApplicationController::class, 'bulkDestroy'])->name('bulk-destroy');
+    Route::patch('/{contestApplication}/status', [AdminContestApplicationController::class, 'updateStatus'])->name('status.update');
     Route::delete('/{contestApplication}', [AdminContestApplicationController::class, 'destroy'])->name('destroy');
 });
 

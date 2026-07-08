@@ -69,10 +69,20 @@ class AdminAuthCheckMiddleware
         // Authenticated — disable browser caching on all protected pages
         $response = $next($request);
 
-        return $response->withHeaders([
-            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
-            'Pragma'        => 'no-cache',
-            'Expires'       => 'Fri, 01 Jan 1990 00:00:00 GMT',
-        ]);
+        // StreamedResponse & BinaryFileResponse don't support withHeaders(), set headers manually
+        if ($response instanceof \Symfony\Component\HttpFoundation\StreamedResponse
+            || $response instanceof \Symfony\Component\HttpFoundation\BinaryFileResponse) {
+            $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+            $response->headers->set('Pragma', 'no-cache');
+            $response->headers->set('Expires', 'Fri, 01 Jan 1990 00:00:00 GMT');
+        } else {
+            $response->withHeaders([
+                'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+                'Pragma'        => 'no-cache',
+                'Expires'       => 'Fri, 01 Jan 1990 00:00:00 GMT',
+            ]);
+        }
+
+        return $response;
     }
 }
