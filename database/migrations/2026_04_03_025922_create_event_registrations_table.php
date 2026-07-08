@@ -13,14 +13,11 @@ return new class extends Migration
     {
         Schema::create('event_registrations', function (Blueprint $table) {
             $table->id();
-            $table->string('booking_reference')->unique();       // e.g. "OSI-20250322-00042"
+            $table->string('booking_reference')->unique(); // e.g. "OSI-20250322-00042"
 
             // Event & Ticket
             $table->foreignId('event_id')->constrained('events')->cascadeOnDelete();
-            $table->foreignId('ticket_tier_id')
-                  ->nullable()
-                  ->constrained('event_ticket_tiers')
-                  ->nullOnDelete();
+            $table->foreignId('ticket_tier_id')->nullable()->constrained('event_ticket_tiers')->nullOnDelete();
 
             // Attendee Information (Section from screenshot)
             $table->string('first_name');
@@ -29,10 +26,7 @@ return new class extends Migration
             $table->string('phone_number')->nullable();
 
             // Optional: link to a registered user account
-            $table->foreignId('user_id')
-                  ->nullable()
-                  ->constrained('users')
-                  ->nullOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
 
             // Order Summary
             $table->unsignedTinyInteger('quantity')->default(1);
