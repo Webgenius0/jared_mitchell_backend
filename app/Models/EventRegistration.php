@@ -3,20 +3,43 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 class EventRegistration extends Model
 {
     use SoftDeletes;
 
     protected $fillable = [
-        'booking_reference', 'event_id', 'ticket_tier_id', 'first_name',
-        'last_name', 'email', 'phone_number', 'user_id', 'quantity',
-        'unit_price', 'service_fee', 'subtotal', 'total', 'currency',
-        'payment_status', 'payment_intent_id', 'payment_method',
-        'paid_at', 'status', 'confirmed_at', 'cancelled_at',
-        'cancellation_reason', 'qr_code', 'checked_in_at'
+        'booking_reference',
+        'status',
+        'event_id',
+        'ticket_tier_id',
+        'user_id',
+        'first_name',
+        'last_name',
+        'email',
+        'phone_number',
+        'quantity',
+        'unit_price',
+        'service_fee',
+        'subtotal',
+        'total',
+        'currency',
+        'stripe_checkout_session_id',
+        'stripe_payment_intent_id',
+        'stripe_customer_id',
+        'stripe_charge_id',
+        'stripe_refund_id',
+        'payment_status',
+        'paid_at',
+        'confirmed_at',
+        'checked_in_at',
+        'cancelled_at',
+        'refunded_at',
+        'failed_at',
+        'qr_code',
+        'cancellation_reason',
     ];
 
     protected $casts = [
@@ -26,10 +49,17 @@ class EventRegistration extends Model
         'total' => 'decimal:2',
         'paid_at' => 'datetime',
         'confirmed_at' => 'datetime',
-        'cancelled_at' => 'datetime',
         'checked_in_at' => 'datetime',
+        'cancelled_at' => 'datetime',
+        'refunded_at' => 'datetime',
+        'failed_at' => 'datetime',
     ];
 
+    /*
+    |--------------------------------------------------------------------------
+    | Relationships
+    |--------------------------------------------------------------------------
+    */
     public function event()
     {
         return $this->belongsTo(Event::class);
@@ -37,7 +67,7 @@ class EventRegistration extends Model
 
     public function ticketTier()
     {
-        return $this->belongsTo(EventTicketTier::class, 'ticket_tier_id');
+        return $this->belongsTo(EventTicketTier::class);
     }
 
     public function user()
@@ -45,13 +75,33 @@ class EventRegistration extends Model
         return $this->belongsTo(User::class);
     }
 
-    protected static function boot()
+    /*
+    |--------------------------------------------------------------------------
+    | Model Events
+    |--------------------------------------------------------------------------
+    */
+    protected static function booted(): void
     {
-        parent::boot();
-        static::creating(function ($registration) {
-            if (!$registration->booking_reference) {
-                $registration->booking_reference = 'OSI-' . now()->format('Ymd') . '-' . strtoupper(\Illuminate\Support\Str::random(5));
+        static::creating(function (self $registration) {
+
+            if (empty($registration->booking_reference)) {
+                $registration->booking_reference = self::generateBookingReference();
             }
+
         });
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Helpers
+    |--------------------------------------------------------------------------
+    */
+    public static function generateBookingReference(): string
+    {
+        return sprintf(
+            'EVT-%s-%s',
+            now()->format('Ymd'),
+            strtoupper(Str::random(6))
+        );
     }
 }

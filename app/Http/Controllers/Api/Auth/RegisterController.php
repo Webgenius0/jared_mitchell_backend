@@ -28,11 +28,11 @@ class RegisterController extends Controller
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name'                 => 'required|string|max:100',
-            'email'                => 'required|string|email|max:150',
-            'password'             => 'required|string|min:6|confirmed',
-            'role'                 => 'required|in:5,6,7,8',
-            'artist_category_id'   => 'required_if:role,5|nullable|exists:artist_categories,id',
+            'name' => 'required|string|max:100',
+            'email' => 'required|string|email|max:150',
+            'password' => 'required|string|min:6|confirmed',
+            'role' => 'required|in:5,6,7,8',
+            'artist_category_id' => 'required_if:role,5|nullable|exists:artist_categories,id',
         ]);
 
         if ($validator->fails()) {
