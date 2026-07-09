@@ -289,6 +289,10 @@ Route::prefix('events')->name('admin.events.')->group(function () {
     Route::get('/data', [EventController::class, 'getData'])->name('data');
     Route::get('/create', [EventController::class, 'create'])->name('create');
     Route::post('/', [EventController::class, 'store'])->name('store');
+    Route::get('/export/csv', [EventController::class, 'export'])->name('export.csv');
+    Route::get('/export/excel', [EventController::class, 'exportExcel'])->name('export.excel');
+    Route::get('/export/pdf', [EventController::class, 'exportPdf'])->name('export.pdf');
+    Route::get('/{event}/review', [EventController::class, 'review'])->name('review');
     Route::get('/{event}', [EventController::class, 'show'])->name('show');
     Route::get('/{event}/edit', [EventController::class, 'edit'])->name('edit');
     Route::put('/{event}', [EventController::class, 'update'])->name('update');

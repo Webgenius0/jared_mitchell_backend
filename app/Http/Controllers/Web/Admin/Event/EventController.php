@@ -2,19 +2,32 @@
 
 namespace App\Http\Controllers\Web\Admin\Event;
 
+use App\Exports\EventsExport;
 use App\Helpers\FileHandle;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\EventTicketTier;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Yajra\DataTables\Facades\DataTables;
+
 
 class EventController extends Controller
 {
     public function index()
     {
-        return view('web.admin.events.index');
+        $stats = [
+            'total'     => Event::count(),
+            'published' => Event::where('status', 'published')->count(),
+            'draft'     => Event::where('status', 'draft')->count(),
+            'cancelled' => Event::where('status', 'cancelled')->count(),
+            'completed' => Event::where('status', 'completed')->count(),
+        ];
+
+        return view('web.admin.events.index', compact('stats'));
     }
 
     /**
@@ -23,6 +36,33 @@ class EventController extends Controller
     public function getData(Request $request)
     {
         $query = Event::withCount('registrations')->latest();
+
+        // Apply filters
+        if ($request->filled('search_query')) {
+            $search = $request->search_query;
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('city', 'like', "%{$search}%")
+                  ->orWhere('venue_name', 'like', "%{$search}%")
+                  ->orWhere('hosted_by', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('event_type')) {
+            $query->where('event_type', $request->event_type);
+        }
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('starts_at', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('starts_at', '<=', $request->date_to);
+        }
 
         return DataTables::of($query)
             ->addIndexColumn()
@@ -72,7 +112,8 @@ class EventController extends Controller
 
     public function create()
     {
-        return view('web.admin.events.create');
+        $artists = \App\Models\User::role('artist', 'api')->with('profile')->get();
+        return view('web.admin.events.create', compact('artists'));
     }
 
     public function store(Request $request)
@@ -95,14 +136,23 @@ class EventController extends Controller
             // 'is_featured' => 'boolean',
             'status' => 'required|in:draft,published,cancelled,completed',
             'cover_image' => 'nullable|image|max:2048',
-            'promo_video' => 'nullable|mimes:mp4,mov,avi|max:20480',
+            'promo_video' => 'nullable|mimetypes:video/mp4,video/quicktime,video/x-msvideo,video/avi|max:20480',
             'ticket_tiers' => 'required|array|min:1',
             'ticket_tiers.*.name' => 'required|string|max:255',
             'ticket_tiers.*.price' => 'required|numeric|min:0',
+            'ticket_tiers.*.service_fee' => 'nullable|numeric|min:0',
             'ticket_tiers.*.quantity_available' => 'nullable|integer|min:1',
+            'ticket_tiers.*.sale_starts_at' => 'nullable|date',
+            'ticket_tiers.*.sale_ends_at' => 'nullable|date|after_or_equal:ticket_tiers.*.sale_starts_at',
+            'ticket_tiers.*.description' => 'nullable|string',
+            'event_media' => 'nullable|array',
+            'event_media.*.type' => 'required_with:event_media|in:image,video',
+            'event_media.*.file' => 'required_with:event_media|file|mimes:jpeg,png,jpg,gif,mp4,mov,avi|max:20480',
+            'artists' => 'nullable|array',
+            'artists.*' => 'exists:users,id',
         ]);
 
-        $data = $request->except(['cover_image', 'promo_video', 'ticket_tiers']);
+        $data = $request->except(['cover_image', 'promo_video', 'ticket_tiers', 'event_media', 'artists']);
         $data['is_spotlight_eligible'] = $request->has('is_spotlight_eligible') ? true : false;
         $data['is_featured'] = $request->has('is_featured') ? true : false;
         $data['created_by'] = auth()->id();
@@ -112,13 +162,40 @@ class EventController extends Controller
 
         $event = Event::create($data);
 
+        if ($request->has('artists')) {
+            $event->artists()->sync($request->artists);
+        }
+
         foreach ($request->ticket_tiers as $index => $tierData) {
             $event->ticketTiers()->create([
                 'name' => $tierData['name'],
                 'price' => $tierData['price'],
+                'service_fee' => $tierData['service_fee'] ?? 0.00,
                 'quantity_available' => $tierData['quantity_available'],
+                'sale_starts_at' => $tierData['sale_starts_at'] ?? null,
+                'sale_ends_at' => $tierData['sale_ends_at'] ?? null,
+                'description' => $tierData['description'] ?? null,
                 'sort_order' => $index,
             ]);
+        }
+
+        if ($request->has('event_media')) {
+            foreach ($request->event_media as $mediaData) {
+                if (isset($mediaData['file']) && $mediaData['file'] instanceof \Illuminate\Http\UploadedFile) {
+                    $mediaFile = $mediaData['file'];
+                    $mediaType = $mediaData['type'];
+                    $path = FileHandle::fileUpload($mediaFile, "events/media");
+                    if ($path) {
+                        $event->media()->create([
+                            'media_type' => $mediaType,
+                            'file_path' => $path,
+                            'file_name' => $mediaFile->getClientOriginalName(),
+                            'mime_type' => $mediaFile->getMimeType(),
+                            'file_size' => $mediaFile->getSize(),
+                        ]);
+                    }
+                }
+            }
         }
 
         return redirect()->route('admin.events.index')->with('success', 'Event created successfully.');
@@ -126,8 +203,9 @@ class EventController extends Controller
 
     public function edit(Event $event)
     {
-        $event->load('ticketTiers');
-        return view('web.admin.events.edit', compact('event'));
+        $event->load(['ticketTiers', 'artists']);
+        $artists = \App\Models\User::role('artist', 'api')->with('profile')->get();
+        return view('web.admin.events.edit', compact('event', 'artists'));
     }
 
     public function update(Request $request, Event $event)
@@ -148,15 +226,24 @@ class EventController extends Controller
             // 'is_featured' => 'boolean',
             'status' => 'required|in:draft,published,cancelled,completed',
             'cover_image' => 'nullable|image|max:2048',
-            'promo_video' => 'nullable|mimes:mp4,mov,avi|max:20480',
+            'promo_video' => 'nullable|mimetypes:video/mp4,video/quicktime,video/x-msvideo,video/avi|max:20480',
             'ticket_tiers' => 'required|array|min:1',
             'ticket_tiers.*.id' => 'nullable|exists:event_ticket_tiers,id',
             'ticket_tiers.*.name' => 'required|string|max:255',
             'ticket_tiers.*.price' => 'required|numeric|min:0',
+            'ticket_tiers.*.service_fee' => 'nullable|numeric|min:0',
             'ticket_tiers.*.quantity_available' => 'nullable|integer|min:1',
+            'ticket_tiers.*.sale_starts_at' => 'nullable|date',
+            'ticket_tiers.*.sale_ends_at' => 'nullable|date|after_or_equal:ticket_tiers.*.sale_starts_at',
+            'ticket_tiers.*.description' => 'nullable|string',
+            'event_media' => 'nullable|array',
+            'event_media.*.type' => 'nullable|in:image,video',
+            'event_media.*.file' => 'nullable|file|mimes:jpeg,png,jpg,gif,mp4,mov,avi|max:20480',
+            'artists' => 'nullable|array',
+            'artists.*' => 'exists:users,id',
         ]);
 
-        $data = $request->except(['cover_image', 'promo_video', 'ticket_tiers']);
+        $data = $request->except(['cover_image', 'promo_video', 'ticket_tiers', 'event_media', 'artists']);
         $data['is_spotlight_eligible'] = $request->has('is_spotlight_eligible') ? true : false;
         $data['is_featured'] = $request->has('is_featured') ? true : false;
 
@@ -164,6 +251,12 @@ class EventController extends Controller
         $data = $this->handleFileUploads($request, $data, $event);
 
         $event->update($data);
+
+        if ($request->has('artists')) {
+            $event->artists()->sync($request->artists);
+        } else {
+            $event->artists()->sync([]);
+        }
 
         // Simple sync for ticket tiers
         $existingTierIds = collect($request->ticket_tiers)->pluck('id')->filter()->toArray();
@@ -174,16 +267,43 @@ class EventController extends Controller
                 $event->ticketTiers()->where('id', $tierData['id'])->update([
                     'name' => $tierData['name'],
                     'price' => $tierData['price'],
+                    'service_fee' => $tierData['service_fee'] ?? 0.00,
                     'quantity_available' => $tierData['quantity_available'],
+                    'sale_starts_at' => $tierData['sale_starts_at'] ?? null,
+                    'sale_ends_at' => $tierData['sale_ends_at'] ?? null,
+                    'description' => $tierData['description'] ?? null,
                     'sort_order' => $index,
                 ]);
             } else {
                 $event->ticketTiers()->create([
                     'name' => $tierData['name'],
                     'price' => $tierData['price'],
+                    'service_fee' => $tierData['service_fee'] ?? 0.00,
                     'quantity_available' => $tierData['quantity_available'],
+                    'sale_starts_at' => $tierData['sale_starts_at'] ?? null,
+                    'sale_ends_at' => $tierData['sale_ends_at'] ?? null,
+                    'description' => $tierData['description'] ?? null,
                     'sort_order' => $index,
                 ]);
+            }
+        }
+
+        if ($request->has('event_media')) {
+            foreach ($request->event_media as $mediaData) {
+                if (isset($mediaData['file']) && $mediaData['file'] instanceof \Illuminate\Http\UploadedFile) {
+                    $mediaFile = $mediaData['file'];
+                    $mediaType = $mediaData['type'];
+                    $path = FileHandle::fileUpload($mediaFile, "events/media");
+                    if ($path) {
+                        $event->media()->create([
+                            'media_type' => $mediaType,
+                            'file_path' => $path,
+                            'file_name' => $mediaFile->getClientOriginalName(),
+                            'mime_type' => $mediaFile->getMimeType(),
+                            'file_size' => $mediaFile->getSize(),
+                        ]);
+                    }
+                }
             }
         }
 
@@ -192,8 +312,127 @@ class EventController extends Controller
 
     public function show(Event $event)
     {
-        $event->load(['ticketTiers', 'registrations.user']);
-        return view('web.admin.events.show', compact('event'));
+        $event->load(['ticketTiers', 'registrations.user', 'artists', 'media']);
+        $artists = \App\Models\User::role('artist', 'api')->with('profile')->get();
+        return view('web.admin.events.show', compact('event', 'artists'));
+    }
+
+    public function review(Event $event)
+    {
+        $event->load(['ticketTiers', 'media']);
+        return view('web.admin.events.review', compact('event'));
+    }
+
+    /**
+     * Export filtered events as CSV.
+     */
+    public function export(Request $request): StreamedResponse
+    {
+        $query = Event::query();
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        if ($request->filled('event_type')) {
+            $query->where('event_type', $request->event_type);
+        }
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('city', 'like', "%{$search}%")
+                  ->orWhere('venue_name', 'like', "%{$search}%")
+                  ->orWhere('hosted_by', 'like', "%{$search}%");
+            });
+        }
+        if ($request->filled('date_from')) {
+            $query->whereDate('starts_at', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('starts_at', '<=', $request->date_to);
+        }
+
+        $events = $query->latest()->get();
+
+        $response = new StreamedResponse(function () use ($events) {
+            $handle = fopen('php://output', 'w');
+            fwrite($handle, "\xEF\xBB\xBF"); // BOM for Excel UTF-8
+
+            fputcsv($handle, [
+                'ID', 'Title', 'Event Type', 'Status',
+                'City', 'Venue', 'Hosted By', 'Starts At', 'Ends At', 'Timezone',
+            ]);
+
+            foreach ($events as $event) {
+                fputcsv($handle, [
+                    $event->id,
+                    $event->title,
+                    ucwords(str_replace('_', ' ', $event->event_type)),
+                    ucfirst($event->status),
+                    $event->city ?? '—',
+                    $event->venue_name ?? '—',
+                    $event->hosted_by ?? '—',
+                    $event->starts_at?->format('Y-m-d H:i') ?? '—',
+                    $event->ends_at?->format('Y-m-d H:i') ?? '—',
+                    $event->timezone ?? '—',
+                ]);
+            }
+
+            fclose($handle);
+        });
+
+        $filename = 'events-' . now()->format('Y-m-d_Hi') . '.csv';
+        $response->headers->set('Content-Type', 'text/csv; charset=UTF-8');
+        $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
+
+        return $response;
+    }
+
+    /**
+     * Export filtered events as Excel (.xlsx).
+     */
+    public function exportExcel(Request $request)
+    {
+        $filename = 'events-' . now()->format('Y-m-d_Hi') . '.xlsx';
+
+        return Excel::download(new EventsExport($request), $filename);
+    }
+
+    /**
+     * Export filtered events as PDF.
+     */
+    public function exportPdf(Request $request)
+    {
+        $query = Event::query();
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        if ($request->filled('event_type')) {
+            $query->where('event_type', $request->event_type);
+        }
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('city', 'like', "%{$search}%")
+                  ->orWhere('venue_name', 'like', "%{$search}%")
+                  ->orWhere('hosted_by', 'like', "%{$search}%");
+            });
+        }
+        if ($request->filled('date_from')) {
+            $query->whereDate('starts_at', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('starts_at', '<=', $request->date_to);
+        }
+
+        $events = $query->latest()->get();
+
+        $pdf = Pdf::loadView('web.admin.events.export-pdf', compact('events'));
+        $pdf->setPaper('a4', 'landscape');
+
+        return $pdf->download('events-' . now()->format('Y-m-d_Hi') . '.pdf');
     }
 
     public function destroy(Event $event)
