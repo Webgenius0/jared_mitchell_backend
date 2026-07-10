@@ -32,6 +32,16 @@ class Event extends Model
         return $this->hasMany(EventTicketTier::class)->orderBy('sort_order');
     }
 
+    public function media()
+    {
+        return $this->hasMany(EventMedia::class);
+    }
+
+    public function artists()
+    {
+        return $this->belongsToMany(User::class, 'event_artists', 'event_id', 'artist_id')->withTimestamps();
+    }
+
     public function registrations()
     {
         return $this->hasMany(EventRegistration::class);

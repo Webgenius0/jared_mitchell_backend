@@ -21,41 +21,136 @@
                 <div class="col-lg-8">
                     <div class="card">
                         <div class="card-body">
+                            <div class="card mb-4"
+                                style="border:1px solid #ddd; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,0.18); background:#fff;">
+                                <div class="card-body">
+
+                                    <div class="mb-3">
+                                        <label for="title" class="form-label">
+                                            Event Title <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="text" class="form-control @error('title') is-invalid @enderror"
+                                            id="title" name="title" value="{{ old('title', $event->title) }}" required>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Description</label>
+                                        <div id="descriptionEditor" class="snow-editor" style="height:220px;"></div>
+                                        <input type="hidden" id="description" name="description"
+                                            value="{{ old('description', $event->description) }}">
+                                    </div>
+
+                                </div>
+                            </div>
+                            <div class="card mb-4"
+                                style="border:1px solid #e5e7eb; border-radius:14px; box-shadow:0 6px 20px rgba(0,0,0,.12), 0 2px 6px rgba(0,0,0,.08); background:#fff;">
+
+                                <div class="card-body">
+
+                                    <h5 class="mb-4 fw-semibold">Event Location</h5>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="venue_name" class="form-label">Venue Name</label>
+                                                <input type="text" class="form-control @error('venue_name') is-invalid @enderror" id="venue_name" name="venue_name" value="{{ old('venue_name', $event->venue_name) }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="address" class="form-label">Address</label>
+                                                <input type="text" class="form-control @error('address') is-invalid @enderror" id="address" name="address" value="{{ old('address', $event->address) }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="city" class="form-label">City <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control @error('city') is-invalid @enderror" id="city" name="city" value="{{ old('city', $event->city) }}" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="state" class="form-label">State <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control @error('state') is-invalid @enderror" id="state" name="state" value="{{ old('state', $event->state) }}" required>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header border-bottom-dashed bg-transparent">
+                            <div class="d-flex align-items-center">
+                                <h5 class="card-title mb-0 flex-grow-1 fw-semibold">Event Media</h5>
+                                <div class="flex-shrink-0">
+                                    <button type="button" class="btn btn-soft-primary btn-sm" id="add-media"><i class="ri-add-line align-middle me-1"></i> Add Media</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div id="event-media-container">
+                                @if($event->media && $event->media->count() > 0)
+                                    <div class="row mb-4">
+                                        <h6 class="text-muted mb-3">Existing Media</h6>
+                                        @foreach($event->media as $mediaItem)
+                                        <div class="col-md-3 mb-3">
+                                            <div class="border rounded p-2 text-center h-100">
+                                                @if($mediaItem->media_type === 'image')
+                                                    <img src="{{ asset($mediaItem->file_path) }}" class="img-fluid rounded mb-2" style="max-height: 120px; object-fit: contain;">
+                                                @else
+                                                    <video src="{{ asset($mediaItem->file_path) }}" class="rounded mb-2" style="max-height: 120px; max-width: 100%;" controls></video>
+                                                @endif
+                                                <p class="small text-truncate mb-0">{{ $mediaItem->file_name }}</p>
+                                            </div>
+                                        </div>
+                                        @endforeach
+                                    </div>
+                                    <hr>
+                                    <h6 class="text-muted mb-3">Add New Media</h6>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header border-bottom-dashed">
+                            <h5 class="card-title mb-0">Assign Artists</h5>
+                        </div>
+                        <div class="card-body">
                             <div class="mb-3">
-                                <label for="title" class="form-label">Event Title <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control @error('title') is-invalid @enderror" id="title" name="title" value="{{ old('title', $event->title) }}" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="description" class="form-label">Description</label>
-                                <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="5">{{ old('description', $event->description) }}</textarea>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="venue_name" class="form-label">Venue Name</label>
-                                        <input type="text" class="form-control @error('venue_name') is-invalid @enderror" id="venue_name" name="venue_name" value="{{ old('venue_name', $event->venue_name) }}">
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="address" class="form-label">Address</label>
-                                        <input type="text" class="form-control @error('address') is-invalid @enderror" id="address" name="address" value="{{ old('address', $event->address) }}">
-                                    </div>
+                                <label class="form-label">Select Artist</label>
+                                <div class="input-group">
+                                    <select id="artist-select" class="form-select">
+                                        <option value="">-- Choose an Artist --</option>
+                                        @foreach($artists as $artist)
+                                            <option value="{{ $artist->id }}" 
+                                                data-name="{{ $artist->profile->name ?? $artist->email }}" 
+                                                data-image="{{ $artist->profile && $artist->profile->avatar_url ? asset('storage/' . $artist->profile->avatar_url) : asset('assets/images/users/user-dummy-img.jpg') }}">
+                                                {{ $artist->profile->name ?? $artist->email }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <button type="button" id="add-artist-btn" class="btn btn-primary">Add Artist</button>
                                 </div>
                             </div>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="city" class="form-label">City <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control @error('city') is-invalid @enderror" id="city" name="city" value="{{ old('city', $event->city) }}" required>
+                            <div id="assigned-artists-container" class="row g-3 mt-2">
+                                @foreach($event->artists as $assignedArtist)
+                                    <div class="col-sm-6 col-md-4 col-lg-3 artist-card-item">
+                                        <div class="card border shadow-none mb-0">
+                                            <div class="card-body text-center p-3">
+                                                <input type="hidden" name="artists[]" value="{{ $assignedArtist->id }}">
+                                                <img src="{{ $assignedArtist->profile && $assignedArtist->profile->avatar_url ? asset('storage/' . $assignedArtist->profile->avatar_url) : asset('assets/images/users/user-dummy-img.jpg') }}" alt="" class="rounded-circle avatar-md mb-2 object-fit-cover" style="width: 64px; height: 64px;">
+                                                <h6 class="mb-2 text-truncate" title="{{ $assignedArtist->profile->name ?? $assignedArtist->email }}">{{ $assignedArtist->profile->name ?? $assignedArtist->email }}</h6>
+                                                <button type="button" class="btn btn-sm btn-soft-danger remove-artist-btn w-100">Remove</button>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="state" class="form-label">State <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control @error('state') is-invalid @enderror" id="state" name="state" value="{{ old('state', $event->state) }}" required>
-                                    </div>
-                                </div>
+                                @endforeach
                             </div>
                         </div>
                     </div>
@@ -81,13 +176,19 @@
                                                 <input type="text" name="ticket_tiers[{{ $index }}][name]" class="form-control" value="{{ $tier->name }}" required>
                                             </div>
                                         </div>
-                                        <div class="col-md-3">
+                                        <div class="col-md-2">
                                             <div class="mb-2">
                                                 <label class="form-label">Price ($)</label>
                                                 <input type="number" step="0.01" name="ticket_tiers[{{ $index }}][price]" class="form-control" value="{{ $tier->price }}" required>
                                             </div>
                                         </div>
-                                        <div class="col-md-3">
+                                        <div class="col-md-2">
+                                            <div class="mb-2">
+                                                <label class="form-label">Service Fee ($)</label>
+                                                <input type="number" step="0.01" name="ticket_tiers[{{ $index }}][service_fee]" class="form-control" value="{{ $tier->service_fee }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
                                             <div class="mb-2">
                                                 <label class="form-label">Quantity</label>
                                                 <input type="number" name="ticket_tiers[{{ $index }}][quantity_available]" class="form-control" value="{{ $tier->quantity_available }}">
@@ -95,6 +196,24 @@
                                         </div>
                                         <div class="col-md-2 mt-4 text-end">
                                             <button type="button" class="btn btn-soft-danger btn-icon waves-effect waves-light remove-tier"><i class="ri-delete-bin-5-line"></i></button>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-2">
+                                                <label class="form-label">Sale Start Date</label>
+                                                <input type="datetime-local" name="ticket_tiers[{{ $index }}][sale_starts_at]" class="form-control" value="{{ $tier->sale_starts_at ? \Carbon\Carbon::parse($tier->sale_starts_at)->format('Y-m-d\TH:i') : '' }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-2">
+                                                <label class="form-label">Sale End Date</label>
+                                                <input type="datetime-local" name="ticket_tiers[{{ $index }}][sale_ends_at]" class="form-control" value="{{ $tier->sale_ends_at ? \Carbon\Carbon::parse($tier->sale_ends_at)->format('Y-m-d\TH:i') : '' }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <div class="mb-2">
+                                                <label class="form-label">Description</label>
+                                                <textarea name="ticket_tiers[{{ $index }}][description]" class="form-control" rows="2">{{ $tier->description }}</textarea>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -107,20 +226,44 @@
                                                 <input type="text" name="ticket_tiers[0][name]" class="form-control" required placeholder="e.g. Early Bird">
                                             </div>
                                         </div>
-                                        <div class="col-md-3">
+                                        <div class="col-md-2">
                                             <div class="mb-2">
                                                 <label class="form-label">Price ($)</label>
                                                 <input type="number" step="0.01" name="ticket_tiers[0][price]" class="form-control" required placeholder="0.00">
                                             </div>
                                         </div>
-                                        <div class="col-md-3">
+                                        <div class="col-md-2">
+                                            <div class="mb-2">
+                                                <label class="form-label">Service Fee ($)</label>
+                                                <input type="number" step="0.01" name="ticket_tiers[0][service_fee]" class="form-control" placeholder="0.00">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
                                             <div class="mb-2">
                                                 <label class="form-label">Quantity</label>
-                                                <input type="number" name="ticket_tiers[0][quantity_available]" class="form-control" placeholder="Leave blank for unlimited">
+                                                <input type="number" name="ticket_tiers[0][quantity_available]" class="form-control" placeholder="Unlimited">
                                             </div>
                                         </div>
                                         <div class="col-md-2 mt-4 text-end">
                                             <button type="button" class="btn btn-soft-danger btn-icon waves-effect waves-light remove-tier"><i class="ri-delete-bin-5-line"></i></button>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-2">
+                                                <label class="form-label">Sale Start Date</label>
+                                                <input type="datetime-local" name="ticket_tiers[0][sale_starts_at]" class="form-control">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-2">
+                                                <label class="form-label">Sale End Date</label>
+                                                <input type="datetime-local" name="ticket_tiers[0][sale_ends_at]" class="form-control">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <div class="mb-2">
+                                                <label class="form-label">Description</label>
+                                                <textarea name="ticket_tiers[0][description]" class="form-control" rows="2" placeholder="Brief description of this tier..."></textarea>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -147,16 +290,20 @@
                                         <input class="form-control d-none" id="cover_image" name="cover_image" type="file" accept="image/png, image/gif, image/jpeg">
                                     </div>
                                     <div class="avatar-lg bg-light rounded shadow">
-                                        <img src="{{ $event->cover_image_path ? asset('storage/' . $event->cover_image_path) : asset('admin/assets/images/default/no-img.png') }}" id="cover_image_preview" class="avatar-lg rounded object-fit-cover">
+                                        <img src="{{ $event->cover_image_path ? asset($event->cover_image_path) : asset('admin/assets/images/default/no-img.png') }}" id="cover_image_preview" class="avatar-lg rounded object-fit-cover">
                                     </div>
                                 </div>
                             </div>
                             <div class="mb-3">
                                 <label for="promo_video" class="form-label">Promo Video (Max 20MB)</label>
-                                <input type="file" class="form-control @error('promo_video') is-invalid @enderror" id="promo_video" name="promo_video" accept="video/*">
                                 @if($event->promo_video_path)
-                                    <p class="text-muted small mt-1">Current: <a href="{{ asset('storage/' . $event->promo_video_path) }}" target="_blank">View Video</a></p>
+                                    <div class="mb-2">
+                                        <video src="{{ asset($event->promo_video_path) }}" class="w-100 rounded" style="max-height: 200px;" controls></video>
+                                        <p class="text-muted small mt-1"><i class="ri-video-line me-1"></i>Current video — upload a new one below to replace it.</p>
+                                    </div>
                                 @endif
+                                <input type="file" class="form-control @error('promo_video') is-invalid @enderror" id="promo_video" name="promo_video" accept="video/*">
+                                @error('promo_video')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
                             <hr>
                             <div class="mb-3">
@@ -236,6 +383,28 @@
     @endif
 
     document.addEventListener('DOMContentLoaded', function() {
+
+        // ── Quill Description Sync ───────────────────────────────
+        // Read directly from .ql-editor DOM element — avoids Quill.find() timing issues
+        const descHiddenInput = document.getElementById('description');
+        const qlEditorEl = document.querySelector('#descriptionEditor .ql-editor');
+
+        // Load existing value into Quill editor on page load
+        if (qlEditorEl && descHiddenInput && descHiddenInput.value) {
+            qlEditorEl.innerHTML = descHiddenInput.value;
+        }
+
+        // On submit, push Quill content into hidden input
+        const eventForm = document.querySelector('form[action*="events"]');
+        if (eventForm) {
+            eventForm.addEventListener('submit', function () {
+                if (qlEditorEl && descHiddenInput) {
+                    const content = qlEditorEl.innerHTML;
+                    descHiddenInput.value = (content === '<p><br></p>' || content === '<p></p>') ? '' : content;
+                }
+            });
+        }
+
         let tierIndex = {{ $event->ticketTiers->count() }};
         const container = document.getElementById('ticket-tiers-container');
         const addButton = document.getElementById('add-tier');
@@ -251,20 +420,44 @@
                                 <input type="text" name="ticket_tiers[${tierIndex}][name]" class="form-control" required placeholder="e.g. Regular">
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <div class="mb-2">
                                 <label class="form-label">Price ($)</label>
                                 <input type="number" step="0.01" name="ticket_tiers[${tierIndex}][price]" class="form-control" required placeholder="0.00">
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
+                            <div class="mb-2">
+                                <label class="form-label">Service Fee ($)</label>
+                                <input type="number" step="0.01" name="ticket_tiers[${tierIndex}][service_fee]" class="form-control" placeholder="0.00">
+                            </div>
+                        </div>
+                        <div class="col-md-2">
                             <div class="mb-2">
                                 <label class="form-label">Quantity</label>
-                                <input type="number" name="ticket_tiers[${tierIndex}][quantity_available]" class="form-control" placeholder="Leave blank for unlimited">
+                                <input type="number" name="ticket_tiers[${tierIndex}][quantity_available]" class="form-control" placeholder="Unlimited">
                             </div>
                         </div>
                         <div class="col-md-2 mt-4 text-end">
                             <button type="button" class="btn btn-soft-danger btn-icon waves-effect waves-light remove-tier"><i class="ri-delete-bin-5-line"></i></button>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-2">
+                                <label class="form-label">Sale Start Date</label>
+                                <input type="datetime-local" name="ticket_tiers[${tierIndex}][sale_starts_at]" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-2">
+                                <label class="form-label">Sale End Date</label>
+                                <input type="datetime-local" name="ticket_tiers[${tierIndex}][sale_ends_at]" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="mb-2">
+                                <label class="form-label">Description</label>
+                                <textarea name="ticket_tiers[${tierIndex}][description]" class="form-control" rows="2" placeholder="Brief description of this tier..."></textarea>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -284,6 +477,142 @@
                 }
             }
         });
+
+        // Media Logic
+        let mediaIndex = 1;
+        const mediaContainer = document.getElementById('event-media-container');
+        const addMediaBtn = document.getElementById('add-media');
+
+        if (addMediaBtn) {
+            addMediaBtn.addEventListener('click', function () {
+                const html = `
+                    <div class="media-item border p-3 rounded mb-3 bg-light">
+                        <div class="row align-items-center">
+                            <div class="col-md-3">
+                                <div class="mb-2">
+                                    <label class="form-label">Media Type <span class="text-danger">*</span></label>
+                                    <select name="event_media[${mediaIndex}][type]" class="form-select media-type-select" required>
+                                        <option value="image">Image</option>
+                                        <option value="video">Video</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="mb-2">
+                                    <label class="form-label">Upload File <span class="text-danger">*</span></label>
+                                    <input type="file" name="event_media[${mediaIndex}][file]" class="form-control media-file-input" required accept="image/*">
+                                </div>
+                            </div>
+                            <div class="col-md-3 text-center">
+                                <div class="media-preview-container border bg-white rounded d-flex align-items-center justify-content-center" style="height: 60px; overflow: hidden;">
+                                    <span class="text-muted small">No Preview</span>
+                                </div>
+                            </div>
+                            <div class="col-md-1 text-end">
+                                <button type="button" class="btn btn-soft-danger btn-icon waves-effect waves-light remove-media"><i class="ri-delete-bin-5-line"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                mediaContainer.insertAdjacentHTML('beforeend', html);
+                mediaIndex++;
+            });
+        }
+
+        if (mediaContainer) {
+            mediaContainer.addEventListener('click', function (e) {
+                if (e.target.closest('.remove-media')) {
+                    const item = e.target.closest('.media-item');
+                    item.remove();
+                }
+            });
+
+            mediaContainer.addEventListener('change', function (e) {
+                if (e.target.classList.contains('media-type-select')) {
+                    const type = e.target.value;
+                    const item = e.target.closest('.media-item');
+                    const fileInput = item.querySelector('.media-file-input');
+                    const previewContainer = item.querySelector('.media-preview-container');
+                    
+                    fileInput.value = "";
+                    previewContainer.innerHTML = '<span class="text-muted small">No Preview</span>';
+                    
+                    if (type === 'image') {
+                        fileInput.setAttribute('accept', 'image/*');
+                    } else {
+                        fileInput.setAttribute('accept', 'video/*');
+                    }
+                }
+
+                if (e.target.classList.contains('media-file-input')) {
+                    const fileInput = e.target;
+                    const item = e.target.closest('.media-item');
+                    const typeSelect = item.querySelector('.media-type-select').value;
+                    const previewContainer = item.querySelector('.media-preview-container');
+                    
+                    if (fileInput.files && fileInput.files[0]) {
+                        const file = fileInput.files[0];
+                        if (typeSelect === 'image') {
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                previewContainer.innerHTML = `<img src="${e.target.result}" style="max-height: 100%; max-width: 100%; object-fit: contain;">`;
+                            }
+                            reader.readAsDataURL(file);
+                        } else if (typeSelect === 'video') {
+                            const url = URL.createObjectURL(file);
+                            previewContainer.innerHTML = `<video src="${url}" style="max-height: 100%; max-width: 100%; object-fit: contain;" controls></video>`;
+                        }
+                    } else {
+                        previewContainer.innerHTML = '<span class="text-muted small">No Preview</span>';
+                    }
+                }
+            });
+        }
+
+        // Assign Artists Logic
+        const artistSelect = document.getElementById('artist-select');
+        const addArtistBtn = document.getElementById('add-artist-btn');
+        const assignedArtistsContainer = document.getElementById('assigned-artists-container');
+
+        if (addArtistBtn) {
+            addArtistBtn.addEventListener('click', function() {
+                const selectedOption = artistSelect.options[artistSelect.selectedIndex];
+                if (!selectedOption.value) return;
+
+                const artistId = selectedOption.value;
+                const artistName = selectedOption.getAttribute('data-name');
+                const artistImage = selectedOption.getAttribute('data-image');
+
+                if (document.querySelector(`input[name="artists[]"][value="${artistId}"]`)) {
+                    alert('Artist already assigned to this event.');
+                    return;
+                }
+
+                const cardHtml = `
+                    <div class="col-sm-6 col-md-4 col-lg-3 artist-card-item">
+                        <div class="card border shadow-none mb-0">
+                            <div class="card-body text-center p-3">
+                                <input type="hidden" name="artists[]" value="${artistId}">
+                                <img src="${artistImage}" alt="" class="rounded-circle avatar-md mb-2 object-fit-cover" style="width: 64px; height: 64px;">
+                                <h6 class="mb-2 text-truncate" title="${artistName}">${artistName}</h6>
+                                <button type="button" class="btn btn-sm btn-soft-danger remove-artist-btn w-100">Remove</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                assignedArtistsContainer.insertAdjacentHTML('beforeend', cardHtml);
+                artistSelect.value = '';
+            });
+        }
+
+        if (assignedArtistsContainer) {
+            assignedArtistsContainer.addEventListener('click', function(e) {
+                if (e.target.classList.contains('remove-artist-btn')) {
+                    e.target.closest('.artist-card-item').remove();
+                }
+            });
+        }
 
         // Cover Image Preview
         document.getElementById('cover_image').addEventListener('change', function(e) {
