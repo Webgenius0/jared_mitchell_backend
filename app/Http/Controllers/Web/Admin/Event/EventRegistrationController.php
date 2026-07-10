@@ -23,10 +23,10 @@ class EventRegistrationController extends Controller
     public function index()
     {
         $stats = [
-            'total'        => EventRegistration::count(),
-            'confirmed'    => EventRegistration::where('status', 'confirmed')->count(),
-            'pending'      => EventRegistration::where('status', 'pending')->count(),
-            'cancelled'    => EventRegistration::where('status', 'cancelled')->count(),
+            'total' => EventRegistration::count(),
+            'confirmed' => EventRegistration::where('status', 'confirmed')->count(),
+            'pending' => EventRegistration::where('status', 'pending')->count(),
+            'cancelled' => EventRegistration::where('status', 'cancelled')->count(),
             'total_revenue' => EventRegistration::where('payment_status', 'paid')->sum('total'),
         ];
 
@@ -55,12 +55,12 @@ class EventRegistrationController extends Controller
             $search = $request->search_query;
             $query->where(function ($q) use ($search) {
                 $q->where('booking_reference', 'like', "%{$search}%")
-                  ->orWhere('first_name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhereHas('event', function ($sub) use ($search) {
-                      $sub->where('title', 'like', "%{$search}%");
-                  });
+                    ->orWhere('first_name', 'like', "%{$search}%")
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhereHas('event', function ($sub) use ($search) {
+                        $sub->where('title', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -111,11 +111,11 @@ class EventRegistrationController extends Controller
             })
             ->addColumn('payment_status', function ($row) {
                 $statuses = [
-                    'paid'      => 'bg-success-subtle text-success',
-                    'pending'   => 'bg-warning-subtle text-warning',
-                    'failed'    => 'bg-danger-subtle text-danger',
-                    'refunded'  => 'bg-info-subtle text-info',
-                    'unpaid'    => 'bg-secondary-subtle text-secondary',
+                    'paid' => 'bg-success-subtle text-success',
+                    'pending' => 'bg-warning-subtle text-warning',
+                    'failed' => 'bg-danger-subtle text-danger',
+                    'refunded' => 'bg-info-subtle text-info',
+                    'unpaid' => 'bg-secondary-subtle text-secondary',
                 ];
                 $class = $statuses[$row->payment_status] ?? 'bg-secondary-subtle text-secondary';
                 $label = $row->payment_status ? ucfirst($row->payment_status) : 'Unpaid';
@@ -123,11 +123,11 @@ class EventRegistrationController extends Controller
             })
             ->addColumn('registration_status', function ($row) {
                 $statuses = [
-                    'confirmed'  => 'bg-success-subtle text-success',
-                    'pending'    => 'bg-warning-subtle text-warning',
-                    'cancelled'  => 'bg-danger-subtle text-danger',
+                    'confirmed' => 'bg-success-subtle text-success',
+                    'pending' => 'bg-warning-subtle text-warning',
+                    'cancelled' => 'bg-danger-subtle text-danger',
                     'checked_in' => 'bg-info-subtle text-info',
-                    'failed'     => 'bg-danger-subtle text-danger',
+                    'failed' => 'bg-danger-subtle text-danger',
                 ];
                 $class = $statuses[$row->status] ?? 'bg-secondary-subtle text-secondary';
                 return '<span class="badge ' . $class . '">' . ucfirst($row->status) . '</span>';
@@ -158,12 +158,12 @@ class EventRegistrationController extends Controller
             $search = $request->search_query;
             $query->where(function ($q) use ($search) {
                 $q->where('booking_reference', 'like', "%{$search}%")
-                  ->orWhere('first_name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhereHas('event', function ($sub) use ($search) {
-                      $sub->where('title', 'like', "%{$search}%");
-                  });
+                    ->orWhere('first_name', 'like', "%{$search}%")
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhereHas('event', function ($sub) use ($search) {
+                        $sub->where('title', 'like', "%{$search}%");
+                    });
             });
         }
         if ($request->filled('status')) {
@@ -186,10 +186,22 @@ class EventRegistrationController extends Controller
             fwrite($handle, "\xEF\xBB\xBF"); // BOM for Excel UTF-8
 
             fputcsv($handle, [
-                'ID', 'Booking Reference', 'Event', 'Event Date',
-                'Ticket Tier', 'Customer Name', 'Email', 'Phone',
-                'Quantity', 'Unit Price', 'Service Fee', 'Total', 'Currency',
-                'Payment Status', 'Registration Status', 'Registered At',
+                'ID',
+                'Booking Reference',
+                'Event',
+                'Event Date',
+                'Ticket Tier',
+                'Customer Name',
+                'Email',
+                'Phone',
+                'Quantity',
+                'Unit Price',
+                'Service Fee',
+                'Total',
+                'Currency',
+                'Payment Status',
+                'Registration Status',
+                'Registered At',
             ]);
 
             foreach ($registrations as $reg) {
@@ -245,12 +257,12 @@ class EventRegistrationController extends Controller
             $search = $request->search_query;
             $query->where(function ($q) use ($search) {
                 $q->where('booking_reference', 'like', "%{$search}%")
-                  ->orWhere('first_name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhereHas('event', function ($sub) use ($search) {
-                      $sub->where('title', 'like', "%{$search}%");
-                  });
+                    ->orWhere('first_name', 'like', "%{$search}%")
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhereHas('event', function ($sub) use ($search) {
+                        $sub->where('title', 'like', "%{$search}%");
+                    });
             });
         }
         if ($request->filled('status')) {
@@ -334,11 +346,11 @@ class EventRegistrationController extends Controller
 
         return response()->json([
             'message' => "Registration {$newStatus} successfully.",
-            'data'    => [
-                'status'              => $registration->fresh()->status,
-                'confirmed_at'       => $registration->fresh()->confirmed_at?->format('M d, Y h:i A'),
-                'checked_in_at'      => $registration->fresh()->checked_in_at?->format('M d, Y h:i A'),
-                'cancelled_at'       => $registration->fresh()->cancelled_at?->format('M d, Y h:i A'),
+            'data' => [
+                'status' => $registration->fresh()->status,
+                'confirmed_at' => $registration->fresh()->confirmed_at?->format('M d, Y h:i A'),
+                'checked_in_at' => $registration->fresh()->checked_in_at?->format('M d, Y h:i A'),
+                'cancelled_at' => $registration->fresh()->cancelled_at?->format('M d, Y h:i A'),
                 'cancellation_reason' => $registration->fresh()->cancellation_reason,
             ],
         ]);
@@ -359,9 +371,9 @@ class EventRegistrationController extends Controller
 
         // Define valid transitions
         $validTransitions = [
-            'unpaid'  => ['paid', 'failed'],
+            'unpaid' => ['paid', 'failed'],
             'pending' => ['paid', 'failed', 'refunded'],
-            'paid'    => ['refunded'],
+            'paid' => ['refunded'],
         ];
 
         if (!isset($validTransitions[$currentStatus]) || !in_array($newStatus, $validTransitions[$currentStatus])) {
@@ -388,11 +400,11 @@ class EventRegistrationController extends Controller
 
         return response()->json([
             'message' => "Payment marked as {$newStatus} successfully.",
-            'data'    => [
+            'data' => [
                 'payment_status' => $registration->fresh()->payment_status,
-                'paid_at'       => $registration->fresh()->paid_at?->format('M d, Y h:i A'),
-                'refunded_at'   => $registration->fresh()->refunded_at?->format('M d, Y h:i A'),
-                'failed_at'     => $registration->fresh()->failed_at?->format('M d, Y h:i A'),
+                'paid_at' => $registration->fresh()->paid_at?->format('M d, Y h:i A'),
+                'refunded_at' => $registration->fresh()->refunded_at?->format('M d, Y h:i A'),
+                'failed_at' => $registration->fresh()->failed_at?->format('M d, Y h:i A'),
             ],
         ]);
     }
@@ -416,50 +428,50 @@ class EventRegistrationController extends Controller
         $paymentTimeline = [];
         if ($registration->paid_at) {
             $paymentTimeline[] = [
-                'event'   => 'Payment Completed',
-                'date'    => $registration->paid_at->format('M d, Y h:i A'),
-                'icon'    => 'ri-checkbox-circle-fill',
-                'color'   => 'text-success',
+                'event' => 'Payment Completed',
+                'date' => $registration->paid_at->format('M d, Y h:i A'),
+                'icon' => 'ri-checkbox-circle-fill',
+                'color' => 'text-success',
             ];
         }
         if ($registration->confirmed_at) {
             $paymentTimeline[] = [
-                'event'   => 'Registration Confirmed',
-                'date'    => $registration->confirmed_at->format('M d, Y h:i A'),
-                'icon'    => 'ri-check-double-fill',
-                'color'   => 'text-primary',
+                'event' => 'Registration Confirmed',
+                'date' => $registration->confirmed_at->format('M d, Y h:i A'),
+                'icon' => 'ri-check-double-fill',
+                'color' => 'text-primary',
             ];
         }
         if ($registration->checked_in_at) {
             $paymentTimeline[] = [
-                'event'   => 'Checked In',
-                'date'    => $registration->checked_in_at->format('M d, Y h:i A'),
-                'icon'    => 'ri-door-open-fill',
-                'color'   => 'text-info',
+                'event' => 'Checked In',
+                'date' => $registration->checked_in_at->format('M d, Y h:i A'),
+                'icon' => 'ri-door-open-fill',
+                'color' => 'text-info',
             ];
         }
         if ($registration->cancelled_at) {
             $paymentTimeline[] = [
-                'event'   => 'Cancelled',
-                'date'    => $registration->cancelled_at->format('M d, Y h:i A'),
-                'icon'    => 'ri-close-circle-fill',
-                'color'   => 'text-danger',
+                'event' => 'Cancelled',
+                'date' => $registration->cancelled_at->format('M d, Y h:i A'),
+                'icon' => 'ri-close-circle-fill',
+                'color' => 'text-danger',
             ];
         }
         if ($registration->refunded_at) {
             $paymentTimeline[] = [
-                'event'   => 'Refunded',
-                'date'    => $registration->refunded_at->format('M d, Y h:i A'),
-                'icon'    => 'ri-refund-2-fill',
-                'color'   => 'text-warning',
+                'event' => 'Refunded',
+                'date' => $registration->refunded_at->format('M d, Y h:i A'),
+                'icon' => 'ri-refund-2-fill',
+                'color' => 'text-warning',
             ];
         }
         if ($registration->failed_at) {
             $paymentTimeline[] = [
-                'event'   => 'Payment Failed',
-                'date'    => $registration->failed_at->format('M d, Y h:i A'),
-                'icon'    => 'ri-error-warning-fill',
-                'color'   => 'text-danger',
+                'event' => 'Payment Failed',
+                'date' => $registration->failed_at->format('M d, Y h:i A'),
+                'icon' => 'ri-error-warning-fill',
+                'color' => 'text-danger',
             ];
         }
 
@@ -469,51 +481,51 @@ class EventRegistrationController extends Controller
         });
 
         $data = [
-            'id'                => $registration->id,
+            'id' => $registration->id,
             'booking_reference' => $registration->booking_reference,
-            'status'            => $registration->status,
-            'payment_status'    => $registration->payment_status,
-            'registered_at'     => $registration->created_at->format('M d, Y h:i A'),
-            'event'             => [
-                'id'         => $registration->event?->id,
-                'title'      => $registration->event?->title ?? 'N/A',
-                'starts_at'  => $registration->event?->starts_at?->format('M d, Y h:i A') ?? 'N/A',
-                'ends_at'    => $registration->event?->ends_at?->format('M d, Y h:i A') ?? 'N/A',
-                'venue'      => $registration->event?->venue_name ?? 'N/A',
-                'city'       => $registration->event?->city ?? 'N/A',
-                'state'      => $registration->event?->state ?? 'N/A',
-                'cover'      => $registration->event?->cover_image_path
+            'status' => $registration->status,
+            'payment_status' => $registration->payment_status,
+            'registered_at' => $registration->created_at->format('M d, Y h:i A'),
+            'event' => [
+                'id' => $registration->event?->id,
+                'title' => $registration->event?->title ?? 'N/A',
+                'starts_at' => $registration->event?->starts_at?->format('M d, Y h:i A') ?? 'N/A',
+                'ends_at' => $registration->event?->ends_at?->format('M d, Y h:i A') ?? 'N/A',
+                'venue' => $registration->event?->venue_name ?? 'N/A',
+                'city' => $registration->event?->city ?? 'N/A',
+                'state' => $registration->event?->state ?? 'N/A',
+                'cover' => $registration->event?->cover_image_path
                     ? asset($registration->event->cover_image_path)
                     : asset('admin/assets/images/default/no-img.png'),
-                'status'     => $registration->event?->status ?? 'N/A',
+                'status' => $registration->event?->status ?? 'N/A',
             ],
-            'customer'          => [
+            'customer' => [
                 'first_name' => $registration->first_name,
-                'last_name'  => $registration->last_name,
-                'email'      => $registration->email,
-                'phone'      => $registration->phone_number ?? '—',
+                'last_name' => $registration->last_name,
+                'email' => $registration->email,
+                'phone' => $registration->phone_number ?? '—',
                 'user_email' => $registration->user?->email ?? '—',
-                'avatar'     => $registration->user?->profile?->avatar_url
+                'avatar' => $registration->user?->profile?->avatar_url
                     ? asset($registration->user->profile->avatar_url)
                     : asset('admin/assets/images/default/user.jpg'),
             ],
-            'ticket'            => [
-                'tier_name'   => $registration->ticketTier?->name ?? 'N/A',
-                'quantity'    => $registration->quantity ?? 1,
-                'unit_price'  => Number::currency($registration->unit_price ?? 0, $currency),
+            'ticket' => [
+                'tier_name' => $registration->ticketTier?->name ?? 'N/A',
+                'quantity' => $registration->quantity ?? 1,
+                'unit_price' => Number::currency($registration->unit_price ?? 0, $currency),
                 'service_fee' => Number::currency($registration->service_fee ?? 0, $currency),
-                'subtotal'    => Number::currency($registration->subtotal ?? 0, $currency),
-                'total'       => Number::currency($registration->total ?? 0, $currency),
-                'currency'    => $currency,
+                'subtotal' => Number::currency($registration->subtotal ?? 0, $currency),
+                'total' => Number::currency($registration->total ?? 0, $currency),
+                'currency' => $currency,
             ],
-            'payment'           => [
+            'payment' => [
                 'stripe_session_id' => $registration->stripe_checkout_session_id ?? '—',
-                'stripe_pi_id'      => $registration->stripe_payment_intent_id ?? '—',
-                'stripe_customer'   => $registration->stripe_customer_id ?? '—',
-                'stripe_charge'     => $registration->stripe_charge_id ?? '—',
-                'stripe_refund'     => $registration->stripe_refund_id ?? '—',
+                'stripe_pi_id' => $registration->stripe_payment_intent_id ?? '—',
+                'stripe_customer' => $registration->stripe_customer_id ?? '—',
+                'stripe_charge' => $registration->stripe_charge_id ?? '—',
+                'stripe_refund' => $registration->stripe_refund_id ?? '—',
             ],
-            'timeline'          => $paymentTimeline,
+            'timeline' => $paymentTimeline,
             'cancellation_reason' => $registration->cancellation_reason,
         ];
 

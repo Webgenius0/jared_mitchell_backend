@@ -324,7 +324,7 @@
 (function () {
     'use strict';
 
-    // ── Filter helpers ─────────────────────────────────────────
+    // Filter helpers
     function getFilterParams() {
         const params = new URLSearchParams();
         const search   = document.getElementById('searchInput').value;
@@ -332,11 +332,11 @@
         const payment  = document.getElementById('paymentFilter').value;
         const dateFrom = document.getElementById('dateFrom').value;
         const dateTo   = document.getElementById('dateTo').value;
-        if (search)   params.set('search_query',   search);
-        if (status)   params.set('status',         status);
+        if (search)   params.set('search_query', search);
+        if (status)   params.set('status', status);
         if (payment)  params.set('payment_status', payment);
-        if (dateFrom) params.set('date_from',      dateFrom);
-        if (dateTo)   params.set('date_to',        dateTo);
+        if (dateFrom) params.set('date_from', dateFrom);
+        if (dateTo)   params.set('date_to', dateTo);
         return params;
     }
 
@@ -352,31 +352,31 @@
         table.ajax.reload(null, false);
     }
 
-    // ── DataTable ──────────────────────────────────────────────
+    // DataTable
     const table = $('#registrationsTable').DataTable({
         processing: true,
         serverSide: true,
         ajax: {
             url: '{{ route('admin.events.registrations.data') }}',
             data: function (d) {
-                d.search_query   = document.getElementById('searchInput').value;
-                d.status         = document.getElementById('statusFilter').value;
+                d.search_query = document.getElementById('searchInput').value;
+                d.status = document.getElementById('statusFilter').value;
                 d.payment_status = document.getElementById('paymentFilter').value;
-                d.date_from      = document.getElementById('dateFrom').value;
-                d.date_to        = document.getElementById('dateTo').value;
+                d.date_from = document.getElementById('dateFrom').value;
+                d.date_to = document.getElementById('dateTo').value;
             }
         },
         columns: [
-            { data: 'DT_RowIndex',        name: 'DT_RowIndex', orderable: false, searchable: false },
-            { data: 'booking_info',        name: 'booking_reference' },
-            { data: 'customer',            name: 'first_name' },
-            { data: 'tier',                name: 'ticket_tier_id', className: 'text-center' },
-            { data: 'quantity',            name: 'quantity', className: 'text-center' },
-            { data: 'total_amount',        name: 'total', className: 'text-end' },
-            { data: 'payment_status',      name: 'payment_status', className: 'text-center' },
+            { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
+            { data: 'booking_info', name: 'booking_reference' },
+            { data: 'customer', name: 'first_name' },
+            { data: 'tier', name: 'ticket_tier_id', className: 'text-center' },
+            { data: 'quantity', name: 'quantity', className: 'text-center' },
+            { data: 'total_amount', name: 'total', className: 'text-end' },
+            { data: 'payment_status', name: 'payment_status', className: 'text-center' },
             { data: 'registration_status', name: 'status', className: 'text-center' },
-            { data: 'registered_date',     name: 'created_at' },
-            { data: 'action',              name: 'action', orderable: false, searchable: false, className: 'text-center' },
+            { data: 'registered_date', name: 'created_at' },
+            { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-center' },
         ],
         language: {
             processing: '<div class="spinner-border spinner-border-sm text-primary"></div>',
@@ -385,7 +385,7 @@
         order: [[8, 'desc']]
     });
 
-    // ── Filter events ──────────────────────────────────────────
+    // Filter events
     let searchTimeout = null;
     document.getElementById('searchInput').addEventListener('input', function () {
         clearTimeout(searchTimeout);
@@ -400,7 +400,7 @@
         reloadTable();
     });
 
-    // ── Flatpickr ──────────────────────────────────────────────
+    // Flatpickr
     let fpFrom, fpTo;
     if (typeof flatpickr !== 'undefined') {
         fpFrom = flatpickr("#dateFrom", {
@@ -413,10 +413,10 @@
         });
     }
 
-    // ── Init export links ──────────────────────────────────────
+    // Init export links
     updateExportLinks();
 
-    // ── Reset ──────────────────────────────────────────────────
+    // Reset
     document.getElementById('resetFilters').addEventListener('click', function () {
         document.getElementById('searchInput').value = '';
         document.getElementById('statusFilter').value = '';
@@ -426,7 +426,7 @@
         reloadTable();
     });
 
-    // ── View Details ───────────────────────────────────────────
+    // View Details
     $(document).on('click', '.view-btn', function () {
         const id = $(this).data('id');
         loadRegistrationDetails(id);
@@ -440,7 +440,7 @@
             '<div class="text-center py-5"><div class="spinner-border text-primary"></div><p class="mt-2 text-muted">Loading details...</p></div>'
         );
 
-        axios.get('{{ url('admin/events/registrations') }}/' + id)
+        axios.get('{{ route('admin.events.registrations.index') }}/' + id)
             .then(function (res) {
                 const d = res.data.data;
                 const html = buildDetailsHtml(d);
@@ -642,7 +642,7 @@
             </div>
         `;
     }
-    // ── Status Actions ──────────────────────────────────────────
+    // Status Actions
     let currentRegistrationId = null;
 
     function updateModalButtons(status, paymentStatus) {
@@ -723,7 +723,7 @@
             data.cancellation_reason = reason;
         }
 
-        axios.post('{{ url('admin/events/registrations') }}/' + id + '/status', data)
+        axios.post('{{ route('admin.events.registrations.index') }}/' + id + '/status', data)
             .then(function (res) {
                 Toast.success(res.data.message);
                 $('#cancelReasonModal').modal('hide');
@@ -736,7 +736,7 @@
             });
     }
 
-    // ── Payment Actions ─────────────────────────────────────────
+    // Payment Actions
     document.getElementById('modalPayBtn').addEventListener('click', function () {
         updatePaymentStatus(currentRegistrationId, 'paid');
     });
@@ -770,7 +770,7 @@
             data.refund_reason = reason;
         }
 
-        axios.post('{{ url('admin/events/registrations') }}/' + id + '/payment-status', data)
+        axios.post('{{ route('admin.events.registrations.index') }}/' + id + '/payment-status', data)
             .then(function (res) {
                 Toast.success(res.data.message);
                 $('#refundReasonModal').modal('hide');
