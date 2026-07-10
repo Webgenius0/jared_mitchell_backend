@@ -311,12 +311,34 @@
                 </li>
 
                 {{-- Events --}}
+                @php
+                    $eventsOpen = request()->routeIs('admin.events.*');
+                @endphp
+
                 <li class="nav-item">
-                    <a class="nav-link menu-link {{ request()->routeIs('admin.events.*') ? 'active' : '' }}"
-                        href="{{ route('admin.events.index') }}">
+                    <a class="nav-link menu-link {{ $eventsOpen ? 'active' : '' }}" href="#sidebarEvents"
+                        data-bs-toggle="collapse" role="button"
+                        aria-expanded="{{ $eventsOpen ? 'true' : 'false' }}" aria-controls="sidebarEvents">
                         <i class="ri-calendar-event-line"></i>
                         <span>Events</span>
                     </a>
+
+                    <div class="collapse menu-dropdown {{ $eventsOpen ? 'show' : '' }}" id="sidebarEvents">
+                        <ul class="nav nav-sm flex-column">
+                            <li class="nav-item">
+                                <a href="{{ route('admin.events.index') }}"
+                                    class="nav-link {{ request()->routeIs('admin.events.index') ? 'active' : '' }}">
+                                    <i class="ri-list-check"></i> All Events
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('admin.events.registrations.index') }}"
+                                    class="nav-link {{ request()->routeIs('admin.events.registrations.*') ? 'active' : '' }}">
+                                    <i class="ri-file-list-3-line"></i> Registered Events
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
                 </li>
 
                 {{-- Contact Forms --}}

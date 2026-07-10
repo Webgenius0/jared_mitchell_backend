@@ -27,7 +27,7 @@ class EventRegistrationService
     public function initiate(array $data, ?int $userId = null): array
     {
         $event = Event::findOrFail($data['event_id']);
-        
+
         $tier = EventTicketTier::where('id', $data['ticket_tier_id'])
             ->where('event_id', $event->id)
             ->firstOrFail();
@@ -45,7 +45,7 @@ class EventRegistrationService
         $tokenJwt = null;
 
         return DB::transaction(function () use ($data, $event, $tier, $isGuest, $userId, &$user, &$tokenJwt) {
-            
+
             // 1. Handle Guest Auto-Registration
             if ($isGuest) {
                 // Check if email already exists
@@ -77,7 +77,7 @@ class EventRegistrationService
                 ]);
 
                 $userId = $user->id;
-                
+
                 // Login new user to generate JWT
                 $tokenJwt = auth('api')->login($user);
             } else {
@@ -120,7 +120,7 @@ class EventRegistrationService
                     'confirmed_at' => now(),
                     'paid_at' => now(),
                 ]);
-                
+
                 $tier->increment('quantity_sold', $quantity);
 
                 return [
@@ -134,20 +134,20 @@ class EventRegistrationService
             // 5. Create Stripe Checkout Session
             try {
                 $checkoutSession = $this->stripeService->createCheckoutSession([
-                    'order_id'       => $registration->id,
-                    'order_number'   => $registration->booking_reference, // Using this as ref
-                    'amount'         => (float) $total,
+                    'order_id' => $registration->id,
+                    'order_number' => $registration->booking_reference, // Using this as ref
+                    'amount' => (float) $total,
                     'customer_email' => $user->email ?? $data['email'],
-                    'line_items'     => [
+                    'line_items' => [
                         [
                             'name' => $event->title . ' - ' . $tier->name . ' Ticket',
                             'quantity' => $quantity,
                             'price' => $total / $quantity, // Pass total per item including fees
                         ]
                     ],
-                    'metadata'       => [
-                        'type'              => 'event_registration',
-                        'registration_id'   => (string) $registration->id,
+                    'metadata' => [
+                        'type' => 'event_registration',
+                        'registration_id' => (string) $registration->id,
                         'booking_reference' => $registration->booking_reference,
                     ],
                 ]);
@@ -158,10 +158,10 @@ class EventRegistrationService
 
                 return [
                     'checkout_url' => $checkoutSession->url,
-                    'session_id'   => $checkoutSession->id,
+                    'session_id' => $checkoutSession->id,
                     'registration' => $registration,
-                    'token'        => $tokenJwt,
-                    'message'      => 'Redirecting to payment...',
+                    'token' => $tokenJwt,
+                    'message' => 'Redirecting to payment...',
                 ];
             } catch (Exception $e) {
                 Log::error('Stripe Checkout Error for Event Registration: ' . $e->getMessage());

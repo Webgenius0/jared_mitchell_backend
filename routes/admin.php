@@ -24,6 +24,7 @@ use App\Http\Controllers\Web\Admin\ContactController as WebContactController;
 use App\Http\Controllers\Web\Admin\ContestApplication\AdminContestApplicationController;
 use App\Http\Controllers\Web\Admin\Dashboard\AdminDashboardController;
 use App\Http\Controllers\Web\Admin\Event\EventController;
+use App\Http\Controllers\Web\Admin\Event\EventRegistrationController;
 use App\Http\Controllers\Web\Admin\NewsletterController as WebNewsletterController;
 use App\Http\Controllers\Web\Admin\Order\AdminOrderController;
 use App\Http\Controllers\Web\Admin\Product\AdminProductCategoryController;
@@ -277,6 +278,22 @@ Route::prefix('artist-categories')->name('admin.artist-categories.')->group(func
     Route::post('/', [AdminArtistCategoryController::class, 'store'])->name('store');
     Route::put('/{category}', [AdminArtistCategoryController::class, 'update'])->name('update');
     Route::delete('/{category}', [AdminArtistCategoryController::class, 'destroy'])->name('destroy');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Event Registrations (Registered Events)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('events/registrations')->name('admin.events.registrations.')->group(function () {
+    Route::get('/', [EventRegistrationController::class, 'index'])->name('index');
+    Route::get('/data', [EventRegistrationController::class, 'getData'])->name('data');
+    Route::get('/export/csv', [EventRegistrationController::class, 'export'])->name('export.csv');
+    Route::get('/export/excel', [EventRegistrationController::class, 'exportExcel'])->name('export.excel');
+    Route::get('/export/pdf', [EventRegistrationController::class, 'exportPdf'])->name('export.pdf');
+    Route::get('/{registration}', [EventRegistrationController::class, 'show'])->name('show');
+    Route::post('/{registration}/status', [EventRegistrationController::class, 'updateStatus'])->name('status.update');
+    Route::post('/{registration}/payment-status', [EventRegistrationController::class, 'updatePaymentStatus'])->name('payment-status.update');
 });
 
 /*
