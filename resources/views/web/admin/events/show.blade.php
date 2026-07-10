@@ -21,8 +21,7 @@
                 <div class="col-lg-8">
                     <div class="card">
                         <div class="card-body">
-                            <div class="card mb-4"
-                                style="border:1px solid #ddd; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,0.18); background:#fff;">
+                            <div class="card mb-4">
                                 <div class="card-body">
 
                                     <div class="mb-3">
@@ -40,8 +39,7 @@
 
                                 </div>
                             </div>
-                            <div class="card mb-4"
-                                style="border:1px solid #e5e7eb; border-radius:14px; box-shadow:0 6px 20px rgba(0,0,0,.12), 0 2px 6px rgba(0,0,0,.08); background:#fff;">
+                            <div class="card mb-4">
 
                                 <div class="card-body">
 
@@ -78,18 +76,15 @@
 
                                 </div>
                             </div>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-header border-bottom-dashed bg-transparent">
-                            <div class="d-flex align-items-center">
-                                <h5 class="card-title mb-0 flex-grow-1 fw-semibold">Event Media</h5>
-                                <div class="flex-shrink-0">
-                                    
+                            <div class="card mb-4">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center">
+                                        <h5 class="card-title mb-0 flex-grow-1 fw-semibold">Event Media</h5>
+                                        <div class="flex-shrink-0">
+                                            
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
                         <div class="card-body">
                             <div id="event-media-container">
                                 @if($event->media && $event->media->count() > 0)
@@ -142,10 +137,12 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
 
-                    <div class="card">
-                        <div class="card-header border-bottom-dashed">
-                            <h5 class="card-title mb-0">Assign Artists</h5>
+            <div class="card">
+                <div class="card-header border-bottom-dashed">
+                    <h5 class="card-title mb-0">Assign Artists</h5>
                         </div>
                         <div class="card-body">
                             <div class="mb-3">
