@@ -132,11 +132,10 @@
                         </div>
                     </div>
 
-                    {{-- Search & Filter Bar --}}
-                    <div class="card-body border-bottom pb-2">
-                        {{-- Row 1 --}}
-                        <div class="row g-2 mb-2 align-items-end">
-                            <div class="col-xl-4 col-md-6">
+                    {{-- Search & Filter Bar - All in one row --}}
+                    <div class="card-body border-bottom pb-2 position-relative">
+                        <div class="row g-2 align-items-end">
+                            <div class="col-xl-4 col-md-4">
                                 <label class="form-label text-muted small mb-1">Search</label>
                                 <div class="search-box">
                                     <input type="text" class="form-control" id="searchInput"
@@ -155,8 +154,8 @@
                                     <option value="completed"  {{ request('status') === 'completed'  ? 'selected' : '' }}>Completed</option>
                                 </select>
                             </div>
-                            <div class="col-xl-3 col-md-3">
-                                <label class="form-label text-muted small mb-1">Event Type</label>
+                            <div class="col-xl-2 col-md-3">
+                                <label class="form-label text-muted small mb-1">Type</label>
                                 <select class="form-select" id="typeFilter">
                                     <option value="">All Types</option>
                                     <option value="featured"      {{ request('event_type') === 'featured'      ? 'selected' : '' }}>Featured</option>
@@ -167,38 +166,21 @@
                                     <option value="other"         {{ request('event_type') === 'other'         ? 'selected' : '' }}>Other</option>
                                 </select>
                             </div>
-                            <div class="col-xl-3 col-md-0 d-none d-xl-block"></div>
-                        </div>
-
-                        {{-- Row 2: Date range --}}
-                        <div class="row g-2 align-items-end">
-                            <div class="col-xl-2 col-md-3">
-                                <label class="form-label text-muted small mb-1">From Date</label>
-                                <input type="date" class="form-control" id="dateFrom" value="{{ request('date_from') }}">
-                            </div>
-                            <div class="col-xl-2 col-md-3">
-                                <label class="form-label text-muted small mb-1">To Date</label>
-                                <input type="date" class="form-control" id="dateTo" value="{{ request('date_to') }}">
-                            </div>
-                            <div class="col-xl-5 col-md-6">
-                                <label class="form-label text-muted small mb-1">Quick Presets</label>
+                            <div class="col-xl-3 col-md-4">
+                                <label class="form-label text-muted small mb-1">Date Range</label>
                                 <div class="d-flex gap-1">
-                                    <button type="button" class="btn btn-soft-info btn-sm date-preset-btn" data-preset="today">Today</button>
-                                    <button type="button" class="btn btn-soft-info btn-sm date-preset-btn" data-preset="week">This Week</button>
-                                    <button type="button" class="btn btn-soft-info btn-sm date-preset-btn" data-preset="month">This Month</button>
-                                    <button type="button" class="btn btn-soft-info btn-sm date-preset-btn" data-preset="year">This Year</button>
+                                    <input type="date" class="form-control" id="dateFrom" value="{{ request('date_from') }}" placeholder="From">
+                                    <input type="date" class="form-control" id="dateTo" value="{{ request('date_to') }}" placeholder="To">
                                 </div>
                             </div>
-                            <div class="col-xl-3 col-md-3">
+                            <div class="col-xl-1 col-md-3">
                                 <label class="form-label text-muted small mb-1">&nbsp;</label>
-                                <div class="d-flex gap-2 align-items-center">
-                                    <button type="button" id="resetFilters" class="btn btn-soft-danger">
-                                        <i class="ri-refresh-line me-1"></i> Reset Filters
-                                    </button>
-                                    <div class="spinner-border spinner-border-sm text-primary d-none" id="filterSpinner" role="status"></div>
-                                </div>
+                                <button type="button" id="resetFilters" class="btn btn-soft-danger w-100" title="Reset Filters">
+                                    <i class="ri-refresh-line me-1"></i> Reset
+                                </button>
                             </div>
                         </div>
+                        <div class="spinner-border spinner-border-sm text-primary d-none" id="filterSpinner" role="status" style="position: absolute; top: 10px; right: 10px;"></div>
                     </div>
 
                     {{-- DataTable --}}
@@ -318,38 +300,6 @@
         document.getElementById('typeFilter').addEventListener('change', reloadTable);
         document.getElementById('dateFrom').addEventListener('change', reloadTable);
         document.getElementById('dateTo').addEventListener('change', reloadTable);
-
-        // ── Date presets ───────────────────────────────────────────
-        document.querySelectorAll('.date-preset-btn').forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                const preset = this.dataset.preset;
-                const now    = new Date();
-                const today  = now.toISOString().split('T')[0];
-                let from, to = today;
-
-                switch (preset) {
-                    case 'today':
-                        from = today;
-                        break;
-                    case 'week':
-                        const diff   = now.getDay() === 0 ? 6 : now.getDay() - 1;
-                        const monday = new Date(now);
-                        monday.setDate(now.getDate() - diff);
-                        from = monday.toISOString().split('T')[0];
-                        break;
-                    case 'month':
-                        from = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-01';
-                        break;
-                    case 'year':
-                        from = now.getFullYear() + '-01-01';
-                        break;
-                }
-
-                document.getElementById('dateFrom').value = from;
-                document.getElementById('dateTo').value   = to;
-                reloadTable();
-            });
-        });
 
         // ── Reset filters ──────────────────────────────────────────
         document.getElementById('resetFilters').addEventListener('click', function () {

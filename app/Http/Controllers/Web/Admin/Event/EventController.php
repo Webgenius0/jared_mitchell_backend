@@ -7,6 +7,7 @@ use App\Helpers\FileHandle;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\EventTicketTier;
+use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -112,7 +113,7 @@ class EventController extends Controller
 
     public function create()
     {
-        $artists = \App\Models\User::role('artist', 'api')->with('profile')->get();
+        $artists = User::role('artist', 'api')->with('profile')->get();
         return view('web.admin.events.create', compact('artists'));
     }
 

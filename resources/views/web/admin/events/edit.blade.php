@@ -1,5 +1,9 @@
 @extends('layout.master-layout')
 
+@push('styles')
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Dropify/0.2.2/css/dropify.min.css" />
+@endpush
+
 @section('title', 'Edit Event')
 
 @section('content')
@@ -21,8 +25,7 @@
                 <div class="col-lg-8">
                     <div class="card">
                         <div class="card-body">
-                            <div class="card mb-4"
-                                style="border:1px solid #ddd; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,0.18); background:#fff;">
+                            <div class="card mb-4">
                                 <div class="card-body">
 
                                     <div class="mb-3">
@@ -42,8 +45,7 @@
 
                                 </div>
                             </div>
-                            <div class="card mb-4"
-                                style="border:1px solid #e5e7eb; border-radius:14px; box-shadow:0 6px 20px rgba(0,0,0,.12), 0 2px 6px rgba(0,0,0,.08); background:#fff;">
+                            <div class="card mb-4">
 
                                 <div class="card-body">
 
@@ -170,13 +172,13 @@
                                 <div class="tier-item border p-3 rounded mb-3 bg-light">
                                     <input type="hidden" name="ticket_tiers[{{ $index }}][id]" value="{{ $tier->id }}">
                                     <div class="row">
-                                        <div class="col-md-4">
+                                        <div class="col-md-3">
                                             <div class="mb-2">
                                                 <label class="form-label">Tier Name</label>
                                                 <input type="text" name="ticket_tiers[{{ $index }}][name]" class="form-control" value="{{ $tier->name }}" required>
                                             </div>
                                         </div>
-                                        <div class="col-md-2">
+                                        <div class="col-md-1">
                                             <div class="mb-2">
                                                 <label class="form-label">Price ($)</label>
                                                 <input type="number" step="0.01" name="ticket_tiers[{{ $index }}][price]" class="form-control" value="{{ $tier->price }}" required>
@@ -194,21 +196,26 @@
                                                 <input type="number" name="ticket_tiers[{{ $index }}][quantity_available]" class="form-control" value="{{ $tier->quantity_available }}">
                                             </div>
                                         </div>
-                                        <div class="col-md-2 mt-4 text-end">
-                                            <button type="button" class="btn btn-soft-danger btn-icon waves-effect waves-light remove-tier"><i class="ri-delete-bin-5-line"></i></button>
-                                        </div>
-                                        <div class="col-md-6">
+                                        <div class="col-md-2">
                                             <div class="mb-2">
                                                 <label class="form-label">Sale Start Date</label>
                                                 <input type="datetime-local" name="ticket_tiers[{{ $index }}][sale_starts_at]" class="form-control" value="{{ $tier->sale_starts_at ? \Carbon\Carbon::parse($tier->sale_starts_at)->format('Y-m-d\TH:i') : '' }}">
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
+                                        <div class="col-md-1">
                                             <div class="mb-2">
                                                 <label class="form-label">Sale End Date</label>
                                                 <input type="datetime-local" name="ticket_tiers[{{ $index }}][sale_ends_at]" class="form-control" value="{{ $tier->sale_ends_at ? \Carbon\Carbon::parse($tier->sale_ends_at)->format('Y-m-d\TH:i') : '' }}">
                                             </div>
                                         </div>
+                                        <div class="col-md-1 text-end">
+                                            <div class="mb-2">
+                                                <label class="form-label">&nbsp;</label>
+                                                <button type="button" class="btn btn-soft-danger btn-icon waves-effect waves-light remove-tier"><i class="ri-delete-bin-5-line"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
                                         <div class="col-md-12">
                                             <div class="mb-2">
                                                 <label class="form-label">Description</label>
@@ -220,13 +227,13 @@
                                 @empty
                                 <div class="tier-item border p-3 rounded mb-3 bg-light">
                                     <div class="row">
-                                        <div class="col-md-4">
+                                        <div class="col-md-3">
                                             <div class="mb-2">
                                                 <label class="form-label">Tier Name</label>
                                                 <input type="text" name="ticket_tiers[0][name]" class="form-control" required placeholder="e.g. Early Bird">
                                             </div>
                                         </div>
-                                        <div class="col-md-2">
+                                        <div class="col-md-1">
                                             <div class="mb-2">
                                                 <label class="form-label">Price ($)</label>
                                                 <input type="number" step="0.01" name="ticket_tiers[0][price]" class="form-control" required placeholder="0.00">
@@ -244,21 +251,26 @@
                                                 <input type="number" name="ticket_tiers[0][quantity_available]" class="form-control" placeholder="Unlimited">
                                             </div>
                                         </div>
-                                        <div class="col-md-2 mt-4 text-end">
-                                            <button type="button" class="btn btn-soft-danger btn-icon waves-effect waves-light remove-tier"><i class="ri-delete-bin-5-line"></i></button>
-                                        </div>
-                                        <div class="col-md-6">
+                                        <div class="col-md-2">
                                             <div class="mb-2">
                                                 <label class="form-label">Sale Start Date</label>
                                                 <input type="datetime-local" name="ticket_tiers[0][sale_starts_at]" class="form-control">
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
+                                        <div class="col-md-1">
                                             <div class="mb-2">
                                                 <label class="form-label">Sale End Date</label>
                                                 <input type="datetime-local" name="ticket_tiers[0][sale_ends_at]" class="form-control">
                                             </div>
                                         </div>
+                                        <div class="col-md-1 text-end">
+                                            <div class="mb-2">
+                                                <label class="form-label">&nbsp;</label>
+                                                <button type="button" class="btn btn-soft-danger btn-icon waves-effect waves-light remove-tier"><i class="ri-delete-bin-5-line"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
                                         <div class="col-md-12">
                                             <div class="mb-2">
                                                 <label class="form-label">Description</label>
@@ -275,24 +287,16 @@
 
                 <div class="col-lg-4">
                     <div class="card">
-                        <div class="card-body">
-                            <div class="mb-3 text-center">
+                        <div class="card-body">                                <div class="mb-3">
                                 <label for="cover_image" class="form-label">Cover Image</label>
-                                <div class="position-relative d-inline-block">
-                                    <div class="position-absolute top-100 start-100 translate-middle">
-                                        <label for="cover_image" class="mb-0" data-bs-toggle="tooltip" data-bs-placement="right" title="Select Cover Image">
-                                            <div class="avatar-xs">
-                                                <div class="avatar-title bg-light border rounded-circle text-muted cursor-pointer">
-                                                    <i class="ri-image-fill"></i>
-                                                </div>
-                                            </div>
-                                        </label>
-                                        <input class="form-control d-none" id="cover_image" name="cover_image" type="file" accept="image/png, image/gif, image/jpeg">
-                                    </div>
-                                    <div class="avatar-lg bg-light rounded shadow">
-                                        <img src="{{ $event->cover_image_path ? asset($event->cover_image_path) : asset('admin/assets/images/default/no-img.png') }}" id="cover_image_preview" class="avatar-lg rounded object-fit-cover">
-                                    </div>
-                                </div>
+                                <input type="file" class="dropify" id="cover_image" name="cover_image"
+                                    data-default-file="{{ $event->cover_image_path ? asset($event->cover_image_path) : asset('admin/assets/images/default/no-img.png') }}"
+                                    data-max-file-size="2M"
+                                    data-allowed-file-extensions="png jpg jpeg gif"
+                                    data-show-remove="false"
+                                    data-height="200"
+                                    accept="image/png, image/gif, image/jpeg" />
+                                <p class="text-muted mt-2">Recommended: 1200x600px</p>
                             </div>
                             <div class="mb-3">
                                 <label for="promo_video" class="form-label">Promo Video (Max 20MB)</label>
@@ -367,6 +371,9 @@
 </div>
 
 @push('scripts')
+    {{-- Dropify --}}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Dropify/0.2.2/js/dropify.min.js"></script>
+
 <script>
     // Display validation errors in toast
     @if ($errors->any())
@@ -414,13 +421,13 @@
             const html = `
                 <div class="tier-item border p-3 rounded mb-3 bg-light">
                     <div class="row">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="mb-2">
                                 <label class="form-label">Tier Name</label>
                                 <input type="text" name="ticket_tiers[${tierIndex}][name]" class="form-control" required placeholder="e.g. Regular">
                             </div>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-1">
                             <div class="mb-2">
                                 <label class="form-label">Price ($)</label>
                                 <input type="number" step="0.01" name="ticket_tiers[${tierIndex}][price]" class="form-control" required placeholder="0.00">
@@ -438,21 +445,26 @@
                                 <input type="number" name="ticket_tiers[${tierIndex}][quantity_available]" class="form-control" placeholder="Unlimited">
                             </div>
                         </div>
-                        <div class="col-md-2 mt-4 text-end">
-                            <button type="button" class="btn btn-soft-danger btn-icon waves-effect waves-light remove-tier"><i class="ri-delete-bin-5-line"></i></button>
-                        </div>
-                        <div class="col-md-6">
+                        <div class="col-md-2">
                             <div class="mb-2">
                                 <label class="form-label">Sale Start Date</label>
                                 <input type="datetime-local" name="ticket_tiers[${tierIndex}][sale_starts_at]" class="form-control">
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-1">
                             <div class="mb-2">
                                 <label class="form-label">Sale End Date</label>
                                 <input type="datetime-local" name="ticket_tiers[${tierIndex}][sale_ends_at]" class="form-control">
                             </div>
                         </div>
+                        <div class="col-md-1 text-end">
+                            <div class="mb-2">
+                                <label class="form-label">&nbsp;</label>
+                                <button type="button" class="btn btn-soft-danger btn-icon waves-effect waves-light remove-tier"><i class="ri-delete-bin-5-line"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
                         <div class="col-md-12">
                             <div class="mb-2">
                                 <label class="form-label">Description</label>
@@ -614,14 +626,17 @@
             });
         }
 
-        // Cover Image Preview
-        document.getElementById('cover_image').addEventListener('change', function(e) {
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                document.getElementById('cover_image_preview').src = event.target.result;
-            }
-            if (e.target.files[0]) {
-                reader.readAsDataURL(e.target.files[0]);
+        // Dropify Initialization
+        $('.dropify').dropify({
+            messages: {
+                'default': 'Drag & drop your cover image here or click',
+                'replace': 'Drag & drop or click to replace',
+                'remove': 'Remove',
+                'error': 'Ooops, something wrong happened.'
+            },
+            error: {
+                'fileSize': 'The file size is too big (2M max).',
+                'fileExtension': 'Only png, jpg, jpeg, gif files are allowed.'
             }
         });
     });
