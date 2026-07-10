@@ -169,8 +169,12 @@
                             <div class="col-xl-3 col-md-4">
                                 <label class="form-label text-muted small mb-1">Date Range</label>
                                 <div class="d-flex gap-1">
-                                    <input type="date" class="form-control" id="dateFrom" value="{{ request('date_from') }}" placeholder="From">
-                                    <input type="date" class="form-control" id="dateTo" value="{{ request('date_to') }}" placeholder="To">
+                                    <input type="text" class="form-control" id="dateFrom"
+                                           data-provider="flatpickr" data-date-format="Y-m-d"
+                                           placeholder="From" value="{{ request('date_from') }}">
+                                    <input type="text" class="form-control" id="dateTo"
+                                           data-provider="flatpickr" data-date-format="Y-m-d"
+                                           placeholder="To" value="{{ request('date_to') }}">
                                 </div>
                             </div>
                             <div class="col-xl-1 col-md-3">
@@ -298,16 +302,31 @@
 
         document.getElementById('statusFilter').addEventListener('change', reloadTable);
         document.getElementById('typeFilter').addEventListener('change', reloadTable);
-        document.getElementById('dateFrom').addEventListener('change', reloadTable);
-        document.getElementById('dateTo').addEventListener('change', reloadTable);
+
+        // ── Flatpickr date range ────────────────────────────────
+        let fpFrom, fpTo;
+        if (typeof flatpickr !== 'undefined') {
+            fpFrom = flatpickr("#dateFrom", {
+                dateFormat: "Y-m-d",
+                onChange: function(selectedDates, dateStr) {
+                    reloadTable();
+                }
+            });
+            fpTo = flatpickr("#dateTo", {
+                dateFormat: "Y-m-d",
+                onChange: function(selectedDates, dateStr) {
+                    reloadTable();
+                }
+            });
+        }
 
         // ── Reset filters ──────────────────────────────────────────
         document.getElementById('resetFilters').addEventListener('click', function () {
             document.getElementById('searchInput').value = '';
             document.getElementById('statusFilter').value = '';
             document.getElementById('typeFilter').value   = '';
-            document.getElementById('dateFrom').value     = '';
-            document.getElementById('dateTo').value       = '';
+            if (fpFrom) fpFrom.clear();
+            if (fpTo) fpTo.clear();
             reloadTable();
         });
 
