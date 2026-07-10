@@ -126,7 +126,6 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::get('/', [EventController::class, 'index']); // List all
             Route::get('/{slug}', [EventController::class, 'show'])->middleware('auth:api'); // Detail
             Route::get('/{slug}/attendees', [EventController::class, 'attendees'])->middleware('auth:api'); // Attendees list
-            Route::post('/register', [EventController::class, 'register'])->middleware('auth:api'); // Register
         });
 
         // Contact Us
@@ -192,6 +191,15 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::get('/rounds/{round}/leaderboard', [LeaderboardController::class, 'forRound']);
             Route::get('/rounds/{round}/votes/counts', [VoteController::class, 'counts']);
         });
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Public routes (Accessible by both guest and auth)
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('events')->group(function () {
+        Route::post('/register', [EventController::class, 'register']); // Register (Guest & Auth)
     });
 
 
@@ -389,7 +397,13 @@ Route::group(['prefix' => 'v1'], function ($router) {
         Route::prefix('events')->group(function () {
             Route::get('/{slug}', [EventController::class, 'show']); // Detail
             Route::get('/{slug}/attendees', [EventController::class, 'attendees']); // Attendees list
-            Route::post('/register', [EventController::class, 'register']); // Register
+        });
+
+        // Event Registrations (Dashboard)
+        Route::prefix('event-registrations')->group(function () {
+            Route::get('/', [EventController::class, 'myRegistrations']);
+            Route::get('/{id}/ticket', [EventController::class, 'downloadTicket']);
+            Route::post('/{id}/cancel', [EventController::class, 'cancelRegistration']);
         });
 
         /*

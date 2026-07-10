@@ -4,21 +4,30 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\AttendeeResource;
+use App\Http\Resources\EventRegistrationResource;
 use App\Http\Resources\EventResource;
 use App\Models\Event;
 use App\Models\EventRegistration;
 use App\Models\EventTicketTier;
+use App\Services\EventRegistrationService;
 use App\Traits\ApiResponse;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use RuntimeException;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class EventController extends Controller
 {
     use ApiResponse;
+
+    public function __construct(
+        protected EventRegistrationService $registrationService
+    ) {}
 
     /**
      * List attendees for a specific event.
@@ -120,7 +129,7 @@ class EventController extends Controller
      */
     public function register(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        $rules = [
             'event_id' => 'required|exists:events,id',
             'ticket_tier_id' => 'required|exists:event_ticket_tiers,id',
             'first_name' => 'required|string|max:255',
@@ -128,79 +137,102 @@ class EventController extends Controller
             'email' => 'required|email|max:255',
             'phone_number' => 'nullable|string|max:20',
             'quantity' => 'required|integer|min:1|max:10',
-        ]);
+        ];
+
+        // If guest, require password for account creation
+        if (!auth('api')->check()) {
+            $rules['password'] = 'required|string|min:6|confirmed';
+        }
+
+        $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
             return $this->validationError($validator->errors());
         }
 
-        $event = Event::find($request->event_id);
-        if (!$event) {
-            return $this->error('Event not found.', null, 404);
-        }
-
-        $tier = EventTicketTier::where('id', $request->ticket_tier_id)
-            ->where('event_id', $event->id)
-            ->first();
-
-        if (!$tier) {
-            return $this->error('Ticket tier not found.', null, 404);
-        }
-
-        // Check availability
-        if ($tier->quantity_available !== null) {
-            $remaining = $tier->quantity_available - $tier->quantity_sold;
-            if ($remaining < $request->quantity) {
-                return $this->error(null, 'Not enough tickets available in this tier.', 400);
-            }
-        }
-
         try {
-            return DB::transaction(function () use ($request, $event, $tier) {
-                $unitPrice = $tier->price;
-                $quantity = $request->quantity;
-                $subtotal = $unitPrice * $quantity;
+            $userId = auth('api')->id(); // null if guest
+            $result = $this->registrationService->initiate($request->all(), $userId);
 
-                // 5% Service Fee as requested/shown in screenshot
-                $serviceFeePercent = 0.05;
-                $serviceFee = $subtotal * $serviceFeePercent;
-                $total = $subtotal + $serviceFee;
-
-                $registration = EventRegistration::create([
-                    'event_id' => $event->id,
-                    'ticket_tier_id' => $tier->id,
-                    'first_name' => $request->first_name,
-                    'last_name' => $request->last_name,
-                    'email' => $request->email,
-                    'phone_number' => $request->phone_number,
-                    'user_id' => auth('api')->id(),
-                    'quantity' => $quantity,
-                    'unit_price' => $unitPrice,
-                    'service_fee' => $serviceFee,
-                    'subtotal' => $subtotal,
-                    'total' => $total,
-                    'currency' => 'USD',
-                    'payment_status' => 'pending',
-                    'status' => 'confirmed',
-                    'confirmed_at' => now(),
-                ]);
-
-                // Update quantity sold
-                $tier->increment('quantity_sold', $quantity);
-
-                return $this->success(
-                    'Registration successful.',
-                    [
-                        'booking_reference' => $registration->booking_reference,
-                        'registration' => $registration->load('event', 'ticketTier'),
-                    ],
-                    201
-                );
-            });
+            return $this->success(
+                $result['message'],
+                [
+                    'checkout_url' => $result['checkout_url'],
+                    'session_id' => $result['session_id'] ?? null,
+                    'registration' => new EventRegistrationResource($result['registration']),
+                    'token' => $result['token'] ?? null,
+                ],
+                201
+            );
+        } catch (RuntimeException $e) {
+            return $this->error(null, $e->getMessage(), 400);
         } catch (Exception $e) {
             Log::error('Event registration failed: ' . $e->getMessage());
-            return $this->error(null, 'Failed to process registration: ' . $e->getMessage());
+            return $this->error(null, 'Failed to process registration. Please try again.');
         }
+    }
+
+    /**
+     * Get member's event registrations (Dashboard)
+     */
+    public function myRegistrations(Request $request)
+    {
+        $userId = auth('api')->id();
+
+        $registrations = EventRegistration::where('user_id', $userId)
+            ->with(['event', 'ticketTier'])
+            ->latest()
+            ->paginate($request->input('per_page', 15));
+
+        return $this->success('Registrations retrieved successfully.', [
+            'registrations' => EventRegistrationResource::collection($registrations),
+            'pagination' => [
+                'current_page' => $registrations->currentPage(),
+                'per_page' => $registrations->perPage(),
+                'total' => $registrations->total(),
+                'last_page' => $registrations->lastPage(),
+            ]
+        ]);
+    }
+
+    /**
+     * Cancel a pending registration
+     */
+    public function cancelRegistration($id)
+    {
+        $registration = EventRegistration::where('user_id', auth('api')->id())
+            ->findOrFail($id);
+
+        if ($registration->status !== 'pending') {
+            return $this->error(null, 'Only pending registrations can be cancelled.', 400);
+        }
+
+        $this->registrationService->cancel($registration->id, 'Cancelled by user');
+
+        return $this->success('Registration cancelled successfully.', new EventRegistrationResource($registration->fresh()));
+    }
+
+    /**
+     * Download PDF Ticket
+     */
+    public function downloadTicket($id)
+    {
+        $registration = EventRegistration::where('user_id', auth('api')->id())
+            ->where('status', 'confirmed')
+            ->with(['event', 'ticketTier'])
+            ->findOrFail($id);
+
+        // Generate QR Code (Base64 string for PDF embedding)
+        $qrCodeData = json_encode([
+            'booking_reference' => $registration->booking_reference,
+            'email' => $registration->email,
+        ]);
+
+        $qrCode = base64_encode(QrCode::format('svg')->size(200)->generate($qrCodeData));
+
+        $pdf = Pdf::loadView('tickets.event-ticket', compact('registration', 'qrCode'));
+
+        return $pdf->download("ticket-{$registration->booking_reference}.pdf");
     }
 
     /**
@@ -229,7 +261,7 @@ class EventController extends Controller
     /**
      * POST /api/events/{id}/bookmark
      */
-    public function toggleBookmark($id): \Illuminate\Http\JsonResponse
+    public function toggleBookmark($id): JsonResponse
     {
         $user = auth()->user();
         $event = Event::findOrFail($id);
@@ -252,7 +284,7 @@ class EventController extends Controller
     /**
      * POST /api/events/{id}/share
      */
-    public function recordShare(Request $request, $id): \Illuminate\Http\JsonResponse
+    public function recordShare(Request $request, $id): JsonResponse
     {
         $user = auth()->user();
         $event = Event::findOrFail($id);

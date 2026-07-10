@@ -6,15 +6,18 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Services\OrderService;
 use App\Services\StripeService;
+use App\Services\EventRegistrationService;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Stripe\Event;
 
 class StripeWebhookController extends Controller
 {
     public function __construct(
         protected StripeService $stripeService,
-        protected OrderService  $orderService
+        protected OrderService  $orderService,
+        protected EventRegistrationService $eventRegistrationService
     ) {}
 
     /**
@@ -57,6 +60,21 @@ class StripeWebhookController extends Controller
     {
         $session = $event->data->object;
 
+        $type = $session->metadata->type ?? null;
+
+        if ($type === 'event_registration') {
+            $registrationId = $session->metadata->registration_id ?? null;
+            if ($registrationId) {
+                $this->eventRegistrationService->markAsPaid(
+                    $registrationId,
+                    $session->id,
+                    $session->payment_intent
+                );
+            }
+            return;
+        }
+
+        // Existing Order Logic
         $orderId = $session->metadata->order_id ?? null;
 
         if (!$orderId) {
@@ -89,6 +107,16 @@ class StripeWebhookController extends Controller
     private function handleCheckoutExpired(Event $event): void
     {
         $session = $event->data->object;
+
+        $type = $session->metadata->type ?? null;
+
+        if ($type === 'event_registration') {
+            $registrationId = $session->metadata->registration_id ?? null;
+            if ($registrationId) {
+                $this->eventRegistrationService->cancel($registrationId, 'Payment session expired.');
+            }
+            return;
+        }
 
         $orderId = $session->metadata->order_id ?? null;
 
