@@ -125,7 +125,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
         Route::prefix('events')->group(function () {
             Route::get('/', [EventController::class, 'index']); // DONE: List all events (public)
             Route::get('/upcomming-events', [EventController::class, 'upcommingEvents']); // DONE: Upcoming events(from today onwards)
-            Route::get('/calendar-views', [EventController::class, 'eventCalaenderView']);// DONE : event calender view for Event Calendar Page 
+            Route::get('/calendar-views', [EventController::class, 'eventCalaenderView']); // DONE : event calender view for Event Calendar Page
             Route::get('/featured', [FeaturedEventController::class, 'index']);
             Route::get('/galary', [EventController::class, 'galary']); // DONE: Event Galary (all images from event media)
             Route::get('/past-events', [EventController::class, 'pastEvents']); // DONE: Past events (Ends before today)
