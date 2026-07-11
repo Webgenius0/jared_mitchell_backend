@@ -123,9 +123,10 @@ Route::group(['prefix' => 'v1'], function ($router) {
         |--------------------------------------------------------------------------
         */
         Route::prefix('events')->group(function () {
-            Route::get('/', [EventController::class, 'index']); // List all
-            Route::get('/{slug}', [EventController::class, 'show'])->middleware('auth:api'); // Detail
-            Route::get('/{slug}/attendees', [EventController::class, 'attendees'])->middleware('auth:api'); // Attendees list
+            Route::get('/', [EventController::class, 'index']); // DONE: List all events (public)
+            Route::get('/{slug}', [EventController::class, 'show']); // DONE: Event Detail (public)
+            // Route::get('/{slug}/attendeesss', [EventController::class, 'attendees']); // Attendees list
+            Route::get('/featured', [FeaturedEventController::class, 'index']);
         });
 
         // Contact Us
@@ -167,13 +168,6 @@ Route::group(['prefix' => 'v1'], function ($router) {
         |--------------------------------------------------------------------------
         */
         Route::get('/pricing', [PricingController::class, 'index']);
-
-        /*
-        |--------------------------------------------------------------------------
-        | Featured Events (Accessible by both guest and authenticated users)
-        |--------------------------------------------------------------------------
-        */
-        Route::get('/featured-events', [FeaturedEventController::class, 'index']);
 
         /*
         |--------------------------------------------------------------------------
@@ -355,7 +349,6 @@ Route::group(['prefix' => 'v1'], function ($router) {
         | E-commerce: Wishlist, Cart & Orders
         |--------------------------------------------------------------------------
         */
-
         // Wishlist
         Route::prefix('wishlist')->group(function () {
             Route::get('/', [WishlistController::class, 'index']); // DONE: get all wishlist product
@@ -390,13 +383,6 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::post('/mark-as-read', [NotificationController::class, 'markAsRead']);
             Route::post('/mark-all-as-read', [NotificationController::class, 'markAllAsRead']);
             Route::post('/{id}/mark-read', [NotificationController::class, 'markOneAsRead']);
-        });
-
-
-        // Event
-        Route::prefix('events')->group(function () {
-            Route::get('/{slug}', [EventController::class, 'show']); // Detail
-            Route::get('/{slug}/attendees', [EventController::class, 'attendees']); // Attendees list
         });
 
         // Event Registrations (Dashboard)
