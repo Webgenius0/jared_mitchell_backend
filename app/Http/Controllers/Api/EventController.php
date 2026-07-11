@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Models\EventMedia;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\AttendeeResource;
 use App\Http\Resources\EventRegistrationResource;
@@ -27,7 +28,8 @@ class EventController extends Controller
 
     public function __construct(
         protected EventRegistrationService $registrationService
-    ) {}
+    ) {
+    }
 
     /**
      * List attendees for a specific event.
@@ -62,9 +64,11 @@ class EventController extends Controller
     public function index(Request $request)
     {
         $query = Event::where('status', 'published')
-            ->with(['ticketTiers' => function($q) {
-                $q->where('is_active', true)->orderBy('sort_order');
-            }])
+            ->with([
+                'ticketTiers' => function ($q) {
+                    $q->where('is_active', true)->orderBy('sort_order');
+                }
+            ])
             ->withCount(['likers', 'bookmarkers', 'shares']);
 
         if ($request->has('type') && $request->type !== 'all') {
@@ -102,15 +106,135 @@ class EventController extends Controller
     }
 
     /**
+     * Get upcoming events (from today onwards) with calendar view formatting.
+     */
+    public function upcommingEvents(Request $request)
+    {
+        $query = Event::where('status', 'published')
+            ->where('starts_at', '>=', now()->startOfDay())
+            ->with([
+                'ticketTiers' => function ($q) {
+                    $q->where('is_active', true)->orderBy('sort_order');
+                }
+            ])
+            ->withCount(['likers', 'bookmarkers', 'shares'])
+            ->orderBy('starts_at', 'asc');
+
+        // Paginated events
+        $events = $query->paginate($request->input('per_page', 12));
+
+        // For calendar view, we often need all upcoming events (or at least a reasonable chunk of them)
+        // We can just grab the unpaginated list up to a certain limit or reuse the same paginated set.
+        // If we want ALL upcoming for calendar, we can query without pagination, but let's just 
+        // fetch up to 100 for the calendar view to keep the response size reasonable.
+        $calendarEvents = Event::where('status', 'published')
+            ->where('starts_at', '>=', now()->startOfDay())
+            ->orderBy('starts_at', 'asc')
+            ->limit(100)
+            ->get()
+            ->map(function ($event) {
+                return [
+                    'id' => $event->id,
+                    'name' => $event->title, // Mapped to name as requested
+                    'starts_at' => $event->starts_at,
+                    'ends_at' => $event->ends_at,
+                    'slug' => $event->slug,
+                ];
+            });
+
+        return $this->success(
+            'Upcoming events retrieved successfully.',
+            [
+                'events' => EventResource::collection($events),
+                'pagination' => [
+                    'current_page' => $events->currentPage(),
+                    'per_page' => $events->perPage(),
+                    'total' => $events->total(),
+                    'last_page' => $events->lastPage(),
+                ],
+                'calendar_view' => $calendarEvents
+            ]
+        );
+    }
+
+    /**
+     * Get event gallery (all images from event media) paginated in DESC order.
+     */
+    public function galary(Request $request)
+    {
+        $gallery = EventMedia::latest()
+            ->paginate($request->input('per_page', 15));
+
+        $formattedGallery = $gallery->map(function ($media) {
+            return [
+                'id' => $media->id,
+                'event_id' => $media->event_id,
+                'media_type' => $media->media_type,
+                'mime_type' => $media->mime_type,
+                'file_name' => $media->file_name,
+                'file_size' => $media->file_size,
+                'full_url' => asset($media->file_path),
+                'created_at' => $media->created_at,
+            ];
+        });
+
+        return $this->success(
+            'Event gallery retrieved successfully.',
+            [
+                'gallery' => $formattedGallery,
+                'pagination' => [
+                    'current_page' => $gallery->currentPage(),
+                    'per_page' => $gallery->perPage(),
+                    'total' => $gallery->total(),
+                    'last_page' => $gallery->lastPage(),
+                ]
+            ]
+        );
+    }
+
+    /**
+     * Get past events (ended before today).
+     */
+    public function pastEvents(Request $request)
+    {
+        $query = Event::where('status', 'published')
+            ->where('ends_at', '<', now()->startOfDay())
+            ->with([
+                'ticketTiers' => function ($q) {
+                    $q->where('is_active', true)->orderBy('sort_order');
+                }
+            ])
+            ->withCount(['likers', 'bookmarkers', 'shares'])
+            ->orderBy('ends_at', 'desc');
+
+        $events = $query->paginate($request->input('per_page', 12));
+
+        return $this->success(
+            'Past events retrieved successfully.',
+            [
+                'events' => EventResource::collection($events),
+                'pagination' => [
+                    'current_page' => $events->currentPage(),
+                    'per_page' => $events->perPage(),
+                    'total' => $events->total(),
+                    'last_page' => $events->lastPage(),
+                ]
+            ]
+        );
+    }
+
+    /**
      * Show event details.
      */
     public function show($slug)
     {
         $event = Event::where('slug', $slug)
             ->where('status', 'published')
-            ->with(['ticketTiers' => function($q) {
-                $q->where('is_active', true)->orderBy('sort_order');
-            }])
+            ->with([
+                'ticketTiers' => function ($q) {
+                    $q->where('is_active', true)->orderBy('sort_order');
+                }
+            ])
             ->withCount(['likers', 'bookmarkers', 'shares'])
             ->first();
 
