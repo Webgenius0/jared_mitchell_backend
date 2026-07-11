@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use RuntimeException;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Illuminate\Database\Eloquent\Collection;
 
 class EventController extends Controller
 {
@@ -127,20 +128,6 @@ class EventController extends Controller
         // We can just grab the unpaginated list up to a certain limit or reuse the same paginated set.
         // If we want ALL upcoming for calendar, we can query without pagination, but let's just 
         // fetch up to 100 for the calendar view to keep the response size reasonable.
-        $calendarEvents = Event::where('status', 'published')
-            ->where('starts_at', '>=', now()->startOfDay())
-            ->orderBy('starts_at', 'asc')
-            ->limit(100)
-            ->get()
-            ->map(function ($event) {
-                return [
-                    'id' => $event->id,
-                    'name' => $event->title, // Mapped to name as requested
-                    'starts_at' => $event->starts_at,
-                    'ends_at' => $event->ends_at,
-                    'slug' => $event->slug,
-                ];
-            });
 
         return $this->success(
             'Upcoming events retrieved successfully.',
@@ -151,8 +138,40 @@ class EventController extends Controller
                     'per_page' => $events->perPage(),
                     'total' => $events->total(),
                     'last_page' => $events->lastPage(),
-                ],
-                'calendar_view' => $calendarEvents
+                ]
+            ]
+        );
+    }
+
+    /**
+     * Get upcoming events (from today onwards) with calendar view formatting.
+     */
+    public function eventCalaenderView(Request $request)
+    {
+        $events = Event::where('status', 'published')
+            ->orderBy('starts_at', 'asc')
+            ->paginate($request->input('per_page', 12));
+
+        $formatted = $events->map(function ($event) {
+            return [
+                'id' => $event->id,
+                'title' => $event->title,
+                'description' => $event->description,
+                'start_date' => $event->starts_at,
+                'end_date' => $event->ends_at,
+            ];
+        });
+
+        return $this->success(
+            'Calendar events retrieved successfully.',
+            [
+                'events' => $formatted,
+                'pagination' => [
+                    'current_page' => $events->currentPage(),
+                    'per_page' => $events->perPage(),
+                    'total' => $events->total(),
+                    'last_page' => $events->lastPage(),
+                ]
             ]
         );
     }
