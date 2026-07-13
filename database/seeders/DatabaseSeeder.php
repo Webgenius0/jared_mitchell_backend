@@ -31,6 +31,7 @@ class DatabaseSeeder extends Seeder
             ServicePageSeeder::class,
             AboutPageSeeder::class,
             HomePageSeeder::class,
+            // BusinessSeeder::class,
         ]);
     }
 }
