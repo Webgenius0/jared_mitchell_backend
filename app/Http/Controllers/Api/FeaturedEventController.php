@@ -18,6 +18,12 @@ class FeaturedEventController extends Controller
             $events = Event::where('is_featured', 1)
                 ->get();
 
+            $events->each(function ($event) {
+                $event->promo_video_path = $event->promo_video_path
+                    ? asset($event->promo_video_path)
+                    : null;
+            });
+
             return response()->json([
                 'success' => true,
                 'message' => 'Featured events retrieved successfully.',
