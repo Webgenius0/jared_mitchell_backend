@@ -44,6 +44,16 @@ class EventResource extends JsonResource
                     ];
                 });
             }),
+            'event_artists' => $this->whenLoaded('artists', function () {
+                return $this->artists->map(function ($artist) {
+                    return [
+                        'id' => $artist->id,
+                        'name' => $artist->profile->name ?? '',
+                        'photo' => $artist->profile->avatar ? asset('/' . $artist->profile->avatar) : asset('admin/default/user.jpg'),
+                        'designation' => $artist->profile->tagline ?? $artist->artistCategory?->name ?? 'Artist',
+                    ];
+                });
+            }),
             // Interaction counts
             'likes_count' => (int) ($this->likers_count ?? 0),
             'bookmarks_count' => (int) ($this->bookmarkers_count ?? 0),

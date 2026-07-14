@@ -253,7 +253,9 @@ class EventController extends Controller
                 'ticketTiers' => function ($q) {
                     $q->where('is_active', true)->orderBy('sort_order');
                 },
-                'media'
+                'media',
+                'artists.profile',
+                'artists.artistCategory',
             ])
             ->withCount(['likers', 'bookmarkers', 'shares'])
             ->first();
