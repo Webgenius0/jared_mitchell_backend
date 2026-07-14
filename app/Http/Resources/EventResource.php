@@ -34,6 +34,16 @@ class EventResource extends JsonResource
             'tickets_available' => (bool) $this->tickets_available,
             'status' => $this->status,
             'ticket_tiers' => $this->whenLoaded('ticketTiers'),
+            'event_media' => $this->whenLoaded('media', function () {
+                return $this->media->map(function ($media) {
+                    return [
+                        'id' => $media->id,
+                        'event_id' => $media->event_id,
+                        'full_url' => asset($media->file_path),
+                        'created_at' => $media->created_at,
+                    ];
+                });
+            }),
             // Interaction counts
             'likes_count' => (int) ($this->likers_count ?? 0),
             'bookmarks_count' => (int) ($this->bookmarkers_count ?? 0),
