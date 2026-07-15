@@ -81,6 +81,11 @@ Route::prefix('cms/content')->name('admin.cms.content.')->group(function () {
     Route::post('/what-you-get', [CmsHomePageController::class, 'updateWhatYouGet'])->name('update.what_you_get');
     Route::post('/boss-beginnings', [CmsHomePageController::class, 'updateBossBeginnings'])->name('update.boss_beginnings');
     Route::post('/spotlight', [CmsHomePageController::class, 'updateSpotlight'])->name('update.spotlight');
+    Route::post('/boss-beginning-winners', [CmsHomePageController::class, 'updateBossBeginningWinners'])->name('update.boss_beginning_winners');
+    Route::post('/next-boss-beginnings', [CmsHomePageController::class, 'updateNextBossBeginnings'])->name('update.next_boss_beginnings');
+    Route::post('/upcoming-events', [CmsHomePageController::class, 'updateUpcomingEvents'])->name('update.upcoming_events');
+    Route::post('/past-event-highlights', [CmsHomePageController::class, 'updatePastEventHighlights'])->name('update.past_event_highlights');
+    Route::post('/event-sponsors', [CmsHomePageController::class, 'updateEventSponsors'])->name('update.event_sponsors');
     Route::post('/highlights', [CmsHomePageController::class, 'updateHighlights'])->name('update.highlights');
     Route::post('/events', [CmsHomePageController::class, 'updateEvents'])->name('update.events');
     Route::post('/shop', [CmsHomePageController::class, 'updateShop'])->name('update.shop');

@@ -365,6 +365,185 @@ class CmsHomePageController extends Controller
     }
 
     /**
+     * Update boss beginning winners section
+     */
+    public function updateBossBeginningWinners(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:255'],
+            'sub_title' => ['nullable', 'string'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::updateOrCreate(
+            [
+                'page' => CmsPage::HOME,
+                'section' => CmsSection::BOSS_BEGINNING_WINNERS,
+            ],
+            [
+                'title' => $request->title,
+                'sub_title' => $request->sub_title,
+            ]
+        );
+
+        return $this->success('Boss Beginning Winners section updated successfully.', [
+            'cms' => $cms,
+        ]);
+    }
+
+    /**
+     * Update next boss beginnings - westside beauty lounge section
+     */
+    public function updateNextBossBeginnings(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::updateOrCreate(
+            [
+                'page' => CmsPage::HOME,
+                'section' => CmsSection::NEXT_BOSS_BEGINNINGS_WESTSIDE_BEAUTY_LOUNGE,
+            ],
+            [
+                'title' => $request->title,
+            ]
+        );
+
+        return $this->success('Next Boss Beginnings - Westside Beauty Lounge section updated successfully.', [
+            'cms' => $cms,
+        ]);
+    }
+
+    /**
+     * Update upcoming events section
+     */
+    public function updateUpcomingEvents(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::updateOrCreate(
+            [
+                'page' => CmsPage::HOME,
+                'section' => CmsSection::UPCOMING_EVENTS,
+            ],
+            [
+                'title' => $request->title,
+            ]
+        );
+
+        return $this->success('Upcoming Events section updated successfully.', [
+            'cms' => $cms,
+        ]);
+    }
+
+    /**
+     * Update past event highlights section
+     */
+    public function updatePastEventHighlights(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::updateOrCreate(
+            [
+                'page' => CmsPage::HOME,
+                'section' => CmsSection::PAST_EVENT_HIGHLIGHTS,
+            ],
+            [
+                'title' => $request->title,
+            ]
+        );
+
+        return $this->success('Past Event Highlights section updated successfully.', [
+            'cms' => $cms,
+        ]);
+    }
+
+
+    public function updateEventSponsors(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:255'],
+            'sub_title' => ['nullable', 'string', 'max:255'],
+            'event_sponsors' => ['nullable', 'array'],
+            'event_sponsors.*.link' => ['nullable', 'string', 'max:255'],
+            'event_sponsors.*.image_file' => ['nullable', 'file', 'image', 'max:2048'],
+            'event_sponsors.*.existing_image' => ['nullable', 'string'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::updateOrCreate(
+            [
+                'page' => CmsPage::HOME,
+                'section' => CmsSection::EVENT_SPONSORS,
+            ],
+            [
+                'title' => $request->title,
+                'sub_title' => $request->sub_title,
+            ]
+        );
+
+        $sponsorData = [];
+        $existingMetadata = $cms->metadata ?? [];
+        $existingImages = collect($existingMetadata)->pluck('image')->toArray();
+
+        if ($request->has('event_sponsors')) {
+            foreach ($request->event_sponsors as $index => $sponsor) {
+                $imagePath = $sponsor['existing_image'] ?? null;
+
+                if ($request->hasFile("event_sponsors.$index.image_file")) {
+                    if ($imagePath && Str::startsWith($imagePath, 'uploads/')) {
+                        FileHandle::fileDelete($imagePath);
+                    }
+                    $imagePath = FileHandle::fileUpload($request->file("event_sponsors.$index.image_file"), 'cms/event_sponsors');
+                }
+
+                $sponsorData[] = [
+                    'image' => $imagePath,
+                    'link' => $sponsor['link'] ?? null,
+                ];
+            }
+        }
+
+        $newImages = collect($sponsorData)->pluck('image')->toArray();
+        foreach ($existingImages as $oldImg) {
+            if ($oldImg && !in_array($oldImg, $newImages) && Str::startsWith($oldImg, 'uploads/')) {
+                FileHandle::fileDelete($oldImg);
+            }
+        }
+
+        $cms->metadata = $sponsorData;
+        $cms->save();
+
+        return $this->success('Event Sponsors section updated successfully.', [
+            'cms' => $cms,
+        ]);
+    }
+
+
+    /**
      * Update spotlight section
      */
     public function updateSpotlight(Request $request): JsonResponse
@@ -528,7 +707,6 @@ class CmsHomePageController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'title' => ['nullable', 'string', 'max:255'],
-            'sub_title' => ['nullable', 'string'],
         ]);
 
         if ($validator->fails()) {
@@ -542,7 +720,6 @@ class CmsHomePageController extends Controller
             ],
             [
                 'title' => $request->title,
-                'sub_title' => $request->sub_title,
             ]
         );
 

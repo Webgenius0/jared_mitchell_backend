@@ -6,6 +6,11 @@ enum CmsSection: string
 {
     case HERO = 'hero';
     case SPOTLIGHT = 'spotlight';
+    case BOSS_BEGINNING_WINNERS = 'boss_beginning_winners';
+    case NEXT_BOSS_BEGINNINGS_WESTSIDE_BEAUTY_LOUNGE = 'next_boss_beginnings_westside_beauty_lounge';
+    case UPCOMING_EVENTS = 'upcoming_events';
+    case PAST_EVENT_HIGHLIGHTS = 'past_event_highlights';
+    case EVENT_SPONSORS = 'event_sponsors';
     case PARTNERS = 'partners';
     case FEATURES = 'features';
     case WHY_CHOOSE = 'why_choose';
