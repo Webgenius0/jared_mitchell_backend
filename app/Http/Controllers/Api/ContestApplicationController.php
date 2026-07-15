@@ -271,4 +271,75 @@ class ContestApplicationController extends Controller
             ]
         );
     }
+
+    /**
+     * GET /api/v1/contest/my-contests
+     *
+     * List all contest applications for the authenticated user's businesses.
+     * Includes business details, season info, and the rounds for each season.
+     */
+    public function myContests(): JsonResponse
+    {
+        $userId = auth('api')->id();
+
+        $applications = ContestApplication::whereHas('business', function ($query) use ($userId) {
+            $query->where('user_id', $userId);
+        })
+            ->with([
+                'business',
+                'season' => function ($query) {
+                    $query->with([
+                        'rounds' => function ($query) {
+                            $query->orderBy('round_number');
+                        }
+                    ]);
+                },
+            ])
+            ->latest()
+            ->get();
+
+        $contests = $applications->map(function ($application) {
+            $season = $application->season;
+            $business = $application->business;
+
+            return [
+                'id' => $application->id,
+                'status' => $application->status,
+                'approved_at' => $application->approved_at,
+                'rejected_reason' => $application->rejected_reason,
+                'admin_note' => $application->admin_note,
+                'created_at' => $application->created_at,
+                'updated_at' => $application->updated_at,
+
+                'business' => [
+                    'id' => $business?->id,
+                    'business_name' => $business?->business_name,
+                    'owner_founder_name' => $business?->owner_founder_name,
+                ],
+
+                'season' => [
+                    'id' => $season?->id,
+                    'title' => $season?->title,
+                    'slug' => $season?->slug,
+                    'status' => $season?->status,
+                    'is_active' => $season?->is_active,
+                    'rounds' => $season?->rounds?->map(function ($round) {
+                        return [
+                            'id' => $round->id,
+                            'round_number' => $round->round_number,
+                            'title' => $round->title,
+                            'is_active' => $round->is_active,
+                        ];
+                    }) ?? [],
+                ],
+            ];
+        });
+
+        return $this->success(
+            'My contests retrieved successfully.',
+            [
+                'contests' => $contests,
+            ]
+        );
+    }
 }
