@@ -12,9 +12,5 @@ class ApplicationReviewed
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public function __construct(
-        public ContestApplication $application,
-        public AiReview           $review,
-        public string             $verdict,
-    ) {}
+    public function __construct(public ContestApplication $application, public AiReview $review, public string $verdict) {}
 }
