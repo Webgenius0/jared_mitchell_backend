@@ -145,6 +145,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
         |--------------------------------------------------------------------------
         */
         Route::get('/products', [ProductController::class, 'index']);
+        Route::get('/products/featured', [ProductController::class, 'featured']);
         Route::get('/products/{slug}', [ProductController::class, 'show']);
 
         /*
