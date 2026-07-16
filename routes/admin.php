@@ -156,6 +156,7 @@ Route::prefix('cms/business-spotlight')->name('admin.cms.business_spotlight.')->
 Route::prefix('cms/spotlight-ladder')->name('admin.cms.spotlight_ladder.')->group(function () {
     Route::get('/', [SpotlightLadderCmsController::class, 'index'])->name('index');
     Route::post('/hero', [SpotlightLadderCmsController::class, 'updateHero'])->name('update.hero');
+    Route::post('/details', [SpotlightLadderCmsController::class, 'updateDetails'])->name('update.details');
 });
 
 // Event CMS Routes

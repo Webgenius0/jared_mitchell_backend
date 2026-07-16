@@ -24,7 +24,7 @@
                             <input type="file" name="bg_file" class="form-control" accept="image/*">
                             @if($hero?->bg)
                                 <div class="mt-2">
-                                    <img src="{{ asset('storage/' . $hero->bg) }}" alt="Hero Background" class="rounded border" style="max-height: 200px; width: auto;">
+                                    <img src="{{ asset( $hero->bg) }}" alt="Hero Background" class="rounded border" style="max-height: 200px; width: auto;">
                                 </div>
                             @endif
                         </div>
@@ -64,7 +64,7 @@
                             <input type="file" name="image_file" class="form-control" accept="image/*">
                             @if($society?->image)
                                 <div class="mt-2">
-                                    <img src="{{ asset('storage/' . $society->image) }}" alt="Society Image" class="rounded border" style="max-height: 200px; width: auto;">
+                                    <img src="{{ asset($society->image) }}" alt="Society Image" class="rounded border" style="max-height: 200px; width: auto;">
                                 </div>
                             @endif
                         </div>
@@ -104,7 +104,7 @@
                             <input type="file" name="image_file" class="form-control" accept="image/*">
                             @if($origin?->image)
                                 <div class="mt-2">
-                                    <img src="{{ asset('storage/' . $origin->image) }}" alt="Origin Image" class="rounded border" style="max-height: 200px; width: auto;">
+                                    <img src="{{ asset($origin->image) }}" alt="Origin Image" class="rounded border" style="max-height: 200px; width: auto;">
                                 </div>
                             @endif
                         </div>
@@ -162,7 +162,7 @@
                                                     <input type="hidden" name="items[{{ $index }}][existing_image]" value="{{ $item['image'] ?? '' }}">
                                                     @if($item['image'] ?? null)
                                                         <div class="mt-2">
-                                                            <img src="{{ asset('storage/' . $item['image']) }}" alt="Icon" class="rounded border" style="height: 50px;">
+                                                            <img src="{{ asset($item['image']) }}" alt="Icon" class="rounded border" style="height: 50px;">
                                                         </div>
                                                     @endif
                                                 </div>
@@ -244,7 +244,7 @@
                                                         <input type="hidden" name="items[{{ $index }}][existing_image]" value="{{ $item['image'] ?? '' }}">
                                                         @if($item['image'] ?? null)
                                                             <div class="mt-2">
-                                                                <img src="{{ asset('storage/' . $item['image']) }}" alt="Icon" class="rounded border" style="height: 50px;">
+                                                                <img src="{{ asset(  $item['image']) }}" alt="Icon" class="rounded border" style="height: 50px;">
                                                             </div>
                                                         @endif
                                                     </div>
@@ -331,7 +331,7 @@
                                                         <input type="hidden" name="items[{{ $index }}][existing_image]" value="{{ $item['image'] ?? '' }}">
                                                         @if($item['image'] ?? null)
                                                             <div class="mt-2">
-                                                                <img src="{{ asset('storage/' . $item['image']) }}" alt="Icon" class="rounded border" style="height: 50px;">
+                                                                <img src="{{ asset( $item['image']) }}" alt="Icon" class="rounded border" style="height: 50px;">
                                                             </div>
                                                         @endif
                                                     </div>
@@ -390,7 +390,7 @@
                             <input type="file" name="image_file" class="form-control" accept="image/*">
                             @if($serve?->image)
                                 <div class="mt-2">
-                                    <img src="{{ asset('storage/' . $serve->image) }}" alt="Serve Image" class="rounded border" style="height: 100px;">
+                                    <img src="{{ asset(  $serve->image) }}" alt="Serve Image" class="rounded border" style="height: 100px;">
                                 </div>
                             @endif
                         </div>
@@ -537,7 +537,7 @@
                                                     <input type="hidden" name="items[{{ $index }}][existing_image]" value="{{ $item['image'] ?? '' }}">
                                                     @if($item['image'] ?? null)
                                                         <div class="mt-2 text-center">
-                                                            <img src="{{ asset('storage/' . $item['image']) }}" alt="Founder" class="rounded border shadow-sm" style="height: 80px; width: 80px; object-fit: cover;">
+                                                            <img src="{{ asset( $item['image']) }}" alt="Founder" class="rounded border shadow-sm" style="height: 80px; width: 80px; object-fit: cover;">
                                                         </div>
                                                     @endif
                                                 </div>
@@ -642,7 +642,7 @@
                                                     <input type="file" name="items[{{ $index }}][image_file]" class="form-control form-control-sm mb-2" accept="image/*">
                                                     <input type="hidden" name="items[{{ $index }}][existing_image]" value="{{ $item['image'] ?? '' }}">
                                                     @if($item['image'] ?? null)
-                                                        <img src="{{ asset('storage/' . $item['image']) }}" alt="Sponsor" class="img-fluid rounded mb-2" style="max-height: 50px;">
+                                                        <img src="{{ asset($item['image']) }}" alt="Sponsor" class="img-fluid rounded mb-2" style="max-height: 50px;">
                                                     @else
                                                         <div class="bg-light rounded py-3 text-muted" style="font-size: 10px;">No Image</div>
                                                     @endif

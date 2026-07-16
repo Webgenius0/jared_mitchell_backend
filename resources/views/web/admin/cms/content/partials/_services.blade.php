@@ -21,7 +21,7 @@
                             <input type="file" name="bg_image" class="form-control" accept="image/*">
                             @if($hero?->image)
                                 <div class="mt-2">
-                                    <img src="{{ asset('storage/' . $hero->image) }}" alt="Hero Background" class="rounded border" style="max-height: 150px;">
+                                    <img src="{{ asset($hero->image) }}" alt="Hero Background" class="rounded border" style="max-height: 150px;">
                                 </div>
                             @endif
                         </div>
@@ -88,7 +88,7 @@
                             <input type="file" name="image_file" class="form-control" accept="image/*">
                             @if($grow?->image)
                                 <div class="mt-2">
-                                    <img src="{{ asset('storage/' . $grow->image) }}" alt="Grow Image" class="rounded border" style="max-height: 200px; width: auto;">
+                                    <img src="{{ asset($grow->image) }}" alt="Grow Image" class="rounded border" style="max-height: 200px; width: auto;">
                                 </div>
                             @endif
                         </div>
@@ -148,7 +148,7 @@
                                                     <input type="file" name="items[{{ $index }}][image_file]" class="form-control form-control-sm mb-2" accept="image/*">
                                                     <input type="hidden" name="items[{{ $index }}][existing_image]" value="{{ $item['image'] ?? '' }}">
                                                     @if($item['image'] ?? null)
-                                                        <img src="{{ asset('storage/' . $item['image']) }}" alt="Partner" class="img-fluid rounded mb-2" style="max-height: 50px;">
+                                                        <img src="{{ asset($item['image']) }}" alt="Partner" class="img-fluid rounded mb-2" style="max-height: 50px;">
                                                     @endif
                                                 </div>
                                                 <div class="mt-3">
@@ -224,16 +224,16 @@
                                                     <label class="form-label small mb-1">Title</label>
                                                     <input type="text" name="items[{{ $index }}][title]" class="form-control form-control-sm" value="{{ $item['title'] ?? '' }}" placeholder="e.g. CREATORS">
                                                 </div>
-                                                <div class="mb-2">
+                                                <!-- <div class="mb-2">
                                                     <label class="form-label small mb-1">Icon Class (Remix Icon)</label>
                                                     <input type="text" name="items[{{ $index }}][icon]" class="form-control form-control-sm" value="{{ $item['icon'] ?? '' }}" placeholder="ri-user-line">
-                                                </div>
+                                                </div> -->
                                                 <div class="text-center">
-                                                    <label class="form-label small mb-1">Or Upload Image</label>
+                                                    <label class="form-label small mb-1">Upload Image</label>
                                                     <input type="file" name="items[{{ $index }}][image_file]" class="form-control form-control-sm mb-2" accept="image/*">
                                                     <input type="hidden" name="items[{{ $index }}][existing_image]" value="{{ $item['image'] ?? '' }}">
                                                     @if($item['image'] ?? null)
-                                                        <img src="{{ asset('storage/' . $item['image']) }}" alt="Audience" class="img-fluid rounded mb-2" style="max-height: 40px;">
+                                                        <img src="{{ asset($item['image']) }}" alt="Audience" class="img-fluid rounded mb-2" style="max-height: 40px;">
                                                     @endif
                                                 </div>
                                             </div>
@@ -516,12 +516,12 @@ $(function() {
                             <label class="form-label small mb-1">Title</label>
                             <input type="text" name="items[${whoForCount}][title]" class="form-control form-control-sm" placeholder="e.g. CREATORS">
                         </div>
-                        <div class="mb-2">
+                        <!-- <div class="mb-2">
                             <label class="form-label small mb-1">Icon Class (Remix Icon)</label>
                             <input type="text" name="items[${whoForCount}][icon]" class="form-control form-control-sm" placeholder="ri-user-line">
-                        </div>
+                        </div> -->
                         <div class="text-center">
-                            <label class="form-label small mb-1">Or Upload Image</label>
+                            <label class="form-label small mb-1">Upload Image</label>
                             <input type="file" name="items[${whoForCount}][image_file]" class="form-control form-control-sm mb-2" accept="image/*">
                         </div>
                     </div>

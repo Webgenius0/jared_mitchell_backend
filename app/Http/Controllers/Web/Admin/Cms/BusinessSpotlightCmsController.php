@@ -74,11 +74,39 @@ class BusinessSpotlightCmsController extends Controller
      */
     public function updateVideo(Request $request): JsonResponse
     {
+        // $validator = Validator::make($request->all(), [
+        //     'title' => ['nullable', 'string', 'max:500'],
+        //     'sub_title' => ['nullable', 'string', 'max:500'],
+        //     'video_url' => ['nullable', 'url', 'max:500'],
+        //     'thumbnail' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
+        // ]);
+
+        // if ($validator->fails()) {
+        //     return $this->validationError($validator);
+        // }
+
+        // $cms = CMS::firstOrNew([
+        //     'page' => CmsPage::BUSINESS_SPOTLIGHT,
+        //     'section' => CmsSection::BUSINESS_SPOTLIGHT_VIDEO,
+        // ]);
+
+        // $cms->title = $request->title;
+        // $cms->sub_title = $request->sub_title;
+        // $cms->description = $request->video_url;
+
+        // if ($request->hasFile('thumbnail')) {
+        //     if ($cms->image && Str::startsWith($cms->image, 'uploads/')) {
+        //         FileHandle::fileDelete($cms->image);
+        //     }
+        //     $cms->image = FileHandle::fileUpload($request->file('thumbnail'), 'cms/business-spotlight');
+        // }
+
+        // $cms->save();
+
+        // return $this->success('Business spotlight video updated successfully.', ['cms' => $cms]);
+
         $validator = Validator::make($request->all(), [
-            'title' => ['nullable', 'string', 'max:500'],
-            'sub_title' => ['nullable', 'string', 'max:500'],
-            'video_url' => ['nullable', 'url', 'max:500'],
-            'thumbnail' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
+            'video_file' => ['nullable', 'file', 'mimes:mp4,mov,ogg,qt', 'max:20480'],
         ]);
 
         if ($validator->fails()) {
@@ -90,20 +118,16 @@ class BusinessSpotlightCmsController extends Controller
             'section' => CmsSection::BUSINESS_SPOTLIGHT_VIDEO,
         ]);
 
-        $cms->title = $request->title;
-        $cms->sub_title = $request->sub_title;
-        $cms->description = $request->video_url;
-
-        if ($request->hasFile('thumbnail')) {
-            if ($cms->image && Str::startsWith($cms->image, 'uploads/')) {
-                FileHandle::fileDelete($cms->image);
+        if ($request->hasFile('video_file')) {
+            if ($cms->video && Str::startsWith($cms->video, 'uploads/')) {
+                FileHandle::fileDelete($cms->video);
             }
-            $cms->image = FileHandle::fileUpload($request->file('thumbnail'), 'cms/business-spotlight');
+            $cms->video = FileHandle::fileUpload($request->file('video_file'), 'cms/business-spotlight/videos');
         }
 
         $cms->save();
 
-        return $this->success('Business spotlight video updated successfully.', ['cms' => $cms]);
+        return $this->success('Business spotlight video uploaded successfully.', ['cms' => $cms]);
     }
 
     /**

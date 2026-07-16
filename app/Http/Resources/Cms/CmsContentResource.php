@@ -41,13 +41,13 @@ class CmsContentResource extends JsonResource
             'image' => $this->image
                 ? (filter_var($this->image, FILTER_VALIDATE_URL)
                     ? $this->image
-                    : url(Storage::url($this->image)))
+                    : url($this->image))
                 : null,
 
             'bg' => $this->bg
                 ? (filter_var($this->bg, FILTER_VALIDATE_URL)
                     ? $this->bg
-                    : url(Storage::url($this->bg)))
+                    : url($this->bg))
                 : null,
 
             'video' => $this->video

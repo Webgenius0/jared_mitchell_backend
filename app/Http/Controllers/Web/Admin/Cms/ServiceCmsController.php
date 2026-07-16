@@ -177,7 +177,6 @@ class ServiceCmsController extends Controller
             'description' => ['nullable', 'string'],
             'items' => ['nullable', 'array'],
             'items.*.title' => ['nullable', 'string', 'max:255'],
-            'items.*.icon' => ['nullable', 'string', 'max:255'],
             'items.*.image_file' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
         ]);
 

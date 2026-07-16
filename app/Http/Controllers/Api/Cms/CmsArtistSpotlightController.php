@@ -15,10 +15,21 @@ class CmsArtistSpotlightController extends Controller
     use ApiResponse;
 
     /**
-     * GET /api/v1/cms/artist-spotlight
-     *
-     * Returns all CMS content for the artist spotlight page, keyed by section.
+     * Section order matching the Blade view (_artist_spotlight.blade.php) sequence.
      */
+    private function artistSpotlightSectionOrder(): array
+    {
+        return [
+            CmsSection::ARTIST_SPOTLIGHT_HERO->value,
+            CmsSection::ARTIST_SPOTLIGHT_VIDEO->value,
+            CmsSection::ARTIST_SPOTLIGHT_LIST->value,
+            CmsSection::ARTIST_SPOTLIGHT_HIGHLIGHTS->value,
+            CmsSection::ARTIST_SPOTLIGHT_LADDER->value,
+            CmsSection::ARTIST_SPOTLIGHT_JOIN->value,
+            CmsSection::ARTIST_SPOTLIGHT_WHY_EXISTS->value,
+        ];
+    }
+
     public function index(): JsonResponse
     {
         $cmsData = CMS::where('page', CmsPage::ARTIST_SPOTLIGHT)
@@ -27,23 +38,31 @@ class CmsArtistSpotlightController extends Controller
                 return $item->section instanceof CmsSection ? $item->section->value : $item->section;
             });
 
-        $shonsors = CMS::where('page', CmsPage::HOME)
-            ->where('section', CmsSection::PARTNERS)
-            ->get();
-        // add $shonsors in $cmsData
-        $cmsData['partners'] = $shonsors;
-
-        $newletter = CMS::where('page', CmsPage::HOME)
-            ->where('section', CmsSection::NEWSLETTER)
-            ->first();
-        if ($newletter) {
-            $cmsData['newsletter'] = $newletter;
+        // Reorder sections to match the Blade view sequence
+        $orderedCmsData = collect();
+        foreach ($this->artistSpotlightSectionOrder() as $sectionKey) {
+            if ($cmsData->has($sectionKey)) {
+                $orderedCmsData->put($sectionKey, $cmsData->get($sectionKey));
+            }
         }
 
+        // Sponsors / Partners (appended after main sections, same as blade)
+        $sponsors = CMS::where('page', CmsPage::HOME)
+            ->where('section', CmsSection::PARTNERS)
+            ->get();
+        $orderedCmsData->put('partners', $sponsors);
+
+        // Newsletter (appended at the end)
+        $newsletter = CMS::where('page', CmsPage::HOME)
+            ->where('section', CmsSection::NEWSLETTER)
+            ->first();
+        if ($newsletter) {
+            $orderedCmsData->put('newsletter', $newsletter);
+        }
 
         return $this->success(
             'Artist spotlight page CMS content retrieved successfully.',
-            CmsContentResource::collection($cmsData)->resolve()
+            CmsContentResource::collection($orderedCmsData)->resolve()
         );
     }
 }

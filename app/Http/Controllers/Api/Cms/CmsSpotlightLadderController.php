@@ -28,10 +28,22 @@ class CmsSpotlightLadderController extends Controller
                 return $item->section instanceof CmsSection ? $item->section->value : $item->section;
             });
 
+        $shonsors = CMS::where('page', CmsPage::HOME)
+            ->where('section', CmsSection::PARTNERS)
+            ->get();
+        // add $shonsors in $cmsData
+        $cmsData['partners'] = $shonsors;
+
+        $newletter = CMS::where('page', CmsPage::HOME)
+            ->where('section', CmsSection::NEWSLETTER)
+            ->first();
+        if ($newletter) {
+            $cmsData['newsletter'] = $newletter;
+        }
+
         return $this->success(
             'Spotlight ladder page CMS content retrieved successfully.',
-            CmsContentResource::collection($cmsData)->resolve(),
-            200
+            CmsContentResource::collection($cmsData)->resolve()
         );
     }
 }

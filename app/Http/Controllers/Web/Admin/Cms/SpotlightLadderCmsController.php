@@ -68,4 +68,43 @@ class SpotlightLadderCmsController extends Controller
 
         return $this->success('Spotlight ladder hero updated successfully.', ['cms' => $cms]);
     }
+
+    /**
+     * Update Details section (headings & descriptions)
+     */
+    public function updateDetails(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:255'],
+            'items' => ['nullable', 'array'],
+            'items.*.heading' => ['nullable', 'string', 'max:500'],
+            'items.*.description' => ['nullable', 'string'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::firstOrNew([
+            'page' => CmsPage::SPOTLIGHT_LADDER,
+            'section' => CmsSection::SPOTLIGHT_LADDER_DETAILS,
+        ]);
+
+        $cms->title = $request->title;
+
+        $itemsData = [];
+        if ($request->has('items')) {
+            foreach ($request->items as $item) {
+                $itemsData[] = [
+                    'heading' => $item['heading'] ?? null,
+                    'description' => $item['description'] ?? null,
+                ];
+            }
+        }
+
+        $cms->metadata = $itemsData;
+        $cms->save();
+
+        return $this->success('Spotlight ladder details updated successfully.', ['cms' => $cms]);
+    }
 }

@@ -72,6 +72,7 @@ enum CmsSection: string
 
     // Spotlight Ladder Page
     case SPOTLIGHT_LADDER_HERO = 'spotlight_ladder_hero';
+    case SPOTLIGHT_LADDER_DETAILS = 'spotlight_ladder_details';
 
     // Event Page
     case EVENTS_PAGE_HERO = 'events_page_hero';
