@@ -123,6 +123,7 @@ Route::prefix('cms/services')->name('admin.cms.services.')->group(function () {
     Route::post('/business-spotlight', [ServiceCmsController::class, 'updateBusinessSpotlight'])->name('update.business_spotlight');
     Route::post('/risk-free', [ServiceCmsController::class, 'updateRiskFree'])->name('update.risk_free');
     Route::post('/newsletter', [ServiceCmsController::class, 'updateNewsletter'])->name('update.newsletter');
+    Route::post('/faq', [ServiceCmsController::class, 'updateFaq'])->name('update.faq');
 });
 
 // Artist Spotlight CMS Routes
@@ -167,6 +168,10 @@ Route::prefix('cms/event')->name('admin.cms.event.')->group(function () {
     Route::post('/host', [EventCmsController::class, 'updateHost'])->name('update.host');
     Route::post('/vendor', [EventCmsController::class, 'updateVendor'])->name('update.vendor');
     Route::post('/booth-features', [EventCmsController::class, 'updateBoothFeatures'])->name('update.booth_features');
+    Route::post('/upcoming-event1', [EventCmsController::class, 'updateUpcomingEvent1'])->name('update.upcoming_event1');
+    Route::post('/upcoming-event2', [EventCmsController::class, 'updateUpcomingEvent2'])->name('update.upcoming_event2');
+    Route::post('/event-gallery', [EventCmsController::class, 'updateEventGallery'])->name('update.event_gallery');
+    Route::post('/past-event-highlights', [EventCmsController::class, 'updatePastEventHighlights'])->name('update.past_event_highlights');
 });
 
 // Shop CMS Routes
@@ -176,6 +181,9 @@ Route::prefix('cms/shop')->name('admin.cms.shop.')->group(function () {
     Route::post('/features', [ShopCmsController::class, 'updateFeatures'])->name('update.features');
     Route::post('/support', [ShopCmsController::class, 'updateSupport'])->name('update.support');
     Route::post('/footer-features', [ShopCmsController::class, 'updateFooterFeatures'])->name('update.footer_features');
+    Route::post('/featured', [ShopCmsController::class, 'updateFeatured'])->name('update.featured');
+    Route::post('/limited-drops', [ShopCmsController::class, 'updateLimitedDrops'])->name('update.limited_drops');
+    Route::post('/faq', [ShopCmsController::class, 'updateFaq'])->name('update.faq');
 });
 
 // Sponsorship CMS Routes

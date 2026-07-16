@@ -212,4 +212,108 @@ class EventCmsController extends Controller
 
         return $this->success('Booth features updated successfully.', ['cms' => $cms]);
     }
+
+    /**
+     * Update Upcoming Event 1 section
+     */
+    public function updateUpcomingEvent1(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:500'],
+            'sub_title' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::firstOrNew([
+            'page' => CmsPage::EVENTS,
+            'section' => CmsSection::EVENTS_PAGE_UPCOMING_EVENT1,
+        ]);
+
+        $cms->title = $request->title;
+        $cms->sub_title = $request->sub_title;
+        $cms->save();
+
+        return $this->success('Upcoming Event 1 section updated successfully.', ['cms' => $cms]);
+    }
+
+    /**
+     * Update Upcoming Event 2 section
+     */
+    public function updateUpcomingEvent2(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:500'],
+            'sub_title' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::firstOrNew([
+            'page' => CmsPage::EVENTS,
+            'section' => CmsSection::EVENTS_PAGE_UPCOMING_EVENT2,
+        ]);
+
+        $cms->title = $request->title;
+        $cms->sub_title = $request->sub_title;
+        $cms->save();
+
+        return $this->success('Upcoming Event 2 section updated successfully.', ['cms' => $cms]);
+    }
+
+    /**
+     * Update Event Gallery section
+     */
+    public function updateEventGallery(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:500'],
+            'sub_title' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::firstOrNew([
+            'page' => CmsPage::EVENTS,
+            'section' => CmsSection::EVENTS_PAGE_EVENT_GALLERY,
+        ]);
+
+        $cms->title = $request->title;
+        $cms->sub_title = $request->sub_title;
+        $cms->save();
+
+        return $this->success('Event Gallery section updated successfully.', ['cms' => $cms]);
+    }
+
+    /**
+     * Update Past Event Highlights section
+     */
+    public function updatePastEventHighlights(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:500'],
+            'sub_title' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::firstOrNew([
+            'page' => CmsPage::EVENTS,
+            'section' => CmsSection::EVENTS_PAGE_PAST_EVENT_HIGHLIGHTS,
+        ]);
+
+        $cms->title = $request->title;
+        $cms->sub_title = $request->sub_title;
+        $cms->save();
+
+        return $this->success('Past Event Highlights section updated successfully.', ['cms' => $cms]);
+    }
 }

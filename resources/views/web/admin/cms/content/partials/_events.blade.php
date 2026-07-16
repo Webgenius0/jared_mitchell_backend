@@ -25,7 +25,7 @@
                             <input type="file" name="bg_image" class="form-control" accept="image/*">
                             @if($hero?->image)
                                 <div class="mt-2">
-                                    <img src="{{ asset('storage/' . $hero->image) }}" alt="Hero Background" class="rounded border" style="max-height: 150px;">
+                                    <img src="{{ asset($hero->image) }}" alt="Hero Background" class="rounded border" style="max-height: 150px;">
                                 </div>
                             @endif
                         </div>
@@ -53,19 +53,12 @@
                 <form id="videoForm" enctype="multipart/form-data">
                     <div class="row g-3">
                         <div class="col-md-12">
-                            <label class="form-label">Video URL (YouTube/Vimeo)</label>
-                            <input type="url" name="video_url" class="form-control" value="{{ (isset($video) && !Str::startsWith($video->video, 'uploads/')) ? $video->video : '' }}" placeholder="https://www.youtube.com/watch?v=...">
-                        </div>
-                        <div class="col-md-12 text-center">
-                            <span class="text-muted fw-bold">OR</span>
-                        </div>
-                        <div class="col-md-12">
                             <label class="form-label">Upload Video</label>
                             <input type="file" name="video_file" class="form-control" accept="video/*">
-                            @if(isset($video) && $video->video && Str::startsWith($video->video, 'uploads/'))
+                            @if(isset($video) && $video->video)
                                 <div class="mt-2">
                                     <video controls style="max-height: 150px;" class="rounded border">
-                                        <source src="{{ asset('storage/' . $video->video) }}">
+                                        <source src="{{ asset($video->video) }}">
                                         Your browser does not support the video tag.
                                     </video>
                                 </div>
@@ -87,7 +80,7 @@
     <div class="accordion-item card mb-3">
         <h2 class="accordion-header" id="headingHost">
             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseHost" aria-expanded="false" aria-controls="collapseHost">
-                <i class="ri-home-heart-line me-2"></i> Host Your Event Section
+                <i class="ri-home-heart-line me-2"></i> Host Your Event With OSI
             </button>
         </h2>
         <div id="collapseHost" class="accordion-collapse collapse" aria-labelledby="headingHost" data-bs-parent="#eventAccordion">
@@ -107,7 +100,7 @@
                             <input type="file" name="image_file" class="form-control" accept="image/*">
                             @if($host?->image)
                                 <div class="mt-2">
-                                    <img src="{{ asset('storage/' . $host->image) }}" alt="Host Image" class="rounded border" style="max-height: 150px;">
+                                    <img src="{{ asset($host->image) }}" alt="Host Image" class="rounded border" style="max-height: 150px;">
                                 </div>
                             @endif
                         </div>
@@ -145,8 +138,132 @@
         </div>
     </div>
 
+    {{-- Upcoming Event 1 Section --}}
+    @php $upcoming1 = $cmsData->get('events_page_upcoming_event1'); @endphp
+    <div class="accordion-item card mb-3">
+        <h2 class="accordion-header" id="headingUpcoming1">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUpcoming1" aria-expanded="false" aria-controls="collapseUpcoming1">
+                <i class="ri-calendar-event-line me-2"></i> Upcoming Event 1
+            </button>
+        </h2>
+        <div id="collapseUpcoming1" class="accordion-collapse collapse" aria-labelledby="headingUpcoming1" data-bs-parent="#eventAccordion">
+            <div class="accordion-body">
+                <form id="upcomingEvent1Form">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label">Section Title</label>
+                            <input type="text" name="title" class="form-control" value="{{ $upcoming1?->title }}" placeholder="e.g. Upcoming Events">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Section Subtitle</label>
+                            <textarea name="sub_title" class="form-control" rows="3" placeholder="Enter section subtitle">{{ $upcoming1?->sub_title }}</textarea>
+                        </div>
+                        <div class="col-12 text-end mt-4">
+                            <button type="submit" class="btn btn-primary px-4" id="saveUpcomingEvent1Btn">
+                                <i class="ri-save-line me-1"></i> Save Section
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {{-- Upcoming Event 2 Section --}}
+    @php $upcoming2 = $cmsData->get('events_page_upcoming_event2'); @endphp
+    <div class="accordion-item card mb-3">
+        <h2 class="accordion-header" id="headingUpcoming2">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUpcoming2" aria-expanded="false" aria-controls="collapseUpcoming2">
+                <i class="ri-calendar-check-line me-2"></i> Upcoming Event 2
+            </button>
+        </h2>
+        <div id="collapseUpcoming2" class="accordion-collapse collapse" aria-labelledby="headingUpcoming2" data-bs-parent="#eventAccordion">
+            <div class="accordion-body">
+                <form id="upcomingEvent2Form">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label">Section Title</label>
+                            <input type="text" name="title" class="form-control" value="{{ $upcoming2?->title }}" placeholder="e.g. More Upcoming Events">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Section Subtitle</label>
+                            <textarea name="sub_title" class="form-control" rows="3" placeholder="Enter section subtitle">{{ $upcoming2?->sub_title }}</textarea>
+                        </div>
+                        <div class="col-12 text-end mt-4">
+                            <button type="submit" class="btn btn-primary px-4" id="saveUpcomingEvent2Btn">
+                                <i class="ri-save-line me-1"></i> Save Section
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {{-- Event Gallery Section --}}
+    @php $gallery = $cmsData->get('events_page_event_gallery'); @endphp
+    <div class="accordion-item card mb-3">
+        <h2 class="accordion-header" id="headingGallery">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGallery" aria-expanded="false" aria-controls="collapseGallery">
+                <i class="ri-gallery-line me-2"></i> Event Gallery
+            </button>
+        </h2>
+        <div id="collapseGallery" class="accordion-collapse collapse" aria-labelledby="headingGallery" data-bs-parent="#eventAccordion">
+            <div class="accordion-body">
+                <form id="eventGalleryForm">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label">Section Title</label>
+                            <input type="text" name="title" class="form-control" value="{{ $gallery?->title }}" placeholder="e.g. Event Gallery">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Section Subtitle</label>
+                            <textarea name="sub_title" class="form-control" rows="3" placeholder="Enter section subtitle">{{ $gallery?->sub_title }}</textarea>
+                        </div>
+                        <div class="col-12 text-end mt-4">
+                            <button type="submit" class="btn btn-primary px-4" id="saveEventGalleryBtn">
+                                <i class="ri-save-line me-1"></i> Save Section
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {{-- Past Event Highlights Section --}}
+    @php $pastHighlights = $cmsData->get('events_page_past_event_highlights'); @endphp
+    <div class="accordion-item card mb-3">
+        <h2 class="accordion-header" id="headingPastHighlights">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePastHighlights" aria-expanded="false" aria-controls="collapsePastHighlights">
+                <i class="ri-history-line me-2"></i> Past Event Highlights
+            </button>
+        </h2>
+        <div id="collapsePastHighlights" class="accordion-collapse collapse" aria-labelledby="headingPastHighlights" data-bs-parent="#eventAccordion">
+            <div class="accordion-body">
+                <form id="pastEventHighlightsForm">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label">Section Title</label>
+                            <input type="text" name="title" class="form-control" value="{{ $pastHighlights?->title }}" placeholder="e.g. Past Event Highlights">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Section Subtitle</label>
+                            <textarea name="sub_title" class="form-control" rows="3" placeholder="Enter section subtitle">{{ $pastHighlights?->sub_title }}</textarea>
+                        </div>
+                        <div class="col-12 text-end mt-4">
+                            <button type="submit" class="btn btn-primary px-4" id="savePastEventHighlightsBtn">
+                                <i class="ri-save-line me-1"></i> Save Section
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     {{-- Vendor Section --}}
-    @php 
+    <!-- @php 
         $vendor = $cmsData->get('events_page_vendor'); 
         $meta = $vendor?->metadata ?? [];
     @endphp
@@ -279,7 +396,7 @@
                 </form>
             </div>
         </div>
-    </div>
+    </div> -->
 
 </div>
 
@@ -330,6 +447,78 @@ $(function() {
         $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
         const formData = new FormData(this);
         axios.post("{{ route('admin.cms.event.update.host') }}", formData)
+            .then(res => {
+                Toast.success(res.data.message);
+                setTimeout(() => window.location.reload(), 1000);
+            })
+            .catch(err => {
+                Toast.fromResponse(err.response?.data);
+                $btn.prop('disabled', false).html(originalText);
+            });
+    });
+
+    // Upcoming Event 1 Logic
+    $('#upcomingEvent1Form').on('submit', function(e) {
+        e.preventDefault();
+        const $btn = $('#saveUpcomingEvent1Btn');
+        const originalText = $btn.html();
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
+        const formData = $(this).serialize();
+        axios.post("{{ route('admin.cms.event.update.upcoming_event1') }}", formData)
+            .then(res => {
+                Toast.success(res.data.message);
+                setTimeout(() => window.location.reload(), 1000);
+            })
+            .catch(err => {
+                Toast.fromResponse(err.response?.data);
+                $btn.prop('disabled', false).html(originalText);
+            });
+    });
+
+    // Upcoming Event 2 Logic
+    $('#upcomingEvent2Form').on('submit', function(e) {
+        e.preventDefault();
+        const $btn = $('#saveUpcomingEvent2Btn');
+        const originalText = $btn.html();
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
+        const formData = $(this).serialize();
+        axios.post("{{ route('admin.cms.event.update.upcoming_event2') }}", formData)
+            .then(res => {
+                Toast.success(res.data.message);
+                setTimeout(() => window.location.reload(), 1000);
+            })
+            .catch(err => {
+                Toast.fromResponse(err.response?.data);
+                $btn.prop('disabled', false).html(originalText);
+            });
+    });
+
+    // Event Gallery Logic
+    $('#eventGalleryForm').on('submit', function(e) {
+        e.preventDefault();
+        const $btn = $('#saveEventGalleryBtn');
+        const originalText = $btn.html();
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
+        const formData = $(this).serialize();
+        axios.post("{{ route('admin.cms.event.update.event_gallery') }}", formData)
+            .then(res => {
+                Toast.success(res.data.message);
+                setTimeout(() => window.location.reload(), 1000);
+            })
+            .catch(err => {
+                Toast.fromResponse(err.response?.data);
+                $btn.prop('disabled', false).html(originalText);
+            });
+    });
+
+    // Past Event Highlights Logic
+    $('#pastEventHighlightsForm').on('submit', function(e) {
+        e.preventDefault();
+        const $btn = $('#savePastEventHighlightsBtn');
+        const originalText = $btn.html();
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
+        const formData = $(this).serialize();
+        axios.post("{{ route('admin.cms.event.update.past_event_highlights') }}", formData)
             .then(res => {
                 Toast.success(res.data.message);
                 setTimeout(() => window.location.reload(), 1000);
