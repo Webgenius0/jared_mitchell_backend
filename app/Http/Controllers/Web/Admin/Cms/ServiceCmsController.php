@@ -312,4 +312,25 @@ class ServiceCmsController extends Controller
 
         return $this->success('Services risk free section updated successfully.', ['cms' => $cms]);
     }
+
+    /**
+     * Update Services FAQ section
+     */
+    public function updateFaq(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::updateOrCreate(
+            ['page' => CmsPage::SERVICES, 'section' => CmsSection::SERVICES_FAQ],
+            ['title' => $request->title]
+        );
+
+        return $this->success('FAQ section updated successfully.', ['cms' => $cms]);
+    }
 }

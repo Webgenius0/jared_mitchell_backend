@@ -156,4 +156,78 @@ class ShopCmsController extends Controller
 
         return $this->success('Footer features updated successfully.', ['cms' => $cms]);
     }
+
+    /**
+     * Update Featured from the OSI Shop section
+     */
+    public function updateFeatured(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::firstOrNew([
+            'page' => CmsPage::SHOP,
+            'section' => CmsSection::SHOP_PAGE_FEATURED,
+        ]);
+
+        $cms->title = $request->title;
+        $cms->save();
+
+        return $this->success('Featured section updated successfully.', ['cms' => $cms]);
+    }
+
+    /**
+     * Update Limited Drops section
+     */
+    public function updateLimitedDrops(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:500'],
+            'sub_title' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::firstOrNew([
+            'page' => CmsPage::SHOP,
+            'section' => CmsSection::SHOP_PAGE_LIMITED_DROPS,
+        ]);
+
+        $cms->title = $request->title;
+        $cms->sub_title = $request->sub_title;
+        $cms->save();
+
+        return $this->success('Limited Drops section updated successfully.', ['cms' => $cms]);
+    }
+
+    /**
+     * Update FAQ section
+     */
+    public function updateFaq(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::firstOrNew([
+            'page' => CmsPage::SHOP,
+            'section' => CmsSection::SHOP_PAGE_FAQ,
+        ]);
+
+        $cms->title = $request->title;
+        $cms->save();
+
+        return $this->success('FAQ section updated successfully.', ['cms' => $cms]);
+    }
 }

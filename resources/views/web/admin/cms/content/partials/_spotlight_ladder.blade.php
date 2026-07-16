@@ -25,7 +25,7 @@
                             <input type="file" name="bg_image" class="form-control" accept="image/*">
                             @if($hero?->image)
                                 <div class="mt-2">
-                                    <img src="{{ asset('storage/' . $hero->image) }}" alt="Hero Background" class="rounded border" style="max-height: 150px;">
+                                    <img src="{{ asset($hero->image) }}" alt="Hero Background" class="rounded border" style="max-height: 150px;">
                                 </div>
                             @endif
                         </div>

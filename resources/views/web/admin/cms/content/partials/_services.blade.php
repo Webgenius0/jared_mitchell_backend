@@ -318,6 +318,32 @@
         </div>
     </div>
 
+    {{-- FAQ Section --}}
+    @php $faq = $cmsData->get('services_faq'); @endphp
+    <div class="accordion-item card mb-3">
+        <h2 class="accordion-header" id="headingFaq">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFaq" aria-expanded="false" aria-controls="collapseFaq">
+                <i class="ri-question-answer-line me-2"></i> Frequently Asked Questions
+            </button>
+        </h2>
+        <div id="collapseFaq" class="accordion-collapse collapse" aria-labelledby="headingFaq" data-bs-parent="#serviceAccordion">
+            <div class="accordion-body">
+                <form id="faqForm">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label">Section Title</label>
+                            <input type="text" name="title" class="form-control" value="{{ $faq?->title }}" placeholder="e.g. Frequently Asked Questions">
+                        </div>
+                        <div class="col-12 text-end mt-4">
+                            <button type="submit" class="btn btn-primary px-4" id="saveFaqBtn">
+                                <i class="ri-save-line me-1"></i> Save Section
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     {{-- Risk Free Section --}}
     @php 
@@ -516,12 +542,12 @@ $(function() {
                             <label class="form-label small mb-1">Title</label>
                             <input type="text" name="items[${whoForCount}][title]" class="form-control form-control-sm" placeholder="e.g. CREATORS">
                         </div>
-                        <!-- <div class="mb-2">
+                        <div class="mb-2">
                             <label class="form-label small mb-1">Icon Class (Remix Icon)</label>
                             <input type="text" name="items[${whoForCount}][icon]" class="form-control form-control-sm" placeholder="ri-user-line">
                         </div> -->
                         <div class="text-center">
-                            <label class="form-label small mb-1">Upload Image</label>
+                            <label class="form-label small mb-1">Or Upload Image</label>
                             <input type="file" name="items[${whoForCount}][image_file]" class="form-control form-control-sm mb-2" accept="image/*">
                         </div>
                     </div>
@@ -582,6 +608,24 @@ $(function() {
         $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
         const formData = new FormData(this);
         axios.post("{{ route('admin.cms.services.update.business_spotlight') }}", formData)
+            .then(res => {
+                Toast.success(res.data.message);
+                setTimeout(() => window.location.reload(), 1000);
+            })
+            .catch(err => {
+                Toast.fromResponse(err.response?.data);
+                $btn.prop('disabled', false).html(originalText);
+            });
+    });
+
+    // FAQ Logic
+    $('#faqForm').on('submit', function(e) {
+        e.preventDefault();
+        const $btn = $('#saveFaqBtn');
+        const originalText = $btn.html();
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
+        const formData = $(this).serialize();
+        axios.post("{{ route('admin.cms.services.update.faq') }}", formData)
             .then(res => {
                 Toast.success(res.data.message);
                 setTimeout(() => window.location.reload(), 1000);

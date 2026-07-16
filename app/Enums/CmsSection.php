@@ -48,6 +48,7 @@ enum CmsSection: string
     case SERVICES_BUSINESS_SPOTLIGHT = 'services_business_spotlight';
     case SERVICES_RISK_FREE = 'services_risk_free';
     case SERVICES_NEWSLETTER = 'services_newsletter';
+    case SERVICES_FAQ = 'services_faq';
 
     // Artist Spotlight Page
     case ARTIST_SPOTLIGHT_HERO = 'artist_spotlight_hero';
@@ -80,12 +81,19 @@ enum CmsSection: string
     case EVENTS_PAGE_HOST = 'events_page_host';
     case EVENTS_PAGE_VENDOR = 'events_page_vendor';
     case EVENTS_PAGE_BOOTH_FEATURES = 'events_page_booth_features';
+    case EVENTS_PAGE_UPCOMING_EVENT1 = 'events_page_upcoming_event1';
+    case EVENTS_PAGE_UPCOMING_EVENT2 = 'events_page_upcoming_event2';
+    case EVENTS_PAGE_EVENT_GALLERY = 'events_page_event_gallery';
+    case EVENTS_PAGE_PAST_EVENT_HIGHLIGHTS = 'events_page_past_event_highlights';
 
     // Shop Page
     case SHOP_PAGE_HERO = 'shop_page_hero';
     case SHOP_PAGE_FEATURES = 'shop_page_features';
     case SHOP_PAGE_SUPPORT = 'shop_page_support';
     case SHOP_PAGE_FOOTER_FEATURES = 'shop_page_footer_features';
+    case SHOP_PAGE_FEATURED = 'shop_page_featured';
+    case SHOP_PAGE_LIMITED_DROPS = 'shop_page_limited_drops';
+    case SHOP_PAGE_FAQ = 'shop_page_faq';
 
     // Sponsorship Page
     case SPONSORSHIP_PAGE_HERO = 'sponsorship_page_hero';
