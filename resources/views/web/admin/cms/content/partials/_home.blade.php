@@ -282,7 +282,7 @@
             </div>
         </div>
     </div>
-    
+
     {{-- Core Values Section --}}
     @php
         $coreValues = $cmsData->get('core_values');
@@ -390,6 +390,7 @@
             </div>
         </div>
     </div>
+
     {{-- What You Get Section --}}
     @php
         $whatYouGet = $cmsData->get('what_you_get');
@@ -405,7 +406,7 @@
         <div id="collapseWhatYouGet" class="accordion-collapse collapse" aria-labelledby="headingWhatYouGet"
             data-bs-parent="#cmsAccordion">
             <div class="accordion-body">
-                <form id="whatYouGetForm">
+                <form id="whatYouGetForm" enctype="multipart/form-data">
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label">Section Title</label>
@@ -432,17 +433,25 @@
                                     <div class="card border border-dashed mb-2 what-you-get-item">
                                         <div class="card-body py-2">
                                             <div class="row g-2 align-items-center">
-                                                <div class="col-md-4">
-                                                    <input type="text" name="items[{{ $index }}][icon]"
-                                                        class="form-control form-control-sm" value="{{ $item['icon'] }}"
-                                                        placeholder="Icon (e.g. ri-star-line)">
+                                                <div class="col-md-3">
+                                                    <label class="form-label form-label-sm">Icon Image (PNG)</label>
+                                                    <input type="file" name="items[{{ $index }}][image_file]"
+                                                        class="form-control form-control-sm" accept="image/png">
+                                                    <input type="hidden" name="items[{{ $index }}][existing_image]"
+                                                        value="{{ $item['image'] ?? $item['icon'] ?? '' }}">
+                                                    @if($item['image'] ?? false)
+                                                        <div class="mt-1">
+                                                            <img src="{{ asset($item['image']) }}" alt="Icon" class="rounded border"
+                                                                style="height: 30px; width: auto;">
+                                                        </div>
+                                                    @endif
                                                 </div>
                                                 <div class="col-md-7">
                                                     <input type="text" name="items[{{ $index }}][title]"
                                                         class="form-control form-control-sm" value="{{ $item['title'] }}"
                                                         placeholder="Title (e.g. Business visibility)">
                                                 </div>
-                                                <div class="col-md-1 text-end">
+                                                <div class="col-md-2 text-end">
                                                     <button type="button"
                                                         class="btn btn-sm btn-soft-danger remove-what-you-get-btn">
                                                         <i class="ri-delete-bin-line"></i>
@@ -1225,13 +1234,14 @@
                                                                                                                             <div class="card border border-dashed mb-2 what-you-get-item">
                                                                                                                                 <div class="card-body py-2">
                                                                                                                                     <div class="row g-2 align-items-center">
-                                                                                                                                        <div class="col-md-4">
-                                                                                                                                            <input type="text" name="items[${whatYouGetCount}][icon]" class="form-control form-control-sm" placeholder="Icon (e.g. ri-star-line)">
+                                                                                                                                        <div class="col-md-3">
+                                                                                                                                            <label class="form-label form-label-sm">Icon Image (PNG)</label>
+                                                                                                                                            <input type="file" name="items[${whatYouGetCount}][image_file]" class="form-control form-control-sm" accept="image/png">
                                                                                                                                         </div>
                                                                                                                                         <div class="col-md-7">
                                                                                                                                             <input type="text" name="items[${whatYouGetCount}][title]" class="form-control form-control-sm" placeholder="Title (e.g. Business visibility)">
                                                                                                                                         </div>
-                                                                                                                                        <div class="col-md-1 text-end">
+                                                                                                                                        <div class="col-md-2 text-end">
                                                                                                                                             <button type="button" class="btn btn-sm btn-soft-danger remove-what-you-get-btn">
                                                                                                                                                 <i class="ri-delete-bin-line"></i>
                                                                                                                                             </button>
@@ -1266,6 +1276,7 @@
                         setTimeout(() => window.location.reload(), 1000);
                     })
                     .catch(err => {
+                        showValidationErrors(err.response?.data?.errors);
                         Toast.fromResponse(err.response?.data);
                         $btn.prop('disabled', false).html(originalText);
                     });
