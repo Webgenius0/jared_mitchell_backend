@@ -106,7 +106,7 @@ enum CmsSection: string
     // ==================== Boss Beginnings Sections ====================
     case BOSS_BEGINNINGS_HERO = 'boss_beginnings_hero';
     case BOSS_BEGINNINGS_FEATURES = 'boss_beginnings_features';
-    case BOSS_BEGINNINGS_VIDEO_GALLERY = 'boss_beginnings_video_gallery';
+    case BOSS_BEGINNINGS_WINNER = 'boss_beginnings_winner';
     case BOSS_BEGINNINGS_STEPS = 'boss_beginnings_steps';
     case BOSS_BEGINNINGS_SECTION5 = 'boss_beginnings_section5';
     case BOSS_BEGINNINGS_DYNAMIC = 'boss_beginnings_dynamic';

@@ -40,8 +40,8 @@
                         @include('web.admin.cms.content.partials._events')
                     @elseif($currentPage === 'shop')
                         @include('web.admin.cms.content.partials._shop')
-                    @elseif($currentPage === 'sponsorship')
-                        @include('web.admin.cms.content.partials._sponsorship')
+                    <!-- @elseif($currentPage === 'sponsorship') -->
+                        <!-- @include('web.admin.cms.content.partials._sponsorship') -->
                     @elseif($currentPage === 'boss_beginnings')
                         @include('web.admin.cms.content.partials._boss_beginnings')
                     @elseif($currentPage === 'boss_beginnings_winner_chosen')

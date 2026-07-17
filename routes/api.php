@@ -110,7 +110,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::get('/boss-beginnings-winner', [BossWinnerChosenController::class, 'index']); // Boss Beginnings Winner Chosen page CMS
             Route::get('/events', [CmsEventController::class, 'index']); // Events page CMS
             Route::get('/shop', [ShopController::class, 'index']); // Shop page CMS
-            Route::get('/sponsorsip', [SponsorsipController::class, 'index']); // Sponsorship page CMS
+            // Route::get('/sponsorsip', [SponsorsipController::class, 'index']); // Sponsorship page CMS
             Route::get('/faq', [ApiFAQController::class, 'index']); // Active FAQs
         });
 
@@ -405,7 +405,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
         Route::prefix('contest')->group(function () {
             //My contest
             Route::get('/my-contests', [ContestApplicationController::class, 'myContests']);
-            
+
             // Submissions
             Route::post('/rounds/{round}/submissions', [RoundSubmissionController::class, 'store']);
             Route::post('/rounds/{round}/submissions/draft', [RoundSubmissionController::class, 'saveDraft']);
