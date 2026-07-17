@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Round;
+use App\Models\Contest\Season;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -13,28 +13,37 @@ class RoundSessionApiController extends Controller
     use ApiResponse;
 
     /**
-     * Get the countdown timer for the last updated/created round's starts_at date.
+     * Get the countdown timer for the nearest upcoming season's starts_at date.
      *
      * GET /api/v1/round-countdown
      */
     public function countdown(Request $request): JsonResponse
     {
-        // 1. Retrieve the round (by optional ID parameter, or default to the latest stored round with a starts_at date)
-        $roundId = $request->query('round_id');
-
-        if ($roundId) {
-            $round = Round::find($roundId);
-        } else {
-            // Find the last stored/updated round in the database
-            $round = Round::whereNotNull('starts_at')->latest('id')->first();
-        }
-
-        if (!$round) {
-            return $this->error(null, 'No round with a start date found.', 404);
-        }
+        // 1. Retrieve the season (by optional ID parameter, or default to the nearest upcoming season)
+        $seasonId = $request->query('season_id');
 
         $now = now();
-        $startsAt = $round->starts_at;
+
+        if ($seasonId) {
+            $season = Season::find($seasonId);
+        } else {
+            // Find the nearest season that hasn't started yet
+            $season = Season::whereNotNull('starts_at')
+                ->where('starts_at', '>', $now)
+                ->orderBy('starts_at', 'asc')
+                ->first();
+                
+            if (!$season) {
+                // fallback to the active season
+                $season = Season::active();
+            }
+        }
+
+        if (!$season) {
+            return $this->error(null, 'No upcoming season found.', 404);
+        }
+
+        $startsAt = $season->starts_at;
 
         // 2. Calculate time difference
         if ($startsAt && $startsAt > $now) {
@@ -45,7 +54,8 @@ class RoundSessionApiController extends Controller
             $minutes = $diff->i;
             $seconds = $diff->s;
 
-            $formatted = sprintf('%d days, %d hours, %d minutes, %d seconds', $days, $hours, $minutes, $seconds);
+            // Zero-padded format with spaces around colons: 12 : 04 : 33 : 14
+            $formatted = sprintf('%02d : %02d : %02d : %02d', $days, $hours, $minutes, $seconds);
             $shortFormatted = sprintf('%dd %dh %dm %ds', $days, $hours, $minutes, $seconds);
             $totalSeconds = $startsAt->getTimestamp() - $now->getTimestamp();
         } else {
@@ -55,24 +65,23 @@ class RoundSessionApiController extends Controller
             $minutes = 0;
             $seconds = 0;
 
-            $formatted = '0 days, 0 hours, 0 minutes, 0 seconds';
+            $formatted = '00 : 00 : 00 : 00';
             $shortFormatted = '0d 0h 0m 0s';
             $totalSeconds = 0;
         }
 
-        return $this->success('Round countdown retrieved successfully.', [
-            'round' => [
-                'id' => $round->id,
-                'round_number' => $round->round_number,
-                'title' => $round->title,
+        return $this->success('Season countdown retrieved successfully.', [
+            'season' => [
+                'id' => $season->id,
+                'title' => $season->title,
                 'starts_at' => $startsAt ? $startsAt->toIso8601String() : null,
                 'current_time' => $now->toIso8601String(),
             ],
             'countdown' => [
-                'days' => $days,
-                'hours' => $hours,
-                'minutes' => $minutes,
-                'seconds' => $seconds,
+                'days' => sprintf('%02d', $days),
+                'hours' => sprintf('%02d', $hours),
+                'minutes' => sprintf('%02d', $minutes),
+                'seconds' => sprintf('%02d', $seconds),
                 'formatted' => $formatted,
                 'short_formatted' => $shortFormatted,
                 'total_seconds' => $totalSeconds,
