@@ -32,7 +32,7 @@ class RoundSessionApiController extends Controller
                 ->where('starts_at', '>', $now)
                 ->orderBy('starts_at', 'asc')
                 ->first();
-                
+
             if (!$season) {
                 // fallback to the active season
                 $season = Season::active();

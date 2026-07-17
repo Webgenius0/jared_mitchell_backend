@@ -33,6 +33,7 @@ use App\Http\Controllers\Api\Cms\FAQController as ApiFAQController;
 use App\Http\Controllers\Api\Cms\ShopController;
 use App\Http\Controllers\Api\Cms\SponsorsipController;
 use App\Http\Controllers\Api\ContactController;
+use App\Http\Controllers\Api\Contest\BossBeginningSeasonController;
 use App\Http\Controllers\Api\Contest\LeaderboardController;
 use App\Http\Controllers\Api\Contest\RoundSubmissionController;
 use App\Http\Controllers\Api\Contest\VoteController;
@@ -188,6 +189,9 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::get('/rounds/{round}/submissions', [RoundSubmissionController::class, 'index']);
             Route::get('/rounds/{round}/leaderboard', [LeaderboardController::class, 'forRound']);
             Route::get('/rounds/{round}/votes/counts', [VoteController::class, 'counts']);
+
+            // Active season rounds
+            Route::get('/active-season-rounds', [BossBeginningSeasonController::class, 'activeRounds']);
         });
     });
 
