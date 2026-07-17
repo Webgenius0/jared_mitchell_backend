@@ -73,11 +73,6 @@
                             <input type="text" name="title" class="form-control" value="{{ $partners?->title }}"
                                 placeholder="e.g. Powered by our community partners">
                         </div>
-                        <div class="col-md-12">
-                            <label class="form-label">Section Sub Title</label>
-                            <input type="text" name="sub_title" class="form-control" value="{{ $partners?->sub_title }}"
-                                placeholder="e.g. Powered by our community partners">
-                        </div>
 
                         <div class="col-md-12">
                             <div class="d-flex align-items-center justify-content-between mb-2">
@@ -143,43 +138,39 @@
             </div>
         </div>
     </div>
-    {{-- Features Section --}}
-    @php $features = $cmsData->get('features'); @endphp
+
+    {{-- Static Banner Section --}}
+    @php $staticBanner = $cmsData->get('static_banner'); @endphp
     <div class="accordion-item card mb-3">
-        <h2 class="accordion-header" id="headingFeatures">
+        <h2 class="accordion-header" id="headingStaticBanner">
             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                data-bs-target="#collapseFeatures" aria-expanded="false" aria-controls="collapseFeatures">
-                <i class="ri-rocket-line me-2"></i> Features Section
+                data-bs-target="#collapseStaticBanner" aria-expanded="false" aria-controls="collapseStaticBanner">
+                <i class="ri-rocket-line me-2"></i> Static Banner Section
             </button>
         </h2>
-        <div id="collapseFeatures" class="accordion-collapse collapse" aria-labelledby="headingFeatures"
+        <div id="collapseStaticBanner" class="accordion-collapse collapse" aria-labelledby="headingStaticBanner"
             data-bs-parent="#cmsAccordion">
             <div class="accordion-body">
-                <form id="featuresForm" enctype="multipart/form-data">
+                <form id="staticBannerForm" enctype="multipart/form-data">
                     <div class="row g-3">
                         <div class="col-md-12">
                             <label class="form-label">Title</label>
-                            <input type="text" name="title" class="form-control" value="{{ $features?->title }}"
+                            <input type="text" name="title" class="form-control" value="{{ $staticBanner?->title }}"
                                 placeholder="e.g. Everything You Need to Grow Your Business">
-                        </div>
-                        <div class="col-md-12">
-                            <label class="form-label">Description</label>
-                            <textarea name="description" class="form-control" rows="4"
-                                placeholder="Enter section description">{{ $features?->description }}</textarea>
                         </div>
                         <div class="col-md-12">
                             <label class="form-label">Background Image</label>
                             <input type="file" name="bg_file" class="form-control" accept="image/*">
-                            @if($features?->bg)
+                            @if($staticBanner?->bg)
                                 <div class="mt-2">
-                                    <img src="{{ asset($features->bg) }}" alt="Background" class="rounded border"
+                                    <img src="{{ asset($staticBanner->bg) }}" alt="Background" class="rounded border"
                                         style="max-height: 150px; width: auto;">
                                 </div>
                             @endif
                         </div>
                         <div class="col-12 text-end mt-4">
-                            <button type="submit" class="btn btn-primary px-4" id="saveFeaturesBtn">
-                                <i class="ri-save-line me-1"></i> Save Features Section
+                            <button type="submit" class="btn btn-primary px-4" id="saveStaticBannerBtn">
+                                <i class="ri-save-line me-1"></i> Save Static Banner Section
                             </button>
                         </div>
                     </div>
@@ -187,6 +178,8 @@
             </div>
         </div>
     </div>
+
+
     {{-- Why Choose Section --}}
     @php
         $whyChoose = $cmsData->get('why_choose');
@@ -205,12 +198,12 @@
                 <form id="whyChooseForm" enctype="multipart/form-data">
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label">Main Title</label>
+                            <label class="form-label">Title</label>
                             <input type="text" name="title" class="form-control" value="{{ $whyChoose?->title }}"
                                 placeholder="e.g. WHY CHOOSE OSI">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Main Subtitle</label>
+                            <label class="form-label">Subtitle</label>
                             <input type="text" name="sub_title" class="form-control"
                                 value="{{ $whyChoose?->sub_title }}"
                                 placeholder="e.g. Fostering a culture of support...">
@@ -289,6 +282,7 @@
             </div>
         </div>
     </div>
+    
     {{-- Core Values Section --}}
     @php
         $coreValues = $cmsData->get('core_values');
@@ -985,22 +979,22 @@
                 $tbody.find('.empty-row').remove();
 
                 const row = `
-                                                                                                                            <tr>
-                                                                                                                                <td>
-                                                                                                                                    <div class="d-flex align-items-center gap-3">
-                                                                                                                                        <input type="file" name="partners[${partnerCount}][image_file]" class="form-control form-control-sm" accept="image/*">
-                                                                                                                                    </div>
-                                                                                                                                </td>
-                                                                                                                                <td>
-                                                                                                                                    <input type="url" name="partners[${partnerCount}][link]" class="form-control form-control-sm" placeholder="https://...">
-                                                                                                                                </td>
-                                                                                                                                <td class="text-center">
-                                                                                                                                    <button type="button" class="btn btn-sm btn-soft-danger remove-partner-btn">
-                                                                                                                                        <i class="ri-delete-bin-line"></i>
-                                                                                                                                    </button>
-                                                                                                                                </td>
-                                                                                                                            </tr>
-                                                                                                                        `;
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-3">
+                            <input type="file" name="partners[${partnerCount}][image_file]" class="form-control form-control-sm" accept="image/*">
+                        </div>
+                    </td>
+                    <td>
+                        <input type="url" name="partners[${partnerCount}][link]" class="form-control form-control-sm" placeholder="https://...">
+                    </td>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-sm btn-soft-danger remove-partner-btn">
+                            <i class="ri-delete-bin-line"></i>
+                        </button>
+                    </td>
+                </tr>
+                `;
                 $tbody.append(row);
                 partnerCount++;
             });
@@ -1032,17 +1026,17 @@
                     });
             });
 
-            // Features Logic
-            $('#featuresForm').on('submit', function (e) {
+            // Static Banner Logic
+            $('#staticBannerForm').on('submit', function (e) {
                 e.preventDefault();
-                const $btn = $('#saveFeaturesBtn');
+                const $btn = $('#saveStaticBannerBtn');
                 const originalText = $btn.html();
 
                 $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
 
                 const formData = new FormData(this);
 
-                axios.post("{{ route('admin.cms.content.update.features') }}", formData)
+                axios.post("{{ route('admin.cms.content.update.static_banner') }}", formData)
                     .then(res => {
                         Toast.success(res.data.message);
                         setTimeout(() => window.location.reload(), 1000);
@@ -1061,37 +1055,37 @@
                 $container.find('.empty-msg').remove();
 
                 const card = `
-                                                                                                                            <div class="card border border-dashed mb-3 why-choose-item">
-                                                                                                                                <div class="card-body">
-                                                                                                                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                                                                                                                        <h6 class="card-title mb-0">New Card</h6>
-                                                                                                                                        <button type="button" class="btn btn-sm btn-soft-danger remove-why-choose-btn">
-                                                                                                                                            <i class="ri-delete-bin-line"></i>
-                                                                                                                                        </button>
-                                                                                                                                    </div>
-                                                                                                                                    <div class="row g-3">
-                                                                                                                                        <div class="col-md-4">
-                                                                                                                                            <label class="form-label">Background Image</label>
-                                                                                                                                            <input type="file" name="items[${whyChooseCount}][image_file]" class="form-control form-control-sm" accept="image/*">
-                                                                                                                                        </div>
-                                                                                                                                        <div class="col-md-8">
-                                                                                                                                            <div class="mb-3">
-                                                                                                                                                <label class="form-label">Title</label>
-                                                                                                                                                <input type="text" name="items[${whyChooseCount}][title]" class="form-control form-control-sm" placeholder="e.g. Creators">
-                                                                                                                                            </div>
-                                                                                                                                            <div class="mb-3">
-                                                                                                                                                <label class="form-label">Subtitle</label>
-                                                                                                                                                <input type="text" name="items[${whyChooseCount}][sub_title]" class="form-control form-control-sm" placeholder="e.g. Build exposure...">
-                                                                                                                                            </div>
-                                                                                                                                            <div>
-                                                                                                                                                <label class="form-label">Description</label>
-                                                                                                                                                <textarea name="items[${whyChooseCount}][description]" class="form-control form-control-sm" rows="2" placeholder="Enter card description"></textarea>
-                                                                                                                                            </div>
-                                                                                                                                        </div>
-                                                                                                                                    </div>
-                                                                                                                                </div>
-                                                                                                                            </div>
-                                                                                                                        `;
+                <div class="card border border-dashed mb-3 why-choose-item">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="card-title mb-0">New Card</h6>
+                            <button type="button" class="btn btn-sm btn-soft-danger remove-why-choose-btn">
+                                <i class="ri-delete-bin-line"></i>
+                            </button>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Background Image</label>
+                                <input type="file" name="items[${whyChooseCount}][image_file]" class="form-control form-control-sm" accept="image/*">
+                            </div>
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label class="form-label">Title</label>
+                                    <input type="text" name="items[${whyChooseCount}][title]" class="form-control form-control-sm" placeholder="e.g. Creators">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Subtitle</label>
+                                    <input type="text" name="items[${whyChooseCount}][sub_title]" class="form-control form-control-sm" placeholder="e.g. Build exposure...">
+                                </div>
+                                <div>
+                                    <label class="form-label">Description</label>
+                                    <textarea name="items[${whyChooseCount}][description]" class="form-control form-control-sm" rows="2" placeholder="Enter card description"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `;
                 $container.append(card);
                 whyChooseCount++;
             });

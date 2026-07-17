@@ -59,7 +59,6 @@ Route::get('/health-check', function () {
 });
 
 
-
 /*
 |--------------------------------------------------------------------------
 | V1 Routes
@@ -405,7 +404,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
         Route::prefix('contest')->group(function () {
             //My contest
             Route::get('/my-contests', [ContestApplicationController::class, 'myContests']);
-            
+
             // Submissions
             Route::post('/rounds/{round}/submissions', [RoundSubmissionController::class, 'store']);
             Route::post('/rounds/{round}/submissions/draft', [RoundSubmissionController::class, 'saveDraft']);

@@ -25,7 +25,7 @@ class CmsHomePageController extends Controller
     {
         $page = $request->query('page', CmsPage::HOME->value);
         $cmsData = CMS::where('page', $page)->get()->keyBy(function ($item) {
-            return $item->section instanceof \App\Enums\CmsSection ? $item->section->value : $item->section;
+            return $item->section instanceof CmsSection ? $item->section->value : $item->section;
         });
 
         return view('web.admin.cms.content.index', [
@@ -77,54 +77,12 @@ class CmsHomePageController extends Controller
     }
 
     /**
-     * Update features section
-     */
-    public function updateFeatures(Request $request): JsonResponse
-    {
-        $validator = Validator::make($request->all(), [
-            'title' => ['nullable', 'string', 'max:255'],
-            'sub_title' => ['nullable', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'bg_file' => ['nullable', 'file', 'image', 'max:5120'], // 5MB
-        ]);
-
-        if ($validator->fails()) {
-            return $this->validationError($validator);
-        }
-
-        $cms = CMS::updateOrCreate(
-            [
-                'page' => CmsPage::HOME,
-                'section' => CmsSection::FEATURES,
-            ],
-            [
-                'title' => $request->title,
-                'sub_title' => $request->sub_title,
-                'description' => $request->description,
-            ]
-        );
-
-        if ($request->hasFile('bg_file')) {
-            if ($cms->bg && Str::startsWith($cms->bg, 'uploads/')) {
-                FileHandle::fileDelete($cms->bg);
-            }
-            $path = FileHandle::fileUpload($request->file('bg_file'), 'cms/backgrounds');
-            $cms->update(['bg' => $path]);
-        }
-
-        return $this->success('Features section updated successfully.', [
-            'cms' => $cms,
-        ]);
-    }
-
-    /**
      * Update partners section
      */
     public function updatePartners(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
             'title' => ['nullable', 'string', 'max:255'],
-            'sub_title' => ['nullable', 'string', 'max:255'],
             'partners' => ['nullable', 'array'],
             'partners.*.link' => ['nullable', 'string', 'max:255'],
             'partners.*.image_file' => ['nullable', 'file', 'image', 'max:2048'],
@@ -141,7 +99,6 @@ class CmsHomePageController extends Controller
         ]);
 
         $cms->title = $request->title;
-        $cms->sub_title = $request->sub_title;
 
         $partnerData = [];
         $existingMetadata = $cms->metadata ?? [];
@@ -179,6 +136,46 @@ class CmsHomePageController extends Controller
             'cms' => $cms,
         ]);
     }
+
+    /**
+     * Update static banner section
+     */
+    public function updateStaticBanner(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:255'],
+            'sub_title' => ['nullable', 'string', 'max:255'],
+            'bg_file' => ['nullable', 'file', 'image', 'max:5120'], // 5MB
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::updateOrCreate(
+            [
+                'page' => CmsPage::HOME,
+                'section' => CmsSection::STATIC_BANNER,
+            ],
+            [
+                'title' => $request->title,
+                'sub_title' => $request->sub_title,
+            ]
+        );
+
+        if ($request->hasFile('bg_file')) {
+            if ($cms->bg && Str::startsWith($cms->bg, 'uploads/')) {
+                FileHandle::fileDelete($cms->bg);
+            }
+            $path = FileHandle::fileUpload($request->file('bg_file'), 'cms/backgrounds');
+            $cms->update(['bg' => $path]);
+        }
+
+        return $this->success('Static banner section updated successfully.', [
+            'cms' => $cms,
+        ]);
+    }
+
 
     /**
      * Update why choose section

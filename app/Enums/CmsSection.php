@@ -12,7 +12,7 @@ enum CmsSection: string
     case PAST_EVENT_HIGHLIGHTS = 'past_event_highlights';
     case EVENT_SPONSORS = 'event_sponsors';
     case PARTNERS = 'partners';
-    case FEATURES = 'features';
+    case STATIC_BANNER = 'static_banner';
     case WHY_CHOOSE = 'why_choose';
     case CORE_VALUES = 'core_values';
     case WHAT_YOU_GET = 'what_you_get';

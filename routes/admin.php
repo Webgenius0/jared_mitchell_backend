@@ -75,7 +75,7 @@ Route::prefix('cms/content')->name('admin.cms.content.')->group(function () {
     Route::get('/', [CmsHomePageController::class, 'index'])->name('index');
     Route::post('/hero', [CmsHomePageController::class, 'updateHero'])->name('update.hero');
     Route::post('/partners', [CmsHomePageController::class, 'updatePartners'])->name('update.partners');
-    Route::post('/features', [CmsHomePageController::class, 'updateFeatures'])->name('update.features');
+    Route::post('/static-banner', [CmsHomePageController::class, 'updateStaticBanner'])->name('update.static_banner');
     Route::post('/why-choose', [CmsHomePageController::class, 'updateWhyChoose'])->name('update.why_choose');
     Route::post('/core-values', [CmsHomePageController::class, 'updateCoreValues'])->name('update.core_values');
     Route::post('/what-you-get', [CmsHomePageController::class, 'updateWhatYouGet'])->name('update.what_you_get');
