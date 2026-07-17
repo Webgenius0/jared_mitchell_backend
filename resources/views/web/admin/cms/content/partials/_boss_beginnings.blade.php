@@ -106,13 +106,13 @@
         </div>
     </div>
 
-    {{-- 3. Video & Gallery Section --}}
-    @php $video = $cmsData->get('boss_beginnings_video_gallery'); @endphp
+    {{-- 3. Boss Beginnings winner --}}
+    @php $video = $cmsData->get('boss_beginnings_winner'); @endphp
     <div class="accordion-item card mb-3">
         <h2 class="accordion-header" id="headingVideo">
             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                 data-bs-target="#collapseVideo" aria-expanded="false" aria-controls="collapseVideo">
-                <i class="ri-video-line me-2"></i> 3. Video & Gallery Section
+                <i class="ri-video-line me-2"></i> 3. Boss Beginnings winner
             </button>
         </h2>
         <div id="collapseVideo" class="accordion-collapse collapse" aria-labelledby="headingVideo"
@@ -128,40 +128,10 @@
                             <label class="form-label">Subtitle</label>
                             <textarea name="sub_title" class="form-control" rows="2">{{ $video?->sub_title }}</textarea>
                         </div>
-                        <div class="col-12">
-                            <label class="form-label">Upload Video</label>
-                            <input type="file" name="video_file" class="form-control"
-                                accept="video/mp4,video/webm,video/ogg">
-                            @if($video?->video)
-                                <div class="mt-2">
-                                    <video class="rounded border shadow-sm"
-                                        style="height: 150px; width: 250px; object-fit: cover;" controls>
-                                        <source src="{{ asset($video->video) }}" type="video/mp4">
-                                        Your browser does not support the video tag.
-                                    </video>
-                                </div>
-                            @endif
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label">Gallery Images (Multiple)</label>
-                            <input type="file" name="gallery_images[]" class="form-control" multiple accept="image/*">
-                            @if(!empty($video?->metadata['gallery']) && count($video->metadata['gallery']) > 0)
-                                <div class="mt-3 d-flex flex-wrap gap-2">
-                                    @foreach($video->metadata['gallery'] as $img)
-                                        <div class="position-relative gallery-img-wrapper" style="height: 80px; width: 80px;">
-                                            <img src="{{ asset($img) }}" class="rounded border shadow-sm w-100 h-100" style="object-fit: cover;">
-                                            <input type="hidden" name="existing_gallery[]" value="{{ $img }}">
-                                            <button type="button" class="btn btn-danger btn-sm p-0 rounded-circle position-absolute delete-gallery-img" 
-                                                style="top: -5px; right: -5px; width: 20px; height: 20px; line-height: 18px; font-size: 12px;" 
-                                                data-path="{{ $img }}">×</button>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            @endif
-                        </div>
+
                         <div class="col-12 text-end mt-3">
-                            <button type="submit" class="btn btn-primary px-4" id="saveVideoBtn">Save Video &
-                                Gallery</button>
+                            <button type="submit" class="btn btn-primary px-4" id="saveVideoBtn">Save Boss Beginnings
+                                winner</button>
                         </div>
                     </div>
                 </form>
@@ -342,33 +312,28 @@
         $(function () {
             let itemCount = "{{ count($dItems) }}";
 
-            // Delete gallery image
-            $(document).on('click', '.delete-gallery-img', function () {
-                $(this).closest('.gallery-img-wrapper').remove();
-            });
-
             // Add Dynamic Item
             $('#addDynamicItem').on('click', function () {
                 let html = `
-                <div class="dynamic-item border p-3 rounded mb-3">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <label>Image / Icon</label>
-                            <input type="file" name="items[${itemCount}][image]" class="form-control form-control-sm" accept="image/*">
-                        </div>
-                        <div class="col-md-4">
-                            <label>Title</label>
-                            <input type="text" name="items[${itemCount}][title]" class="form-control form-control-sm">
-                        </div>
-                        <div class="col-md-4">
-                            <label>Description</label>
-                            <textarea name="items[${itemCount}][description]" class="form-control form-control-sm" rows="3"></textarea>
-                        </div>
-                        <div class="col-md-1 text-end">
-                            <button type="button" class="btn btn-danger btn-sm remove-item mt-4">×</button>
-                        </div>
-                    </div>
-                </div>`;
+                                        <div class="dynamic-item border p-3 rounded mb-3">
+                                            <div class="row">
+                                                <div class="col-md-3">
+                                                    <label>Image / Icon</label>
+                                                    <input type="file" name="items[${itemCount}][image]" class="form-control form-control-sm" accept="image/*">
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label>Title</label>
+                                                    <input type="text" name="items[${itemCount}][title]" class="form-control form-control-sm">
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label>Description</label>
+                                                    <textarea name="items[${itemCount}][description]" class="form-control form-control-sm" rows="3"></textarea>
+                                                </div>
+                                                <div class="col-md-1 text-end">
+                                                    <button type="button" class="btn btn-danger btn-sm remove-item mt-4">×</button>
+                                                </div>
+                                            </div>
+                                        </div>`;
                 $('#dynamicItemsContainer').append(html);
                 itemCount++;
             });

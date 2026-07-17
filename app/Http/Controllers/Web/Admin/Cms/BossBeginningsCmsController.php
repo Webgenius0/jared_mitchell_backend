@@ -42,10 +42,10 @@ class BossBeginningsCmsController extends Controller
     public function updateHero(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'title'       => ['nullable', 'string', 'max:500'],
-            'sub_title'   => ['nullable', 'string', 'max:1000'],
+            'title' => ['nullable', 'string', 'max:500'],
+            'sub_title' => ['nullable', 'string', 'max:1000'],
             'description' => ['nullable', 'string', 'max:3000'],
-            'bg_image'    => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
+            'bg_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
         ]);
 
         if ($validator->fails()) {
@@ -53,12 +53,12 @@ class BossBeginningsCmsController extends Controller
         }
 
         $cms = CMS::firstOrNew([
-            'page'    => CmsPage::BOSS_BEGINNINGS,
+            'page' => CmsPage::BOSS_BEGINNINGS,
             'section' => CmsSection::BOSS_BEGINNINGS_HERO,
         ]);
 
-        $cms->title       = $request->title;
-        $cms->sub_title   = $request->sub_title;
+        $cms->title = $request->title;
+        $cms->sub_title = $request->sub_title;
         $cms->description = $request->description;
 
         if ($request->hasFile('bg_image')) {
@@ -79,10 +79,10 @@ class BossBeginningsCmsController extends Controller
     public function updateFeatures(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'title'                  => ['nullable', 'string', 'max:500'],
-            'description'            => ['nullable', 'string', 'max:2000'],
-            'features'               => ['nullable', 'array'],
-            'features.*.title'       => ['nullable', 'string', 'max:255'],
+            'title' => ['nullable', 'string', 'max:500'],
+            'description' => ['nullable', 'string', 'max:2000'],
+            'features' => ['nullable', 'array'],
+            'features.*.title' => ['nullable', 'string', 'max:255'],
             'features.*.description' => ['nullable', 'string', 'max:500'],
         ]);
 
@@ -91,11 +91,11 @@ class BossBeginningsCmsController extends Controller
         }
 
         $cms = CMS::firstOrNew([
-            'page'    => CmsPage::BOSS_BEGINNINGS,
+            'page' => CmsPage::BOSS_BEGINNINGS,
             'section' => CmsSection::BOSS_BEGINNINGS_FEATURES,
         ]);
 
-        $cms->title       = $request->title;
+        $cms->title = $request->title;
         $cms->description = $request->description;
 
         $features = $request->features ?? [];
@@ -127,9 +127,9 @@ class BossBeginningsCmsController extends Controller
     public function updateVideoGallery(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'title'            => ['nullable', 'string', 'max:500'],
-            'sub_title'        => ['nullable', 'string', 'max:1000'],
-            'video_file'       => ['nullable', 'file', 'mimes:mp4,webm,ogg', 'max:20480'],
+            'title' => ['nullable', 'string', 'max:500'],
+            'sub_title' => ['nullable', 'string', 'max:1000'],
+            'video_file' => ['nullable', 'file', 'mimes:mp4,webm,ogg', 'max:20480'],
             'gallery_images.*' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
         ]);
 
@@ -138,11 +138,11 @@ class BossBeginningsCmsController extends Controller
         }
 
         $cms = CMS::firstOrNew([
-            'page'    => CmsPage::BOSS_BEGINNINGS,
-            'section' => CmsSection::BOSS_BEGINNINGS_VIDEO_GALLERY,
+            'page' => CmsPage::BOSS_BEGINNINGS,
+            'section' => CmsSection::BOSS_BEGINNINGS_WINNER,
         ]);
 
-        $cms->title     = $request->title;
+        $cms->title = $request->title;
         $cms->sub_title = $request->sub_title;
 
         // Video Upload
@@ -188,11 +188,11 @@ class BossBeginningsCmsController extends Controller
     public function updateSteps(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'title'               => ['nullable', 'string', 'max:500'],
-            'sub_title'           => ['nullable', 'string', 'max:1000'],
-            'steps'               => ['nullable', 'array'],
-            'steps.*.small_text'  => ['nullable', 'string', 'max:500'],
-            'steps.*.title'       => ['nullable', 'string', 'max:255'],
+            'title' => ['nullable', 'string', 'max:500'],
+            'sub_title' => ['nullable', 'string', 'max:1000'],
+            'steps' => ['nullable', 'array'],
+            'steps.*.small_text' => ['nullable', 'string', 'max:500'],
+            'steps.*.title' => ['nullable', 'string', 'max:255'],
             'steps.*.description' => ['nullable', 'string', 'max:500'],
         ]);
 
@@ -201,11 +201,11 @@ class BossBeginningsCmsController extends Controller
         }
 
         $cms = CMS::firstOrNew([
-            'page'    => CmsPage::BOSS_BEGINNINGS,
+            'page' => CmsPage::BOSS_BEGINNINGS,
             'section' => CmsSection::BOSS_BEGINNINGS_STEPS,
         ]);
 
-        $cms->title     = $request->title;
+        $cms->title = $request->title;
         $cms->sub_title = $request->sub_title;
 
         $steps = $request->steps ?? [];
@@ -235,7 +235,7 @@ class BossBeginningsCmsController extends Controller
     public function updateSection5(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'title'       => ['nullable', 'string', 'max:500'],
+            'title' => ['nullable', 'string', 'max:500'],
             'description' => ['nullable', 'string', 'max:3000'],
         ]);
 
@@ -244,11 +244,11 @@ class BossBeginningsCmsController extends Controller
         }
 
         $cms = CMS::firstOrNew([
-            'page'    => CmsPage::BOSS_BEGINNINGS,
+            'page' => CmsPage::BOSS_BEGINNINGS,
             'section' => CmsSection::BOSS_BEGINNINGS_SECTION5,
         ]);
 
-        $cms->title       = $request->title;
+        $cms->title = $request->title;
         $cms->description = $request->description;
         $cms->save();
 
@@ -261,10 +261,10 @@ class BossBeginningsCmsController extends Controller
     public function updateDynamicSection(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'title'               => ['nullable', 'string', 'max:500'],
-            'description'         => ['nullable', 'string', 'max:2000'],
-            'items'               => ['nullable', 'array'],
-            'items.*.title'       => ['nullable', 'string', 'max:255'],
+            'title' => ['nullable', 'string', 'max:500'],
+            'description' => ['nullable', 'string', 'max:2000'],
+            'items' => ['nullable', 'array'],
+            'items.*.title' => ['nullable', 'string', 'max:255'],
             'items.*.description' => ['nullable', 'string', 'max:500'],
         ]);
 
@@ -273,11 +273,11 @@ class BossBeginningsCmsController extends Controller
         }
 
         $cms = CMS::firstOrNew([
-            'page'    => CmsPage::BOSS_BEGINNINGS,
+            'page' => CmsPage::BOSS_BEGINNINGS,
             'section' => CmsSection::BOSS_BEGINNINGS_DYNAMIC,
         ]);
 
-        $cms->title       = $request->title;
+        $cms->title = $request->title;
         $cms->description = $request->description;
 
         $items = $request->items ?? [];
