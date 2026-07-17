@@ -25,7 +25,7 @@ class CmsHomePageController extends Controller
     {
         $page = $request->query('page', CmsPage::HOME->value);
         $cmsData = CMS::where('page', $page)->get()->keyBy(function ($item) {
-            return $item->section instanceof \App\Enums\CmsSection ? $item->section->value : $item->section;
+            return $item->section instanceof CmsSection ? $item->section->value : $item->section;
         });
 
         return view('web.admin.cms.content.index', [
@@ -77,54 +77,12 @@ class CmsHomePageController extends Controller
     }
 
     /**
-     * Update features section
-     */
-    public function updateFeatures(Request $request): JsonResponse
-    {
-        $validator = Validator::make($request->all(), [
-            'title' => ['nullable', 'string', 'max:255'],
-            'sub_title' => ['nullable', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'bg_file' => ['nullable', 'file', 'image', 'max:5120'], // 5MB
-        ]);
-
-        if ($validator->fails()) {
-            return $this->validationError($validator);
-        }
-
-        $cms = CMS::updateOrCreate(
-            [
-                'page' => CmsPage::HOME,
-                'section' => CmsSection::FEATURES,
-            ],
-            [
-                'title' => $request->title,
-                'sub_title' => $request->sub_title,
-                'description' => $request->description,
-            ]
-        );
-
-        if ($request->hasFile('bg_file')) {
-            if ($cms->bg && Str::startsWith($cms->bg, 'uploads/')) {
-                FileHandle::fileDelete($cms->bg);
-            }
-            $path = FileHandle::fileUpload($request->file('bg_file'), 'cms/backgrounds');
-            $cms->update(['bg' => $path]);
-        }
-
-        return $this->success('Features section updated successfully.', [
-            'cms' => $cms,
-        ]);
-    }
-
-    /**
      * Update partners section
      */
     public function updatePartners(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
             'title' => ['nullable', 'string', 'max:255'],
-            'sub_title' => ['nullable', 'string', 'max:255'],
             'partners' => ['nullable', 'array'],
             'partners.*.link' => ['nullable', 'string', 'max:255'],
             'partners.*.image_file' => ['nullable', 'file', 'image', 'max:2048'],
@@ -141,7 +99,6 @@ class CmsHomePageController extends Controller
         ]);
 
         $cms->title = $request->title;
-        $cms->sub_title = $request->sub_title;
 
         $partnerData = [];
         $existingMetadata = $cms->metadata ?? [];
@@ -179,6 +136,46 @@ class CmsHomePageController extends Controller
             'cms' => $cms,
         ]);
     }
+
+    /**
+     * Update static banner section
+     */
+    public function updateStaticBanner(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:255'],
+            'sub_title' => ['nullable', 'string', 'max:255'],
+            'bg_file' => ['nullable', 'file', 'image', 'max:5120'], // 5MB
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::updateOrCreate(
+            [
+                'page' => CmsPage::HOME,
+                'section' => CmsSection::STATIC_BANNER,
+            ],
+            [
+                'title' => $request->title,
+                'sub_title' => $request->sub_title,
+            ]
+        );
+
+        if ($request->hasFile('bg_file')) {
+            if ($cms->bg && Str::startsWith($cms->bg, 'uploads/')) {
+                FileHandle::fileDelete($cms->bg);
+            }
+            $path = FileHandle::fileUpload($request->file('bg_file'), 'cms/backgrounds');
+            $cms->update(['bg' => $path]);
+        }
+
+        return $this->success('Static banner section updated successfully.', [
+            'cms' => $cms,
+        ]);
+    }
+
 
     /**
      * Update why choose section
@@ -256,10 +253,11 @@ class CmsHomePageController extends Controller
             'title' => ['nullable', 'string', 'max:255'],
             'bg_file' => ['nullable', 'file', 'image', 'max:5120'],
             'items' => ['nullable', 'array'],
-            'items.*.icon' => ['nullable', 'string', 'max:255'],
             'items.*.title' => ['nullable', 'string', 'max:255'],
             'items.*.sub_title' => ['nullable', 'string', 'max:255'],
             'items.*.description' => ['nullable', 'string'],
+            'items.*.image_file' => ['nullable', 'file', 'image', 'mimes:png', 'max:2048'],
+            'items.*.existing_image' => ['nullable', 'string'],
         ]);
 
         if ($validator->fails()) {
@@ -281,7 +279,38 @@ class CmsHomePageController extends Controller
             $cms->bg = $path;
         }
 
-        $cms->metadata = $request->items ?? [];
+        $itemsData = [];
+        $existingMetadata = $cms->metadata ?? [];
+        $existingImages = collect($existingMetadata)->pluck('image')->toArray();
+
+        if ($request->has('items')) {
+            foreach ($request->items as $index => $item) {
+                $imagePath = $item['existing_image'] ?? null;
+
+                if ($request->hasFile("items.$index.image_file")) {
+                    if ($imagePath && Str::startsWith($imagePath, 'uploads/')) {
+                        FileHandle::fileDelete($imagePath);
+                    }
+                    $imagePath = FileHandle::fileUpload($request->file("items.$index.image_file"), 'cms/core_values');
+                }
+
+                $itemsData[] = [
+                    'image' => $imagePath,
+                    'title' => $item['title'] ?? null,
+                    'sub_title' => $item['sub_title'] ?? null,
+                    'description' => $item['description'] ?? null,
+                ];
+            }
+        }
+
+        $newImages = collect($itemsData)->pluck('image')->toArray();
+        foreach ($existingImages as $oldImg) {
+            if ($oldImg && !in_array($oldImg, $newImages) && Str::startsWith($oldImg, 'uploads/')) {
+                FileHandle::fileDelete($oldImg);
+            }
+        }
+
+        $cms->metadata = $itemsData;
         $cms->save();
 
         return $this->success('Core Values section updated successfully.', [
@@ -298,25 +327,54 @@ class CmsHomePageController extends Controller
             'title' => ['nullable', 'string', 'max:255'],
             'sub_title' => ['nullable', 'string', 'max:255'],
             'items' => ['nullable', 'array'],
-            'items.*.icon' => ['nullable', 'string', 'max:255'],
             'items.*.title' => ['nullable', 'string', 'max:255'],
+            'items.*.image_file' => ['nullable', 'file', 'image', 'mimes:png', 'max:2048'],
+            'items.*.existing_image' => ['nullable', 'string'],
         ]);
 
         if ($validator->fails()) {
             return $this->validationError($validator);
         }
 
-        $cms = CMS::updateOrCreate(
-            [
-                'page' => CmsPage::HOME,
-                'section' => CmsSection::WHAT_YOU_GET,
-            ],
-            [
-                'title' => $request->title,
-                'sub_title' => $request->sub_title,
-                'metadata' => $request->items ?? [],
-            ]
-        );
+        $cms = CMS::firstOrNew([
+            'page' => CmsPage::HOME,
+            'section' => CmsSection::WHAT_YOU_GET,
+        ]);
+
+        $cms->title = $request->title;
+        $cms->sub_title = $request->sub_title;
+
+        $itemsData = [];
+        $existingMetadata = $cms->metadata ?? [];
+        $existingImages = collect($existingMetadata)->pluck('image')->toArray();
+
+        if ($request->has('items')) {
+            foreach ($request->items as $index => $item) {
+                $imagePath = $item['existing_image'] ?? null;
+
+                if ($request->hasFile("items.$index.image_file")) {
+                    if ($imagePath && Str::startsWith($imagePath, 'uploads/')) {
+                        FileHandle::fileDelete($imagePath);
+                    }
+                    $imagePath = FileHandle::fileUpload($request->file("items.$index.image_file"), 'cms/what_you_get');
+                }
+
+                $itemsData[] = [
+                    'image' => $imagePath,
+                    'title' => $item['title'] ?? null,
+                ];
+            }
+        }
+
+        $newImages = collect($itemsData)->pluck('image')->toArray();
+        foreach ($existingImages as $oldImg) {
+            if ($oldImg && !in_array($oldImg, $newImages) && Str::startsWith($oldImg, 'uploads/')) {
+                FileHandle::fileDelete($oldImg);
+            }
+        }
+
+        $cms->metadata = $itemsData;
+        $cms->save();
 
         return $this->success('What You Really Getting section updated successfully.', [
             'cms' => $cms,
@@ -479,15 +537,17 @@ class CmsHomePageController extends Controller
     }
 
 
-    public function updateEventSponsors(Request $request): JsonResponse
+
+
+
+    /**
+     * Update artist spotlight winners section
+     */
+    public function updateArtistSpotlightWinners(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
             'title' => ['nullable', 'string', 'max:255'],
-            'sub_title' => ['nullable', 'string', 'max:255'],
-            'event_sponsors' => ['nullable', 'array'],
-            'event_sponsors.*.link' => ['nullable', 'string', 'max:255'],
-            'event_sponsors.*.image_file' => ['nullable', 'file', 'image', 'max:2048'],
-            'event_sponsors.*.existing_image' => ['nullable', 'string'],
+            'sub_title' => ['nullable', 'string'],
         ]);
 
         if ($validator->fails()) {
@@ -497,7 +557,7 @@ class CmsHomePageController extends Controller
         $cms = CMS::updateOrCreate(
             [
                 'page' => CmsPage::HOME,
-                'section' => CmsSection::EVENT_SPONSORS,
+                'section' => CmsSection::CELEBRATING_ARTIST_SPOTLIGHT_WINNERS,
             ],
             [
                 'title' => $request->title,
@@ -505,43 +565,10 @@ class CmsHomePageController extends Controller
             ]
         );
 
-        $sponsorData = [];
-        $existingMetadata = $cms->metadata ?? [];
-        $existingImages = collect($existingMetadata)->pluck('image')->toArray();
-
-        if ($request->has('event_sponsors')) {
-            foreach ($request->event_sponsors as $index => $sponsor) {
-                $imagePath = $sponsor['existing_image'] ?? null;
-
-                if ($request->hasFile("event_sponsors.$index.image_file")) {
-                    if ($imagePath && Str::startsWith($imagePath, 'uploads/')) {
-                        FileHandle::fileDelete($imagePath);
-                    }
-                    $imagePath = FileHandle::fileUpload($request->file("event_sponsors.$index.image_file"), 'cms/event_sponsors');
-                }
-
-                $sponsorData[] = [
-                    'image' => $imagePath,
-                    'link' => $sponsor['link'] ?? null,
-                ];
-            }
-        }
-
-        $newImages = collect($sponsorData)->pluck('image')->toArray();
-        foreach ($existingImages as $oldImg) {
-            if ($oldImg && !in_array($oldImg, $newImages) && Str::startsWith($oldImg, 'uploads/')) {
-                FileHandle::fileDelete($oldImg);
-            }
-        }
-
-        $cms->metadata = $sponsorData;
-        $cms->save();
-
-        return $this->success('Event Sponsors section updated successfully.', [
+        return $this->success('Artist Spotlight Winners section updated successfully.', [
             'cms' => $cms,
         ]);
     }
-
 
     /**
      * Update spotlight section
@@ -560,7 +587,7 @@ class CmsHomePageController extends Controller
         $cms = CMS::updateOrCreate(
             [
                 'page' => CmsPage::HOME,
-                'section' => CmsSection::SPOTLIGHT,
+                'section' => CmsSection::CELEBRATING_BUSINESS_SPOTLIGHT_WINNERS,
             ],
             [
                 'title' => $request->title,
@@ -568,15 +595,15 @@ class CmsHomePageController extends Controller
             ]
         );
 
-        return $this->success('Spotlight section updated successfully.', [
+        return $this->success('Celebrating Spotlight section updated successfully.', [
             'cms' => $cms,
         ]);
     }
 
     /**
-     * Update highlights section
+     * Update past 6 months boss beginnings highlight section
      */
-    public function updateHighlights(Request $request): JsonResponse
+    public function updatePast6MonthsBossBeginningsHighlight(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
             'title' => ['nullable', 'string', 'max:255'],
@@ -590,7 +617,7 @@ class CmsHomePageController extends Controller
         $cms = CMS::updateOrCreate(
             [
                 'page' => CmsPage::HOME,
-                'section' => CmsSection::HIGHLIGHTS,
+                'section' => CmsSection::PAST_6_MONTH_BOSS_BEGINNINGS_HIGHLIGHT,
             ],
             [
                 'title' => $request->title,
@@ -673,9 +700,9 @@ class CmsHomePageController extends Controller
     }
 
     /**
-     * Update CTA section
+     * Update become a part of our community section
      */
-    public function updateCta(Request $request): JsonResponse
+    public function updateBeApartOfCommunity(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
             'title' => ['nullable', 'string', 'max:255'],
@@ -688,7 +715,7 @@ class CmsHomePageController extends Controller
         $cms = CMS::updateOrCreate(
             [
                 'page' => CmsPage::HOME,
-                'section' => CmsSection::CTA,
+                'section' => CmsSection::BECOME_A_PART_OF_OUR_COMMUNITY,
             ],
             [
                 'title' => $request->title,
@@ -696,6 +723,70 @@ class CmsHomePageController extends Controller
         );
 
         return $this->success('CTA section updated successfully.', [
+            'cms' => $cms,
+        ]);
+    }
+
+    /**
+     * Update event sponsors section
+     */
+    public function updateEventSponsors(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:255'],
+            'event_sponsors' => ['nullable', 'array'],
+            'event_sponsors.*.link' => ['nullable', 'string', 'max:255'],
+            'event_sponsors.*.image_file' => ['nullable', 'file', 'image', 'max:2048'],
+            'event_sponsors.*.existing_image' => ['nullable', 'string'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::updateOrCreate(
+            [
+                'page' => CmsPage::HOME,
+                'section' => CmsSection::EVENT_SPONSORS,
+            ],
+            [
+                'title' => $request->title,
+            ]
+        );
+
+        $sponsorData = [];
+        $existingMetadata = $cms->metadata ?? [];
+        $existingImages = collect($existingMetadata)->pluck('image')->toArray();
+
+        if ($request->has('event_sponsors')) {
+            foreach ($request->event_sponsors as $index => $sponsor) {
+                $imagePath = $sponsor['existing_image'] ?? null;
+
+                if ($request->hasFile("event_sponsors.$index.image_file")) {
+                    if ($imagePath && Str::startsWith($imagePath, 'uploads/')) {
+                        FileHandle::fileDelete($imagePath);
+                    }
+                    $imagePath = FileHandle::fileUpload($request->file("event_sponsors.$index.image_file"), 'cms/event_sponsors');
+                }
+
+                $sponsorData[] = [
+                    'image' => $imagePath,
+                    'link' => $sponsor['link'] ?? null,
+                ];
+            }
+        }
+
+        $newImages = collect($sponsorData)->pluck('image')->toArray();
+        foreach ($existingImages as $oldImg) {
+            if ($oldImg && !in_array($oldImg, $newImages) && Str::startsWith($oldImg, 'uploads/')) {
+                FileHandle::fileDelete($oldImg);
+            }
+        }
+
+        $cms->metadata = $sponsorData;
+        $cms->save();
+
+        return $this->success('Event Sponsors section updated successfully.', [
             'cms' => $cms,
         ]);
     }
