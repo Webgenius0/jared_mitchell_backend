@@ -337,10 +337,17 @@
                                             </div>
                                             <div class="row g-3">
                                                 <div class="col-md-4">
-                                                    <label class="form-label">Icon (Remix Icon Class)</label>
-                                                    <input type="text" name="items[{{ $index }}][icon]"
-                                                        class="form-control form-control-sm" value="{{ $item['icon'] }}"
-                                                        placeholder="e.g. ri-star-line">
+                                                    <label class="form-label">Icon Image (PNG)</label>
+                                                    <input type="file" name="items[{{ $index }}][image_file]"
+                                                        class="form-control form-control-sm" accept="image/png">
+                                                    <input type="hidden" name="items[{{ $index }}][existing_image]"
+                                                        value="{{ $item['image'] ?? $item['icon'] ?? '' }}">
+                                                    @if($item['image'] ?? false)
+                                                        <div class="mt-2 text-center">
+                                                            <img src="{{ asset($item['image']) }}" alt="Icon" class="rounded"
+                                                                style="height: 60px; width: auto;">
+                                                        </div>
+                                                    @endif
                                                 </div>
                                                 <div class="col-md-8">
                                                     <div class="mb-3">
@@ -950,6 +957,23 @@
 @push('scripts')
     <script>
         $(function () {
+            // Helper to display validation errors inline below input fields
+            function showValidationErrors(errors) {
+                $('.is-invalid').removeClass('is-invalid');
+                $('.invalid-feedback').remove();
+                if (!errors) return;
+                Object.keys(errors).forEach(function (key) {
+                    var name = key.replace(/\.(\d+)/g, '[$1]').replace(/\.(\w+)/g, '[$1]');
+                    var $input = $('input[name="' + name + '"]');
+                    if (!$input.length) $input = $('textarea[name="' + name + '"]');
+                    if ($input.length) {
+                        $input.addClass('is-invalid');
+                        var msg = errors[key][0];
+                        $input.after('<div class="invalid-feedback d-block">' + msg + '</div>');
+                    }
+                });
+            }
+
             // Hero Logic
             $('#heroForm').on('submit', function (e) {
                 e.preventDefault();
@@ -1021,6 +1045,7 @@
                         setTimeout(() => window.location.reload(), 1000);
                     })
                     .catch(err => {
+                        showValidationErrors(err.response?.data?.errors);
                         Toast.fromResponse(err.response?.data);
                         $btn.prop('disabled', false).html(originalText);
                     });
@@ -1112,6 +1137,7 @@
                         setTimeout(() => window.location.reload(), 1000);
                     })
                     .catch(err => {
+                        showValidationErrors(err.response?.data?.errors);
                         Toast.fromResponse(err.response?.data);
                         $btn.prop('disabled', false).html(originalText);
                     });
@@ -1135,8 +1161,8 @@
                                                                                                                                     </div>
                                                                                                                                     <div class="row g-3">
                                                                                                                                         <div class="col-md-4">
-                                                                                                                                            <label class="form-label">Icon (Remix Icon Class)</label>
-                                                                                                                                            <input type="text" name="items[${coreValueCount}][icon]" class="form-control form-control-sm" placeholder="e.g. ri-star-line">
+                                                                                                                                            <label class="form-label">Icon Image (PNG)</label>
+                                                                                                                                            <input type="file" name="items[${coreValueCount}][image_file]" class="form-control form-control-sm" accept="image/png">
                                                                                                                                         </div>
                                                                                                                                         <div class="col-md-8">
                                                                                                                                             <div class="mb-3">
@@ -1182,6 +1208,7 @@
                         setTimeout(() => window.location.reload(), 1000);
                     })
                     .catch(err => {
+                        showValidationErrors(err.response?.data?.errors);
                         Toast.fromResponse(err.response?.data);
                         $btn.prop('disabled', false).html(originalText);
                     });
@@ -1400,6 +1427,7 @@
                         setTimeout(() => window.location.reload(), 1000);
                     })
                     .catch(err => {
+                        showValidationErrors(err.response?.data?.errors);
                         Toast.fromResponse(err.response?.data);
                         $btn.prop('disabled', false).html(originalText);
                     });
