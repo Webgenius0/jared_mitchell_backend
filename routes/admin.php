@@ -91,6 +91,7 @@ Route::prefix('cms/content')->name('admin.cms.content.')->group(function () {
     Route::post('/shop', [CmsHomePageController::class, 'updateShop'])->name('update.shop');
     Route::post('/cta', [CmsHomePageController::class, 'updateCta'])->name('update.cta');
     Route::post('/newsletter', [CmsHomePageController::class, 'updateNewsletter'])->name('update.newsletter');
+    Route::post('/artist-spotlight-winners', [CmsHomePageController::class, 'updateArtistSpotlightWinners'])->name('update.artist_spotlight_winners');
 });
 
 // About CMS Routes

@@ -114,4 +114,7 @@ enum CmsSection: string
     // Boss Beginnings Winner Chosen Sections
     case BOSS_BEGINNINGS_WINNER_CHOSEN_SECTION1 = 'boss_beginnings_winner_chosen_section1';
     case BOSS_BEGINNINGS_WINNER_CHOSEN_SECTION2 = 'boss_beginnings_winner_chosen_section2';
+
+    // Home - Artist Spotlight Winners
+    case ARTIST_SPOTLIGHT_WINNERS = 'artist_spotlight_winners';
 }
