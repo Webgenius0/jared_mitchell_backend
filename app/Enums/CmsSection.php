@@ -6,6 +6,7 @@ enum CmsSection: string
 {
     case HERO = 'hero';
     case SPOTLIGHT = 'spotlight';
+    case CELEBRATING_BUSINESS_SPOTLIGHT_WINNERS = 'celebrating_business_spotlight_winners';
     case BOSS_BEGINNING_WINNERS = 'boss_beginning_winners';
     case NEXT_BOSS_BEGINNINGS_WESTSIDE_BEAUTY_LOUNGE = 'next_boss_beginnings_westside_beauty_lounge';
     case UPCOMING_EVENTS = 'upcoming_events';
@@ -116,5 +117,5 @@ enum CmsSection: string
     case BOSS_BEGINNINGS_WINNER_CHOSEN_SECTION2 = 'boss_beginnings_winner_chosen_section2';
 
     // Home - Artist Spotlight Winners
-    case ARTIST_SPOTLIGHT_WINNERS = 'artist_spotlight_winners';
+    case CELEBRATING_ARTIST_SPOTLIGHT_WINNERS = 'celebrating_artist_spotlight_winners';
 }

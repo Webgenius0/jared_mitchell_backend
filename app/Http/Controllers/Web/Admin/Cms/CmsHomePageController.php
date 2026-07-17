@@ -618,7 +618,7 @@ class CmsHomePageController extends Controller
         $cms = CMS::updateOrCreate(
             [
                 'page' => CmsPage::HOME,
-                'section' => CmsSection::ARTIST_SPOTLIGHT_WINNERS,
+                'section' => CmsSection::CELEBRATING_ARTIST_SPOTLIGHT_WINNERS,
             ],
             [
                 'title' => $request->title,
@@ -648,7 +648,7 @@ class CmsHomePageController extends Controller
         $cms = CMS::updateOrCreate(
             [
                 'page' => CmsPage::HOME,
-                'section' => CmsSection::SPOTLIGHT,
+                'section' => CmsSection::CELEBRATING_BUSINESS_SPOTLIGHT_WINNERS,
             ],
             [
                 'title' => $request->title,
@@ -656,7 +656,7 @@ class CmsHomePageController extends Controller
             ]
         );
 
-        return $this->success('Spotlight section updated successfully.', [
+        return $this->success('Celebrating Spotlight section updated successfully.', [
             'cms' => $cms,
         ]);
     }

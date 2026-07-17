@@ -482,7 +482,7 @@
         <h2 class="accordion-header" id="headingBossBeginnings">
             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                 data-bs-target="#collapseBossBeginnings" aria-expanded="false" aria-controls="collapseBossBeginnings">
-                <i class="ri-lightbulb-line me-2"></i> Boss Beginnings Section
+                <i class="ri-lightbulb-line me-2"></i> Boss Beginnings(Business Shower) Section
             </button>
         </h2>
         <div id="collapseBossBeginnings" class="accordion-collapse collapse" aria-labelledby="headingBossBeginnings"

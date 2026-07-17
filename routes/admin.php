@@ -82,6 +82,7 @@ Route::prefix('cms/content')->name('admin.cms.content.')->group(function () {
     Route::post('/boss-beginnings', [CmsHomePageController::class, 'updateBossBeginnings'])->name('update.boss_beginnings');
     Route::post('/spotlight', [CmsHomePageController::class, 'updateSpotlight'])->name('update.spotlight');
     Route::post('/boss-beginning-winners', [CmsHomePageController::class, 'updateBossBeginningWinners'])->name('update.boss_beginning_winners');
+    Route::post('/artist-spotlight-winners', [CmsHomePageController::class, 'updateArtistSpotlightWinners'])->name('update.artist_spotlight_winners');
     Route::post('/next-boss-beginnings', [CmsHomePageController::class, 'updateNextBossBeginnings'])->name('update.next_boss_beginnings');
     Route::post('/upcoming-events', [CmsHomePageController::class, 'updateUpcomingEvents'])->name('update.upcoming_events');
     Route::post('/past-event-highlights', [CmsHomePageController::class, 'updatePastEventHighlights'])->name('update.past_event_highlights');
@@ -91,7 +92,6 @@ Route::prefix('cms/content')->name('admin.cms.content.')->group(function () {
     Route::post('/shop', [CmsHomePageController::class, 'updateShop'])->name('update.shop');
     Route::post('/cta', [CmsHomePageController::class, 'updateCta'])->name('update.cta');
     Route::post('/newsletter', [CmsHomePageController::class, 'updateNewsletter'])->name('update.newsletter');
-    Route::post('/artist-spotlight-winners', [CmsHomePageController::class, 'updateArtistSpotlightWinners'])->name('update.artist_spotlight_winners');
 });
 
 // About CMS Routes
