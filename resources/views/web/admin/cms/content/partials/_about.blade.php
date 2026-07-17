@@ -234,12 +234,8 @@
                                             </div>
                                             <div class="row g-3">
                                                 <div class="col-md-4">
-                                                    <div class="mb-3">
-                                                        <label class="form-label">Icon Class (Remix Icon)</label>
-                                                        <input type="text" name="items[{{ $index }}][icon]" class="form-control form-control-sm" value="{{ $item['icon'] ?? '' }}" placeholder="e.g. ri-star-line">
-                                                    </div>
                                                     <div>
-                                                        <label class="form-label">OR Image</label>
+                                                        <label class="form-label">Image</label>
                                                         <input type="file" name="items[{{ $index }}][image_file]" class="form-control form-control-sm" accept="image/*">
                                                         <input type="hidden" name="items[{{ $index }}][existing_image]" value="{{ $item['image'] ?? '' }}">
                                                         @if($item['image'] ?? null)
@@ -321,12 +317,8 @@
                                             </div>
                                             <div class="row g-3">
                                                 <div class="col-md-4">
-                                                    <div class="mb-3">
-                                                        <label class="form-label">Icon Class (Remix Icon)</label>
-                                                        <input type="text" name="items[{{ $index }}][icon]" class="form-control form-control-sm" value="{{ $item['icon'] ?? '' }}" placeholder="e.g. ri-user-add-line">
-                                                    </div>
                                                     <div>
-                                                        <label class="form-label">OR Image</label>
+                                                        <label class="form-label">Image</label>
                                                         <input type="file" name="items[{{ $index }}][image_file]" class="form-control form-control-sm" accept="image/*">
                                                         <input type="hidden" name="items[{{ $index }}][existing_image]" value="{{ $item['image'] ?? '' }}">
                                                         @if($item['image'] ?? null)
@@ -829,12 +821,8 @@ $(function() {
                     </div>
                     <div class="row g-3">
                         <div class="col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label">Icon Class (Remix Icon)</label>
-                                <input type="text" name="items[${whatWeDoCount}][icon]" class="form-control form-control-sm" placeholder="e.g. ri-star-line">
-                            </div>
                             <div>
-                                <label class="form-label">OR Image</label>
+                                <label class="form-label">Image</label>
                                 <input type="file" name="items[${whatWeDoCount}][image_file]" class="form-control form-control-sm" accept="image/*">
                             </div>
                         </div>
@@ -894,12 +882,8 @@ $(function() {
                     </div>
                     <div class="row g-3">
                         <div class="col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label">Icon Class (Remix Icon)</label>
-                                <input type="text" name="items[${howItWorksCount}][icon]" class="form-control form-control-sm" placeholder="e.g. ri-user-add-line">
-                            </div>
                             <div>
-                                <label class="form-label">OR Image</label>
+                                <label class="form-label">Image</label>
                                 <input type="file" name="items[${howItWorksCount}][image_file]" class="form-control form-control-sm" accept="image/*">
                             </div>
                         </div>

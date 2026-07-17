@@ -208,7 +208,6 @@ class AboutCmsController extends Controller
             'items' => ['nullable', 'array'],
             'items.*.title' => ['nullable', 'string', 'max:255'],
             'items.*.description' => ['nullable', 'string'],
-            'items.*.icon' => ['nullable', 'string', 'max:255'],
             'items.*.image_file' => ['nullable', 'file', 'image', 'max:5120'],
             'items.*.existing_image' => ['nullable', 'string'],
         ]);
@@ -272,7 +271,6 @@ class AboutCmsController extends Controller
             'items' => ['nullable', 'array'],
             'items.*.title' => ['nullable', 'string', 'max:255'],
             'items.*.description' => ['nullable', 'string'],
-            'items.*.icon' => ['nullable', 'string', 'max:255'],
             'items.*.image_file' => ['nullable', 'file', 'image', 'max:5120'],
             'items.*.existing_image' => ['nullable', 'string'],
         ]);
@@ -427,7 +425,7 @@ class AboutCmsController extends Controller
         ]);
 
         $cms->title = $request->title;
-        
+
         $itemsData = [];
         if ($request->has('items')) {
             foreach ($request->items as $index => $item) {
@@ -518,7 +516,7 @@ class AboutCmsController extends Controller
         ]);
 
         $cms->title = $request->title;
-        
+
         $itemsData = [];
         if ($request->has('items')) {
             foreach ($request->items as $index => $item) {
