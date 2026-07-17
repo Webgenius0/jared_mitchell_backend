@@ -75,21 +75,22 @@ Route::prefix('cms/content')->name('admin.cms.content.')->group(function () {
     Route::get('/', [CmsHomePageController::class, 'index'])->name('index');
     Route::post('/hero', [CmsHomePageController::class, 'updateHero'])->name('update.hero');
     Route::post('/partners', [CmsHomePageController::class, 'updatePartners'])->name('update.partners');
-    Route::post('/features', [CmsHomePageController::class, 'updateFeatures'])->name('update.features');
+    Route::post('/static-banner', [CmsHomePageController::class, 'updateStaticBanner'])->name('update.static_banner');
     Route::post('/why-choose', [CmsHomePageController::class, 'updateWhyChoose'])->name('update.why_choose');
     Route::post('/core-values', [CmsHomePageController::class, 'updateCoreValues'])->name('update.core_values');
     Route::post('/what-you-get', [CmsHomePageController::class, 'updateWhatYouGet'])->name('update.what_you_get');
     Route::post('/boss-beginnings', [CmsHomePageController::class, 'updateBossBeginnings'])->name('update.boss_beginnings');
     Route::post('/spotlight', [CmsHomePageController::class, 'updateSpotlight'])->name('update.spotlight');
     Route::post('/boss-beginning-winners', [CmsHomePageController::class, 'updateBossBeginningWinners'])->name('update.boss_beginning_winners');
+    Route::post('/artist-spotlight-winners', [CmsHomePageController::class, 'updateArtistSpotlightWinners'])->name('update.artist_spotlight_winners');
     Route::post('/next-boss-beginnings', [CmsHomePageController::class, 'updateNextBossBeginnings'])->name('update.next_boss_beginnings');
     Route::post('/upcoming-events', [CmsHomePageController::class, 'updateUpcomingEvents'])->name('update.upcoming_events');
     Route::post('/past-event-highlights', [CmsHomePageController::class, 'updatePastEventHighlights'])->name('update.past_event_highlights');
     Route::post('/event-sponsors', [CmsHomePageController::class, 'updateEventSponsors'])->name('update.event_sponsors');
-    Route::post('/highlights', [CmsHomePageController::class, 'updateHighlights'])->name('update.highlights');
+    Route::post('/highlights', [CmsHomePageController::class, 'updatePast6MonthsBossBeginningsHighlight'])->name('update.highlights');
     Route::post('/events', [CmsHomePageController::class, 'updateEvents'])->name('update.events');
     Route::post('/shop', [CmsHomePageController::class, 'updateShop'])->name('update.shop');
-    Route::post('/cta', [CmsHomePageController::class, 'updateCta'])->name('update.cta');
+    Route::post('/cta', [CmsHomePageController::class, 'updateBeApartOfCommunity'])->name('update.cta');
     Route::post('/newsletter', [CmsHomePageController::class, 'updateNewsletter'])->name('update.newsletter');
 });
 

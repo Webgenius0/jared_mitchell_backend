@@ -6,22 +6,24 @@ enum CmsSection: string
 {
     case HERO = 'hero';
     case SPOTLIGHT = 'spotlight';
+    case CELEBRATING_BUSINESS_SPOTLIGHT_WINNERS = 'celebrating_business_spotlight_winners';
     case BOSS_BEGINNING_WINNERS = 'boss_beginning_winners';
     case NEXT_BOSS_BEGINNINGS_WESTSIDE_BEAUTY_LOUNGE = 'next_boss_beginnings_westside_beauty_lounge';
     case UPCOMING_EVENTS = 'upcoming_events';
     case PAST_EVENT_HIGHLIGHTS = 'past_event_highlights';
     case EVENT_SPONSORS = 'event_sponsors';
     case PARTNERS = 'partners';
-    case FEATURES = 'features';
+    case STATIC_BANNER = 'static_banner';
     case WHY_CHOOSE = 'why_choose';
     case CORE_VALUES = 'core_values';
     case WHAT_YOU_GET = 'what_you_get';
     case BOSS_BEGINNINGS = 'boss_beginnings';
-    case HIGHLIGHTS = 'highlights';
+    case PAST_6_MONTH_BOSS_BEGINNINGS_HIGHLIGHT = 'past_6_month_boss_beginnings_highlight';
     case EVENTS = 'events';
     case SHOP = 'shop';
-    case CTA = 'cta';
+    case BECOME_A_PART_OF_OUR_COMMUNITY = 'become_a_part_of_our_community';
     case NEWSLETTER = 'newsletter';
+    case CELEBRATING_ARTIST_SPOTLIGHT_WINNERS = 'celebrating_artist_spotlight_winners';
 
     // About Page
     case ABOUT_HERO = 'about_hero';

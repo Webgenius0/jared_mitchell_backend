@@ -73,11 +73,6 @@
                             <input type="text" name="title" class="form-control" value="{{ $partners?->title }}"
                                 placeholder="e.g. Powered by our community partners">
                         </div>
-                        <div class="col-md-12">
-                            <label class="form-label">Section Sub Title</label>
-                            <input type="text" name="sub_title" class="form-control" value="{{ $partners?->sub_title }}"
-                                placeholder="e.g. Powered by our community partners">
-                        </div>
 
                         <div class="col-md-12">
                             <div class="d-flex align-items-center justify-content-between mb-2">
@@ -143,43 +138,39 @@
             </div>
         </div>
     </div>
-    {{-- Features Section --}}
-    @php $features = $cmsData->get('features'); @endphp
+
+    {{-- Static Banner Section --}}
+    @php $staticBanner = $cmsData->get('static_banner'); @endphp
     <div class="accordion-item card mb-3">
-        <h2 class="accordion-header" id="headingFeatures">
+        <h2 class="accordion-header" id="headingStaticBanner">
             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                data-bs-target="#collapseFeatures" aria-expanded="false" aria-controls="collapseFeatures">
-                <i class="ri-rocket-line me-2"></i> Features Section
+                data-bs-target="#collapseStaticBanner" aria-expanded="false" aria-controls="collapseStaticBanner">
+                <i class="ri-rocket-line me-2"></i> Static Banner Section
             </button>
         </h2>
-        <div id="collapseFeatures" class="accordion-collapse collapse" aria-labelledby="headingFeatures"
+        <div id="collapseStaticBanner" class="accordion-collapse collapse" aria-labelledby="headingStaticBanner"
             data-bs-parent="#cmsAccordion">
             <div class="accordion-body">
-                <form id="featuresForm" enctype="multipart/form-data">
+                <form id="staticBannerForm" enctype="multipart/form-data">
                     <div class="row g-3">
                         <div class="col-md-12">
                             <label class="form-label">Title</label>
-                            <input type="text" name="title" class="form-control" value="{{ $features?->title }}"
+                            <input type="text" name="title" class="form-control" value="{{ $staticBanner?->title }}"
                                 placeholder="e.g. Everything You Need to Grow Your Business">
-                        </div>
-                        <div class="col-md-12">
-                            <label class="form-label">Description</label>
-                            <textarea name="description" class="form-control" rows="4"
-                                placeholder="Enter section description">{{ $features?->description }}</textarea>
                         </div>
                         <div class="col-md-12">
                             <label class="form-label">Background Image</label>
                             <input type="file" name="bg_file" class="form-control" accept="image/*">
-                            @if($features?->bg)
+                            @if($staticBanner?->bg)
                                 <div class="mt-2">
-                                    <img src="{{ asset($features->bg) }}" alt="Background" class="rounded border"
+                                    <img src="{{ asset($staticBanner->bg) }}" alt="Background" class="rounded border"
                                         style="max-height: 150px; width: auto;">
                                 </div>
                             @endif
                         </div>
                         <div class="col-12 text-end mt-4">
-                            <button type="submit" class="btn btn-primary px-4" id="saveFeaturesBtn">
-                                <i class="ri-save-line me-1"></i> Save Features Section
+                            <button type="submit" class="btn btn-primary px-4" id="saveStaticBannerBtn">
+                                <i class="ri-save-line me-1"></i> Save Static Banner Section
                             </button>
                         </div>
                     </div>
@@ -187,6 +178,8 @@
             </div>
         </div>
     </div>
+
+
     {{-- Why Choose Section --}}
     @php
         $whyChoose = $cmsData->get('why_choose');
@@ -205,12 +198,12 @@
                 <form id="whyChooseForm" enctype="multipart/form-data">
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label">Main Title</label>
+                            <label class="form-label">Title</label>
                             <input type="text" name="title" class="form-control" value="{{ $whyChoose?->title }}"
                                 placeholder="e.g. WHY CHOOSE OSI">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Main Subtitle</label>
+                            <label class="form-label">Subtitle</label>
                             <input type="text" name="sub_title" class="form-control"
                                 value="{{ $whyChoose?->sub_title }}"
                                 placeholder="e.g. Fostering a culture of support...">
@@ -289,6 +282,7 @@
             </div>
         </div>
     </div>
+
     {{-- Core Values Section --}}
     @php
         $coreValues = $cmsData->get('core_values');
@@ -343,10 +337,17 @@
                                             </div>
                                             <div class="row g-3">
                                                 <div class="col-md-4">
-                                                    <label class="form-label">Icon (Remix Icon Class)</label>
-                                                    <input type="text" name="items[{{ $index }}][icon]"
-                                                        class="form-control form-control-sm" value="{{ $item['icon'] }}"
-                                                        placeholder="e.g. ri-star-line">
+                                                    <label class="form-label">Icon Image (PNG)</label>
+                                                    <input type="file" name="items[{{ $index }}][image_file]"
+                                                        class="form-control form-control-sm" accept="image/png">
+                                                    <input type="hidden" name="items[{{ $index }}][existing_image]"
+                                                        value="{{ $item['image'] ?? $item['icon'] ?? '' }}">
+                                                    @if($item['image'] ?? false)
+                                                        <div class="mt-2 text-center">
+                                                            <img src="{{ asset($item['image']) }}" alt="Icon" class="rounded"
+                                                                style="height: 60px; width: auto;">
+                                                        </div>
+                                                    @endif
                                                 </div>
                                                 <div class="col-md-8">
                                                     <div class="mb-3">
@@ -389,6 +390,7 @@
             </div>
         </div>
     </div>
+
     {{-- What You Get Section --}}
     @php
         $whatYouGet = $cmsData->get('what_you_get');
@@ -404,7 +406,7 @@
         <div id="collapseWhatYouGet" class="accordion-collapse collapse" aria-labelledby="headingWhatYouGet"
             data-bs-parent="#cmsAccordion">
             <div class="accordion-body">
-                <form id="whatYouGetForm">
+                <form id="whatYouGetForm" enctype="multipart/form-data">
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label">Section Title</label>
@@ -431,17 +433,25 @@
                                     <div class="card border border-dashed mb-2 what-you-get-item">
                                         <div class="card-body py-2">
                                             <div class="row g-2 align-items-center">
-                                                <div class="col-md-4">
-                                                    <input type="text" name="items[{{ $index }}][icon]"
-                                                        class="form-control form-control-sm" value="{{ $item['icon'] }}"
-                                                        placeholder="Icon (e.g. ri-star-line)">
+                                                <div class="col-md-3">
+                                                    <label class="form-label form-label-sm">Icon Image (PNG)</label>
+                                                    <input type="file" name="items[{{ $index }}][image_file]"
+                                                        class="form-control form-control-sm" accept="image/png">
+                                                    <input type="hidden" name="items[{{ $index }}][existing_image]"
+                                                        value="{{ $item['image'] ?? $item['icon'] ?? '' }}">
+                                                    @if($item['image'] ?? false)
+                                                        <div class="mt-1">
+                                                            <img src="{{ asset($item['image']) }}" alt="Icon" class="rounded border"
+                                                                style="height: 30px; width: auto;">
+                                                        </div>
+                                                    @endif
                                                 </div>
                                                 <div class="col-md-7">
                                                     <input type="text" name="items[{{ $index }}][title]"
                                                         class="form-control form-control-sm" value="{{ $item['title'] }}"
                                                         placeholder="Title (e.g. Business visibility)">
                                                 </div>
-                                                <div class="col-md-1 text-end">
+                                                <div class="col-md-2 text-end">
                                                     <button type="button"
                                                         class="btn btn-sm btn-soft-danger remove-what-you-get-btn">
                                                         <i class="ri-delete-bin-line"></i>
@@ -466,13 +476,14 @@
             </div>
         </div>
     </div>
+
     {{-- Boss Beginnings Section --}}
     @php $bossBeginnings = $cmsData->get('boss_beginnings'); @endphp
     <div class="accordion-item card mb-3">
         <h2 class="accordion-header" id="headingBossBeginnings">
             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                 data-bs-target="#collapseBossBeginnings" aria-expanded="false" aria-controls="collapseBossBeginnings">
-                <i class="ri-lightbulb-line me-2"></i> Boss Beginnings Section
+                <i class="ri-lightbulb-line me-2"></i> Boss Beginnings(Business Shower) Section
             </button>
         </h2>
         <div id="collapseBossBeginnings" class="accordion-collapse collapse" aria-labelledby="headingBossBeginnings"
@@ -515,8 +526,10 @@
             </div>
         </div>
     </div>
-    {{-- Spotlight Section --}}
-    @php $spotlight = $cmsData->get('spotlight'); @endphp
+
+
+    {{-- Celebrating Business Spotlight Winner Section --}}
+    @php $spotlight = $cmsData->get('celebrating_business_spotlight_winners'); @endphp
     <div class="accordion-item card mb-3">
         <h2 class="accordion-header" id="headingSpotlight">
             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
@@ -577,6 +590,42 @@
                         </div>
                         <div class="col-12 text-end mt-4">
                             <button type="submit" class="btn btn-primary px-4" id="saveBossBeginningWinnersBtn">
+                                <i class="ri-save-line me-1"></i> Save Section
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {{-- Artist Spotlight Winners Section --}}
+    @php $artistSpotlightWinners = $cmsData->get('celebrating_artist_spotlight_winners'); @endphp
+    <div class="accordion-item card mb-3">
+        <h2 class="accordion-header" id="headingArtistSpotlightWinners">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#collapseArtistSpotlightWinners" aria-expanded="false"
+                aria-controls="collapseArtistSpotlightWinners">
+                <i class="ri-star-line me-2"></i> Celebrate Artist Spotlight Winners
+            </button>
+        </h2>
+        <div id="collapseArtistSpotlightWinners" class="accordion-collapse collapse"
+            aria-labelledby="headingArtistSpotlightWinners" data-bs-parent="#cmsAccordion">
+            <div class="accordion-body">
+                <form id="artistSpotlightWinnersForm">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label">Section Title</label>
+                            <input type="text" name="title" class="form-control"
+                                value="{{ $artistSpotlightWinners?->title }}" placeholder="e.g. Artist Spotlight Winners">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Section Subtitle</label>
+                            <textarea name="sub_title" class="form-control" rows="3"
+                                placeholder="Enter section subtitle">{{ $artistSpotlightWinners?->sub_title }}</textarea>
+                        </div>
+                        <div class="col-12 text-end mt-4">
+                            <button type="submit" class="btn btn-primary px-4" id="saveArtistSpotlightWinnersBtn">
                                 <i class="ri-save-line me-1"></i> Save Section
                             </button>
                         </div>
@@ -691,6 +740,7 @@
             </div>
         </div>
     </div>
+
     {{-- Past Event Highlights Section --}}
     @php $pastEvents = $cmsData->get('past_event_highlights'); @endphp
     <div class="accordion-item card mb-3">
@@ -721,14 +771,13 @@
         </div>
     </div>
 
-
-    {{-- Highlights Section --}}
-    @php $highlights = $cmsData->get('highlights'); @endphp
+    {{-- Past 6 Month Boss Beginnings Highlights Section --}}
+    @php $highlights = $cmsData->get('past_6_month_boss_beginnings_highlight'); @endphp
     <div class="accordion-item card mb-3">
         <h2 class="accordion-header" id="headingHighlights">
             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                 data-bs-target="#collapseHighlights" aria-expanded="false" aria-controls="collapseHighlights">
-                <i class="ri-calendar-event-line me-2"></i> Past Six Months Highlights
+                <i class="ri-calendar-event-line me-2"></i> Past Six Months Boss Beginnings Winner
             </button>
         </h2>
         <div id="collapseHighlights" class="accordion-collapse collapse" aria-labelledby="headingHighlights"
@@ -757,11 +806,6 @@
             </div>
         </div>
     </div>
-
-
-
-
-
 
     {{-- Shop Section --}}
     @php $shop = $cmsData->get('shop'); @endphp
@@ -797,8 +841,9 @@
             </div>
         </div>
     </div>
+
     {{-- CTA Section --}}
-    @php $cta = $cmsData->get('cta'); @endphp
+    @php $cta = $cmsData->get('become_a_part_of_our_community'); @endphp
     <div class="accordion-item card mb-3">
         <h2 class="accordion-header" id="headingCta">
             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
@@ -812,7 +857,7 @@
                 <form id="ctaForm">
                     <div class="row g-3">
                         <div class="col-md-12">
-                            <label class="form-label">CTA Title</label>
+                            <label class="form-label">Title</label>
                             <input type="text" name="title" class="form-control" value="{{ $cta?->title }}"
                                 placeholder="e.g. Ready to grow your business?">
                         </div>
@@ -826,6 +871,7 @@
             </div>
         </div>
     </div>
+
     {{--Event Sponsors Section --}}
     @php
         $event_sponsors = $cmsData->get('event_sponsors');
@@ -848,13 +894,7 @@
                             <input type="text" name="title" class="form-control" value="{{ $event_sponsors?->title }}"
                                 placeholder="e.g. Event Sponsors">
                         </div>
-                        <div class="col-md-12">
-                            <label class="form-label">Section Sub Title</label>
-                            <input type="text" name="sub_title" class="form-control"
-                                value="{{ $event_sponsors?->sub_title }}"
-                                placeholder="e.g. Join us in celebrating the incredible talent in our community">
-                        </div>
-
+                        
                         <div class="col-md-12">
                             <div class="d-flex align-items-center justify-content-between mb-2">
                                 <label class="form-label mb-0">Event Sponsors Logos & Links</label>
@@ -956,6 +996,23 @@
 @push('scripts')
     <script>
         $(function () {
+            // Helper to display validation errors inline below input fields
+            function showValidationErrors(errors) {
+                $('.is-invalid').removeClass('is-invalid');
+                $('.invalid-feedback').remove();
+                if (!errors) return;
+                Object.keys(errors).forEach(function (key) {
+                    var name = key.replace(/\.(\d+)/g, '[$1]').replace(/\.(\w+)/g, '[$1]');
+                    var $input = $('input[name="' + name + '"]');
+                    if (!$input.length) $input = $('textarea[name="' + name + '"]');
+                    if ($input.length) {
+                        $input.addClass('is-invalid');
+                        var msg = errors[key][0];
+                        $input.after('<div class="invalid-feedback d-block">' + msg + '</div>');
+                    }
+                });
+            }
+
             // Hero Logic
             $('#heroForm').on('submit', function (e) {
                 e.preventDefault();
@@ -972,6 +1029,7 @@
                         setTimeout(() => window.location.reload(), 1000);
                     })
                     .catch(err => {
+                        showValidationErrors(err.response?.data?.errors);
                         Toast.fromResponse(err.response?.data);
                         $btn.prop('disabled', false).html(originalText);
                     });
@@ -985,22 +1043,22 @@
                 $tbody.find('.empty-row').remove();
 
                 const row = `
-                                                                                                                            <tr>
-                                                                                                                                <td>
-                                                                                                                                    <div class="d-flex align-items-center gap-3">
-                                                                                                                                        <input type="file" name="partners[${partnerCount}][image_file]" class="form-control form-control-sm" accept="image/*">
-                                                                                                                                    </div>
-                                                                                                                                </td>
-                                                                                                                                <td>
-                                                                                                                                    <input type="url" name="partners[${partnerCount}][link]" class="form-control form-control-sm" placeholder="https://...">
-                                                                                                                                </td>
-                                                                                                                                <td class="text-center">
-                                                                                                                                    <button type="button" class="btn btn-sm btn-soft-danger remove-partner-btn">
-                                                                                                                                        <i class="ri-delete-bin-line"></i>
-                                                                                                                                    </button>
-                                                                                                                                </td>
-                                                                                                                            </tr>
-                                                                                                                        `;
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-3">
+                            <input type="file" name="partners[${partnerCount}][image_file]" class="form-control form-control-sm" accept="image/*">
+                        </div>
+                    </td>
+                    <td>
+                        <input type="url" name="partners[${partnerCount}][link]" class="form-control form-control-sm" placeholder="https://...">
+                    </td>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-sm btn-soft-danger remove-partner-btn">
+                            <i class="ri-delete-bin-line"></i>
+                        </button>
+                    </td>
+                </tr>
+                `;
                 $tbody.append(row);
                 partnerCount++;
             });
@@ -1027,27 +1085,29 @@
                         setTimeout(() => window.location.reload(), 1000);
                     })
                     .catch(err => {
+                        showValidationErrors(err.response?.data?.errors);
                         Toast.fromResponse(err.response?.data);
                         $btn.prop('disabled', false).html(originalText);
                     });
             });
 
-            // Features Logic
-            $('#featuresForm').on('submit', function (e) {
+            // Static Banner Logic
+            $('#staticBannerForm').on('submit', function (e) {
                 e.preventDefault();
-                const $btn = $('#saveFeaturesBtn');
+                const $btn = $('#saveStaticBannerBtn');
                 const originalText = $btn.html();
 
                 $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
 
                 const formData = new FormData(this);
 
-                axios.post("{{ route('admin.cms.content.update.features') }}", formData)
+                axios.post("{{ route('admin.cms.content.update.static_banner') }}", formData)
                     .then(res => {
                         Toast.success(res.data.message);
                         setTimeout(() => window.location.reload(), 1000);
                     })
                     .catch(err => {
+                        showValidationErrors(err.response?.data?.errors);
                         Toast.fromResponse(err.response?.data);
                         $btn.prop('disabled', false).html(originalText);
                     });
@@ -1061,37 +1121,37 @@
                 $container.find('.empty-msg').remove();
 
                 const card = `
-                                                                                                                            <div class="card border border-dashed mb-3 why-choose-item">
-                                                                                                                                <div class="card-body">
-                                                                                                                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                                                                                                                        <h6 class="card-title mb-0">New Card</h6>
-                                                                                                                                        <button type="button" class="btn btn-sm btn-soft-danger remove-why-choose-btn">
-                                                                                                                                            <i class="ri-delete-bin-line"></i>
-                                                                                                                                        </button>
-                                                                                                                                    </div>
-                                                                                                                                    <div class="row g-3">
-                                                                                                                                        <div class="col-md-4">
-                                                                                                                                            <label class="form-label">Background Image</label>
-                                                                                                                                            <input type="file" name="items[${whyChooseCount}][image_file]" class="form-control form-control-sm" accept="image/*">
-                                                                                                                                        </div>
-                                                                                                                                        <div class="col-md-8">
-                                                                                                                                            <div class="mb-3">
-                                                                                                                                                <label class="form-label">Title</label>
-                                                                                                                                                <input type="text" name="items[${whyChooseCount}][title]" class="form-control form-control-sm" placeholder="e.g. Creators">
-                                                                                                                                            </div>
-                                                                                                                                            <div class="mb-3">
-                                                                                                                                                <label class="form-label">Subtitle</label>
-                                                                                                                                                <input type="text" name="items[${whyChooseCount}][sub_title]" class="form-control form-control-sm" placeholder="e.g. Build exposure...">
-                                                                                                                                            </div>
-                                                                                                                                            <div>
-                                                                                                                                                <label class="form-label">Description</label>
-                                                                                                                                                <textarea name="items[${whyChooseCount}][description]" class="form-control form-control-sm" rows="2" placeholder="Enter card description"></textarea>
-                                                                                                                                            </div>
-                                                                                                                                        </div>
-                                                                                                                                    </div>
-                                                                                                                                </div>
-                                                                                                                            </div>
-                                                                                                                        `;
+                <div class="card border border-dashed mb-3 why-choose-item">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="card-title mb-0">New Card</h6>
+                            <button type="button" class="btn btn-sm btn-soft-danger remove-why-choose-btn">
+                                <i class="ri-delete-bin-line"></i>
+                            </button>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Background Image</label>
+                                <input type="file" name="items[${whyChooseCount}][image_file]" class="form-control form-control-sm" accept="image/*">
+                            </div>
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label class="form-label">Title</label>
+                                    <input type="text" name="items[${whyChooseCount}][title]" class="form-control form-control-sm" placeholder="e.g. Creators">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Subtitle</label>
+                                    <input type="text" name="items[${whyChooseCount}][sub_title]" class="form-control form-control-sm" placeholder="e.g. Build exposure...">
+                                </div>
+                                <div>
+                                    <label class="form-label">Description</label>
+                                    <textarea name="items[${whyChooseCount}][description]" class="form-control form-control-sm" rows="2" placeholder="Enter card description"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `;
                 $container.append(card);
                 whyChooseCount++;
             });
@@ -1118,6 +1178,7 @@
                         setTimeout(() => window.location.reload(), 1000);
                     })
                     .catch(err => {
+                        showValidationErrors(err.response?.data?.errors);
                         Toast.fromResponse(err.response?.data);
                         $btn.prop('disabled', false).html(originalText);
                     });
@@ -1141,8 +1202,8 @@
                                                                                                                                     </div>
                                                                                                                                     <div class="row g-3">
                                                                                                                                         <div class="col-md-4">
-                                                                                                                                            <label class="form-label">Icon (Remix Icon Class)</label>
-                                                                                                                                            <input type="text" name="items[${coreValueCount}][icon]" class="form-control form-control-sm" placeholder="e.g. ri-star-line">
+                                                                                                                                            <label class="form-label">Icon Image (PNG)</label>
+                                                                                                                                            <input type="file" name="items[${coreValueCount}][image_file]" class="form-control form-control-sm" accept="image/png">
                                                                                                                                         </div>
                                                                                                                                         <div class="col-md-8">
                                                                                                                                             <div class="mb-3">
@@ -1188,6 +1249,7 @@
                         setTimeout(() => window.location.reload(), 1000);
                     })
                     .catch(err => {
+                        showValidationErrors(err.response?.data?.errors);
                         Toast.fromResponse(err.response?.data);
                         $btn.prop('disabled', false).html(originalText);
                     });
@@ -1204,13 +1266,14 @@
                                                                                                                             <div class="card border border-dashed mb-2 what-you-get-item">
                                                                                                                                 <div class="card-body py-2">
                                                                                                                                     <div class="row g-2 align-items-center">
-                                                                                                                                        <div class="col-md-4">
-                                                                                                                                            <input type="text" name="items[${whatYouGetCount}][icon]" class="form-control form-control-sm" placeholder="Icon (e.g. ri-star-line)">
+                                                                                                                                        <div class="col-md-3">
+                                                                                                                                            <label class="form-label form-label-sm">Icon Image (PNG)</label>
+                                                                                                                                            <input type="file" name="items[${whatYouGetCount}][image_file]" class="form-control form-control-sm" accept="image/png">
                                                                                                                                         </div>
                                                                                                                                         <div class="col-md-7">
                                                                                                                                             <input type="text" name="items[${whatYouGetCount}][title]" class="form-control form-control-sm" placeholder="Title (e.g. Business visibility)">
                                                                                                                                         </div>
-                                                                                                                                        <div class="col-md-1 text-end">
+                                                                                                                                        <div class="col-md-2 text-end">
                                                                                                                                             <button type="button" class="btn btn-sm btn-soft-danger remove-what-you-get-btn">
                                                                                                                                                 <i class="ri-delete-bin-line"></i>
                                                                                                                                             </button>
@@ -1245,6 +1308,7 @@
                         setTimeout(() => window.location.reload(), 1000);
                     })
                     .catch(err => {
+                        showValidationErrors(err.response?.data?.errors);
                         Toast.fromResponse(err.response?.data);
                         $btn.prop('disabled', false).html(originalText);
                     });
@@ -1266,6 +1330,7 @@
                         setTimeout(() => window.location.reload(), 1000);
                     })
                     .catch(err => {
+                        showValidationErrors(err.response?.data?.errors);
                         Toast.fromResponse(err.response?.data);
                         $btn.prop('disabled', false).html(originalText);
                     });
@@ -1287,6 +1352,29 @@
                         setTimeout(() => window.location.reload(), 1000);
                     })
                     .catch(err => {
+                        showValidationErrors(err.response?.data?.errors);
+                        Toast.fromResponse(err.response?.data);
+                        $btn.prop('disabled', false).html(originalText);
+                    });
+            });
+
+            // Artist Spotlight Winners Logic
+            $('#artistSpotlightWinnersForm').on('submit', function (e) {
+                e.preventDefault();
+                const $btn = $('#saveArtistSpotlightWinnersBtn');
+                const originalText = $btn.html();
+
+                $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
+
+                const formData = new FormData(this);
+
+                axios.post("{{ route('admin.cms.content.update.artist_spotlight_winners') }}", formData)
+                    .then(res => {
+                        Toast.success(res.data.message);
+                        setTimeout(() => window.location.reload(), 1000);
+                    })
+                    .catch(err => {
+                        showValidationErrors(err.response?.data?.errors);
                         Toast.fromResponse(err.response?.data);
                         $btn.prop('disabled', false).html(originalText);
                     });
@@ -1308,6 +1396,7 @@
                         setTimeout(() => window.location.reload(), 1000);
                     })
                     .catch(err => {
+                        showValidationErrors(err.response?.data?.errors);
                         Toast.fromResponse(err.response?.data);
                         $btn.prop('disabled', false).html(originalText);
                     });
@@ -1329,6 +1418,7 @@
                         setTimeout(() => window.location.reload(), 1000);
                     })
                     .catch(err => {
+                        showValidationErrors(err.response?.data?.errors);
                         Toast.fromResponse(err.response?.data);
                         $btn.prop('disabled', false).html(originalText);
                     });
@@ -1350,6 +1440,7 @@
                         setTimeout(() => window.location.reload(), 1000);
                     })
                     .catch(err => {
+                        showValidationErrors(err.response?.data?.errors);
                         Toast.fromResponse(err.response?.data);
                         $btn.prop('disabled', false).html(originalText);
                     });
@@ -1406,6 +1497,7 @@
                         setTimeout(() => window.location.reload(), 1000);
                     })
                     .catch(err => {
+                        showValidationErrors(err.response?.data?.errors);
                         Toast.fromResponse(err.response?.data);
                         $btn.prop('disabled', false).html(originalText);
                     });
@@ -1428,6 +1520,29 @@
                         setTimeout(() => window.location.reload(), 1000);
                     })
                     .catch(err => {
+                        showValidationErrors(err.response?.data?.errors);
+                        Toast.fromResponse(err.response?.data);
+                        $btn.prop('disabled', false).html(originalText);
+                    });
+            });
+
+            // Highlights Logic
+            $('#highlightsForm').on('submit', function (e) {
+                e.preventDefault();
+                const $btn = $('#saveHighlightsBtn');
+                const originalText = $btn.html();
+
+                $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
+
+                const formData = new FormData(this);
+
+                axios.post("{{ route('admin.cms.content.update.highlights') }}", formData)
+                    .then(res => {
+                        Toast.success(res.data.message);
+                        setTimeout(() => window.location.reload(), 1000);
+                    })
+                    .catch(err => {
+                        showValidationErrors(err.response?.data?.errors);
                         Toast.fromResponse(err.response?.data);
                         $btn.prop('disabled', false).html(originalText);
                     });
@@ -1470,6 +1585,7 @@
                         setTimeout(() => window.location.reload(), 1000);
                     })
                     .catch(err => {
+                        showValidationErrors(err.response?.data?.errors);
                         Toast.fromResponse(err.response?.data);
                         $btn.prop('disabled', false).html(originalText);
                     });
@@ -1491,6 +1607,7 @@
                         setTimeout(() => window.location.reload(), 1000);
                     })
                     .catch(err => {
+                        showValidationErrors(err.response?.data?.errors);
                         Toast.fromResponse(err.response?.data);
                         $btn.prop('disabled', false).html(originalText);
                     });
@@ -1512,6 +1629,7 @@
                         setTimeout(() => window.location.reload(), 1000);
                     })
                     .catch(err => {
+                        showValidationErrors(err.response?.data?.errors);
                         Toast.fromResponse(err.response?.data);
                         $btn.prop('disabled', false).html(originalText);
                     });
@@ -1533,6 +1651,7 @@
                         setTimeout(() => window.location.reload(), 1000);
                     })
                     .catch(err => {
+                        showValidationErrors(err.response?.data?.errors);
                         Toast.fromResponse(err.response?.data);
                         $btn.prop('disabled', false).html(originalText);
                     });
