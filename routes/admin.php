@@ -29,7 +29,8 @@ use App\Http\Controllers\Web\Admin\NewsletterController as WebNewsletterControll
 use App\Http\Controllers\Web\Admin\Order\AdminOrderController;
 use App\Http\Controllers\Web\Admin\Product\AdminProductCategoryController;
 use App\Http\Controllers\Web\Admin\Product\AdminProductController;
-use App\Http\Controllers\Web\Admin\Round\RoundSessionController;
+use App\Http\Controllers\Web\Admin\Round\RoundSeasonController;
+
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [AdminDashboardController::class, 'index'])->name('show.admin.dashboard'); // show admin dashboard
@@ -207,13 +208,13 @@ Route::prefix('cms/boss-beginnings')->name('admin.cms.boss-beginnings.')->group(
     Route::post('/section5', [BossBeginningsCmsController::class, 'updateSection5'])->name('update.section5');
     Route::post('/dynamic', [BossBeginningsCmsController::class, 'updateDynamicSection'])->name('update.dynamic');
 });
+
 //Boss Beginnings CMS Routes how winner will chosen
 Route::prefix('cms/winner-chosen')->name('admin.cms.winner-chosen.')->group(function () {
     Route::get('/', [BossBeginningWinnerChossenCMSController::class, 'index'])->name('index');
     Route::post('/update-section1', [BossBeginningWinnerChossenCMSController::class, 'updateSection1'])->name('update.section1');
     Route::post('/update-section2', [BossBeginningWinnerChossenCMSController::class, 'updateSection2'])->name('update.section2');
 });
-
 
 /*
 |--------------------------------------------------------------------------
@@ -230,7 +231,6 @@ Route::prefix('pricing')->name('admin.pricing.')->group(function () {
     Route::post('/reorder', [PricingController::class, 'reorder'])->name('reorder');
     Route::patch('/{plan}/toggle', [PricingController::class, 'toggle'])->name('toggle');
 });
-
 
 /*
 |--------------------------------------------------------------------------
@@ -343,19 +343,19 @@ Route::prefix('businesses')->name('admin.businesses.')->group(function () {
     Route::delete('/{business}', [AdminBusinessController::class, 'destroy'])->name('destroy');
 });
 
-
 /*
 |--------------------------------------------------------------------------
 | Round Sessions
 |--------------------------------------------------------------------------
 */
 Route::prefix('round-sessions')->name('admin.round-sessions.')->group(function () {
-    Route::get('/', [RoundSessionController::class, 'index'])->name('index');
-    Route::get('/create', [RoundSessionController::class, 'create'])->name('create');
-    Route::post('/', [RoundSessionController::class, 'store'])->name('store');
-    Route::get('/{season}/edit', [RoundSessionController::class, 'edit'])->name('edit');
-    Route::put('/{season}', [RoundSessionController::class, 'update'])->name('update');
-    Route::delete('/{season}', [RoundSessionController::class, 'destroy'])->name('destroy');
+    Route::get('/', [RoundSeasonController::class, 'index'])->name('index');
+    Route::get('/create', [RoundSeasonController::class, 'create'])->name('create');
+    Route::post('/', [RoundSeasonController::class, 'store'])->name('store');
+    Route::get('/{season}/edit', [RoundSeasonController::class, 'edit'])->name('edit');
+    Route::put('/{season}', [RoundSeasonController::class, 'update'])->name('update');
+    Route::patch('/{season}/toggle-active', [RoundSeasonController::class, 'toggleActive'])->name('toggle-active');
+    Route::delete('/{season}', [RoundSeasonController::class, 'destroy'])->name('destroy');
 });
 
 /*

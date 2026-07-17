@@ -191,7 +191,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::get('/rounds/{round}/votes/counts', [VoteController::class, 'counts']);
 
             // Active season rounds
-            Route::get('/active-season-rounds', [BossBeginningSeasonController::class, 'activeRounds']);
+            Route::get('/active-season-rounds', [BossBeginningSeasonController::class, 'activeRounds']); // DONE: Active season's round list
         });
     });
 

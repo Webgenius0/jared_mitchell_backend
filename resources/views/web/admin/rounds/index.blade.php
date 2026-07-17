@@ -34,7 +34,7 @@
                                         <th>Status</th>
                                         <th>Rounds</th>
                                         <th>Date Range</th>
-                                        <th class="text-center" style="width: 120px;">Action</th>
+                                        <th class="text-center" style="width: 160px;">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
@@ -83,6 +83,36 @@
                 processing: '<div class="spinner-border spinner-border-sm text-primary"></div>',
             },
             order: [[4, 'desc']]
+        });
+
+        // Toggle active status
+        $(document).on('click', '.toggle-active-btn', function() {
+            const id = $(this).data('id');
+            const isCurrentlyActive = $(this).data('active') === 1;
+            const actionLabel = isCurrentlyActive ? 'deactivate' : 'activate';
+
+            Alert.confirm(`This will ${actionLabel} this round session. Only one season can be active at a time.`, {
+                title: `${isCurrentlyActive ? 'Deactivate' : 'Activate'} Round Session?`,
+                type: 'info',
+                confirmText: `Yes, ${actionLabel} it`
+            }).then(confirmed => {
+                if (!confirmed) return;
+
+                const btn = $(this);
+                btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+
+                axios.patch(`{{ url('/round-sessions') }}/${id}/toggle-active`)
+                    .then(res => {
+                        Toast.success(res.data.message);
+                        table.draw(false);
+                    })
+                    .catch(err => {
+                        Toast.error(err.response?.data?.message || 'Failed to toggle status.');
+                        btn.prop('disabled', false).html(isCurrentlyActive
+                            ? '<i class="ri-pause-circle-line"></i>'
+                            : '<i class="ri-play-circle-line"></i>');
+                    });
+            });
         });
 
         $(document).on('click', '.delete-btn', function() {

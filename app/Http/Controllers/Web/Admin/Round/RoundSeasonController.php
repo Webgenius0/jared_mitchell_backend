@@ -8,7 +8,7 @@ use App\Models\Round;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 
-class RoundSessionController extends Controller
+class RoundSeasonController extends Controller
 {
     /**
      * Display a listing of seasons.
@@ -42,9 +42,15 @@ class RoundSessionController extends Controller
                     return '<span class="text-nowrap">' . e($start) . ' - ' . e($end) . '</span>';
                 })
                 ->addColumn('action', function (Season $season) {
+                    $isActive = $season->is_active;
+                    $toggleIcon = $isActive ? 'ri-pause-circle-line' : 'ri-play-circle-line';
+                    $toggleClass = $isActive ? 'btn-soft-success' : 'btn-soft-warning';
+                    $toggleTitle = $isActive ? 'Deactivate' : 'Activate';
+
+                    $toggleBtn = '<button class="btn btn-sm ' . $toggleClass . ' toggle-active-btn" data-id="' . $season->id . '" data-active="' . ($isActive ? '1' : '0') . '" title="' . $toggleTitle . '"><i class="' . $toggleIcon . '"></i></button>';
                     $editBtn = '<a href="' . route('admin.round-sessions.edit', $season->id) . '" class="btn btn-sm btn-soft-primary" title="Edit"><i class="ri-pencil-line"></i></a>';
                     $deleteBtn = '<button class="btn btn-sm btn-soft-danger delete-btn" data-id="' . $season->id . '" title="Delete"><i class="ri-delete-bin-line"></i></button>';
-                    return '<div class="d-flex gap-1 justify-content-center">' . $editBtn . $deleteBtn . '</div>';
+                    return '<div class="d-flex gap-1 justify-content-center">' . $toggleBtn . $editBtn . $deleteBtn . '</div>';
                 })
                 ->rawColumns(['title', 'status', 'date_range', 'action'])
                 ->make(true);
@@ -89,6 +95,11 @@ class RoundSessionController extends Controller
         $data = $validated;
         $data['is_active'] = $request->boolean('is_active');
         unset($data['rounds']);
+
+        // If activating, deactivate all other seasons first
+        if ($data['is_active']) {
+            Season::where('is_active', true)->update(['is_active' => false]);
+        }
 
         $season = Season::create($data);
 
@@ -151,6 +162,11 @@ class RoundSessionController extends Controller
         $data['is_active'] = $request->boolean('is_active');
         unset($data['rounds']);
 
+        // If activating, deactivate all other seasons first
+        if ($data['is_active']) {
+            Season::where('id', '!=', $season->id)->where('is_active', true)->update(['is_active' => false]);
+        }
+
         $season->update($data);
 
         // Sync rounds: delete removed ones, update existing, create new
@@ -180,6 +196,28 @@ class RoundSessionController extends Controller
 
         return redirect()->route('admin.round-sessions.index')
             ->with('success', 'Season updated successfully.');
+    }
+
+    /**
+     * Toggle the active status of a season.
+     * Only one season can be active at a time.
+     */
+    public function toggleActive(Season $season)
+    {
+        if ($season->is_active) {
+            $season->update(['is_active' => false]);
+            $message = 'Season deactivated successfully.';
+        } else {
+            // Deactivate all other seasons, then activate this one
+            Season::where('id', '!=', $season->id)->where('is_active', true)->update(['is_active' => false]);
+            $season->update(['is_active' => true]);
+            $message = 'Season activated successfully.';
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+        ]);
     }
 
     /**
