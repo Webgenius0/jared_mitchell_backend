@@ -87,7 +87,7 @@ Route::prefix('cms/content')->name('admin.cms.content.')->group(function () {
     Route::post('/upcoming-events', [CmsHomePageController::class, 'updateUpcomingEvents'])->name('update.upcoming_events');
     Route::post('/past-event-highlights', [CmsHomePageController::class, 'updatePastEventHighlights'])->name('update.past_event_highlights');
     Route::post('/event-sponsors', [CmsHomePageController::class, 'updateEventSponsors'])->name('update.event_sponsors');
-    Route::post('/highlights', [CmsHomePageController::class, 'updateHighlights'])->name('update.highlights');
+    Route::post('/highlights', [CmsHomePageController::class, 'updatePast6MonthsBossBeginningsHighlight'])->name('update.highlights');
     Route::post('/events', [CmsHomePageController::class, 'updateEvents'])->name('update.events');
     Route::post('/shop', [CmsHomePageController::class, 'updateShop'])->name('update.shop');
     Route::post('/cta', [CmsHomePageController::class, 'updateCta'])->name('update.cta');

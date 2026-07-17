@@ -18,11 +18,12 @@ enum CmsSection: string
     case CORE_VALUES = 'core_values';
     case WHAT_YOU_GET = 'what_you_get';
     case BOSS_BEGINNINGS = 'boss_beginnings';
-    case HIGHLIGHTS = 'highlights';
+    case PAST_6_MONTH_BOSS_BEGINNINGS_HIGHLIGHT = 'past_6_month_boss_beginnings_highlight';
     case EVENTS = 'events';
     case SHOP = 'shop';
-    case CTA = 'cta';
+    case BECOME_A_PART_OF_OUR_COMMUNITY = 'become_a_part_of_our_community';
     case NEWSLETTER = 'newsletter';
+    case CELEBRATING_ARTIST_SPOTLIGHT_WINNERS = 'celebrating_artist_spotlight_winners';
 
     // About Page
     case ABOUT_HERO = 'about_hero';
@@ -115,7 +116,4 @@ enum CmsSection: string
     // Boss Beginnings Winner Chosen Sections
     case BOSS_BEGINNINGS_WINNER_CHOSEN_SECTION1 = 'boss_beginnings_winner_chosen_section1';
     case BOSS_BEGINNINGS_WINNER_CHOSEN_SECTION2 = 'boss_beginnings_winner_chosen_section2';
-
-    // Home - Artist Spotlight Winners
-    case CELEBRATING_ARTIST_SPOTLIGHT_WINNERS = 'celebrating_artist_spotlight_winners';
 }

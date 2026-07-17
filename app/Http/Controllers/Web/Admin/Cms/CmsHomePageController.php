@@ -541,7 +541,6 @@ class CmsHomePageController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'title' => ['nullable', 'string', 'max:255'],
-            'sub_title' => ['nullable', 'string', 'max:255'],
             'event_sponsors' => ['nullable', 'array'],
             'event_sponsors.*.link' => ['nullable', 'string', 'max:255'],
             'event_sponsors.*.image_file' => ['nullable', 'file', 'image', 'max:2048'],
@@ -559,7 +558,6 @@ class CmsHomePageController extends Controller
             ],
             [
                 'title' => $request->title,
-                'sub_title' => $request->sub_title,
             ]
         );
 
@@ -662,9 +660,9 @@ class CmsHomePageController extends Controller
     }
 
     /**
-     * Update highlights section
+     * Update past 6 months boss beginnings highlight section
      */
-    public function updateHighlights(Request $request): JsonResponse
+    public function updatePast6MonthsBossBeginningsHighlight(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
             'title' => ['nullable', 'string', 'max:255'],
@@ -678,7 +676,7 @@ class CmsHomePageController extends Controller
         $cms = CMS::updateOrCreate(
             [
                 'page' => CmsPage::HOME,
-                'section' => CmsSection::HIGHLIGHTS,
+                'section' => CmsSection::PAST_6_MONTH_BOSS_BEGINNINGS_HIGHLIGHT,
             ],
             [
                 'title' => $request->title,
@@ -776,7 +774,7 @@ class CmsHomePageController extends Controller
         $cms = CMS::updateOrCreate(
             [
                 'page' => CmsPage::HOME,
-                'section' => CmsSection::CTA,
+                'section' => CmsSection::BECOME_A_PART_OF_OUR_COMMUNITY,
             ],
             [
                 'title' => $request->title,

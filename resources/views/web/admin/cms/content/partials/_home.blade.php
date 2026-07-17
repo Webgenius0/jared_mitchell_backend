@@ -476,6 +476,7 @@
             </div>
         </div>
     </div>
+
     {{-- Boss Beginnings Section --}}
     @php $bossBeginnings = $cmsData->get('boss_beginnings'); @endphp
     <div class="accordion-item card mb-3">
@@ -525,8 +526,10 @@
             </div>
         </div>
     </div>
-    {{-- Spotlight Section --}}
-    @php $spotlight = $cmsData->get('spotlight'); @endphp
+
+
+    {{-- Celebrating Business Spotlight Winner Section --}}
+    @php $spotlight = $cmsData->get('celebrating_business_spotlight_winners'); @endphp
     <div class="accordion-item card mb-3">
         <h2 class="accordion-header" id="headingSpotlight">
             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
@@ -597,7 +600,7 @@
     </div>
 
     {{-- Artist Spotlight Winners Section --}}
-    @php $artistSpotlightWinners = $cmsData->get('artist_spotlight_winners'); @endphp
+    @php $artistSpotlightWinners = $cmsData->get('celebrating_artist_spotlight_winners'); @endphp
     <div class="accordion-item card mb-3">
         <h2 class="accordion-header" id="headingArtistSpotlightWinners">
             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
@@ -737,6 +740,7 @@
             </div>
         </div>
     </div>
+
     {{-- Past Event Highlights Section --}}
     @php $pastEvents = $cmsData->get('past_event_highlights'); @endphp
     <div class="accordion-item card mb-3">
@@ -767,14 +771,13 @@
         </div>
     </div>
 
-
-    {{-- Highlights Section --}}
-    @php $highlights = $cmsData->get('highlights'); @endphp
+    {{-- Past 6 Month Boss Beginnings Highlights Section --}}
+    @php $highlights = $cmsData->get('past_6_month_boss_beginnings_highlight'); @endphp
     <div class="accordion-item card mb-3">
         <h2 class="accordion-header" id="headingHighlights">
             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                 data-bs-target="#collapseHighlights" aria-expanded="false" aria-controls="collapseHighlights">
-                <i class="ri-calendar-event-line me-2"></i> Past Six Months Highlights
+                <i class="ri-calendar-event-line me-2"></i> Past Six Months Boss Beginnings Winner
             </button>
         </h2>
         <div id="collapseHighlights" class="accordion-collapse collapse" aria-labelledby="headingHighlights"
@@ -803,11 +806,6 @@
             </div>
         </div>
     </div>
-
-
-
-
-
 
     {{-- Shop Section --}}
     @php $shop = $cmsData->get('shop'); @endphp
@@ -843,8 +841,9 @@
             </div>
         </div>
     </div>
+
     {{-- CTA Section --}}
-    @php $cta = $cmsData->get('cta'); @endphp
+    @php $cta = $cmsData->get('become_a_part_of_our_community'); @endphp
     <div class="accordion-item card mb-3">
         <h2 class="accordion-header" id="headingCta">
             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
@@ -858,7 +857,7 @@
                 <form id="ctaForm">
                     <div class="row g-3">
                         <div class="col-md-12">
-                            <label class="form-label">CTA Title</label>
+                            <label class="form-label">Title</label>
                             <input type="text" name="title" class="form-control" value="{{ $cta?->title }}"
                                 placeholder="e.g. Ready to grow your business?">
                         </div>
@@ -872,6 +871,7 @@
             </div>
         </div>
     </div>
+
     {{--Event Sponsors Section --}}
     @php
         $event_sponsors = $cmsData->get('event_sponsors');
@@ -894,13 +894,7 @@
                             <input type="text" name="title" class="form-control" value="{{ $event_sponsors?->title }}"
                                 placeholder="e.g. Event Sponsors">
                         </div>
-                        <div class="col-md-12">
-                            <label class="form-label">Section Sub Title</label>
-                            <input type="text" name="sub_title" class="form-control"
-                                value="{{ $event_sponsors?->sub_title }}"
-                                placeholder="e.g. Join us in celebrating the incredible talent in our community">
-                        </div>
-
+                        
                         <div class="col-md-12">
                             <div class="d-flex align-items-center justify-content-between mb-2">
                                 <label class="form-label mb-0">Event Sponsors Logos & Links</label>
