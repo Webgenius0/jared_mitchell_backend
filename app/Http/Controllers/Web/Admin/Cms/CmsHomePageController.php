@@ -537,66 +537,7 @@ class CmsHomePageController extends Controller
     }
 
 
-    public function updateEventSponsors(Request $request): JsonResponse
-    {
-        $validator = Validator::make($request->all(), [
-            'title' => ['nullable', 'string', 'max:255'],
-            'event_sponsors' => ['nullable', 'array'],
-            'event_sponsors.*.link' => ['nullable', 'string', 'max:255'],
-            'event_sponsors.*.image_file' => ['nullable', 'file', 'image', 'max:2048'],
-            'event_sponsors.*.existing_image' => ['nullable', 'string'],
-        ]);
 
-        if ($validator->fails()) {
-            return $this->validationError($validator);
-        }
-
-        $cms = CMS::updateOrCreate(
-            [
-                'page' => CmsPage::HOME,
-                'section' => CmsSection::EVENT_SPONSORS,
-            ],
-            [
-                'title' => $request->title,
-            ]
-        );
-
-        $sponsorData = [];
-        $existingMetadata = $cms->metadata ?? [];
-        $existingImages = collect($existingMetadata)->pluck('image')->toArray();
-
-        if ($request->has('event_sponsors')) {
-            foreach ($request->event_sponsors as $index => $sponsor) {
-                $imagePath = $sponsor['existing_image'] ?? null;
-
-                if ($request->hasFile("event_sponsors.$index.image_file")) {
-                    if ($imagePath && Str::startsWith($imagePath, 'uploads/')) {
-                        FileHandle::fileDelete($imagePath);
-                    }
-                    $imagePath = FileHandle::fileUpload($request->file("event_sponsors.$index.image_file"), 'cms/event_sponsors');
-                }
-
-                $sponsorData[] = [
-                    'image' => $imagePath,
-                    'link' => $sponsor['link'] ?? null,
-                ];
-            }
-        }
-
-        $newImages = collect($sponsorData)->pluck('image')->toArray();
-        foreach ($existingImages as $oldImg) {
-            if ($oldImg && !in_array($oldImg, $newImages) && Str::startsWith($oldImg, 'uploads/')) {
-                FileHandle::fileDelete($oldImg);
-            }
-        }
-
-        $cms->metadata = $sponsorData;
-        $cms->save();
-
-        return $this->success('Event Sponsors section updated successfully.', [
-            'cms' => $cms,
-        ]);
-    }
 
 
     /**
@@ -759,9 +700,9 @@ class CmsHomePageController extends Controller
     }
 
     /**
-     * Update CTA section
+     * Update become a part of our community section
      */
-    public function updateCta(Request $request): JsonResponse
+    public function updateBeApartOfCommunity(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
             'title' => ['nullable', 'string', 'max:255'],
@@ -782,6 +723,70 @@ class CmsHomePageController extends Controller
         );
 
         return $this->success('CTA section updated successfully.', [
+            'cms' => $cms,
+        ]);
+    }
+
+    /**
+     * Update event sponsors section
+     */
+    public function updateEventSponsors(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => ['nullable', 'string', 'max:255'],
+            'event_sponsors' => ['nullable', 'array'],
+            'event_sponsors.*.link' => ['nullable', 'string', 'max:255'],
+            'event_sponsors.*.image_file' => ['nullable', 'file', 'image', 'max:2048'],
+            'event_sponsors.*.existing_image' => ['nullable', 'string'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator);
+        }
+
+        $cms = CMS::updateOrCreate(
+            [
+                'page' => CmsPage::HOME,
+                'section' => CmsSection::EVENT_SPONSORS,
+            ],
+            [
+                'title' => $request->title,
+            ]
+        );
+
+        $sponsorData = [];
+        $existingMetadata = $cms->metadata ?? [];
+        $existingImages = collect($existingMetadata)->pluck('image')->toArray();
+
+        if ($request->has('event_sponsors')) {
+            foreach ($request->event_sponsors as $index => $sponsor) {
+                $imagePath = $sponsor['existing_image'] ?? null;
+
+                if ($request->hasFile("event_sponsors.$index.image_file")) {
+                    if ($imagePath && Str::startsWith($imagePath, 'uploads/')) {
+                        FileHandle::fileDelete($imagePath);
+                    }
+                    $imagePath = FileHandle::fileUpload($request->file("event_sponsors.$index.image_file"), 'cms/event_sponsors');
+                }
+
+                $sponsorData[] = [
+                    'image' => $imagePath,
+                    'link' => $sponsor['link'] ?? null,
+                ];
+            }
+        }
+
+        $newImages = collect($sponsorData)->pluck('image')->toArray();
+        foreach ($existingImages as $oldImg) {
+            if ($oldImg && !in_array($oldImg, $newImages) && Str::startsWith($oldImg, 'uploads/')) {
+                FileHandle::fileDelete($oldImg);
+            }
+        }
+
+        $cms->metadata = $sponsorData;
+        $cms->save();
+
+        return $this->success('Event Sponsors section updated successfully.', [
             'cms' => $cms,
         ]);
     }

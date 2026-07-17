@@ -90,7 +90,7 @@ Route::prefix('cms/content')->name('admin.cms.content.')->group(function () {
     Route::post('/highlights', [CmsHomePageController::class, 'updatePast6MonthsBossBeginningsHighlight'])->name('update.highlights');
     Route::post('/events', [CmsHomePageController::class, 'updateEvents'])->name('update.events');
     Route::post('/shop', [CmsHomePageController::class, 'updateShop'])->name('update.shop');
-    Route::post('/cta', [CmsHomePageController::class, 'updateCta'])->name('update.cta');
+    Route::post('/cta', [CmsHomePageController::class, 'updateBeApartOfCommunity'])->name('update.cta');
     Route::post('/newsletter', [CmsHomePageController::class, 'updateNewsletter'])->name('update.newsletter');
 });
 
