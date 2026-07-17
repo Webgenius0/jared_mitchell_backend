@@ -1035,6 +1035,7 @@
                         setTimeout(() => window.location.reload(), 1000);
                     })
                     .catch(err => {
+                        showValidationErrors(err.response?.data?.errors);
                         Toast.fromResponse(err.response?.data);
                         $btn.prop('disabled', false).html(originalText);
                     });
@@ -1112,6 +1113,7 @@
                         setTimeout(() => window.location.reload(), 1000);
                     })
                     .catch(err => {
+                        showValidationErrors(err.response?.data?.errors);
                         Toast.fromResponse(err.response?.data);
                         $btn.prop('disabled', false).html(originalText);
                     });
@@ -1334,6 +1336,7 @@
                         setTimeout(() => window.location.reload(), 1000);
                     })
                     .catch(err => {
+                        showValidationErrors(err.response?.data?.errors);
                         Toast.fromResponse(err.response?.data);
                         $btn.prop('disabled', false).html(originalText);
                     });
@@ -1399,6 +1402,7 @@
                         setTimeout(() => window.location.reload(), 1000);
                     })
                     .catch(err => {
+                        showValidationErrors(err.response?.data?.errors);
                         Toast.fromResponse(err.response?.data);
                         $btn.prop('disabled', false).html(originalText);
                     });
@@ -1420,6 +1424,7 @@
                         setTimeout(() => window.location.reload(), 1000);
                     })
                     .catch(err => {
+                        showValidationErrors(err.response?.data?.errors);
                         Toast.fromResponse(err.response?.data);
                         $btn.prop('disabled', false).html(originalText);
                     });
@@ -1441,6 +1446,7 @@
                         setTimeout(() => window.location.reload(), 1000);
                     })
                     .catch(err => {
+                        showValidationErrors(err.response?.data?.errors);
                         Toast.fromResponse(err.response?.data);
                         $btn.prop('disabled', false).html(originalText);
                     });
@@ -1520,6 +1526,29 @@
                         setTimeout(() => window.location.reload(), 1000);
                     })
                     .catch(err => {
+                        showValidationErrors(err.response?.data?.errors);
+                        Toast.fromResponse(err.response?.data);
+                        $btn.prop('disabled', false).html(originalText);
+                    });
+            });
+
+            // Highlights Logic
+            $('#highlightsForm').on('submit', function (e) {
+                e.preventDefault();
+                const $btn = $('#saveHighlightsBtn');
+                const originalText = $btn.html();
+
+                $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
+
+                const formData = new FormData(this);
+
+                axios.post("{{ route('admin.cms.content.update.highlights') }}", formData)
+                    .then(res => {
+                        Toast.success(res.data.message);
+                        setTimeout(() => window.location.reload(), 1000);
+                    })
+                    .catch(err => {
+                        showValidationErrors(err.response?.data?.errors);
                         Toast.fromResponse(err.response?.data);
                         $btn.prop('disabled', false).html(originalText);
                     });
@@ -1562,6 +1591,7 @@
                         setTimeout(() => window.location.reload(), 1000);
                     })
                     .catch(err => {
+                        showValidationErrors(err.response?.data?.errors);
                         Toast.fromResponse(err.response?.data);
                         $btn.prop('disabled', false).html(originalText);
                     });
@@ -1583,6 +1613,7 @@
                         setTimeout(() => window.location.reload(), 1000);
                     })
                     .catch(err => {
+                        showValidationErrors(err.response?.data?.errors);
                         Toast.fromResponse(err.response?.data);
                         $btn.prop('disabled', false).html(originalText);
                     });
@@ -1604,6 +1635,7 @@
                         setTimeout(() => window.location.reload(), 1000);
                     })
                     .catch(err => {
+                        showValidationErrors(err.response?.data?.errors);
                         Toast.fromResponse(err.response?.data);
                         $btn.prop('disabled', false).html(originalText);
                     });
@@ -1625,6 +1657,7 @@
                         setTimeout(() => window.location.reload(), 1000);
                     })
                     .catch(err => {
+                        showValidationErrors(err.response?.data?.errors);
                         Toast.fromResponse(err.response?.data);
                         $btn.prop('disabled', false).html(originalText);
                     });
