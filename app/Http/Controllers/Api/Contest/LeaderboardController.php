@@ -72,7 +72,7 @@ class LeaderboardController extends Controller
         return $this->success('Round leaderboard retrieved successfully.', [
             'round_id' => $round->id,
             'round' => $round->only(['id', 'round_number', 'title']),
-            'days_left' => $daysLeft,
+            'days_left' => (int) $daysLeft,
             'total_entries' => count($entries),
             'entries' => LeaderboardEntryResource::collection($entries),
         ]);

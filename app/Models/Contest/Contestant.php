@@ -2,10 +2,12 @@
 
 namespace App\Models\Contest;
 
+use App\Models\Contest\RoundSubmission;
 use App\Models\Round;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Contestant extends Model
@@ -74,6 +76,14 @@ class Contestant extends Model
     public function eliminatedInRound(): BelongsTo
     {
         return $this->belongsTo(Round::class, 'eliminated_in_round_id');
+    }
+
+    /**
+     * All submissions made by this contestant across rounds.
+     */
+    public function submissions(): HasMany
+    {
+        return $this->hasMany(RoundSubmission::class);
     }
 
     /*

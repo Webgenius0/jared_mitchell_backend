@@ -12,14 +12,10 @@ return new class extends Migration
             $table->id();
 
             // Who submitted
-            $table->foreignId('contestant_id')
-                  ->constrained('contestants')
-                  ->cascadeOnDelete();
+            $table->foreignId('contestant_id')->constrained('contestants')->cascadeOnDelete();
 
             // Which round
-            $table->foreignId('round_id')
-                  ->constrained('rounds')
-                  ->cascadeOnDelete();
+            $table->foreignId('round_id')->constrained('rounds')->cascadeOnDelete();
 
             // Submission content
             $table->string('title')->nullable();
@@ -27,8 +23,7 @@ return new class extends Migration
             $table->json('media_urls')->nullable()->comment('Array of uploaded file paths/URLs');
 
             // Status & scoring
-            $table->string('status', 30)->default('draft')
-                  ->comment('draft, submitted, approved, rejected');
+            $table->string('status', 30)->default('draft')->comment('draft, submitted, approved, rejected');
             $table->decimal('score', 5, 2)->nullable()->comment('AI or judge score 0-100');
             $table->timestamp('submitted_at')->nullable();
 

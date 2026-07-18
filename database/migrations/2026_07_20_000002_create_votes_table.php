@@ -12,22 +12,17 @@ return new class extends Migration
             $table->id();
 
             // Who voted
-            $table->foreignId('user_id')
-                  ->constrained('users')
-                  ->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
 
             // Which round they're voting in
-            $table->foreignId('round_id')
-                  ->constrained('rounds')
-                  ->cascadeOnDelete();
+            $table->foreignId('round_id')->constrained('rounds')->cascadeOnDelete();
 
             // What they voted for (polymorphic: contestant, business, submission)
             $table->string('votable_type', 100);
             $table->unsignedBigInteger('votable_id');
 
             // Vote details
-            $table->string('vote_type', 30)->default('upvote')
-                  ->comment('upvote, downvote, score_1_5, score_1_10');
+            $table->string('vote_type', 30)->default('upvote')->comment('upvote, downvote, score_1_5, score_1_10');
             $table->decimal('weight', 8, 2)->default(1.00)
                   ->comment('Vote weight (1.0 = standard, higher for weighted strategies)');
 

@@ -31,9 +31,9 @@ use App\Http\Controllers\Api\Cms\CmsSpotlightLadderController;
 use App\Http\Controllers\Api\Cms\EventController as CmsEventController;
 use App\Http\Controllers\Api\Cms\FAQController as ApiFAQController;
 use App\Http\Controllers\Api\Cms\ShopController;
-use App\Http\Controllers\Api\Cms\SponsorsipController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\Contest\BossBeginningSeasonController;
+use App\Http\Controllers\Api\Contest\ContestantProfileController;
 use App\Http\Controllers\Api\Contest\LeaderboardController;
 use App\Http\Controllers\Api\Contest\RoundSubmissionController;
 use App\Http\Controllers\Api\Contest\VoteController;
@@ -189,6 +189,9 @@ Route::group(['prefix' => 'v1'], function ($router) {
             // Route::get('/rounds/{round}/submissions', [RoundSubmissionController::class, 'index']);
             Route::get('/rounds/{round}/leaderboard', [LeaderboardController::class, 'forRound']); // DONE: Leaderboard per round
             // Route::get('/rounds/{round}/votes/counts', [VoteController::class, 'counts']);
+
+            // Contestant profile
+            Route::get('/contestants/{contestant}', [ContestantProfileController::class, 'show']); // DONE: Contestant profile with business, round, votes
 
             // Active season rounds
             Route::get('/active-season-rounds', [BossBeginningSeasonController::class, 'activeRounds']); // DONE: Active season's round list
