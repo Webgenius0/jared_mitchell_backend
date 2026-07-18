@@ -34,6 +34,21 @@ class LeaderboardService
             ->get()
             ->keyBy('contestant_id');
 
+        // Calculate trends (votes today vs yesterday)
+        $todayVotes = Vote::where('round_id', $round->id)
+            ->where('votable_type', Contestant::class)
+            ->where('created_at', '>=', now()->startOfDay())
+            ->selectRaw('votable_id as contestant_id, COUNT(*) as count')
+            ->groupBy('votable_id')
+            ->pluck('count', 'contestant_id');
+
+        $yesterdayVotes = Vote::where('round_id', $round->id)
+            ->where('votable_type', Contestant::class)
+            ->whereBetween('created_at', [now()->subDay()->startOfDay(), now()->subDay()->endOfDay()])
+            ->selectRaw('votable_id as contestant_id, COUNT(*) as count')
+            ->groupBy('votable_id')
+            ->pluck('count', 'contestant_id');
+
         // Build leaderboard
         $leaderboard = [];
         foreach ($contestants as $contestant) {
@@ -45,6 +60,16 @@ class LeaderboardService
 
             $contestable = $contestant->contestable;
 
+            $tVotes = $todayVotes->get($contestant->id, 0);
+            $yVotes = $yesterdayVotes->get($contestant->id, 0);
+
+            $trend = 'neutral';
+            if ($tVotes > $yVotes) {
+                $trend = 'up';
+            } elseif ($tVotes < $yVotes) {
+                $trend = 'down';
+            }
+
             $leaderboard[] = [
                 'contestant' => $contestant,
                 'contestant_id' => $contestant->id,
@@ -54,6 +79,7 @@ class LeaderboardService
                 'total_score' => $totalScore,
                 'votes_count' => $votesCount,
                 'avg_score' => $avgScore,
+                'trend' => $trend,
             ];
         }
 
@@ -113,6 +139,7 @@ class LeaderboardService
                 'contestable_name'=> $contestable ? $contestable->getContestantName() : null,
                 'total_score'     => (float) ($voteData->total_score ?? 0),
                 'votes_count'     => (int) ($voteData->votes_count ?? 0),
+                'trend'           => 'neutral', // Overall trend can be neutral or calculated later
             ];
         }
 

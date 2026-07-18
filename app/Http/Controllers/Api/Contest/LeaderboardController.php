@@ -51,6 +51,7 @@ class LeaderboardController extends Controller
         return $this->success('Overall leaderboard retrieved successfully.', [
             'season_id' => $season->id,
             'season' => $season->only(['id', 'title', 'contest_type', 'status']),
+            'total_entries' => count($entries),
             'entries' => LeaderboardEntryResource::collection($entries),
         ]);
     }
@@ -64,9 +65,15 @@ class LeaderboardController extends Controller
     {
         $entries = $this->leaderboardService->getLeaderboard($round);
 
+        $daysLeft = $round->voting_ends_at && $round->voting_ends_at->isFuture()
+            ? now()->diffInDays($round->voting_ends_at)
+            : ($round->ends_at && $round->ends_at->isFuture() ? now()->diffInDays($round->ends_at) : 0);
+
         return $this->success('Round leaderboard retrieved successfully.', [
             'round_id' => $round->id,
             'round' => $round->only(['id', 'round_number', 'title']),
+            'days_left' => $daysLeft,
+            'total_entries' => count($entries),
             'entries' => LeaderboardEntryResource::collection($entries),
         ]);
     }
@@ -88,8 +95,14 @@ class LeaderboardController extends Controller
 
         $entries = $this->leaderboardService->getLeaderboard($latestRound);
 
+        $daysLeft = $latestRound->voting_ends_at && $latestRound->voting_ends_at->isFuture()
+            ? now()->diffInDays($latestRound->voting_ends_at)
+            : ($latestRound->ends_at && $latestRound->ends_at->isFuture() ? now()->diffInDays($latestRound->ends_at) : 0);
+
         return $this->success('Leaderboard retrieved successfully.', [
             'round_id' => $latestRound->id,
+            'days_left' => $daysLeft,
+            'total_entries' => count($entries),
             'entries'  => LeaderboardEntryResource::collection($entries),
         ]);
     }
