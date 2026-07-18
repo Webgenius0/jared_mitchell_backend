@@ -163,56 +163,8 @@
                                             </button>
                                         </div>
                                     </div>
-                                    {{-- Round Mechanics --}}
+
                                     <div class="row">
-                                        <div class="col-md-4">
-                                            <div class="mb-2">
-                                                <label class="form-label">Voting Strategy</label>
-                                                <select name="rounds[0][voting_strategy]" class="form-select">
-                                                    <option value="popular_vote">Popular Vote</option>
-                                                    <option value="judge_scored">Judge Scored</option>
-                                                    <option value="weighted">Weighted</option>
-                                                    <option value="admin_pick">Admin Pick</option>
-                                                    <option value="single_elimination">Single Elimination</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="mb-2">
-                                                <label class="form-label">Submission Type</label>
-                                                <select name="rounds[0][submission_type]" class="form-select">
-                                                    <option value="multi">Multi</option>
-                                                    <option value="file_upload">File Upload</option>
-                                                    <option value="video">Video</option>
-                                                    <option value="link">Link</option>
-                                                    <option value="text">Text</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="mb-2">
-                                                <label class="form-label">Elimination Rule</label>
-                                                <select name="rounds[0][elimination_rule]" class="form-select">
-                                                    <option value="advance_limit">Advance Limit</option>
-                                                    <option value="bottom_n">Bottom N</option>
-                                                    <option value="top_percent">Top Percent</option>
-                                                    <option value="score_below_threshold">Score Below Threshold</option>
-                                                    <option value="all_advance">All Advance</option>
-                                                    <option value="single_elimination">Single Elimination</option>
-                                                    <option value="admin_pick">Admin Pick</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    {{-- Sort Order & Active --}}
-                                    <div class="row">
-                                        <div class="col-md-3">
-                                            <div class="mb-2">
-                                                <label class="form-label">Sort Order</label>
-                                                <input type="number" name="rounds[0][sort_order]" class="form-control"
-                                                    value="0" min="0" placeholder="0">
-                                            </div>
-                                        </div>
                                         <div class="col-md-3 d-flex align-items-end mb-2">
                                             <div class="form-check form-switch form-switch-md">
                                                 <input class="form-check-input" type="checkbox"
@@ -220,140 +172,6 @@
                                                     checked>
                                                 <label class="form-check-label fw-semibold"
                                                     for="round_0_active">Active</label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    {{-- Submission Requirements (JSON) --}}
-                                    {{-- <div class="row">
-                                    <div class="col-md-12">
-                                        <div class="mb-2">
-                                            <label class="form-label">
-                                                Submission Requirements (JSON)
-                                                <i class="ri-information-line" data-bs-toggle="tooltip" title="e.g. { \"video\": { \"required\": true, \"max_duration_sec\": 180 } }"></i>
-                                            </label>
-                                            <textarea name="rounds[0][submission_requirements]" class="form-control" rows="2"
-                                                placeholder='{"video": {"required": true, "max_duration_sec": 180}}'></textarea>
-                                        </div>
-                                    </div>
-                                </div> --}}
-
-                                    {{-- Submission Requirements (structured, no JSON) --}}
-                                    <div class="row">
-                                        <div class="col-12">
-                                            <hr class="my-2">
-                                            <label class="form-label fw-semibold mb-2">Submission Requirements</label>
-                                        </div>
-                                    </div>
-                                    <div class="row g-2">
-                                        {{-- Video --}}
-                                        <div class="col-md-6">
-                                            <div class="border rounded p-2">
-                                                <div class="form-check form-switch">
-                                                    <input class="form-check-input sub-req-toggle" type="checkbox"
-                                                        name="rounds[0][sub_req][video][required]" value="1"
-                                                        id="round_0_video_required" data-target="round_0_video_fields">
-                                                    <label class="form-check-label fw-semibold"
-                                                        for="round_0_video_required">Video Required</label>
-                                                </div>
-                                                <div id="round_0_video_fields" class="mt-2" style="display:none;">
-                                                    <label class="form-label small">Max Duration (seconds)</label>
-                                                    <input type="number"
-                                                        name="rounds[0][sub_req][video][max_duration_sec]"
-                                                        class="form-control form-control-sm" min="1"
-                                                        placeholder="e.g. 180">
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {{-- Document --}}
-                                        <div class="col-md-6">
-                                            <div class="border rounded p-2">
-                                                <div class="form-check form-switch">
-                                                    <input class="form-check-input sub-req-toggle" type="checkbox"
-                                                        name="rounds[0][sub_req][document][required]" value="1"
-                                                        id="round_0_document_required"
-                                                        data-target="round_0_document_fields">
-                                                    <label class="form-check-label fw-semibold"
-                                                        for="round_0_document_required">Document Required</label>
-                                                </div>
-                                                <div id="round_0_document_fields" class="mt-2" style="display:none;">
-                                                    <label class="form-label small">Allowed Formats</label>
-                                                    <div class="d-flex gap-3">
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="checkbox"
-                                                                name="rounds[0][sub_req][document][formats][]"
-                                                                value="pdf" id="round_0_fmt_pdf">
-                                                            <label class="form-check-label"
-                                                                for="round_0_fmt_pdf">PDF</label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="checkbox"
-                                                                name="rounds[0][sub_req][document][formats][]"
-                                                                value="docx" id="round_0_fmt_docx">
-                                                            <label class="form-check-label"
-                                                                for="round_0_fmt_docx">DOCX</label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="checkbox"
-                                                                name="rounds[0][sub_req][document][formats][]"
-                                                                value="pptx" id="round_0_fmt_pptx">
-                                                            <label class="form-check-label"
-                                                                for="round_0_fmt_pptx">PPTX</label>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {{-- Image --}}
-                                        <div class="col-md-6">
-                                            <div class="border rounded p-2">
-                                                <div class="form-check form-switch">
-                                                    <input class="form-check-input sub-req-toggle" type="checkbox"
-                                                        name="rounds[0][sub_req][image][required]" value="1"
-                                                        id="round_0_image_required" data-target="round_0_image_fields">
-                                                    <label class="form-check-label fw-semibold"
-                                                        for="round_0_image_required">Image Required</label>
-                                                </div>
-                                                <div id="round_0_image_fields" class="mt-2" style="display:none;">
-                                                    <label class="form-label small">Max Count</label>
-                                                    <input type="number" name="rounds[0][sub_req][image][max_count]"
-                                                        class="form-control form-control-sm" min="1"
-                                                        placeholder="e.g. 5">
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {{-- Link --}}
-                                        <div class="col-md-6">
-                                            <div class="border rounded p-2">
-                                                <div class="form-check form-switch">
-                                                    <input class="form-check-input" type="checkbox"
-                                                        name="rounds[0][sub_req][link][required]" value="1"
-                                                        id="round_0_link_required">
-                                                    <label class="form-check-label fw-semibold"
-                                                        for="round_0_link_required">Link Required (e.g. website,
-                                                        portfolio)</label>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {{-- Text/Description --}}
-                                        <div class="col-md-6">
-                                            <div class="border rounded p-2">
-                                                <div class="form-check form-switch">
-                                                    <input class="form-check-input sub-req-toggle" type="checkbox"
-                                                        name="rounds[0][sub_req][text][required]" value="1"
-                                                        id="round_0_text_required" data-target="round_0_text_fields">
-                                                    <label class="form-check-label fw-semibold"
-                                                        for="round_0_text_required">Text/Description Required</label>
-                                                </div>
-                                                <div id="round_0_text_fields" class="mt-2" style="display:none;">
-                                                    <label class="form-label small">Max Length (characters)</label>
-                                                    <input type="number" name="rounds[0][sub_req][text][max_length]"
-                                                        class="form-control form-control-sm" min="1"
-                                                        placeholder="e.g. 2000">
-                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -367,98 +185,31 @@
                                                     Configuration</label>
                                             </div>
                                         </div>
-                                        {{-- Elimination-based configs --}}
-                                        <div class="row">
-                                            {{-- advance_limit rule --}}
-                                            <div class="col-md-4 adv-config-advance_limit" style="display:none;">
-                                                <div class="mb-2">
-                                                    <label class="form-label">Tie Breaker</label>
-                                                    <select name="rounds[0][adv_config][cutoff_tie_breaker]"
-                                                        class="form-select">
-                                                        <option value="all_tied_advance">All Tied Advance</option>
-                                                        <option value="all_tied_eliminate">All Tied Eliminated</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            {{-- bottom_n rule --}}
-                                            <div class="col-md-4 adv-config-bottom_n" style="display:none;">
-                                                <div class="mb-2">
-                                                    <label class="form-label">Eliminate Count</label>
-                                                    <input type="number" name="rounds[0][adv_config][eliminate_count]"
-                                                        class="form-control" min="1" placeholder="e.g. 2">
-                                                </div>
-                                            </div>
-                                            {{-- top_percent rule --}}
-                                            <div class="col-md-4 adv-config-top_percent" style="display:none;">
-                                                <div class="mb-2">
-                                                    <label class="form-label">Keep Percent (%)</label>
-                                                    <input type="number" name="rounds[0][adv_config][keep_percent]"
-                                                        class="form-control" min="1" max="100"
-                                                        placeholder="e.g. 50">
-                                                </div>
-                                            </div>
-                                            <div class="col-md-4 adv-config-top_percent" style="display:none;">
-                                                <div class="mb-2">
-                                                    <label class="form-label">Tie Breaker</label>
-                                                    <select name="rounds[0][adv_config][cutoff_tie_breaker]"
-                                                        class="form-select">
-                                                        <option value="all_tied_advance">All Tied Advance</option>
-                                                        <option value="all_tied_eliminate">All Tied Eliminated</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            {{-- score_below_threshold rule --}}
-                                            <div class="col-md-4 adv-config-score_below_threshold" style="display:none;">
-                                                <div class="mb-2">
-                                                    <label class="form-label">Score Threshold</label>
-                                                    <input type="number" name="rounds[0][adv_config][score_threshold]"
-                                                        class="form-control" min="0" placeholder="e.g. 50">
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {{-- Voting-based configs --}}
+
+                                        {{-- Tie Breaker (multi-add, max 5) --}}
                                         <div class="row">
                                             <div class="col-12">
-                                                <small class="text-muted">Voting Config</small>
-                                            </div>
-                                            {{-- popular_vote --}}
-                                            <div class="col-md-4 adv-config-voting-popular_vote" style="display:none;">
+                                                <hr class="my-2">
                                                 <div class="mb-2">
-                                                    <label class="form-label">Max Votes Per User</label>
-                                                    <input type="number" name="rounds[0][adv_config][max_votes_per_user]"
-                                                        class="form-control" min="1" placeholder="e.g. 10">
-                                                </div>
-                                            </div>
-                                            {{-- weighted --}}
-                                            <div class="col-md-4 adv-config-voting-weighted" style="display:none;">
-                                                <div class="mb-2">
-                                                    <label class="form-label">Vote Weight</label>
-                                                    <input type="number" name="rounds[0][adv_config][vote_weight]"
-                                                        class="form-control" min="0.1" step="0.1"
-                                                        placeholder="e.g. 1.0">
-                                                </div>
-                                            </div>
-                                            {{-- categories for judge_scored & weighted --}}
-                                            <div class="col-md-6 adv-config-voting-categories" style="display:none;">
-                                                <div class="mb-2">
-                                                    <label class="form-label">
-                                                        Categories (one per line)
-                                                        <i class="ri-information-line" data-bs-toggle="tooltip"
-                                                            title="Enter one category per line, e.g. Innovation, Presentation, Impact"></i>
-                                                    </label>
-                                                    <textarea name="rounds[0][adv_config][categories]" class="form-control" rows="2"
-                                                        placeholder="Innovation&#10;Presentation&#10;Impact"></textarea>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-4 adv-config-voting-categories" style="display:none;">
-                                                <div class="mb-2">
-                                                    <label class="form-label">Max Score Per Category</label>
-                                                    <input type="number"
-                                                        name="rounds[0][adv_config][max_score_per_category]"
-                                                        class="form-control" min="1" placeholder="e.g. 10">
+                                                    <label class="form-label fw-semibold">Tie Breaker</label>
+                                                    <div class="tie-breakers-container" data-round-index="0">
+                                                        <div class="tie-breaker-item mb-2">
+                                                            <div class="input-group">
+                                                                <input type="text" name="rounds[0][adv_config][tie_breakers][]"
+                                                                    class="form-control" placeholder="Enter tie breaker rule..." maxlength="255">
+                                                                <button type="button" class="btn btn-soft-danger remove-tie-breaker" title="Remove" style="display:none;">
+                                                                    <i class="ri-delete-bin-5-line"></i>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <button type="button" class="btn btn-soft-primary btn-sm add-tie-breaker" data-round-index="0">
+                                                        <i class="ri-add-line align-middle me-1"></i> Add Tie Breaker
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
+
                                     </div>
                                 </div>
                             </div>
@@ -614,56 +365,8 @@
                             </button>
                         </div>
                     </div>
-                    {{-- Round Mechanics --}}
+
                     <div class="row">
-                        <div class="col-md-4">
-                            <div class="mb-2">
-                                <label class="form-label">Voting Strategy</label>
-                                <select name="rounds[${index}][voting_strategy]" class="form-select">
-                                    <option value="popular_vote">Popular Vote</option>
-                                    <option value="judge_scored">Judge Scored</option>
-                                    <option value="weighted">Weighted</option>
-                                    <option value="admin_pick">Admin Pick</option>
-                                    <option value="single_elimination">Single Elimination</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="mb-2">
-                                <label class="form-label">Submission Type</label>
-                                <select name="rounds[${index}][submission_type]" class="form-select">
-                                    <option value="multi">Multi</option>
-                                    <option value="file_upload">File Upload</option>
-                                    <option value="video">Video</option>
-                                    <option value="link">Link</option>
-                                    <option value="text">Text</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="mb-2">
-                                <label class="form-label">Elimination Rule</label>
-                                <select name="rounds[${index}][elimination_rule]" class="form-select">
-                                    <option value="advance_limit">Advance Limit</option>
-                                    <option value="bottom_n">Bottom N</option>
-                                    <option value="top_percent">Top Percent</option>
-                                    <option value="score_below_threshold">Score Below Threshold</option>
-                                    <option value="all_advance">All Advance</option>
-                                    <option value="single_elimination">Single Elimination</option>
-                                    <option value="admin_pick">Admin Pick</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    {{-- Sort Order & Active --}}
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="mb-2">
-                                <label class="form-label">Sort Order</label>
-                                <input type="number" name="rounds[${index}][sort_order]" class="form-control"
-                                    value="0" min="0" placeholder="0">
-                            </div>
-                        </div>
                         <div class="col-md-3 d-flex align-items-end mb-2">
                             <div class="form-check form-switch form-switch-md">
                                 <input class="form-check-input" type="checkbox"
@@ -672,19 +375,7 @@
                             </div>
                         </div>
                     </div>
-                    {{-- Submission Requirements (JSON) --}}
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="mb-2">
-                                <label class="form-label">
-                                    Submission Requirements (JSON)
-                                    <i class="ri-information-line" data-bs-toggle="tooltip" title='e.g. { "video": { "required": true, "max_duration_sec": 180 } }'></i>
-                                </label>
-                                <textarea name="rounds[${index}][submission_requirements]" class="form-control" rows="2"
-                                    placeholder='{"video": {"required": true, "max_duration_sec": 180}}'></textarea>
-                            </div>
-                        </div>
-                    </div>
+
                     {{-- Advancement Config --}}
                     <div class="adv-config-section">
                         <div class="row">
@@ -693,92 +384,30 @@
                                 <label class="form-label fw-semibold mb-2">Advancement Configuration</label>
                             </div>
                         </div>
-                        {{-- Elimination-based configs --}}
-                        <div class="row">
-                            {{-- advance_limit rule --}}
-                            <div class="col-md-4 adv-config-advance_limit" style="display:none;">
-                                <div class="mb-2">
-                                    <label class="form-label">Tie Breaker</label>
-                                    <select name="rounds[${index}][adv_config][cutoff_tie_breaker]" class="form-select">
-                                        <option value="all_tied_advance">All Tied Advance</option>
-                                        <option value="all_tied_eliminate">All Tied Eliminated</option>
-                                    </select>
-                                </div>
-                            </div>
-                            {{-- bottom_n rule --}}
-                            <div class="col-md-4 adv-config-bottom_n" style="display:none;">
-                                <div class="mb-2">
-                                    <label class="form-label">Eliminate Count</label>
-                                    <input type="number" name="rounds[${index}][adv_config][eliminate_count]"
-                                        class="form-control" min="1" placeholder="e.g. 2">
-                                </div>
-                            </div>
-                            {{-- top_percent rule --}}
-                            <div class="col-md-4 adv-config-top_percent" style="display:none;">
-                                <div class="mb-2">
-                                    <label class="form-label">Keep Percent (%)</label>
-                                    <input type="number" name="rounds[${index}][adv_config][keep_percent]"
-                                        class="form-control" min="1" max="100" placeholder="e.g. 50">
-                                </div>
-                            </div>
-                            <div class="col-md-4 adv-config-top_percent" style="display:none;">
-                                <div class="mb-2">
-                                    <label class="form-label">Tie Breaker</label>
-                                    <select name="rounds[${index}][adv_config][cutoff_tie_breaker]" class="form-select">
-                                        <option value="all_tied_advance">All Tied Advance</option>
-                                        <option value="all_tied_eliminate">All Tied Eliminated</option>
-                                    </select>
-                                </div>
-                            </div>
-                            {{-- score_below_threshold rule --}}
-                            <div class="col-md-4 adv-config-score_below_threshold" style="display:none;">
-                                <div class="mb-2">
-                                    <label class="form-label">Score Threshold</label>
-                                    <input type="number" name="rounds[${index}][adv_config][score_threshold]"
-                                        class="form-control" min="0" placeholder="e.g. 50">
-                                </div>
-                            </div>
-                        </div>
-                        {{-- Voting-based configs --}}
+
+                        {{-- Tie Breaker (multi-add, max 5) --}}
                         <div class="row">
                             <div class="col-12">
-                                <small class="text-muted">Voting Config</small>
-                            </div>
-                            {{-- popular_vote --}}
-                            <div class="col-md-4 adv-config-voting-popular_vote" style="display:none;">
+                                <hr class="my-2">
                                 <div class="mb-2">
-                                    <label class="form-label">Max Votes Per User</label>
-                                    <input type="number" name="rounds[${index}][adv_config][max_votes_per_user]"
-                                        class="form-control" min="1" placeholder="e.g. 10">
-                                </div>
-                            </div>
-                            {{-- weighted --}}
-                            <div class="col-md-4 adv-config-voting-weighted" style="display:none;">
-                                <div class="mb-2">
-                                    <label class="form-label">Vote Weight</label>
-                                    <input type="number" name="rounds[${index}][adv_config][vote_weight]"
-                                        class="form-control" min="0.1" step="0.1" placeholder="e.g. 1.0">
-                                </div>
-                            </div>
-                            {{-- categories for judge_scored & weighted --}}
-                            <div class="col-md-6 adv-config-voting-categories" style="display:none;">
-                                <div class="mb-2">
-                                    <label class="form-label">
-                                        Categories (one per line)
-                                        <i class="ri-information-line" data-bs-toggle="tooltip" title='Enter one category per line, e.g. Innovation, Presentation, Impact'></i>
-                                    </label>
-                                    <textarea name="rounds[${index}][adv_config][categories]" class="form-control" rows="2"
-                                        placeholder="Innovation&#10;Presentation&#10;Impact"></textarea>
-                                </div>
-                            </div>
-                            <div class="col-md-4 adv-config-voting-categories" style="display:none;">
-                                <div class="mb-2">
-                                    <label class="form-label">Max Score Per Category</label>
-                                    <input type="number" name="rounds[${index}][adv_config][max_score_per_category]"
-                                        class="form-control" min="1" placeholder="e.g. 10">
+                                    <label class="form-label fw-semibold">Tie Breaker</label>                                        <div class="tie-breakers-container" data-round-index="${index}">
+                                        <div class="tie-breaker-item mb-2">
+                                            <div class="input-group">
+                                                <input type="text" name="rounds[${index}][adv_config][tie_breakers][]"
+                                                    class="form-control" placeholder="Enter tie breaker rule..." maxlength="255">
+                                                <button type="button" class="btn btn-soft-danger remove-tie-breaker" title="Remove" style="display:none;">
+                                                    <i class="ri-delete-bin-5-line"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-soft-primary btn-sm add-tie-breaker" data-round-index="${index}">
+                                        <i class="ri-add-line align-middle me-1"></i> Add Tie Breaker
+                                    </button>
                                 </div>
                             </div>
                         </div>
+
                     </div>
                 </div>
             `;
@@ -797,83 +426,86 @@
                 });
 
                 /**
-                 * Toggle advancement config fields based on elimination rule and voting strategy.
+                 * Tie Breaker: add/remove multi-entry (max 5)
                  */
-                function toggleAdvConfig(container) {
-                    const eliminationRule = container.querySelector('[name$="[elimination_rule]"]');
-                    const votingStrategy = container.querySelector('[name$="[voting_strategy]"]');
-
-                    if (!eliminationRule || !votingStrategy) return;
-
-                    // Hide all dynamic config groups within this container (excluding the main section wrapper)
-                    container.querySelectorAll('[class*="adv-config-"]:not(.adv-config-section)').forEach(el => {
-                        if (el.closest('.round-item') === container) {
-                            el.style.display = 'none';
+                function updateTieBreakerButtons(container) {
+                    const addBtns = container.querySelectorAll('.add-tie-breaker');
+                    addBtns.forEach(btn => {
+                        const roundIdx = btn.dataset.roundIndex;
+                        const tbContainer = container.querySelector('.tie-breakers-container[data-round-index="' + roundIdx + '"]');
+                        if (tbContainer) {
+                            const items = tbContainer.querySelectorAll('.tie-breaker-item');
+                            const removeBtns = tbContainer.querySelectorAll('.remove-tie-breaker');
+                            // Show remove on all items if more than 1
+                            removeBtns.forEach((rb, i) => {
+                                rb.style.display = items.length > 1 ? '' : 'none';
+                            });
+                            // Disable add button if max 5 reached
+                            btn.disabled = items.length >= 5;
                         }
                     });
-
-                    // Show the matching elimination config
-                    const elimValue = eliminationRule.value;
-                    container.querySelectorAll('.adv-config-' + elimValue).forEach(el => {
-                        if (el.closest('.round-item') === container) {
-                            el.style.display = '';
-                        }
-                    });
-
-                    // Show matching voting config
-                    const voteValue = votingStrategy.value;
-                    container.querySelectorAll('.adv-config-voting-' + voteValue).forEach(el => {
-                        if (el.closest('.round-item') === container) {
-                            el.style.display = '';
-                        }
-                    });
-
-                    // For judge_scored and weighted, also show categories section
-                    if (voteValue === 'judge_scored' || voteValue === 'weighted') {
-                        container.querySelectorAll('.adv-config-voting-categories').forEach(el => {
-                            if (el.closest('.round-item') === container) {
-                                el.style.display = '';
-                            }
-                        });
-                    }
                 }
 
-                // Attach toggle listeners to a round container
-                function attachToggleListeners(container) {
-                    const elimSelect = container.querySelector('[name$="[elimination_rule]"]');
-                    const voteSelect = container.querySelector('[name$="[voting_strategy]"]');
+                function addTieBreakerItem(roundIndex, container) {
+                    const tbContainer = container.querySelector('.tie-breakers-container[data-round-index="' + roundIndex + '"]');
+                    if (!tbContainer) return;
+                    const items = tbContainer.querySelectorAll('.tie-breaker-item');
+                    if (items.length >= 5) return; // Already at max
 
-                    if (elimSelect) {
-                        elimSelect.addEventListener('change', function() {
-                            toggleAdvConfig(this.closest('.round-item'));
-                        });
-                    }
-                    if (voteSelect) {
-                        voteSelect.addEventListener('change', function() {
-                            toggleAdvConfig(this.closest('.round-item'));
-                        });
-                    }
-
-                    // Initial toggle
-                    toggleAdvConfig(container);
+                    const newItem = document.createElement('div');
+                    newItem.className = 'tie-breaker-item mb-2';
+                    newItem.innerHTML = `
+                        <div class="input-group">
+                            <input type="text" name="rounds[${roundIndex}][adv_config][tie_breakers][]"
+                                class="form-control" placeholder="Enter tie breaker rule..." maxlength="255">
+                            <button type="button" class="btn btn-soft-danger remove-tie-breaker" title="Remove">
+                                <i class="ri-delete-bin-5-line"></i>
+                            </button>
+                        </div>
+                    `;
+                    tbContainer.appendChild(newItem);
+                    updateTieBreakerButtons(container);
                 }
 
-                // Initialize existing rounds
-                document.querySelectorAll('.round-item').forEach(function(item) {
-                    item.dataset.listenerAttached = 'true';
-                    attachToggleListeners(item);
+                // Delegate tie breaker events on the rounds container
+                container.addEventListener('click', function(e) {
+                    const addBtn = e.target.closest('.add-tie-breaker');
+                    if (addBtn) {
+                        const roundIdx = addBtn.dataset.roundIndex;
+                        const roundItem = addBtn.closest('.round-item');
+                        if (roundItem) {
+                            addTieBreakerItem(roundIdx, roundItem);
+                        }
+                        return;
+                    }
+
+                    const removeBtn = e.target.closest('.remove-tie-breaker');
+                    if (removeBtn) {
+                        const item = removeBtn.closest('.tie-breaker-item');
+                        const tbContainer = item.closest('.tie-breakers-container');
+                        if (tbContainer && tbContainer.querySelectorAll('.tie-breaker-item').length > 1) {
+                            item.remove();
+                            const roundItem = tbContainer.closest('.round-item');
+                            if (roundItem) updateTieBreakerButtons(roundItem);
+                        }
+                    }
                 });
 
-                // Single add button handler with toggle support
+                // Initialize tie breaker buttons on page load
+                document.querySelectorAll('.round-item').forEach(function(item) {
+                    updateTieBreakerButtons(item);
+                });
+
+                // Single add button handler with tie breaker support and flatpickr
                 addBtn.addEventListener('click', function() {
                     container.insertAdjacentHTML('beforeend', createRoundHtml(roundIndex));
                     roundIndex++;
                     updateBadges();
 
-                    // Attach listeners to newly added rounds
+                    // Initialize tie breaker buttons on newly added rounds
                     container.querySelectorAll('.round-item:not([data-listener-attached])').forEach(function(item) {
                         item.dataset.listenerAttached = 'true';
-                        attachToggleListeners(item);
+                        updateTieBreakerButtons(item);
                     });
 
                     // Initialize flatpickr on new inputs
