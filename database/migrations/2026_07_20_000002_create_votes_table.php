@@ -29,10 +29,12 @@ return new class extends Migration
             // Flexible
             $table->json('metadata')->nullable();
 
+            $table->string('category', 50)->nullable()->comment('e.g. innovation, presentation, impact, quality, growth');
+
             $table->timestamps();
 
             // One vote per user per votable entity per round
-            $table->unique(['user_id', 'round_id', 'votable_type', 'votable_id'], 'unique_vote_per_round');
+            $table->unique(['user_id', 'round_id', 'votable_type', 'votable_id', 'category'], 'unique_vote_per_category_per_round');
 
             // Indexes for vote counting and leaderboard queries
             $table->index(['round_id', 'votable_type', 'votable_id'], 'votes_round_entity_index');

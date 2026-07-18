@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Contest;
 use App\Http\Controllers\Controller;
 use App\Models\Contest\Contestant;
 use App\Models\Round;
+use App\Services\Contest\V2\V2VoteService;
 use App\Services\Contest\VoteService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
@@ -15,6 +16,7 @@ class VoteController extends Controller
     use ApiResponse;
 
     public function __construct(
+        protected V2VoteService $v2VoteService,
         protected VoteService $voteService
     ) {}
 
@@ -27,32 +29,57 @@ class VoteController extends Controller
      * @bodyParam votable_id int required The ID of the entity being voted for
      * @bodyParam vote_type string Vote type: upvote, downvote (default: upvote)
      */
+    // public function store(Request $request, Round $round): JsonResponse
+    // {
+    //     $validated = $request->validate([
+    //         'votable_type' => 'required|string|max:100',
+    //         'votable_id' => 'required|integer',
+    //         'vote_type' => 'sometimes|string|in:upvote,downvote,score_1_5,score_1_10',
+    //     ]);
+
+    //     $user = auth('api')->user();
+
+    //     $result = $this->voteService->castVote(
+    //         user: $user,
+    //         round: $round,
+    //         votableType: $validated['votable_type'],
+    //         votableId: $validated['votable_id'],
+    //         voteType: $validated['vote_type'] ?? 'upvote',
+    //     );
+
+    //     if (!$result['success']) {
+    //         return $this->error(null, $result['message'], 422);
+    //     }
+
+    //     return $this->success($result['message'], [
+    //         'action' => $result['action'],
+    //         'vote'   => $result['vote']?->load('votable'),
+    //     ]);
+    // }
+
     public function store(Request $request, Round $round): JsonResponse
     {
         $validated = $request->validate([
-            'votable_type' => 'required|string|max:100',
-            'votable_id'   => 'required|integer',
-            'vote_type'    => 'sometimes|string|in:upvote,downvote,score_1_5,score_1_10',
+            'contestant_id' => 'required|integer|exists:contestants,id',
+            'scores' => 'required|array',
+            'scores.*' => 'required|integer|min:1|max:10',
         ]);
 
         $user = auth('api')->user();
+        $contestant = Contestant::findOrFail($validated['contestant_id']);
 
-        $result = $this->voteService->castVote(
+        $result = $this->v2VoteService->submitScores(
             user: $user,
             round: $round,
-            votableType: $validated['votable_type'],
-            votableId: $validated['votable_id'],
-            voteType: $validated['vote_type'] ?? 'upvote',
+            contestant: $contestant,
+            scores: $validated['scores'],
         );
 
         if (!$result['success']) {
             return $this->error(null, $result['message'], 422);
         }
 
-        return $this->success($result['message'], [
-            'action' => $result['action'],
-            'vote'   => $result['vote']?->load('votable'),
-        ]);
+        return $this->success($result['message'], ['votes' => $result['votes']]);
     }
 
     /**

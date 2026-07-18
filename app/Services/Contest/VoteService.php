@@ -3,10 +3,8 @@
 namespace App\Services\Contest;
 
 use App\Models\Contest\Vote;
-use App\Models\Contest\Contestant;
 use App\Models\Round;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class VoteService
@@ -113,7 +111,7 @@ class VoteService
     public function countVotes(string $votableType, int $votableId, ?int $roundId = null): array
     {
         $query = Vote::where('votable_type', $votableType)
-                     ->where('votable_id', $votableId);
+            ->where('votable_id', $votableId);
 
         if ($roundId) {
             $query->where('round_id', $roundId);

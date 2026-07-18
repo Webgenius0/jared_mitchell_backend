@@ -5,7 +5,6 @@ namespace App\Services\Contest;
 use App\Models\Contest\Contestant;
 use App\Models\Contest\Vote;
 use App\Models\Round;
-use Illuminate\Support\Facades\Log;
 
 class LeaderboardService
 {
@@ -15,6 +14,10 @@ class LeaderboardService
     public function getLeaderboard(Round $round): array
     {
         $seasonId = $round->season_id;
+
+        if ($round->round_number === 1) {
+            return $this->getRoundOneLeaderboard($round);
+        }
 
         // Get all active contestants in this round
         $contestants = Contestant::where('season_id', $seasonId)
@@ -75,7 +78,7 @@ class LeaderboardService
                 'contestant_id' => $contestant->id,
                 'display_name' => $contestant->display_name,
                 'avatar_url' => $contestant->avatar_url,
-                'contestable_name'=> $contestable ? $contestable->getContestantName() : null,
+                'contestable_name' => $contestable ? $contestable->getContestantName() : null,
                 'total_score' => $totalScore,
                 'votes_count' => $votesCount,
                 'avg_score' => $avgScore,
@@ -94,7 +97,8 @@ class LeaderboardService
         // Assign ranks (with tie handling)
         $rank = 1;
         foreach ($leaderboard as $i => &$entry) {
-            if ($i > 0
+            if (
+                $i > 0
                 && $entry['total_score'] === $leaderboard[$i - 1]['total_score']
                 && $entry['votes_count'] === $leaderboard[$i - 1]['votes_count']
             ) {
@@ -136,7 +140,7 @@ class LeaderboardService
                 'contestant_id'   => $contestant->id,
                 'display_name'    => $contestant->display_name,
                 'avatar_url'      => $contestant->avatar_url,
-                'contestable_name'=> $contestable ? $contestable->getContestantName() : null,
+                'contestable_name' => $contestable ? $contestable->getContestantName() : null,
                 'total_score'     => (float) ($voteData->total_score ?? 0),
                 'votes_count'     => (int) ($voteData->votes_count ?? 0),
                 'trend'           => 'neutral', // Overall trend can be neutral or calculated later
@@ -154,10 +158,57 @@ class LeaderboardService
         // Assign ranks
         $rank = 1;
         foreach ($leaderboard as $i => &$entry) {
-            if ($i > 0
+            if (
+                $i > 0
                 && $entry['total_score'] === $leaderboard[$i - 1]['total_score']
                 && $entry['votes_count'] === $leaderboard[$i - 1]['votes_count']
             ) {
+                $entry['rank'] = $leaderboard[$i - 1]['rank'];
+            } else {
+                $entry['rank'] = $rank;
+            }
+            $rank++;
+        }
+        unset($entry);
+
+        return $leaderboard;
+    }
+
+    private function getRoundOneLeaderboard(Round $round): array
+    {
+        $contestants = Contestant::where('season_id', $round->season_id)
+            ->where('current_round_id', $round->id)
+            ->where('status', 'active')
+            ->with('contestable')
+            ->get();
+
+        $leaderboard = [];
+        foreach ($contestants as $contestant) {
+            $business = $contestant->contestable; // Business model, could be null
+
+            $leaderboard[] = [
+                'contestant'       => $contestant,
+                'contestant_id'    => $contestant->id,
+                'display_name'     => $contestant->display_name,
+                'avatar_url'       => $contestant->avatar_url,
+                'contestable_name' => $business ? $business->getContestantName() : null,
+                'total_score'      => (float) ($business->total_points ?? 0),
+                'votes_count'      => 0,
+                'avg_score'        => null,
+                'claps'            => $business->total_claps ?? 0,
+                'shares'           => $business->total_shares ?? 0,
+                'saves'            => $business->total_saves ?? 0,
+                'trend'            => 'neutral',
+            ];
+        }
+
+        // Sort by total_score descending
+        usort($leaderboard, fn($a, $b) => $b['total_score'] <=> $a['total_score']);
+
+        // Assign ranks (with tie handling) — same logic as round 2+
+        $rank = 1;
+        foreach ($leaderboard as $i => &$entry) {
+            if ($i > 0 && $entry['total_score'] === $leaderboard[$i - 1]['total_score']) {
                 $entry['rank'] = $leaderboard[$i - 1]['rank'];
             } else {
                 $entry['rank'] = $rank;
