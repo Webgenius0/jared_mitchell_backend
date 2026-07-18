@@ -38,7 +38,7 @@ class HomePageSeeder extends Seeder
 
         // 3. Features
         CMS::updateOrCreate(
-            ['page' => CmsPage::HOME, 'section' => CmsSection::FEATURES],
+            ['page' => CmsPage::HOME, 'section' => CmsSection::BECOME_A_PART_OF_OUR_COMMUNITY],
             [
                 'title' => 'Why OSI is Different',
                 'description' => 'We combine cutting-edge technology with a deep understanding of the creative process.',

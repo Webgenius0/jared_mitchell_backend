@@ -11,6 +11,59 @@ use Yajra\DataTables\Facades\DataTables;
 class RoundSeasonController extends Controller
 {
     /**
+     * Parse a JSON field, returning null if empty/invalid.
+     */
+    private function parseJsonField(?string $value): ?array
+    {
+        if (empty($value)) {
+            return null;
+        }
+
+        $decoded = json_decode($value, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return null;
+        }
+
+        return $decoded;
+    }
+
+    /**
+     * Build advancement_config array from individual form fields.
+     * Filters out empty values & converts types.
+     */
+    private function buildAdvancementConfig(?array $advConfig): ?array
+    {
+        if (empty($advConfig)) {
+            return null;
+        }
+
+        // Remove null / empty-string values
+        $config = array_filter($advConfig, fn($v) => $v !== null && $v !== '');
+
+        if (empty($config)) {
+            return null;
+        }
+
+        // Convert categories from newline-separated string to array
+        if (isset($config['categories']) && is_string($config['categories'])) {
+            $cats = array_map('trim', explode("\n", $config['categories']));
+            $cats = array_filter($cats, fn($c) => $c !== '');
+            $config['categories'] = array_values($cats);
+        }
+
+        // Cast numeric fields
+        foreach (['advance_limit', 'eliminate_count', 'keep_percent', 'score_threshold', 'max_votes_per_user', 'max_score_per_category'] as $numField) {
+            if (isset($config[$numField])) {
+                $config[$numField] = (int) $config[$numField];
+            }
+        }
+        if (isset($config['vote_weight'])) {
+            $config['vote_weight'] = (float) $config['vote_weight'];
+        }
+
+        return $config;
+    }
+    /**
      * Display a listing of seasons.
      */
     public function index(Request $request)
@@ -88,6 +141,34 @@ class RoundSeasonController extends Controller
             'rounds.*.goal' => 'nullable|string',
             'rounds.*.requirements' => 'nullable|string',
             'rounds.*.advance_limit' => 'nullable|integer|min:1',
+            'rounds.*.voting_strategy' => 'nullable|string|max:50',
+            'rounds.*.submission_type' => 'nullable|string|max:50',
+            'rounds.*.sub_req' => 'nullable|array',
+            'rounds.*.sub_req.video.required' => 'nullable|boolean',
+            'rounds.*.sub_req.video.max_duration_sec' => 'nullable|integer|min:1',
+            'rounds.*.sub_req.document.required' => 'nullable|boolean',
+            'rounds.*.sub_req.document.formats' => 'nullable|array',
+            'rounds.*.sub_req.document.formats.*' => 'nullable|string|in:pdf,docx,pptx',
+            'rounds.*.sub_req.image.required' => 'nullable|boolean',
+            'rounds.*.sub_req.image.max_count' => 'nullable|integer|min:1',
+            'rounds.*.sub_req.link.required' => 'nullable|boolean',
+            'rounds.*.sub_req.text.required' => 'nullable|boolean',
+            'rounds.*.sub_req.text.max_length' => 'nullable|integer|min:1',
+            'rounds.*.elimination_rule' => 'nullable|string|max:50',
+            'rounds.*.advancement_config' => 'nullable|string',
+            'rounds.*.adv_config' => 'nullable|array',
+            'rounds.*.adv_config.advance_limit' => 'nullable|integer|min:1',
+            'rounds.*.adv_config.eliminate_count' => 'nullable|integer|min:1',
+            'rounds.*.adv_config.keep_percent' => 'nullable|integer|min:1|max:100',
+            'rounds.*.adv_config.score_threshold' => 'nullable|integer|min:0',
+            'rounds.*.adv_config.cutoff_tie_breaker' => 'nullable|string|in:all_tied_advance,all_tied_eliminate',
+            'rounds.*.adv_config.max_votes_per_user' => 'nullable|integer|min:1',
+            'rounds.*.adv_config.vote_weight' => 'nullable|numeric|min:0.1',
+            'rounds.*.adv_config.max_score_per_category' => 'nullable|integer|min:1',
+            'rounds.*.adv_config.categories' => 'nullable|string',
+            'rounds.*.voting_ends_at' => 'nullable|date',
+            'rounds.*.sort_order' => 'nullable|integer|min:0',
+            'rounds.*.is_active' => 'nullable|boolean',
             'rounds.*.starts_at' => 'nullable|date',
             'rounds.*.ends_at' => 'nullable|date|after_or_equal:rounds.*.starts_at',
         ]);
@@ -113,6 +194,13 @@ class RoundSeasonController extends Controller
                     'requirements' => $roundData['requirements'] ?? null,
                     'is_active' => $roundData['is_active'] ?? false,
                     'advance_limit' => $roundData['advance_limit'] ?? null,
+                    'voting_strategy' => $roundData['voting_strategy'] ?? 'popular_vote',
+                    'submission_type' => $roundData['submission_type'] ?? 'multi',
+                    'submission_requirements' => $this->parseJsonField($roundData['submission_requirements'] ?? null),
+                    'elimination_rule' => $roundData['elimination_rule'] ?? 'advance_limit',
+                    'advancement_config' => $this->buildAdvancementConfig($roundData['adv_config'] ?? null),
+                    'voting_ends_at' => $roundData['voting_ends_at'] ?? null,
+                    'sort_order' => $roundData['sort_order'] ?? 0,
                     'starts_at' => $roundData['starts_at'] ?? null,
                     'ends_at' => $roundData['ends_at'] ?? null,
                 ]);
@@ -154,6 +242,24 @@ class RoundSeasonController extends Controller
             'rounds.*.goal' => 'nullable|string',
             'rounds.*.requirements' => 'nullable|string',
             'rounds.*.advance_limit' => 'nullable|integer|min:1',
+            'rounds.*.voting_strategy' => 'nullable|string|max:50',
+            'rounds.*.submission_type' => 'nullable|string|max:50',
+            'rounds.*.submission_requirements' => 'nullable|string',
+            'rounds.*.elimination_rule' => 'nullable|string|max:50',
+            'rounds.*.advancement_config' => 'nullable|string',
+            'rounds.*.adv_config' => 'nullable|array',
+            'rounds.*.adv_config.advance_limit' => 'nullable|integer|min:1',
+            'rounds.*.adv_config.eliminate_count' => 'nullable|integer|min:1',
+            'rounds.*.adv_config.keep_percent' => 'nullable|integer|min:1|max:100',
+            'rounds.*.adv_config.score_threshold' => 'nullable|integer|min:0',
+            'rounds.*.adv_config.cutoff_tie_breaker' => 'nullable|string|in:all_tied_advance,all_tied_eliminate',
+            'rounds.*.adv_config.max_votes_per_user' => 'nullable|integer|min:1',
+            'rounds.*.adv_config.vote_weight' => 'nullable|numeric|min:0.1',
+            'rounds.*.adv_config.max_score_per_category' => 'nullable|integer|min:1',
+            'rounds.*.adv_config.categories' => 'nullable|string',
+            'rounds.*.voting_ends_at' => 'nullable|date',
+            'rounds.*.sort_order' => 'nullable|integer|min:0',
+            'rounds.*.is_active' => 'nullable|boolean',
             'rounds.*.starts_at' => 'nullable|date',
             'rounds.*.ends_at' => 'nullable|date|after_or_equal:rounds.*.starts_at',
         ]);
@@ -182,6 +288,13 @@ class RoundSeasonController extends Controller
                     'requirements' => $roundData['requirements'] ?? null,
                     'is_active' => $roundData['is_active'] ?? false,
                     'advance_limit' => $roundData['advance_limit'] ?? null,
+                    'voting_strategy' => $roundData['voting_strategy'] ?? 'popular_vote',
+                    'submission_type' => $roundData['submission_type'] ?? 'multi',
+                    'submission_requirements' => $this->buildSubmissionRequirements($roundData['sub_req'] ?? null),
+                    'elimination_rule' => $roundData['elimination_rule'] ?? 'advance_limit',
+                    'advancement_config' => $this->buildAdvancementConfig($roundData['adv_config'] ?? null),
+                    'voting_ends_at' => $roundData['voting_ends_at'] ?? null,
+                    'sort_order' => $roundData['sort_order'] ?? 0,
                     'starts_at' => $roundData['starts_at'] ?? null,
                     'ends_at' => $roundData['ends_at'] ?? null,
                 ];
@@ -237,5 +350,64 @@ class RoundSeasonController extends Controller
 
         return redirect()->route('admin.round-sessions.index')
             ->with('success', 'Season deleted successfully.');
+    }
+
+    /**
+     * Build submission_requirements array from structured checkbox/input fields.
+     * Admin never writes raw JSON — this converts form fields into the JSON structure.
+     */
+    private function buildSubmissionRequirements(?array $subReq): ?array
+    {
+        if (empty($subReq)) {
+            return null;
+        }
+
+        $result = [];
+
+        // Video requirement
+        if (!empty($subReq['video']['required'])) {
+            $result['video'] = [
+                'required' => true,
+                'max_duration_sec' => isset($subReq['video']['max_duration_sec']) && $subReq['video']['max_duration_sec'] !== ''
+                    ? (int) $subReq['video']['max_duration_sec']
+                    : null,
+            ];
+        }
+
+        // Document requirement
+        if (!empty($subReq['document']['required'])) {
+            $formats = array_values(array_filter($subReq['document']['formats'] ?? []));
+            $result['document'] = [
+                'required' => true,
+                'formats'  => $formats,
+            ];
+        }
+
+        // Image requirement
+        if (!empty($subReq['image']['required'])) {
+            $result['image'] = [
+                'required'  => true,
+                'max_count' => isset($subReq['image']['max_count']) && $subReq['image']['max_count'] !== ''
+                    ? (int) $subReq['image']['max_count']
+                    : null,
+            ];
+        }
+
+        // Link requirement
+        if (!empty($subReq['link']['required'])) {
+            $result['link'] = ['required' => true];
+        }
+
+        // Text/description requirement
+        if (!empty($subReq['text']['required'])) {
+            $result['text'] = [
+                'required'   => true,
+                'max_length' => isset($subReq['text']['max_length']) && $subReq['text']['max_length'] !== ''
+                    ? (int) $subReq['text']['max_length']
+                    : null,
+            ];
+        }
+
+        return empty($result) ? null : $result;
     }
 }

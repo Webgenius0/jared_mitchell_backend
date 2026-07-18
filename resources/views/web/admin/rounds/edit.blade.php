@@ -127,7 +127,7 @@
                                                     value="{{ old("rounds.{$idx}.advance_limit", $round->advance_limit) }}">
                                             </div>
                                         </div>
-                                        <div class="col-md-4">
+                                        <div class="col-md-3">
                                             <div class="mb-2">
                                                 <label class="form-label">Starts At</label>
                                                 <input type="text" name="rounds[{{ $idx }}][starts_at]"
@@ -136,7 +136,7 @@
                                                     value="{{ old("rounds.{$idx}.starts_at", $round->starts_at?->format('Y-m-d H:i')) }}">
                                             </div>
                                         </div>
-                                        <div class="col-md-4">
+                                        <div class="col-md-3">
                                             <div class="mb-2">
                                                 <label class="form-label">Ends At</label>
                                                 <input type="text" name="rounds[{{ $idx }}][ends_at]"
@@ -145,11 +145,188 @@
                                                     value="{{ old("rounds.{$idx}.ends_at", $round->ends_at?->format('Y-m-d H:i')) }}">
                                             </div>
                                         </div>
+                                        <div class="col-md-2">
+                                            <div class="mb-2">
+                                                <label class="form-label">Voting Ends At</label>
+                                                <input type="text" name="rounds[{{ $idx }}][voting_ends_at]"
+                                                    class="form-control flatpickr-input"
+                                                    data-provider="flatpickr" data-date-format="Y-m-d" data-enable-time="true"
+                                                    value="{{ old("rounds.{$idx}.voting_ends_at", $round->voting_ends_at?->format('Y-m-d H:i')) }}">
+                                            </div>
+                                        </div>
                                         <div class="col-md-1 d-flex align-items-end mb-2">
                                             <button type="button" class="btn btn-soft-danger btn-icon remove-round"
                                                 title="Remove round" {{ $loop->count <= 1 ? 'style=display:none;' : '' }}>
                                                 <i class="ri-delete-bin-5-line"></i>
                                             </button>
+                                        </div>
+                                    </div>
+                                    {{-- Round Mechanics --}}
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="mb-2">
+                                                <label class="form-label">Voting Strategy</label>
+                                                <select name="rounds[{{ $idx }}][voting_strategy]" class="form-select">
+                                                    <option value="popular_vote" {{ old("rounds.{$idx}.voting_strategy", $round->voting_strategy) == 'popular_vote' ? 'selected' : '' }}>Popular Vote</option>
+                                                    <option value="judge_scored" {{ old("rounds.{$idx}.voting_strategy", $round->voting_strategy) == 'judge_scored' ? 'selected' : '' }}>Judge Scored</option>
+                                                    <option value="weighted" {{ old("rounds.{$idx}.voting_strategy", $round->voting_strategy) == 'weighted' ? 'selected' : '' }}>Weighted</option>
+                                                    <option value="admin_pick" {{ old("rounds.{$idx}.voting_strategy", $round->voting_strategy) == 'admin_pick' ? 'selected' : '' }}>Admin Pick</option>
+                                                    <option value="single_elimination" {{ old("rounds.{$idx}.voting_strategy", $round->voting_strategy) == 'single_elimination' ? 'selected' : '' }}>Single Elimination</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="mb-2">
+                                                <label class="form-label">Submission Type</label>
+                                                <select name="rounds[{{ $idx }}][submission_type]" class="form-select">
+                                                    <option value="multi" {{ old("rounds.{$idx}.submission_type", $round->submission_type) == 'multi' ? 'selected' : '' }}>Multi</option>
+                                                    <option value="file_upload" {{ old("rounds.{$idx}.submission_type", $round->submission_type) == 'file_upload' ? 'selected' : '' }}>File Upload</option>
+                                                    <option value="video" {{ old("rounds.{$idx}.submission_type", $round->submission_type) == 'video' ? 'selected' : '' }}>Video</option>
+                                                    <option value="link" {{ old("rounds.{$idx}.submission_type", $round->submission_type) == 'link' ? 'selected' : '' }}>Link</option>
+                                                    <option value="text" {{ old("rounds.{$idx}.submission_type", $round->submission_type) == 'text' ? 'selected' : '' }}>Text</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="mb-2">
+                                                <label class="form-label">Elimination Rule</label>
+                                                <select name="rounds[{{ $idx }}][elimination_rule]" class="form-select">
+                                                    <option value="advance_limit" {{ old("rounds.{$idx}.elimination_rule", $round->elimination_rule) == 'advance_limit' ? 'selected' : '' }}>Advance Limit</option>
+                                                    <option value="bottom_n" {{ old("rounds.{$idx}.elimination_rule", $round->elimination_rule) == 'bottom_n' ? 'selected' : '' }}>Bottom N</option>
+                                                    <option value="top_percent" {{ old("rounds.{$idx}.elimination_rule", $round->elimination_rule) == 'top_percent' ? 'selected' : '' }}>Top Percent</option>
+                                                    <option value="score_below_threshold" {{ old("rounds.{$idx}.elimination_rule", $round->elimination_rule) == 'score_below_threshold' ? 'selected' : '' }}>Score Below Threshold</option>
+                                                    <option value="all_advance" {{ old("rounds.{$idx}.elimination_rule", $round->elimination_rule) == 'all_advance' ? 'selected' : '' }}>All Advance</option>
+                                                    <option value="single_elimination" {{ old("rounds.{$idx}.elimination_rule", $round->elimination_rule) == 'single_elimination' ? 'selected' : '' }}>Single Elimination</option>
+                                                    <option value="admin_pick" {{ old("rounds.{$idx}.elimination_rule", $round->elimination_rule) == 'admin_pick' ? 'selected' : '' }}>Admin Pick</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {{-- Sort Order & Active --}}
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <div class="mb-2">
+                                                <label class="form-label">Sort Order</label>
+                                                <input type="number" name="rounds[{{ $idx }}][sort_order]" class="form-control"
+                                                    value="{{ old("rounds.{$idx}.sort_order", $round->sort_order ?? 0) }}" min="0" placeholder="0">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 d-flex align-items-end mb-2">
+                                            <div class="form-check form-switch form-switch-md">
+                                                <input class="form-check-input" type="checkbox"
+                                                    name="rounds[{{ $idx }}][is_active]" value="1"
+                                                    id="round_{{ $idx }}_active"
+                                                    {{ old("rounds.{$idx}.is_active", $round->is_active) ? 'checked' : '' }}>
+                                                <label class="form-check-label fw-semibold" for="round_{{ $idx }}_active">Active</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {{-- Submission Requirements (JSON) --}}
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="mb-2">
+                                                <label class="form-label">
+                                                    Submission Requirements (JSON)
+                                                    <i class="ri-information-line" data-bs-toggle="tooltip" title='e.g. { "video": { "required": true, "max_duration_sec": 180 } }'></i>
+                                                </label>
+                                                <textarea name="rounds[{{ $idx }}][submission_requirements]" class="form-control" rows="2"
+                                                    placeholder='{"video": {"required": true, "max_duration_sec": 180}}'>{{ old("rounds.{$idx}.submission_requirements", is_array($round->submission_requirements) ? json_encode($round->submission_requirements) : $round->submission_requirements) }}</textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {{-- Advancement Config --}}
+                                    @php $advConfig = is_array($round->advancement_config) ? $round->advancement_config : []; @endphp
+                                    <div class="adv-config-section">
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <hr class="my-2">
+                                                <label class="form-label fw-semibold mb-2">Advancement Configuration</label>
+                                            </div>
+                                        </div>
+                                        {{-- Elimination-based configs --}}
+                                        <div class="row">
+                                            <div class="col-md-4 adv-config-advance_limit" style="display:none;">
+                                                <div class="mb-2">
+                                                    <label class="form-label">Tie Breaker</label>
+                                                    <select name="rounds[{{ $idx }}][adv_config][cutoff_tie_breaker]" class="form-select">
+                                                        <option value="all_tied_advance" {{ old("rounds.{$idx}.adv_config.cutoff_tie_breaker", $advConfig['cutoff_tie_breaker'] ?? '') == 'all_tied_advance' ? 'selected' : '' }}>All Tied Advance</option>
+                                                        <option value="all_tied_eliminate" {{ old("rounds.{$idx}.adv_config.cutoff_tie_breaker", $advConfig['cutoff_tie_breaker'] ?? '') == 'all_tied_eliminate' ? 'selected' : '' }}>All Tied Eliminated</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 adv-config-bottom_n" style="display:none;">
+                                                <div class="mb-2">
+                                                    <label class="form-label">Eliminate Count</label>
+                                                    <input type="number" name="rounds[{{ $idx }}][adv_config][eliminate_count]"
+                                                        class="form-control" min="1" placeholder="e.g. 2"
+                                                        value="{{ old("rounds.{$idx}.adv_config.eliminate_count", $advConfig['eliminate_count'] ?? '') }}">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 adv-config-top_percent" style="display:none;">
+                                                <div class="mb-2">
+                                                    <label class="form-label">Keep Percent (%)</label>
+                                                    <input type="number" name="rounds[{{ $idx }}][adv_config][keep_percent]"
+                                                        class="form-control" min="1" max="100" placeholder="e.g. 50"
+                                                        value="{{ old("rounds.{$idx}.adv_config.keep_percent", $advConfig['keep_percent'] ?? '') }}">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 adv-config-top_percent" style="display:none;">
+                                                <div class="mb-2">
+                                                    <label class="form-label">Tie Breaker</label>
+                                                    <select name="rounds[{{ $idx }}][adv_config][cutoff_tie_breaker]" class="form-select">
+                                                        <option value="all_tied_advance" {{ old("rounds.{$idx}.adv_config.cutoff_tie_breaker", $advConfig['cutoff_tie_breaker'] ?? '') == 'all_tied_advance' ? 'selected' : '' }}>All Tied Advance</option>
+                                                        <option value="all_tied_eliminate" {{ old("rounds.{$idx}.adv_config.cutoff_tie_breaker", $advConfig['cutoff_tie_breaker'] ?? '') == 'all_tied_eliminate' ? 'selected' : '' }}>All Tied Eliminated</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 adv-config-score_below_threshold" style="display:none;">
+                                                <div class="mb-2">
+                                                    <label class="form-label">Score Threshold</label>
+                                                    <input type="number" name="rounds[{{ $idx }}][adv_config][score_threshold]"
+                                                        class="form-control" min="0" placeholder="e.g. 50"
+                                                        value="{{ old("rounds.{$idx}.adv_config.score_threshold", $advConfig['score_threshold'] ?? '') }}">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {{-- Voting-based configs --}}
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <small class="text-muted">Voting Config</small>
+                                            </div>
+                                            <div class="col-md-4 adv-config-voting-popular_vote" style="display:none;">
+                                                <div class="mb-2">
+                                                    <label class="form-label">Max Votes Per User</label>
+                                                    <input type="number" name="rounds[{{ $idx }}][adv_config][max_votes_per_user]"
+                                                        class="form-control" min="1" placeholder="e.g. 10"
+                                                        value="{{ old("rounds.{$idx}.adv_config.max_votes_per_user", $advConfig['max_votes_per_user'] ?? '') }}">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 adv-config-voting-weighted" style="display:none;">
+                                                <div class="mb-2">
+                                                    <label class="form-label">Vote Weight</label>
+                                                    <input type="number" name="rounds[{{ $idx }}][adv_config][vote_weight]"
+                                                        class="form-control" min="0.1" step="0.1" placeholder="e.g. 1.0"
+                                                        value="{{ old("rounds.{$idx}.adv_config.vote_weight", $advConfig['vote_weight'] ?? '') }}">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 adv-config-voting-categories" style="display:none;">
+                                                <div class="mb-2">
+                                                    <label class="form-label">
+                                                        Categories (one per line)
+                                                        <i class="ri-information-line" data-bs-toggle="tooltip" title='Enter one category per line, e.g. Innovation, Presentation, Impact'></i>
+                                                    </label>
+                                                    <textarea name="rounds[{{ $idx }}][adv_config][categories]" class="form-control" rows="2"
+                                                        placeholder="Innovation&#10;Presentation&#10;Impact">{{ old("rounds.{$idx}.adv_config.categories", isset($advConfig['categories']) ? (is_array($advConfig['categories']) ? implode("\n", $advConfig['categories']) : $advConfig['categories']) : '') }}</textarea>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 adv-config-voting-categories" style="display:none;">
+                                                <div class="mb-2">
+                                                    <label class="form-label">Max Score Per Category</label>
+                                                    <input type="number" name="rounds[{{ $idx }}][adv_config][max_score_per_category]"
+                                                        class="form-control" min="1" placeholder="e.g. 10"
+                                                        value="{{ old("rounds.{$idx}.adv_config.max_score_per_category", $advConfig['max_score_per_category'] ?? '') }}">
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -197,7 +374,7 @@
                                                 <input type="number" name="rounds[0][advance_limit]" class="form-control" min="1" placeholder="e.g. 10">
                                             </div>
                                         </div>
-                                        <div class="col-md-4">
+                                        <div class="col-md-3">
                                             <div class="mb-2">
                                                 <label class="form-label">Starts At</label>
                                                 <input type="text" name="rounds[0][starts_at]" class="form-control flatpickr-input"
@@ -205,10 +382,18 @@
                                                     placeholder="Select date & time">
                                             </div>
                                         </div>
-                                        <div class="col-md-4">
+                                        <div class="col-md-3">
                                             <div class="mb-2">
                                                 <label class="form-label">Ends At</label>
                                                 <input type="text" name="rounds[0][ends_at]" class="form-control flatpickr-input"
+                                                    data-provider="flatpickr" data-date-format="Y-m-d" data-enable-time="true"
+                                                    placeholder="Select date & time">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="mb-2">
+                                                <label class="form-label">Voting Ends At</label>
+                                                <input type="text" name="rounds[0][voting_ends_at]" class="form-control flatpickr-input"
                                                     data-provider="flatpickr" data-date-format="Y-m-d" data-enable-time="true"
                                                     placeholder="Select date & time">
                                             </div>
@@ -218,6 +403,165 @@
                                                 title="Remove round" style="display:none;">
                                                 <i class="ri-delete-bin-5-line"></i>
                                             </button>
+                                        </div>
+                                    </div>
+                                    {{-- Round Mechanics --}}
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="mb-2">
+                                                <label class="form-label">Voting Strategy</label>
+                                                <select name="rounds[0][voting_strategy]" class="form-select">
+                                                    <option value="popular_vote">Popular Vote</option>
+                                                    <option value="judge_scored">Judge Scored</option>
+                                                    <option value="weighted">Weighted</option>
+                                                    <option value="admin_pick">Admin Pick</option>
+                                                    <option value="single_elimination">Single Elimination</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="mb-2">
+                                                <label class="form-label">Submission Type</label>
+                                                <select name="rounds[0][submission_type]" class="form-select">
+                                                    <option value="multi">Multi</option>
+                                                    <option value="file_upload">File Upload</option>
+                                                    <option value="video">Video</option>
+                                                    <option value="link">Link</option>
+                                                    <option value="text">Text</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="mb-2">
+                                                <label class="form-label">Elimination Rule</label>
+                                                <select name="rounds[0][elimination_rule]" class="form-select">
+                                                    <option value="advance_limit">Advance Limit</option>
+                                                    <option value="bottom_n">Bottom N</option>
+                                                    <option value="top_percent">Top Percent</option>
+                                                    <option value="score_below_threshold">Score Below Threshold</option>
+                                                    <option value="all_advance">All Advance</option>
+                                                    <option value="single_elimination">Single Elimination</option>
+                                                    <option value="admin_pick">Admin Pick</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {{-- Sort Order & Active --}}
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <div class="mb-2">
+                                                <label class="form-label">Sort Order</label>
+                                                <input type="number" name="rounds[0][sort_order]" class="form-control"
+                                                    value="0" min="0" placeholder="0">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 d-flex align-items-end mb-2">
+                                            <div class="form-check form-switch form-switch-md">
+                                                <input class="form-check-input" type="checkbox"
+                                                    name="rounds[0][is_active]" value="1" id="round_0_active" checked>
+                                                <label class="form-check-label fw-semibold" for="round_0_active">Active</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {{-- Submission Requirements (JSON) --}}
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="mb-2">
+                                                <label class="form-label">
+                                                    Submission Requirements (JSON)
+                                                    <i class="ri-information-line" data-bs-toggle="tooltip" title='e.g. { "video": { "required": true, "max_duration_sec": 180 } }'></i>
+                                                </label>
+                                                <textarea name="rounds[0][submission_requirements]" class="form-control" rows="2"
+                                                    placeholder='{"video": {"required": true, "max_duration_sec": 180}}'></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {{-- Advancement Config --}}
+                                    <div class="adv-config-section">
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <hr class="my-2">
+                                                <label class="form-label fw-semibold mb-2">Advancement Configuration</label>
+                                            </div>
+                                        </div>
+                                        {{-- Elimination-based configs --}}
+                                        <div class="row">
+                                            <div class="col-md-4 adv-config-advance_limit" style="display:none;">
+                                                <div class="mb-2">
+                                                    <label class="form-label">Tie Breaker</label>
+                                                    <select name="rounds[0][adv_config][cutoff_tie_breaker]" class="form-select">
+                                                        <option value="all_tied_advance">All Tied Advance</option>
+                                                        <option value="all_tied_eliminate">All Tied Eliminated</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 adv-config-bottom_n" style="display:none;">
+                                                <div class="mb-2">
+                                                    <label class="form-label">Eliminate Count</label>
+                                                    <input type="number" name="rounds[0][adv_config][eliminate_count]"
+                                                        class="form-control" min="1" placeholder="e.g. 2">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 adv-config-top_percent" style="display:none;">
+                                                <div class="mb-2">
+                                                    <label class="form-label">Keep Percent (%)</label>
+                                                    <input type="number" name="rounds[0][adv_config][keep_percent]"
+                                                        class="form-control" min="1" max="100" placeholder="e.g. 50">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 adv-config-top_percent" style="display:none;">
+                                                <div class="mb-2">
+                                                    <label class="form-label">Tie Breaker</label>
+                                                    <select name="rounds[0][adv_config][cutoff_tie_breaker]" class="form-select">
+                                                        <option value="all_tied_advance">All Tied Advance</option>
+                                                        <option value="all_tied_eliminate">All Tied Eliminated</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 adv-config-score_below_threshold" style="display:none;">
+                                                <div class="mb-2">
+                                                    <label class="form-label">Score Threshold</label>
+                                                    <input type="number" name="rounds[0][adv_config][score_threshold]"
+                                                        class="form-control" min="0" placeholder="e.g. 50">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {{-- Voting-based configs --}}
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <small class="text-muted">Voting Config</small>
+                                            </div>
+                                            <div class="col-md-4 adv-config-voting-popular_vote" style="display:none;">
+                                                <div class="mb-2">
+                                                    <label class="form-label">Max Votes Per User</label>
+                                                    <input type="number" name="rounds[0][adv_config][max_votes_per_user]"
+                                                        class="form-control" min="1" placeholder="e.g. 10">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 adv-config-voting-weighted" style="display:none;">
+                                                <div class="mb-2">
+                                                    <label class="form-label">Vote Weight</label>
+                                                    <input type="number" name="rounds[0][adv_config][vote_weight]"
+                                                        class="form-control" min="0.1" step="0.1" placeholder="e.g. 1.0">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 adv-config-voting-categories" style="display:none;">
+                                                <div class="mb-2">
+                                                    <label class="form-label">
+                                                        Categories (one per line)
+                                                        <i class="ri-information-line" data-bs-toggle="tooltip" title='Enter one category per line, e.g. Innovation, Presentation, Impact'></i>
+                                                    </label>
+                                                    <textarea name="rounds[0][adv_config][categories]" class="form-control" rows="2"
+                                                        placeholder="Innovation&#10;Presentation&#10;Impact"></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 adv-config-voting-categories" style="display:none;">
+                                                <div class="mb-2">
+                                                    <label class="form-label">Max Score Per Category</label>
+                                                    <input type="number" name="rounds[0][adv_config][max_score_per_category]"
+                                                        class="form-control" min="1" placeholder="e.g. 10">
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -339,7 +683,7 @@
                                 <input type="number" name="rounds[${index}][advance_limit]" class="form-control" min="1" placeholder="e.g. 10">
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="mb-2">
                                 <label class="form-label">Starts At</label>
                                 <input type="text" name="rounds[${index}][starts_at]" class="form-control flatpickr-input"
@@ -347,10 +691,18 @@
                                     placeholder="Select date & time">
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="mb-2">
                                 <label class="form-label">Ends At</label>
                                 <input type="text" name="rounds[${index}][ends_at]" class="form-control flatpickr-input"
+                                    data-provider="flatpickr" data-date-format="Y-m-d" data-enable-time="true"
+                                    placeholder="Select date & time">
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="mb-2">
+                                <label class="form-label">Voting Ends At</label>
+                                <input type="text" name="rounds[${index}][voting_ends_at]" class="form-control flatpickr-input"
                                     data-provider="flatpickr" data-date-format="Y-m-d" data-enable-time="true"
                                     placeholder="Select date & time">
                             </div>
@@ -361,14 +713,249 @@
                             </button>
                         </div>
                     </div>
+                    {{-- Round Mechanics --}}
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-2">
+                                <label class="form-label">Voting Strategy</label>
+                                <select name="rounds[${index}][voting_strategy]" class="form-select">
+                                    <option value="popular_vote">Popular Vote</option>
+                                    <option value="judge_scored">Judge Scored</option>
+                                    <option value="weighted">Weighted</option>
+                                    <option value="admin_pick">Admin Pick</option>
+                                    <option value="single_elimination">Single Elimination</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-2">
+                                <label class="form-label">Submission Type</label>
+                                <select name="rounds[${index}][submission_type]" class="form-select">
+                                    <option value="multi">Multi</option>
+                                    <option value="file_upload">File Upload</option>
+                                    <option value="video">Video</option>
+                                    <option value="link">Link</option>
+                                    <option value="text">Text</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-2">
+                                <label class="form-label">Elimination Rule</label>
+                                <select name="rounds[${index}][elimination_rule]" class="form-select">
+                                    <option value="advance_limit">Advance Limit</option>
+                                    <option value="bottom_n">Bottom N</option>
+                                    <option value="top_percent">Top Percent</option>
+                                    <option value="score_below_threshold">Score Below Threshold</option>
+                                    <option value="all_advance">All Advance</option>
+                                    <option value="single_elimination">Single Elimination</option>
+                                    <option value="admin_pick">Admin Pick</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    {{-- Sort Order & Active --}}
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="mb-2">
+                                <label class="form-label">Sort Order</label>
+                                <input type="number" name="rounds[${index}][sort_order]" class="form-control"
+                                    value="0" min="0" placeholder="0">
+                            </div>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end mb-2">
+                            <div class="form-check form-switch form-switch-md">
+                                <input class="form-check-input" type="checkbox"
+                                    name="rounds[${index}][is_active]" value="1" id="round_${index}_active" checked>
+                                <label class="form-check-label fw-semibold" for="round_${index}_active">Active</label>
+                            </div>
+                        </div>
+                    </div>
+                    {{-- Submission Requirements (JSON) --}}
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="mb-2">
+                                <label class="form-label">
+                                    Submission Requirements (JSON)
+                                    <i class="ri-information-line" data-bs-toggle="tooltip" title='e.g. { "video": { "required": true, "max_duration_sec": 180 } }'></i>
+                                </label>
+                                <textarea name="rounds[${index}][submission_requirements]" class="form-control" rows="2"
+                                    placeholder='{"video": {"required": true, "max_duration_sec": 180}}'></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    {{-- Advancement Config --}}
+                    <div class="adv-config-section">
+                        <div class="row">
+                            <div class="col-12">
+                                <hr class="my-2">
+                                <label class="form-label fw-semibold mb-2">Advancement Configuration</label>
+                            </div>
+                        </div>
+                        {{-- Elimination-based configs --}}
+                        <div class="row">
+                            <div class="col-md-4 adv-config-advance_limit" style="display:none;">
+                                <div class="mb-2">
+                                    <label class="form-label">Tie Breaker</label>
+                                    <select name="rounds[${index}][adv_config][cutoff_tie_breaker]" class="form-select">
+                                        <option value="all_tied_advance">All Tied Advance</option>
+                                        <option value="all_tied_eliminate">All Tied Eliminated</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4 adv-config-bottom_n" style="display:none;">
+                                <div class="mb-2">
+                                    <label class="form-label">Eliminate Count</label>
+                                    <input type="number" name="rounds[${index}][adv_config][eliminate_count]"
+                                        class="form-control" min="1" placeholder="e.g. 2">
+                                </div>
+                            </div>
+                            <div class="col-md-4 adv-config-top_percent" style="display:none;">
+                                <div class="mb-2">
+                                    <label class="form-label">Keep Percent (%)</label>
+                                    <input type="number" name="rounds[${index}][adv_config][keep_percent]"
+                                        class="form-control" min="1" max="100" placeholder="e.g. 50">
+                                </div>
+                            </div>
+                            <div class="col-md-4 adv-config-top_percent" style="display:none;">
+                                <div class="mb-2">
+                                    <label class="form-label">Tie Breaker</label>
+                                    <select name="rounds[${index}][adv_config][cutoff_tie_breaker]" class="form-select">
+                                        <option value="all_tied_advance">All Tied Advance</option>
+                                        <option value="all_tied_eliminate">All Tied Eliminated</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4 adv-config-score_below_threshold" style="display:none;">
+                                <div class="mb-2">
+                                    <label class="form-label">Score Threshold</label>
+                                    <input type="number" name="rounds[${index}][adv_config][score_threshold]"
+                                        class="form-control" min="0" placeholder="e.g. 50">
+                                </div>
+                            </div>
+                        </div>
+                        {{-- Voting-based configs --}}
+                        <div class="row">
+                            <div class="col-12">
+                                <small class="text-muted">Voting Config</small>
+                            </div>
+                            <div class="col-md-4 adv-config-voting-popular_vote" style="display:none;">
+                                <div class="mb-2">
+                                    <label class="form-label">Max Votes Per User</label>
+                                    <input type="number" name="rounds[${index}][adv_config][max_votes_per_user]"
+                                        class="form-control" min="1" placeholder="e.g. 10">
+                                </div>
+                            </div>
+                            <div class="col-md-4 adv-config-voting-weighted" style="display:none;">
+                                <div class="mb-2">
+                                    <label class="form-label">Vote Weight</label>
+                                    <input type="number" name="rounds[${index}][adv_config][vote_weight]"
+                                        class="form-control" min="0.1" step="0.1" placeholder="e.g. 1.0">
+                                </div>
+                            </div>
+                            <div class="col-md-6 adv-config-voting-categories" style="display:none;">
+                                <div class="mb-2">
+                                    <label class="form-label">
+                                        Categories (one per line)
+                                        <i class="ri-information-line" data-bs-toggle="tooltip" title='Enter one category per line, e.g. Innovation, Presentation, Impact'></i>
+                                    </label>
+                                    <textarea name="rounds[${index}][adv_config][categories]" class="form-control" rows="2"
+                                        placeholder="Innovation&#10;Presentation&#10;Impact"></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-4 adv-config-voting-categories" style="display:none;">
+                                <div class="mb-2">
+                                    <label class="form-label">Max Score Per Category</label>
+                                    <input type="number" name="rounds[${index}][adv_config][max_score_per_category]"
+                                        class="form-control" min="1" placeholder="e.g. 10">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             `;
         }
 
+        /**
+         * Toggle advancement config fields based on elimination rule and voting strategy.
+         */
+        function toggleAdvConfig(container) {
+            const eliminationRule = container.querySelector('[name$="[elimination_rule]"]');
+            const votingStrategy = container.querySelector('[name$="[voting_strategy]"]');
+
+            if (!eliminationRule || !votingStrategy) return;
+
+            // Hide all dynamic config groups within this container (excluding the main section wrapper)
+            container.querySelectorAll('[class*="adv-config-"]:not(.adv-config-section)').forEach(el => {
+                if (el.closest('.round-item') === container) {
+                    el.style.display = 'none';
+                }
+            });
+
+            // Show the matching elimination config
+            const elimValue = eliminationRule.value;
+            container.querySelectorAll('.adv-config-' + elimValue).forEach(el => {
+                if (el.closest('.round-item') === container) {
+                    el.style.display = '';
+                }
+            });
+
+            // Show matching voting config
+            const voteValue = votingStrategy.value;
+            container.querySelectorAll('.adv-config-voting-' + voteValue).forEach(el => {
+                if (el.closest('.round-item') === container) {
+                    el.style.display = '';
+                }
+            });
+
+            // For judge_scored and weighted, also show categories section
+            if (voteValue === 'judge_scored' || voteValue === 'weighted') {
+                container.querySelectorAll('.adv-config-voting-categories').forEach(el => {
+                    if (el.closest('.round-item') === container) {
+                        el.style.display = '';
+                    }
+                });
+            }
+        }
+
+        // Attach toggle listeners to a round container
+        function attachToggleListeners(container) {
+            const elimSelect = container.querySelector('[name$="[elimination_rule]"]');
+            const voteSelect = container.querySelector('[name$="[voting_strategy]"]');
+
+            if (elimSelect) {
+                elimSelect.addEventListener('change', function() {
+                    toggleAdvConfig(this.closest('.round-item'));
+                });
+            }
+            if (voteSelect) {
+                voteSelect.addEventListener('change', function() {
+                    toggleAdvConfig(this.closest('.round-item'));
+                });
+            }
+
+            // Initial toggle
+            toggleAdvConfig(container);
+        }
+
+        // Initialize existing rounds
+        document.querySelectorAll('.round-item').forEach(function(item) {
+            item.dataset.listenerAttached = 'true';
+            attachToggleListeners(item);
+        });
+
+        // Override add button to also attach listeners
         addBtn.addEventListener('click', function() {
             container.insertAdjacentHTML('beforeend', createRoundHtml(roundIndex));
             roundIndex++;
             updateBadges();
+
+            // Attach listeners to newly added rounds
+            container.querySelectorAll('.round-item:not([data-listener-attached])').forEach(function(item) {
+                item.dataset.listenerAttached = 'true';
+                attachToggleListeners(item);
+            });
+
             if (typeof flatpickr !== 'undefined') {
                 container.querySelectorAll('.flatpickr-input:not(.flatpickr-input--initialized)').forEach(el => {
                     el.classList.add('flatpickr-input--initialized');
