@@ -8,6 +8,7 @@ use App\Models\Round;
 use App\Services\Contest\LeaderboardService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
+use App\Http\Resources\Contest\LeaderboardEntryResource;
 
 class LeaderboardController extends Controller
 {
@@ -50,7 +51,7 @@ class LeaderboardController extends Controller
         return $this->success('Overall leaderboard retrieved successfully.', [
             'season_id' => $season->id,
             'season' => $season->only(['id', 'title', 'contest_type', 'status']),
-            'entries' => $entries,
+            'entries' => LeaderboardEntryResource::collection($entries),
         ]);
     }
 
@@ -64,9 +65,9 @@ class LeaderboardController extends Controller
         $entries = $this->leaderboardService->getLeaderboard($round);
 
         return $this->success('Round leaderboard retrieved successfully.', [
-            'round_id'   => $round->id,
-            'round'      => $round->only(['id', 'round_number', 'title']),
-            'entries'    => $entries,
+            'round_id' => $round->id,
+            'round' => $round->only(['id', 'round_number', 'title']),
+            'entries' => LeaderboardEntryResource::collection($entries),
         ]);
     }
 
@@ -89,7 +90,7 @@ class LeaderboardController extends Controller
 
         return $this->success('Leaderboard retrieved successfully.', [
             'round_id' => $latestRound->id,
-            'entries'  => $entries,
+            'entries'  => LeaderboardEntryResource::collection($entries),
         ]);
     }
 }

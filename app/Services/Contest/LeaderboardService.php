@@ -46,14 +46,14 @@ class LeaderboardService
             $contestable = $contestant->contestable;
 
             $leaderboard[] = [
-                'contestant'      => $contestant,
-                'contestant_id'   => $contestant->id,
-                'display_name'    => $contestant->display_name,
-                'avatar_url'      => $contestant->avatar_url,
+                'contestant' => $contestant,
+                'contestant_id' => $contestant->id,
+                'display_name' => $contestant->display_name,
+                'avatar_url' => $contestant->avatar_url,
                 'contestable_name'=> $contestable ? $contestable->getContestantName() : null,
-                'total_score'     => $totalScore,
-                'votes_count'     => $votesCount,
-                'avg_score'       => $avgScore,
+                'total_score' => $totalScore,
+                'votes_count' => $votesCount,
+                'avg_score' => $avgScore,
             ];
         }
 

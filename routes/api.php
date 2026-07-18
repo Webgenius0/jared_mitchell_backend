@@ -181,14 +181,14 @@ Route::group(['prefix' => 'v1'], function ($router) {
         */
         Route::prefix('contest')->group(function () {
             // Seasons → Leaderboard
-            Route::get('/leaderboard/overall', [LeaderboardController::class, 'activeOverall']);
-            Route::get('/seasons/{season}/leaderboard', [LeaderboardController::class, 'overall']);
-            Route::get('/seasons/{season}/leaderboard/calculate', [LeaderboardController::class, 'recalculate']);
+            Route::get('/leaderboard/overall', [LeaderboardController::class, 'activeOverall']); // Ligacy route for testing (NO NEEDED)
+            Route::get('/seasons/{season}/leaderboard', [LeaderboardController::class, 'overall']); // DONE: Leaderboard (20-5)
+            // Route::get('/seasons/{season}/leaderboard/calculate', [LeaderboardController::class, 'recalculate']);
 
             // Rounds → Submissions, Votes, Leaderboard
-            Route::get('/rounds/{round}/submissions', [RoundSubmissionController::class, 'index']);
-            Route::get('/rounds/{round}/leaderboard', [LeaderboardController::class, 'forRound']);
-            Route::get('/rounds/{round}/votes/counts', [VoteController::class, 'counts']);
+            // Route::get('/rounds/{round}/submissions', [RoundSubmissionController::class, 'index']);
+            Route::get('/rounds/{round}/leaderboard', [LeaderboardController::class, 'forRound']); // DONE: Leaderboard per round
+            // Route::get('/rounds/{round}/votes/counts', [VoteController::class, 'counts']);
 
             // Active season rounds
             Route::get('/active-season-rounds', [BossBeginningSeasonController::class, 'activeRounds']); // DONE: Active season's round list
