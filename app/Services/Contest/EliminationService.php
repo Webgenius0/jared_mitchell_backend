@@ -22,25 +22,79 @@ class EliminationService
      * 2. Determine advancement/elimination based on elimination_rule
      * 3. Apply the results (advance winners, eliminate losers)
      */
+    // public function processRoundTransition(Round $round): array
+    // {
+    //     // 1. Get ranked leaderboard
+    //     $leaderboard = $this->leaderboardService->getLeaderboard($round);
+
+    //     $totalCount = count($leaderboard);
+
+    //     // 2. Apply the elimination rule to determine who advances/eliminates
+    //     $result = $this->applyEliminationRule($round, $leaderboard);
+
+    //     // 3. Execute the transition in a transaction
+    //     DB::transaction(function () use ($round, $result) {
+    //         // Mark the current round as inactive
+    //         $round->update(['is_active' => false]);
+
+    //         // Find the next round
+    //         $nextRound = $this->findNextRound($round);
+
+    //         // Advance contestants to the next round
+    //         foreach ($result['advanced'] as $data) {
+    //             $contestant = Contestant::find($data['contestant_id']);
+    //             if ($contestant && $nextRound) {
+    //                 $this->contestantService->advanceToRound($contestant, $nextRound);
+    //             }
+    //         }
+
+    //         // Eliminate contestants
+    //         foreach ($result['eliminated'] as $data) {
+    //             $contestant = Contestant::find($data['contestant_id']);
+    //             if ($contestant) {
+    //                 $this->contestantService->eliminate($contestant, $round);
+    //             }
+    //         }
+
+    //         // If no next round, finalize the season
+    //         if (!$nextRound) {
+    //             $this->finalizeSeason($round);
+    //         }
+    //     });
+
+    //     // 4. Log the results
+    //     $nextRound = $this->findNextRound($round);
+
+    //     if ($nextRound) {
+    //         Log::info('Round transition completed — contestants advanced', [
+    //             'from_round'       => $round->id,
+    //             'to_round'         => $nextRound->id,
+    //             'advanced'         => count($result['advanced']),
+    //             'eliminated'       => count($result['eliminated']),
+    //             'elimination_rule' => $round->elimination_rule,
+    //         ]);
+    //     } else {
+    //         Log::info('Season final round completed — no next round', [
+    //             'round_id'  => $round->id,
+    //             'season_id' => $round->season_id,
+    //             'finalists' => count($result['advanced']),
+    //         ]);
+    //     }
+
+    //     return $result;
+    // }
+
+
     public function processRoundTransition(Round $round): array
     {
-        // 1. Get ranked leaderboard
         $leaderboard = $this->leaderboardService->getLeaderboard($round);
-
-        $totalCount = count($leaderboard);
-
-        // 2. Apply the elimination rule to determine who advances/eliminates
         $result = $this->applyEliminationRule($round, $leaderboard);
 
-        // 3. Execute the transition in a transaction
         DB::transaction(function () use ($round, $result) {
-            // Mark the current round as inactive
             $round->update(['is_active' => false]);
 
-            // Find the next round
             $nextRound = $this->findNextRound($round);
 
-            // Advance contestants to the next round
             foreach ($result['advanced'] as $data) {
                 $contestant = Contestant::find($data['contestant_id']);
                 if ($contestant && $nextRound) {
@@ -48,7 +102,6 @@ class EliminationService
                 }
             }
 
-            // Eliminate contestants
             foreach ($result['eliminated'] as $data) {
                 $contestant = Contestant::find($data['contestant_id']);
                 if ($contestant) {
@@ -56,30 +109,21 @@ class EliminationService
                 }
             }
 
-            // If no next round, finalize the season
-            if (!$nextRound) {
+            // Guard: only auto-finalize when the rule is NOT admin_pick
+            if (!$nextRound && $round->elimination_rule !== 'admin_pick') {
                 $this->finalizeSeason($round);
             }
+
+            // admin_pick + no next round → mark season as "awaiting admin decision"
+            if (!$nextRound && $round->elimination_rule === 'admin_pick') {
+                $round->season()->update(['status' => 'awaiting_final_review']);
+
+                Log::info('Final round ended — awaiting admin manual scoring', [
+                    'round_id'  => $round->id,
+                    'season_id' => $round->season_id,
+                ]);
+            }
         });
-
-        // 4. Log the results
-        $nextRound = $this->findNextRound($round);
-
-        if ($nextRound) {
-            Log::info('Round transition completed — contestants advanced', [
-                'from_round'       => $round->id,
-                'to_round'         => $nextRound->id,
-                'advanced'         => count($result['advanced']),
-                'eliminated'       => count($result['eliminated']),
-                'elimination_rule' => $round->elimination_rule,
-            ]);
-        } else {
-            Log::info('Season final round completed — no next round', [
-                'round_id'  => $round->id,
-                'season_id' => $round->season_id,
-                'finalists' => count($result['advanced']),
-            ]);
-        }
 
         return $result;
     }
@@ -264,7 +308,7 @@ class EliminationService
         return Round::where('season_id', $currentRound->season_id)
             ->where(function ($q) use ($currentRound) {
                 $q->where('round_number', '>', $currentRound->round_number)
-                  ->orWhere('sort_order', '>', $currentRound->sort_order);
+                    ->orWhere('sort_order', '>', $currentRound->sort_order);
             })
             ->orderBy('round_number')
             ->orderBy('sort_order')
@@ -289,7 +333,7 @@ class EliminationService
 
                 $contestant->update([
                     'status'                => $status,
-                    'eliminated_in_round_id'=> null,
+                    'eliminated_in_round_id' => null,
                 ]);
                 $rank++;
             }
