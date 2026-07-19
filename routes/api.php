@@ -410,15 +410,15 @@ Route::group(['prefix' => 'v1'], function ($router) {
         */
         Route::prefix('contest')->group(function () {
             //My contest
-            Route::get('/my-contests', [ContestApplicationController::class, 'myContests']);
+            Route::get('/my-contests', [ContestApplicationController::class, 'myContests']); // DONE: get all my contest
 
             // Submissions
-            Route::post('/rounds/{round}/submissions', [RoundSubmissionController::class, 'store']);
+            Route::post('/rounds/{round}/submissions', [RoundSubmissionController::class, 'store']); // DONE: round wise asset/media submission
             Route::post('/rounds/{round}/submissions/draft', [RoundSubmissionController::class, 'saveDraft']);
             Route::get('/rounds/{round}/submissions/my', [RoundSubmissionController::class, 'mySubmission']);
 
             // Votes
-            Route::post('/rounds/{round}/votes', [VoteController::class, 'store']);
+            Route::post('/rounds/{round}/votes', [VoteController::class, 'store']); // DONE: round voting
             Route::get('/rounds/{round}/votes/my', [VoteController::class, 'myVotes']);
             Route::get('/rounds/{round}/votes/check/{contestant}', [VoteController::class, 'check']);
         });

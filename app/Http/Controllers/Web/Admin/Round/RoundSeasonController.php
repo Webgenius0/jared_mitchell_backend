@@ -26,11 +26,11 @@ class RoundSeasonController extends Controller
             return null;
         }
 
-        // Filter out empty tie_breakers values
-        if (isset($config['tie_breakers']) && is_array($config['tie_breakers'])) {
-            $config['tie_breakers'] = array_values(array_filter($config['tie_breakers'], fn($v) => trim($v) !== ''));
-            if (empty($config['tie_breakers'])) {
-                unset($config['tie_breakers']);
+        // Filter out empty categories values
+        if (isset($config['categories']) && is_array($config['categories'])) {
+            $config['categories'] = array_values(array_filter($config['categories'], fn($v) => trim($v) !== ''));
+            if (empty($config['categories'])) {
+                unset($config['categories']);
             }
         }
 
@@ -132,8 +132,8 @@ class RoundSeasonController extends Controller
             'rounds.*.requirements' => 'nullable|string',
             'rounds.*.advance_limit' => 'nullable|integer|min:1',
             'rounds.*.adv_config' => 'nullable|array',
-            'rounds.*.adv_config.tie_breakers' => 'nullable|array',
-            'rounds.*.adv_config.tie_breakers.*' => 'nullable|string|max:255',
+            'rounds.*.adv_config.categories' => 'nullable|array',
+            'rounds.*.adv_config.categories.*' => 'nullable|string|max:255',
             'rounds.*.voting_ends_at' => 'nullable|date',
             'rounds.*.is_active' => 'nullable|boolean',
             'rounds.*.starts_at' => 'nullable|date',
@@ -205,8 +205,8 @@ class RoundSeasonController extends Controller
             'rounds.*.requirements' => 'nullable|string',
             'rounds.*.advance_limit' => 'nullable|integer|min:1',
             'rounds.*.adv_config' => 'nullable|array',
-            'rounds.*.adv_config.tie_breakers' => 'nullable|array',
-            'rounds.*.adv_config.tie_breakers.*' => 'nullable|string|max:255',
+            'rounds.*.adv_config.categories' => 'nullable|array',
+            'rounds.*.adv_config.categories.*' => 'nullable|string|max:255',
             'rounds.*.voting_ends_at' => 'nullable|date',
             'rounds.*.is_active' => 'nullable|boolean',
             'rounds.*.starts_at' => 'nullable|date',

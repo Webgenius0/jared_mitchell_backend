@@ -35,7 +35,7 @@ class RoundSubmissionController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:10000',
             'media_urls' => 'nullable|array',
-            'media_urls.*' => 'nullable|string|max:2048',
+            'media_urls.*' => 'nullable|string|max:20480',
         ]);
 
         $user = auth('api')->user();

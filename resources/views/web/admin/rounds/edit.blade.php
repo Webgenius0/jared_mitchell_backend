@@ -193,13 +193,13 @@
                                                 <div class="mb-2">
                                                     <label class="form-label fw-semibold">Tie Breaker</label>
                                                     <div class="tie-breakers-container" data-round-index="{{ $idx }}">
-                                                        @php $tieBreakers = $advConfig['tie_breakers'] ?? ['']; @endphp
+                                                        @php $tieBreakers = $advConfig['categories'] ?? ['']; @endphp
                                                         @forelse ($tieBreakers as $tbIdx => $tbValue)
                                                             <div class="tie-breaker-item mb-2">
                                                                 <div class="input-group">
-                                                                    <input type="text" name="rounds[{{ $idx }}][adv_config][tie_breakers][]"
+                                                                    <input type="text" name="rounds[{{ $idx }}][adv_config][categories][]"
                                                                         class="form-control" placeholder="Enter tie breaker rule..." maxlength="255"
-                                                                        value="{{ old("rounds.{$idx}.adv_config.tie_breakers.{$tbIdx}", $tbValue) }}">
+                                                                        value="{{ old("rounds.{$idx}.adv_config.categories.{$tbIdx}", $tbValue) }}">
                                                                     <button type="button" class="btn btn-soft-danger remove-tie-breaker" title="Remove"
                                                                         {{ count($tieBreakers) <= 1 ? 'style=display:none;' : '' }}>
                                                                         <i class="ri-delete-bin-5-line"></i>
@@ -209,7 +209,7 @@
                                                         @empty
                                                             <div class="tie-breaker-item mb-2">
                                                                 <div class="input-group">
-                                                                    <input type="text" name="rounds[{{ $idx }}][adv_config][tie_breakers][]"
+                                                                    <input type="text" name="rounds[{{ $idx }}][adv_config][categories][]"
                                                                         class="form-control" placeholder="Enter tie breaker rule..." maxlength="255">
                                                                     <button type="button" class="btn btn-soft-danger remove-tie-breaker" title="Remove" style="display:none;">
                                                                         <i class="ri-delete-bin-5-line"></i>
@@ -333,7 +333,7 @@
                                                     <div class="tie-breakers-container" data-round-index="0">
                                                         <div class="tie-breaker-item mb-2">
                                                             <div class="input-group">
-                                                                <input type="text" name="rounds[0][adv_config][tie_breakers][]"
+                                                                <input type="text" name="rounds[0][adv_config][categories][]"
                                                                     class="form-control" placeholder="Enter tie breaker rule..." maxlength="255">
                                                                 <button type="button" class="btn btn-soft-danger remove-tie-breaker" title="Remove" style="display:none;">
                                                                     <i class="ri-delete-bin-5-line"></i>
@@ -562,7 +562,7 @@
                                     <div class="tie-breakers-container" data-round-index="${index}">
                                         <div class="tie-breaker-item mb-2">
                                             <div class="input-group">
-                                                <input type="text" name="rounds[${index}][adv_config][tie_breakers][]"
+                                                <input type="text" name="rounds[${index}][adv_config][categories][]"
                                                     class="form-control" placeholder="Enter tie breaker rule..." maxlength="255">
                                                 <button type="button" class="btn btn-soft-danger remove-tie-breaker" title="Remove" style="display:none;">
                                                     <i class="ri-delete-bin-5-line"></i>
@@ -601,7 +601,7 @@
                         sibling.remove();
                     }
                 });
-                
+
                 // Restore original date input state
                 el.type = 'text';
                 el.value = '';
@@ -685,7 +685,7 @@
             newItem.className = 'tie-breaker-item mb-2';
             newItem.innerHTML = `
                         <div class="input-group">
-                            <input type="text" name="rounds[${roundIndex}][adv_config][tie_breakers][]"
+                            <input type="text" name="rounds[${roundIndex}][adv_config][categories][]"
                                 class="form-control" placeholder="Enter tie breaker rule..." maxlength="255">
                             <button type="button" class="btn btn-soft-danger remove-tie-breaker" title="Remove">
                                 <i class="ri-delete-bin-5-line"></i>
