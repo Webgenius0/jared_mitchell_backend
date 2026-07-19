@@ -460,8 +460,21 @@
                     const idInput = clone.querySelector('input[name$="[id]"]');
                     if (idInput) idInput.remove();
 
-                    // Clear flatpickr alt inputs so they re-initialize properly
-                    clone.querySelectorAll('.flatpickr-input--initialized, .flatpickr-input.flatpickr-input--initialized').forEach(function(el) {
+                    // Strip flatpickr alt inputs (visible date display) and reset original date inputs
+                    clone.querySelectorAll('input[data-provider="flatpickr"]').forEach(function(el) {
+                        // Flatpickr creates an alt input sibling. We remove all inputs in the same parent except the original one.
+                        const parent = el.parentNode;
+                        parent.querySelectorAll('input').forEach(function(sibling) {
+                            if (sibling !== el) {
+                                sibling.remove();
+                            }
+                        });
+                        
+                        // Restore original date input state
+                        el.type = 'text';
+                        el.value = '';
+                        el.removeAttribute('value');
+                        el.style.display = '';
                         el.classList.remove('flatpickr-input--initialized');
                     });
 
