@@ -81,8 +81,16 @@
                             @forelse ($season->rounds as $idx => $round)
                                 @php $advConfig = is_array($round->advancement_config) ? $round->advancement_config : []; @endphp
                                 <div class="round-item border p-3 rounded mb-3 bg-light position-relative">
-                                    <div class="position-absolute top-0 end-0 mt-2 me-2">
+                                    <div class="position-absolute top-0 end-0 mt-2 me-2 d-flex align-items-center gap-1">
                                         <span class="badge bg-primary round-number-badge">Round {{ $loop->iteration }}</span>
+                                        <button type="button" class="btn btn-soft-info btn-icon duplicate-round btn-sm"
+                                            title="Duplicate round">
+                                            <i class="ri-file-copy-line"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-soft-danger btn-icon remove-round btn-sm"
+                                            title="Remove round" {{ $loop->count <= 1 ? 'style=display:none;' : '' }}>
+                                            <i class="ri-delete-bin-5-line"></i>
+                                        </button>
                                     </div>
                                     <input type="hidden" name="rounds[{{ $idx }}][id]" value="{{ $round->id }}">
                                     <div class="row mt-2">
@@ -146,7 +154,7 @@
                                                     value="{{ old("rounds.{$idx}.ends_at", $round->ends_at?->format('Y-m-d H:i')) }}">
                                             </div>
                                         </div>
-                                        <div class="col-md-2">
+                                        <div class="col-md-3">
                                             <div class="mb-2">
                                                 <label class="form-label">Voting Ends At</label>
                                                 <input type="text" name="rounds[{{ $idx }}][voting_ends_at]"
@@ -154,12 +162,6 @@
                                                     data-provider="flatpickr" data-date-format="Y-m-d" data-enable-time="true"
                                                     value="{{ old("rounds.{$idx}.voting_ends_at", $round->voting_ends_at?->format('Y-m-d H:i')) }}">
                                             </div>
-                                        </div>
-                                        <div class="col-md-1 d-flex align-items-end mb-2">
-                                            <button type="button" class="btn btn-soft-danger btn-icon remove-round"
-                                                title="Remove round" {{ $loop->count <= 1 ? 'style=display:none;' : '' }}>
-                                                <i class="ri-delete-bin-5-line"></i>
-                                            </button>
                                         </div>
                                     </div>
 
@@ -227,8 +229,16 @@
                                 </div>
                             @empty
                                 <div class="round-item border p-3 rounded mb-3 bg-light position-relative">
-                                    <div class="position-absolute top-0 end-0 mt-2 me-2">
+                                    <div class="position-absolute top-0 end-0 mt-2 me-2 d-flex align-items-center gap-1">
                                         <span class="badge bg-primary round-number-badge">Round 1</span>
+                                        <button type="button" class="btn btn-soft-info btn-icon duplicate-round btn-sm"
+                                            title="Duplicate round">
+                                            <i class="ri-file-copy-line"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-soft-danger btn-icon remove-round btn-sm"
+                                            title="Remove round" style="display:none;">
+                                            <i class="ri-delete-bin-5-line"></i>
+                                        </button>
                                     </div>
                                     <div class="row mt-2">
                                         <div class="col-md-4">
@@ -285,19 +295,13 @@
                                                     placeholder="Select date & time">
                                             </div>
                                         </div>
-                                        <div class="col-md-2">
+                                        <div class="col-md-3">
                                             <div class="mb-2">
                                                 <label class="form-label">Voting Ends At</label>
                                                 <input type="text" name="rounds[0][voting_ends_at]" class="form-control flatpickr-input"
                                                     data-provider="flatpickr" data-date-format="Y-m-d" data-enable-time="true"
                                                     placeholder="Select date & time">
                                             </div>
-                                        </div>
-                                        <div class="col-md-1 d-flex align-items-end mb-2">
-                                            <button type="button" class="btn btn-soft-danger btn-icon remove-round"
-                                                title="Remove round" style="display:none;">
-                                                <i class="ri-delete-bin-5-line"></i>
-                                            </button>
                                         </div>
                                     </div>
 
@@ -419,14 +423,54 @@
                 if (removeBtn) {
                     removeBtn.style.display = items.length > 1 ? '' : 'none';
                 }
+
+                // Re-index all input/textarea/select names within this round
+                const formEls = item.querySelectorAll('input, textarea, select');
+                formEls.forEach(function(el) {
+                    const name = el.getAttribute('name');
+                    if (name && name.startsWith('rounds[')) {
+                        el.setAttribute('name', name.replace(/^rounds\[\d+\]/, 'rounds[' + idx + ']'));
+                    }
+                    const id = el.getAttribute('id');
+                    if (id && id.startsWith('round_')) {
+                        el.setAttribute('id', id.replace(/round_\d+/, 'round_' + idx));
+                    }
+                });
+
+                // Update label for attributes
+                const labels = item.querySelectorAll('label[for]');
+                labels.forEach(function(label) {
+                    const forAttr = label.getAttribute('for');
+                    if (forAttr && forAttr.startsWith('round_')) {
+                        label.setAttribute('for', forAttr.replace(/round_\d+/, 'round_' + idx));
+                    }
+                });
+
+                // Update tie-breaker container data-round-index
+                const tbContainer = item.querySelector('.tie-breakers-container');
+                if (tbContainer) {
+                    tbContainer.setAttribute('data-round-index', idx.toString());
+                }
+
+                // Update tie-breaker add button data-round-index
+                const addTbBtn = item.querySelector('.add-tie-breaker');
+                if (addTbBtn) {
+                    addTbBtn.setAttribute('data-round-index', idx.toString());
+                }
             });
         }
 
         function createRoundHtml(index) {
             return `
                 <div class="round-item border p-3 rounded mb-3 bg-light position-relative">
-                    <div class="position-absolute top-0 end-0 mt-2 me-2">
+                    <div class="position-absolute top-0 end-0 mt-2 me-2 d-flex align-items-center gap-1">
                         <span class="badge bg-primary round-number-badge">Round ${index + 1}</span>
+                        <button type="button" class="btn btn-soft-info btn-icon duplicate-round btn-sm" title="Duplicate round">
+                            <i class="ri-file-copy-line"></i>
+                        </button>
+                        <button type="button" class="btn btn-soft-danger btn-icon remove-round btn-sm" title="Remove round">
+                            <i class="ri-delete-bin-5-line"></i>
+                        </button>
                     </div>
                     <div class="row mt-2">
                         <div class="col-md-4">
@@ -480,18 +524,13 @@
                                     placeholder="Select date & time">
                             </div>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                             <div class="mb-2">
                                 <label class="form-label">Voting Ends At</label>
                                 <input type="text" name="rounds[${index}][voting_ends_at]" class="form-control flatpickr-input"
                                     data-provider="flatpickr" data-date-format="Y-m-d" data-enable-time="true"
                                     placeholder="Select date & time">
                             </div>
-                        </div>
-                        <div class="col-md-1 d-flex align-items-end mb-2">
-                            <button type="button" class="btn btn-soft-danger btn-icon remove-round" title="Remove round">
-                                <i class="ri-delete-bin-5-line"></i>
-                            </button>
                         </div>
                     </div>
 
@@ -543,6 +582,45 @@
             `;
         }
 
+        /**
+         * Duplicate a round: clone all its field values and insert after the current round.
+         */
+        function duplicateRound(item) {
+            const clone = item.cloneNode(true);
+
+            // Remove the hidden [id] input if present (existing round in edit mode)
+            const idInput = clone.querySelector('input[name$="[id]"]');
+            if (idInput) idInput.remove();
+
+            // Clear flatpickr alt inputs so they re-initialize properly
+            clone.querySelectorAll('.flatpickr-input--initialized, .flatpickr-input.flatpickr-input--initialized').forEach(function(el) {
+                el.classList.remove('flatpickr-input--initialized');
+            });
+
+            item.parentNode.insertBefore(clone, item.nextSibling);
+            roundIndex = container.children.length;
+            updateBadges();
+
+            // Initialize tie breaker buttons on the cloned round
+            const tbContainer = clone.querySelector('.tie-breakers-container');
+            if (tbContainer) {
+                updateTieBreakerButtons(clone);
+            }
+
+            // Initialize flatpickr on new inputs
+            if (typeof flatpickr !== 'undefined') {
+                clone.querySelectorAll('.flatpickr-input:not(.flatpickr-input--initialized)').forEach(function(el) {
+                    el.classList.add('flatpickr-input--initialized');
+                    flatpickr(el, {
+                        enableTime: true,
+                        dateFormat: 'Y-m-d H:i',
+                        altInput: true,
+                        altFormat: 'Y-m-d H:i',
+                    });
+                });
+            }
+        }
+
         container.addEventListener('click', function(e) {
             const removeBtn = e.target.closest('.remove-round');
             if (removeBtn) {
@@ -552,6 +630,16 @@
                     roundIndex = container.children.length;
                     updateBadges();
                 }
+                return;
+            }
+
+            const dupBtn = e.target.closest('.duplicate-round');
+            if (dupBtn) {
+                const item = dupBtn.closest('.round-item');
+                if (item) {
+                    duplicateRound(item);
+                }
+                return;
             }
         });
 
