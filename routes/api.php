@@ -421,7 +421,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
 
             // Votes
             Route::post('/rounds/{round}/votes', [VoteController::class, 'store']); // DONE: round voting
-            Route::get('/rounds/{round}/votes/my', [VoteController::class, 'myVotes']);
+            Route::get('/rounds/{round}/votes/my', [VoteController::class, 'myVotes']); // DONE: my votes for a round
             Route::get('/rounds/{round}/votes/check/{contestant}', [VoteController::class, 'check']);
         });
 
