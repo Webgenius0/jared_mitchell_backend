@@ -5,6 +5,7 @@ namespace App\Services\Contest;
 use App\Models\Contest\Contestant;
 use App\Models\Contest\RoundSubmission;
 use App\Models\Round;
+use App\Helpers\FileHandle;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -20,10 +21,33 @@ class RoundSubmissionService
         Round $round,
         string $title,
         ?string $description = null,
-        ?array $mediaUrls = null,
+        ?array $mediaFiles = null,
         ?array $metadata = null,
     ): RoundSubmission {
-        return DB::transaction(function () use ($contestant, $round, $title, $description, $mediaUrls, $metadata) {
+        return DB::transaction(function () use ($contestant, $round, $title, $description, $mediaFiles, $metadata) {
+            $existingSubmission = RoundSubmission::where('contestant_id', $contestant->id)
+                ->where('round_id', $round->id)
+                ->first();
+
+            $mediaUrls = $existingSubmission ? $existingSubmission->media_urls : [];
+
+            if ($mediaFiles !== null) {
+                // If new files are uploaded, delete old files
+                if ($existingSubmission && !empty($existingSubmission->media_urls)) {
+                    foreach ($existingSubmission->media_urls as $oldPath) {
+                        FileHandle::fileDelete($oldPath);
+                    }
+                }
+
+                $mediaUrls = [];
+                foreach ($mediaFiles as $file) {
+                    $path = FileHandle::fileUpload($file, 'submissions');
+                    if ($path) {
+                        $mediaUrls[] = $path;
+                    }
+                }
+            }
+
             $submission = RoundSubmission::updateOrCreate(
                 [
                     'contestant_id' => $contestant->id,
@@ -32,7 +56,7 @@ class RoundSubmissionService
                 [
                     'title' => $title,
                     'description' => $description,
-                    'media_urls' => $mediaUrls,
+                    'media_urls' => empty($mediaUrls) ? null : $mediaUrls,
                     'status' => 'submitted',
                     'submitted_at' => now(),
                     'metadata' => $metadata,
@@ -58,8 +82,31 @@ class RoundSubmissionService
         Round $round,
         ?string $title = null,
         ?string $description = null,
-        ?array $mediaUrls = null,
+        ?array $mediaFiles = null,
     ): RoundSubmission {
+        $existingSubmission = RoundSubmission::where('contestant_id', $contestant->id)
+            ->where('round_id', $round->id)
+            ->first();
+
+        $mediaUrls = $existingSubmission ? $existingSubmission->media_urls : [];
+
+        if ($mediaFiles !== null) {
+            // If new files are uploaded, delete old files
+            if ($existingSubmission && !empty($existingSubmission->media_urls)) {
+                foreach ($existingSubmission->media_urls as $oldPath) {
+                    FileHandle::fileDelete($oldPath);
+                }
+            }
+
+            $mediaUrls = [];
+            foreach ($mediaFiles as $file) {
+                $path = FileHandle::fileUpload($file, 'submissions');
+                if ($path) {
+                    $mediaUrls[] = $path;
+                }
+            }
+        }
+
         return RoundSubmission::updateOrCreate(
             [
                 'contestant_id' => $contestant->id,
@@ -68,10 +115,54 @@ class RoundSubmissionService
             [
                 'title' => $title,
                 'description'=> $description,
-                'media_urls' => $mediaUrls,
+                'media_urls' => empty($mediaUrls) ? null : $mediaUrls,
                 'status' => 'draft',
             ]
         );
+    }
+
+    /**
+     * Update an existing submission.
+     */
+    public function updateSubmission(
+        RoundSubmission $submission,
+        string $title,
+        ?string $description = null,
+        ?array $mediaFiles = null,
+    ): RoundSubmission {
+        return DB::transaction(function () use ($submission, $title, $description, $mediaFiles) {
+            $mediaUrls = $submission->media_urls ?? [];
+
+            if ($mediaFiles !== null) {
+                // If new files are uploaded, delete old files
+                if (!empty($submission->media_urls)) {
+                    foreach ($submission->media_urls as $oldPath) {
+                        FileHandle::fileDelete($oldPath);
+                    }
+                }
+
+                $mediaUrls = [];
+                foreach ($mediaFiles as $file) {
+                    $path = FileHandle::fileUpload($file, 'submissions');
+                    if ($path) {
+                        $mediaUrls[] = $path;
+                    }
+                }
+            }
+
+            $submission->update([
+                'title' => $title,
+                'description' => $description,
+                'media_urls' => empty($mediaUrls) ? null : $mediaUrls,
+            ]);
+
+            Log::info('Round submission updated', [
+                'submission_id' => $submission->id,
+                'title' => $title,
+            ]);
+
+            return $submission;
+        });
     }
 
     /**

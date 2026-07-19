@@ -29,6 +29,26 @@ class RoundSubmission extends Model
         'metadata'     => 'array',
     ];
 
+    protected $appends = ['media_full_urls'];
+
+    /*
+    |--------------------------------------------------------------------------
+    | Accessors
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Return media_urls as full absolute URLs.
+     */
+    public function getMediaFullUrlsAttribute(): ?array
+    {
+        if (empty($this->media_urls)) {
+            return null;
+        }
+
+        return array_map(fn($path) => url($path), $this->media_urls);
+    }
+
     /*
     |--------------------------------------------------------------------------
     | Relationships

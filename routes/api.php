@@ -413,9 +413,11 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::get('/my-contests', [ContestApplicationController::class, 'myContests']); // DONE: get all my contest
 
             // Submissions
-            Route::post('/rounds/{round}/submissions', [RoundSubmissionController::class, 'store']); // DONE: round wise asset/media submission
-            Route::post('/rounds/{round}/submissions/draft', [RoundSubmissionController::class, 'saveDraft']);
-            Route::get('/rounds/{round}/submissions/my', [RoundSubmissionController::class, 'mySubmission']);
+            Route::post('/rounds/{round}/submissions', [RoundSubmissionController::class, 'store']); // DONE: round wise media file submission
+            // Route::post('/rounds/{round}/submissions/draft', [RoundSubmissionController::class, 'saveDraft']); // DONE: save draft submission
+            Route::get('/rounds/{round}/submissions/my', [RoundSubmissionController::class, 'mySubmission']); // DONE: my submission for a round
+            Route::get('/rounds/{round}/submissions/{submission}', [RoundSubmissionController::class, 'show']); // DONE: get submission detail
+            Route::post('/rounds/{round}/submissions/{submission}/update', [RoundSubmissionController::class, 'update']); // DONE: update submission
 
             // Votes
             Route::post('/rounds/{round}/votes', [VoteController::class, 'store']); // DONE: round voting
