@@ -34,6 +34,7 @@ class ServiceCmsController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'title' => ['nullable', 'string', 'max:500'],
+            'sub_title' => ['nullable', 'string', 'max:500'],
             'bg_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
         ]);
 
@@ -47,6 +48,7 @@ class ServiceCmsController extends Controller
         ]);
 
         $cms->title = $request->title;
+        $cms->sub_title = $request->sub_title;
 
         if ($request->hasFile('bg_image')) {
             if ($cms->image && Str::startsWith($cms->image, 'uploads/')) {

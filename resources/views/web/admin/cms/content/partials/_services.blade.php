@@ -17,6 +17,10 @@
                             <textarea name="title" class="form-control" rows="2" placeholder="Enter hero title">{{ $hero?->title }}</textarea>
                         </div>
                         <div class="col-md-12">
+                            <label class="form-label">Hero Sub Title</label>
+                            <textarea name="sub_title" class="form-control" rows="2" placeholder="Enter hero sub title">{{ $hero?->sub_title }}</textarea>
+                        </div>
+                        <div class="col-md-12">
                             <label class="form-label">Background Image</label>
                             <input type="file" name="bg_image" class="form-control" accept="image/*">
                             @if($hero?->image)
