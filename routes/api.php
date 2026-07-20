@@ -46,6 +46,7 @@ use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PricingController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\RoundSessionApiController;
+use App\Http\Controllers\Api\Cms\SponsorsipController;
 use App\Http\Controllers\Api\SpotlightController;
 use App\Http\Controllers\Api\StripeWebhookController;
 use App\Http\Controllers\Api\WishlistController;
@@ -110,7 +111,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::get('/boss-beginnings-winner', [BossWinnerChosenController::class, 'index']); // Boss Beginnings Winner Chosen page CMS
             Route::get('/events', [CmsEventController::class, 'index']); // Events page CMS
             Route::get('/shop', [ShopController::class, 'index']); // Shop page CMS
-            // Route::get('/sponsorsip', [SponsorsipController::class, 'index']); // Sponsorship page CMS
+            Route::get('/sponsorsip', [SponsorsipController::class, 'index']); // Sponsorship page CMS
             Route::get('/faq', [ApiFAQController::class, 'index']); // Active FAQs
         });
 
