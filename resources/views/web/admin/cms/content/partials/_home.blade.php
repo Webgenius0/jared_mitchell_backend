@@ -159,6 +159,12 @@
                                 placeholder="e.g. Everything You Need to Grow Your Business">
                         </div>
                         <div class="col-md-12">
+                            <label class="form-label">Description</label>
+                            <input type="text" name="description" class="form-control"
+                                value="{{ $staticBanner?->description }}"
+                                placeholder="e.g. Everything You Need to Grow Your Business">
+                        </div>
+                        <div class="col-md-12">
                             <label class="form-label">Background Image</label>
                             <input type="file" name="bg_file" class="form-control" accept="image/*">
                             @if($staticBanner?->bg)
@@ -441,8 +447,8 @@
                                                         value="{{ $item['image'] ?? $item['icon'] ?? '' }}">
                                                     @if($item['image'] ?? false)
                                                         <div class="mt-1">
-                                                            <img src="{{ asset($item['image']) }}" alt="Icon" class="rounded border"
-                                                                style="height: 30px; width: auto;">
+                                                            <img src="{{ asset($item['image']) }}" alt="Icon"
+                                                                class="rounded border" style="height: 30px; width: auto;">
                                                         </div>
                                                     @endif
                                                 </div>
@@ -617,7 +623,8 @@
                         <div class="col-md-12">
                             <label class="form-label">Section Title</label>
                             <input type="text" name="title" class="form-control"
-                                value="{{ $artistSpotlightWinners?->title }}" placeholder="e.g. Artist Spotlight Winners">
+                                value="{{ $artistSpotlightWinners?->title }}"
+                                placeholder="e.g. Artist Spotlight Winners">
                         </div>
                         <div class="col-md-12">
                             <label class="form-label">Section Subtitle</label>
@@ -894,7 +901,7 @@
                             <input type="text" name="title" class="form-control" value="{{ $event_sponsors?->title }}"
                                 placeholder="e.g. Event Sponsors">
                         </div>
-                        
+
                         <div class="col-md-12">
                             <div class="d-flex align-items-center justify-content-between mb-2">
                                 <label class="form-label mb-0">Event Sponsors Logos & Links</label>
@@ -1043,22 +1050,22 @@
                 $tbody.find('.empty-row').remove();
 
                 const row = `
-                <tr>
-                    <td>
-                        <div class="d-flex align-items-center gap-3">
-                            <input type="file" name="partners[${partnerCount}][image_file]" class="form-control form-control-sm" accept="image/*">
-                        </div>
-                    </td>
-                    <td>
-                        <input type="url" name="partners[${partnerCount}][link]" class="form-control form-control-sm" placeholder="https://...">
-                    </td>
-                    <td class="text-center">
-                        <button type="button" class="btn btn-sm btn-soft-danger remove-partner-btn">
-                            <i class="ri-delete-bin-line"></i>
-                        </button>
-                    </td>
-                </tr>
-                `;
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-3">
+                                    <input type="file" name="partners[${partnerCount}][image_file]" class="form-control form-control-sm" accept="image/*">
+                                </div>
+                            </td>
+                            <td>
+                                <input type="url" name="partners[${partnerCount}][link]" class="form-control form-control-sm" placeholder="https://...">
+                            </td>
+                            <td class="text-center">
+                                <button type="button" class="btn btn-sm btn-soft-danger remove-partner-btn">
+                                    <i class="ri-delete-bin-line"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        `;
                 $tbody.append(row);
                 partnerCount++;
             });
@@ -1121,37 +1128,37 @@
                 $container.find('.empty-msg').remove();
 
                 const card = `
-                <div class="card border border-dashed mb-3 why-choose-item">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h6 class="card-title mb-0">New Card</h6>
-                            <button type="button" class="btn btn-sm btn-soft-danger remove-why-choose-btn">
-                                <i class="ri-delete-bin-line"></i>
-                            </button>
-                        </div>
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <label class="form-label">Background Image</label>
-                                <input type="file" name="items[${whyChooseCount}][image_file]" class="form-control form-control-sm" accept="image/*">
+                        <div class="card border border-dashed mb-3 why-choose-item">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="card-title mb-0">New Card</h6>
+                                    <button type="button" class="btn btn-sm btn-soft-danger remove-why-choose-btn">
+                                        <i class="ri-delete-bin-line"></i>
+                                    </button>
+                                </div>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Background Image</label>
+                                        <input type="file" name="items[${whyChooseCount}][image_file]" class="form-control form-control-sm" accept="image/*">
+                                    </div>
+                                    <div class="col-md-8">
+                                        <div class="mb-3">
+                                            <label class="form-label">Title</label>
+                                            <input type="text" name="items[${whyChooseCount}][title]" class="form-control form-control-sm" placeholder="e.g. Creators">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Subtitle</label>
+                                            <input type="text" name="items[${whyChooseCount}][sub_title]" class="form-control form-control-sm" placeholder="e.g. Build exposure...">
+                                        </div>
+                                        <div>
+                                            <label class="form-label">Description</label>
+                                            <textarea name="items[${whyChooseCount}][description]" class="form-control form-control-sm" rows="2" placeholder="Enter card description"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="col-md-8">
-                                <div class="mb-3">
-                                    <label class="form-label">Title</label>
-                                    <input type="text" name="items[${whyChooseCount}][title]" class="form-control form-control-sm" placeholder="e.g. Creators">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Subtitle</label>
-                                    <input type="text" name="items[${whyChooseCount}][sub_title]" class="form-control form-control-sm" placeholder="e.g. Build exposure...">
-                                </div>
-                                <div>
-                                    <label class="form-label">Description</label>
-                                    <textarea name="items[${whyChooseCount}][description]" class="form-control form-control-sm" rows="2" placeholder="Enter card description"></textarea>
-                                </div>
-                            </div>
                         </div>
-                    </div>
-                </div>
-                `;
+                        `;
                 $container.append(card);
                 whyChooseCount++;
             });
@@ -1192,37 +1199,37 @@
                 $container.find('.core-value-empty').remove();
 
                 const card = `
-                                                                                                                            <div class="card border border-dashed mb-3 core-value-item">
-                                                                                                                                <div class="card-body">
-                                                                                                                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                                                                                                                        <h6 class="card-title mb-0">New Value</h6>
-                                                                                                                                        <button type="button" class="btn btn-sm btn-soft-danger remove-core-value-btn">
-                                                                                                                                            <i class="ri-delete-bin-line"></i>
-                                                                                                                                        </button>
-                                                                                                                                    </div>
-                                                                                                                                    <div class="row g-3">
-                                                                                                                                        <div class="col-md-4">
-                                                                                                                                            <label class="form-label">Icon Image (PNG)</label>
-                                                                                                                                            <input type="file" name="items[${coreValueCount}][image_file]" class="form-control form-control-sm" accept="image/png">
+                                                                                                                                    <div class="card border border-dashed mb-3 core-value-item">
+                                                                                                                                        <div class="card-body">
+                                                                                                                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                                                                                                                <h6 class="card-title mb-0">New Value</h6>
+                                                                                                                                                <button type="button" class="btn btn-sm btn-soft-danger remove-core-value-btn">
+                                                                                                                                                    <i class="ri-delete-bin-line"></i>
+                                                                                                                                                </button>
+                                                                                                                                            </div>
+                                                                                                                                            <div class="row g-3">
+                                                                                                                                                <div class="col-md-4">
+                                                                                                                                                    <label class="form-label">Icon Image (PNG)</label>
+                                                                                                                                                    <input type="file" name="items[${coreValueCount}][image_file]" class="form-control form-control-sm" accept="image/png">
+                                                                                                                                                </div>
+                                                                                                                                                <div class="col-md-8">
+                                                                                                                                                    <div class="mb-3">
+                                                                                                                                                        <label class="form-label">Title</label>
+                                                                                                                                                        <input type="text" name="items[${coreValueCount}][title]" class="form-control form-control-sm" placeholder="e.g. Intentional Visibility">
+                                                                                                                                                    </div>
+                                                                                                                                                    <div class="mb-3">
+                                                                                                                                                        <label class="form-label">Subtitle</label>
+                                                                                                                                                        <input type="text" name="items[${coreValueCount}][sub_title]" class="form-control form-control-sm" placeholder="e.g. Visibility should be thoughtful...">
+                                                                                                                                                    </div>
+                                                                                                                                                    <div>
+                                                                                                                                                        <label class="form-label">Description</label>
+                                                                                                                                                        <textarea name="items[${coreValueCount}][description]" class="form-control form-control-sm" rows="2" placeholder="Enter value description"></textarea>
+                                                                                                                                                    </div>
+                                                                                                                                                </div>
+                                                                                                                                            </div>
                                                                                                                                         </div>
-                                                                                                                                        <div class="col-md-8">
-                                                                                                                                            <div class="mb-3">
-                                                                                                                                                <label class="form-label">Title</label>
-                                                                                                                                                <input type="text" name="items[${coreValueCount}][title]" class="form-control form-control-sm" placeholder="e.g. Intentional Visibility">
-                                                                                                                                            </div>
-                                                                                                                                            <div class="mb-3">
-                                                                                                                                                <label class="form-label">Subtitle</label>
-                                                                                                                                                <input type="text" name="items[${coreValueCount}][sub_title]" class="form-control form-control-sm" placeholder="e.g. Visibility should be thoughtful...">
-                                                                                                                                            </div>
-                                                                                                                                            <div>
-                                                                                                                                                <label class="form-label">Description</label>
-                                                                                                                                                <textarea name="items[${coreValueCount}][description]" class="form-control form-control-sm" rows="2" placeholder="Enter value description"></textarea>
-                                                                                                                                            </div>
-                                                                                                                                        </div>
                                                                                                                                     </div>
-                                                                                                                                </div>
-                                                                                                                            </div>
-                                                                                                                        `;
+                                                                                                                                `;
                 $container.append(card);
                 coreValueCount++;
             });
@@ -1263,25 +1270,25 @@
                 $container.find('.what-you-get-empty').remove();
 
                 const card = `
-                                                                                                                            <div class="card border border-dashed mb-2 what-you-get-item">
-                                                                                                                                <div class="card-body py-2">
-                                                                                                                                    <div class="row g-2 align-items-center">
-                                                                                                                                        <div class="col-md-3">
-                                                                                                                                            <label class="form-label form-label-sm">Icon Image (PNG)</label>
-                                                                                                                                            <input type="file" name="items[${whatYouGetCount}][image_file]" class="form-control form-control-sm" accept="image/png">
-                                                                                                                                        </div>
-                                                                                                                                        <div class="col-md-7">
-                                                                                                                                            <input type="text" name="items[${whatYouGetCount}][title]" class="form-control form-control-sm" placeholder="Title (e.g. Business visibility)">
-                                                                                                                                        </div>
-                                                                                                                                        <div class="col-md-2 text-end">
-                                                                                                                                            <button type="button" class="btn btn-sm btn-soft-danger remove-what-you-get-btn">
-                                                                                                                                                <i class="ri-delete-bin-line"></i>
-                                                                                                                                            </button>
+                                                                                                                                    <div class="card border border-dashed mb-2 what-you-get-item">
+                                                                                                                                        <div class="card-body py-2">
+                                                                                                                                            <div class="row g-2 align-items-center">
+                                                                                                                                                <div class="col-md-3">
+                                                                                                                                                    <label class="form-label form-label-sm">Icon Image (PNG)</label>
+                                                                                                                                                    <input type="file" name="items[${whatYouGetCount}][image_file]" class="form-control form-control-sm" accept="image/png">
+                                                                                                                                                </div>
+                                                                                                                                                <div class="col-md-7">
+                                                                                                                                                    <input type="text" name="items[${whatYouGetCount}][title]" class="form-control form-control-sm" placeholder="Title (e.g. Business visibility)">
+                                                                                                                                                </div>
+                                                                                                                                                <div class="col-md-2 text-end">
+                                                                                                                                                    <button type="button" class="btn btn-sm btn-soft-danger remove-what-you-get-btn">
+                                                                                                                                                        <i class="ri-delete-bin-line"></i>
+                                                                                                                                                    </button>
+                                                                                                                                                </div>
+                                                                                                                                            </div>
                                                                                                                                         </div>
                                                                                                                                     </div>
-                                                                                                                                </div>
-                                                                                                                            </div>
-                                                                                                                        `;
+                                                                                                                                `;
                 $container.append(card);
                 whatYouGetCount++;
             });
@@ -1455,22 +1462,22 @@
                 $tbody.find('.empty-row').remove();
 
                 const row = `
-                                                                                                                            <tr>
-                                                                                                                                <td>
-                                                                                                                                    <div class="d-flex align-items-center gap-3">
-                                                                                                                                        <input type="file" name="event_sponsors[${event_sponsorsCount}][image_file]" class="form-control form-control-sm" accept="image/*">
-                                                                                                                                    </div>
-                                                                                                                                </td>
-                                                                                                                                <td>
-                                                                                                                                    <input type="url" name="event_sponsors[${event_sponsorsCount}][link]" class="form-control form-control-sm" placeholder="https://...">
-                                                                                                                                </td>
-                                                                                                                                <td class="text-center">
-                                                                                                                                    <button type="button" class="btn btn-sm btn-soft-danger remove-event_sponsors-btn">
-                                                                                                                                        <i class="ri-delete-bin-line"></i>
-                                                                                                                                    </button>
-                                                                                                                                </td>
-                                                                                                                            </tr>
-                                                                                                                        `;
+                                                                                                                                    <tr>
+                                                                                                                                        <td>
+                                                                                                                                            <div class="d-flex align-items-center gap-3">
+                                                                                                                                                <input type="file" name="event_sponsors[${event_sponsorsCount}][image_file]" class="form-control form-control-sm" accept="image/*">
+                                                                                                                                            </div>
+                                                                                                                                        </td>
+                                                                                                                                        <td>
+                                                                                                                                            <input type="url" name="event_sponsors[${event_sponsorsCount}][link]" class="form-control form-control-sm" placeholder="https://...">
+                                                                                                                                        </td>
+                                                                                                                                        <td class="text-center">
+                                                                                                                                            <button type="button" class="btn btn-sm btn-soft-danger remove-event_sponsors-btn">
+                                                                                                                                                <i class="ri-delete-bin-line"></i>
+                                                                                                                                            </button>
+                                                                                                                                        </td>
+                                                                                                                                    </tr>
+                                                                                                                                `;
                 $tbody.append(row);
                 event_sponsorsCount++;
             });

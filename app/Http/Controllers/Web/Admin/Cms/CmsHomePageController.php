@@ -144,7 +144,7 @@ class CmsHomePageController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'title' => ['nullable', 'string', 'max:255'],
-            'sub_title' => ['nullable', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:255'],
             'bg_file' => ['nullable', 'file', 'image', 'max:5120'], // 5MB
         ]);
 
@@ -159,7 +159,7 @@ class CmsHomePageController extends Controller
             ],
             [
                 'title' => $request->title,
-                'sub_title' => $request->sub_title,
+                'description' => $request->description,
             ]
         );
 
