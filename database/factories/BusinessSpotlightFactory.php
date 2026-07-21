@@ -17,7 +17,9 @@ class BusinessSpotlightFactory extends Factory
 
         return [
             // Link to a user with the 'boss' role (API guard)
-            'user_id' => User::role('boss')
+            // Uses whereHas instead of role() scope to prevent RoleDoesNotExist exception
+            // when the seeder is run in isolation (role might not exist yet)
+            'user_id' => User::whereHas('roles', fn($q) => $q->where('name', 'boss'))
                 ->inRandomOrder()
                 ->first()?->id
                 ?? User::factory()->create()->id,
@@ -73,7 +75,9 @@ class BusinessSpotlightFactory extends Factory
             'status' => $status,
             'current_step' => 6,
             'submitted_at' => $submittedAt,
-            'reviewed_by' => in_array($status, ['approved', 'rejected', 'under_review']) ? User::role('admin')->first()?->id : null,
+            'reviewed_by' => in_array($status, ['approved', 'rejected', 'under_review'])
+                ? User::whereHas('roles', fn($q) => $q->where('name', 'admin'))->first()?->id
+                : null,
             'reviewer_notes' => in_array($status, ['approved', 'rejected']) ? $this->faker->sentence() : null,
         ];
     }
