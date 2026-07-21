@@ -188,6 +188,49 @@ class SpotlightWeekController extends Controller
     }
 
     /**
+     * GET /api/v1/spotlight/historical-winners
+     *
+     * Get past 6 months of announced winners, filtered by spotlight type.
+     * Public — no auth required.
+     *
+     * @queryParam type string Required. Either 'artist' or 'business'. Filter winners by spotlight type.
+     */
+    public function historicalWinners(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'type' => ['required', 'string', 'in:artist,business'],
+        ]);
+
+        $type = $validated['type'];
+        $spotlightableType = $type === 'artist'
+            ? \App\Models\ArtistSpotlight::class
+            : \App\Models\BusinessSpotlight::class;
+
+        $sixMonthsAgo = now()->subMonths(6);
+
+        $winners = SpotlightWeekNominee::where('is_winner', true)
+            ->where('spotlightable_type', $spotlightableType)
+            ->whereHas('week', function ($q) use ($sixMonthsAgo) {
+                $q->where('status', 'completed')
+                  ->whereNotNull('announced_at')
+                  ->where('voting_ends_at', '>=', $sixMonthsAgo);
+            })
+            ->with(['spotlightable', 'week', 'user.profile'])
+            ->orderByRaw('(SELECT voting_ends_at FROM spotlight_weeks WHERE id = spotlight_week_nominees.spotlight_week_id LIMIT 1) DESC')
+            ->get();
+
+        $data = $winners->map(function ($nominee) {
+            return $this->formatWinner($nominee);
+        });
+
+        return $this->success("Past 6 months {$type} spotlight winners retrieved.", [
+            'type'    => $type,
+            'total'   => $data->count(),
+            'winners' => $data,
+        ]);
+    }
+
+    /**
      * Format a spotlight week nominee winner into a clean response array.
      */
     private function formatWinner($nominee): array
