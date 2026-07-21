@@ -35,6 +35,7 @@ use App\Http\Controllers\Api\Cms\SponsorsipController;
 use App\Http\Controllers\Api\Common\CommnDataPassController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\Contest\BossBeginningSeasonController;
+use App\Http\Controllers\Api\Contest\BossBeginningWinnerController;
 use App\Http\Controllers\Api\Contest\ContestantProfileController;
 use App\Http\Controllers\Api\Contest\LeaderboardController;
 use App\Http\Controllers\Api\Contest\RoundSubmissionController;
@@ -216,6 +217,10 @@ Route::group(['prefix' => 'v1'], function ($router) {
 
             // Active season rounds
             Route::get('/active-season-rounds', [BossBeginningSeasonController::class, 'activeRounds']); // DONE: Active season's round list
+
+            // Winners
+            Route::get('/winners/current', [BossBeginningWinnerController::class, 'currentWinner']); // DONE: Current season winner
+            Route::get('/winners/past-six-months', [BossBeginningWinnerController::class, 'pastWinners']); // DONE: Winners from past 6 months
         });
 
         // Event sponsors
