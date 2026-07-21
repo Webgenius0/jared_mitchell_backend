@@ -284,8 +284,8 @@ class SpotlightWeekController extends Controller
     public function nominated(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'week_id'  => ['sometimes', 'integer', 'exists:spotlight_weeks,id'],
-            'type'     => ['sometimes', 'string', 'in:all,artist,business'],
+            'week_id' => ['sometimes', 'integer', 'exists:spotlight_weeks,id'],
+            'type' => ['sometimes', 'string', 'in:all,artist,business'],
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:50'],
         ]);
 
@@ -333,29 +333,29 @@ class SpotlightWeekController extends Controller
             $spotlight = $nominee->spotlightable;
 
             return [
-                'id'            => $nominee->id,
-                'rank'          => $nominee->rank,
-                'is_winner'     => $nominee->is_winner,
-                'spotlight'     => $spotlight ? [
-                    'id'       => $spotlight->id,
-                    'type'     => $isArtist ? 'artist' : 'business',
-                    'name'     => $isArtist
+                'id' => $nominee->id,
+                'rank' => $nominee->rank,
+                'is_winner' => $nominee->is_winner,
+                'spotlight' => $spotlight ? [
+                    'id' => $spotlight->id,
+                    'type' => $isArtist ? 'artist' : 'business',
+                    'name' => $isArtist
                         ? ($spotlight->artist_stage_name ?? $spotlight->full_legal_name)
                         : ($spotlight->business_name ?? $spotlight->owner_founder_name),
-                    'city'     => $spotlight->city ?? null,
-                    'state'    => $spotlight->state ?? null,
+                    'city' => $spotlight->city ?? null,
+                    'state' => $spotlight->state ?? null,
                     'headshot' => $isArtist ? ($spotlight->headshot_path ?? null) : ($spotlight->portrait_photo_path ?? null),
                 ] : null,
-                'owner'         => [
-                    'id'   => $nominee->user->id,
+                'owner' => [
+                    'id' => $nominee->user->id,
                     'name' => $nominee->user->profile?->name ?? $nominee->user->email ?? '—',
                 ],
-                'votes'         => [
-                    'free'          => $nominee->free_vote_count,
-                    'paid'          => $nominee->paid_vote_count,
-                    'total'         => $nominee->total_vote_count,
-                    'paid_cap'      => SpotlightWeek::maxPurchasedVotes(),
-                    'cap_reached'   => $nominee->hasReachedPaidVoteCap(),
+                'votes' => [
+                    'free' => $nominee->free_vote_count,
+                    'paid' => $nominee->paid_vote_count,
+                    'total' => $nominee->total_vote_count,
+                    'paid_cap' => SpotlightWeek::maxPurchasedVotes(),
+                    'cap_reached' => $nominee->hasReachedPaidVoteCap(),
                     'remaining_slots' => $nominee->remainingPaidVoteSlots(),
                 ],
             ];
@@ -363,23 +363,23 @@ class SpotlightWeekController extends Controller
 
         return $this->success('Nominated spotlights retrieved.', [
             'week' => [
-                'id'               => $week->id,
-                'week_number'      => $week->week_number,
-                'year'             => $week->year,
-                'status'           => $week->status,
-                'is_voting_open'   => $week->isVotingOpen(),
+                'id' => $week->id,
+                'week_number' => $week->week_number,
+                'year' => $week->year,
+                'status' => $week->status,
+                'is_voting_open' => $week->isVotingOpen(),
                 'voting_starts_at' => $week->voting_starts_at,
                 'voting_ends_at'   => $week->voting_ends_at,
             ],
-            'type'         => $type,
+            'type' => $type,
             'nominees_count' => $nominees->total(),
-            'nominees'     => $data,
-            'pagination'   => [
+            'nominees' => $data,
+            'pagination' => [
                 'current_page' => $nominees->currentPage(),
-                'per_page'     => (int) $nominees->perPage(),
-                'last_page'    => $nominees->lastPage(),
-                'total'        => $nominees->total(),
-                'has_more'     => $nominees->hasMorePages(),
+                'per_page' => (int) $nominees->perPage(),
+                'last_page' => $nominees->lastPage(),
+                'total' => $nominees->total(),
+                // 'has_more'     => $nominees->hasMorePages(),
             ],
         ]);
     }
