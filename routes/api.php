@@ -219,8 +219,8 @@ Route::group(['prefix' => 'v1'], function ($router) {
         });
 
         // Event sponsors
-        Route::get('/event/sponsors',[CommnDataPassController::class,'getEventSponsors']);
-        Route::get('/newletter-title',[CommnDataPassController::class,'newsletterTitle']);
+        Route::get('/common/event/sponsors',[CommnDataPassController::class,'getEventSponsors']);
+        Route::get('/common/newletter-title',[CommnDataPassController::class,'newsletterTitle']);
     });
 
     /*
