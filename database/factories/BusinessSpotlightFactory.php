@@ -16,6 +16,12 @@ class BusinessSpotlightFactory extends Factory
         $submittedAt = $status !== 'draft' ? $this->faker->dateTimeBetween('-1 month', 'now') : null;
 
         return [
+            // Link to a user with the 'boss' role (API guard)
+            'user_id' => User::role('boss')
+                ->inRandomOrder()
+                ->first()?->id
+                ?? User::factory()->create()->id,
+
             // Step 1 – Business Information
             'business_name' => $this->faker->company(),
             'owner_founder_name' => $this->faker->name(),

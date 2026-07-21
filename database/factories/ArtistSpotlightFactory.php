@@ -17,6 +17,12 @@ class ArtistSpotlightFactory extends Factory
         $submittedAt = $status !== 'draft' ? $this->faker->dateTimeBetween('-1 month', 'now') : null;
 
         return [
+            // Link to a user with the 'artist' role (API guard)
+            'user_id' => User::role('artist')
+                ->inRandomOrder()
+                ->first()?->id
+                ?? User::factory()->create()->id,
+
             // Identification
             'full_legal_name' => $this->faker->name(),
             'artist_stage_name' => $this->faker->userName(),
