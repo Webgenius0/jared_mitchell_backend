@@ -219,7 +219,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
         });
 
         // Event sponsors
-        Route::get('/event/sponsors/{event}',[CommnDataPassController::class,'getEventSponsors']);
+        Route::get('/event/sponsors',[CommnDataPassController::class,'getEventSponsors']);
     });
 
     /*
