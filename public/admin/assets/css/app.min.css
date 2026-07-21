@@ -3284,7 +3284,7 @@
     -webkit-box-align: center;
     -ms-flex-align: center;
     align-items: center;
-    padding: .625rem 1.5rem;
+    padding: .625rem 1.2rem;
     color: var(--vz-vertical-menu-item-color);
     font-size: var(--vz-vertical-menu-item-font-size);
     font-family: var(--vz-vertical-menu-item-font-family)
