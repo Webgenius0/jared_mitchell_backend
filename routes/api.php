@@ -32,6 +32,7 @@ use App\Http\Controllers\Api\Cms\EventController as CmsEventController;
 use App\Http\Controllers\Api\Cms\FAQController as ApiFAQController;
 use App\Http\Controllers\Api\Cms\ShopController;
 use App\Http\Controllers\Api\Cms\SponsorsipController;
+use App\Http\Controllers\Api\Common\CommnDataPassController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\Contest\BossBeginningSeasonController;
 use App\Http\Controllers\Api\Contest\ContestantProfileController;
@@ -216,6 +217,9 @@ Route::group(['prefix' => 'v1'], function ($router) {
             // Active season rounds
             Route::get('/active-season-rounds', [BossBeginningSeasonController::class, 'activeRounds']); // DONE: Active season's round list
         });
+
+        // Event sponsors
+        Route::get('/event/sponsors/{event}',[CommnDataPassController::class,'getEventSponsors']);
     });
 
     /*
