@@ -46,7 +46,10 @@ use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PricingController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\RoundSessionApiController;
-use App\Http\Controllers\Api\Cms\SponsorsipController;
+use App\Http\Controllers\Api\Spotlight\SpotlightApplicationController;
+use App\Http\Controllers\Api\Spotlight\SpotlightVoteController;
+use App\Http\Controllers\Api\Spotlight\SpotlightVotePackageController;
+use App\Http\Controllers\Api\Spotlight\SpotlightWeekController;
 use App\Http\Controllers\Api\SpotlightController;
 use App\Http\Controllers\Api\StripeWebhookController;
 use App\Http\Controllers\Api\WishlistController;
@@ -165,8 +168,21 @@ Route::group(['prefix' => 'v1'], function ($router) {
         | Spotlights (Accessible by both guest and authenticated users)
         |--------------------------------------------------------------------------
         */
-        Route::get('/spotlight', [SpotlightController::class, 'index']);
-        Route::get('/round-countdown', [RoundSessionApiController::class, 'countdown']);
+        Route::get('/spotlight', [SpotlightController::class, 'index']); // LIGACY ROUTE
+        Route::get('/round-countdown', [RoundSessionApiController::class, 'countdown']); // DONE: Upcoming round countdown
+
+        /*
+        |--------------------------------------------------------------------------
+        | Spotlight Voting — Public Routes (no auth required)
+        |--------------------------------------------------------------------------
+        */
+        Route::prefix('spotlight')->group(function () {
+            Route::get('/weeks', [SpotlightWeekController::class, 'index']); // DONE: All spotlight weeks
+            Route::get('/weeks/current', [SpotlightWeekController::class, 'current']); // DONE: Current voting week + leaderboard
+            Route::get('/weeks/winners', [SpotlightWeekController::class, 'winners']); // Winners archive
+            Route::get('/weeks/{week}/leaderboard', [SpotlightWeekController::class, 'leaderboard']); // DONE: Real-time leaderboard
+            Route::get('/votes/pricing', [SpotlightVoteController::class, 'pricing']); // DONE: Paid vote package pricing
+        });
 
         /*
         |--------------------------------------------------------------------------
@@ -411,17 +427,48 @@ Route::group(['prefix' => 'v1'], function ($router) {
         */
         Route::prefix('contest')->group(function () {
             //My contest
-            Route::get('/my-contests', [ContestApplicationController::class, 'myContests']);
+            Route::get('/my-contests', [ContestApplicationController::class, 'myContests']); // DONE: get all my contest
 
             // Submissions
-            Route::post('/rounds/{round}/submissions', [RoundSubmissionController::class, 'store']);
-            Route::post('/rounds/{round}/submissions/draft', [RoundSubmissionController::class, 'saveDraft']);
-            Route::get('/rounds/{round}/submissions/my', [RoundSubmissionController::class, 'mySubmission']);
+            Route::post('/rounds/{round}/submissions', [RoundSubmissionController::class, 'store']); // DONE: round wise media file submission
+            // Route::post('/rounds/{round}/submissions/draft', [RoundSubmissionController::class, 'saveDraft']); // DONE: save draft submission
+            Route::get('/rounds/{round}/submissions/my', [RoundSubmissionController::class, 'mySubmission']); // DONE: my submission for a round
+            Route::get('/rounds/{round}/submissions/{submission}', [RoundSubmissionController::class, 'show']); // DONE: get submission detail
+            Route::post('/rounds/{round}/submissions/{submission}/update', [RoundSubmissionController::class, 'update']); // DONE: update submission
 
             // Votes
-            Route::post('/rounds/{round}/votes', [VoteController::class, 'store']);
-            Route::get('/rounds/{round}/votes/my', [VoteController::class, 'myVotes']);
+            Route::post('/rounds/{round}/votes', [VoteController::class, 'store']); // DONE: round voting
+            Route::get('/rounds/{round}/votes/my', [VoteController::class, 'myVotes']); // DONE: my votes for a round
             Route::get('/rounds/{round}/votes/check/{contestant}', [VoteController::class, 'check']);
+        });
+
+        /*
+        |--------------------------------------------------------------------------
+        | Spotlight Voting — Authenticated Actions
+        |--------------------------------------------------------------------------
+        */
+        Route::prefix('spotlight')->group(function () {
+            // Applications: spotlight owner applies to weekly cycles
+            Route::get('/weeks/open', [SpotlightApplicationController::class, 'openWeeks']);  // DONE: List weeks accepting applications
+            Route::post('/weeks/{week}/apply', [SpotlightApplicationController::class, 'apply']);    // DONE: Apply to a week
+            Route::post('/applications/{application}/withdraw', [SpotlightApplicationController::class, 'withdraw']); // DONE: Withdraw application
+            Route::get('/my-applications', [SpotlightApplicationController::class, 'myApplications']); // DONE: My applications
+
+            // Free community voting (any authenticated user can vote)
+            Route::post('/nominees/{nominee}/vote', [SpotlightVoteController::class, 'vote']); // DONE: Cast / toggle vote
+            Route::get('/nominees/{nominee}/vote/check', [SpotlightVoteController::class, 'check']); // Check if I voted
+
+            // Vote packages (auth required — listing)
+            Route::get('/vote-packages', [SpotlightVotePackageController::class, 'index']); // DONE: List all active packages
+
+            // Paid vote purchases (nominee owner only)
+            Route::post('/nominees/{nominee}/purchase-votes', [SpotlightVoteController::class, 'purchaseVotes']); // DONE: Request paid vote package (pending admin approval)
+            Route::get('/nominees/{nominee}/purchases', [SpotlightVoteController::class, 'myPurchases']); // DONE: My purchase history
+
+            // Purchase payment
+            Route::post('/vote/purchases/{purchase}/pay', [SpotlightVoteController::class, 'pay'])->name('api.spotlight.purchases.pay'); // DONE: Pay for approved purchase via Stripe
+            Route::get('/vote/purchases/{purchase}', [SpotlightVoteController::class, 'showPurchase'])->name('api.spotlight.purchases.show'); // DONE: View purchase details
+            Route::get('/vote/my-pending-purchases', [SpotlightVoteController::class, 'myPendingPurchases']); // DONE: My pending/approved purchases
         });
 
         /*

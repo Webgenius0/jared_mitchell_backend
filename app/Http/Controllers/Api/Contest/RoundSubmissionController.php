@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Contest;
 use App\Http\Controllers\Controller;
 use App\Models\Business;
 use App\Models\Contest\Contestant;
+use App\Models\Contest\RoundSubmission;
 use App\Models\Round;
 use App\Services\Contest\RoundSubmissionService;
 use App\Traits\ApiResponse;
@@ -27,18 +28,18 @@ class RoundSubmissionController extends Controller
      *
      * @bodyParam title string required Submission title
      * @bodyParam description string Submission description/pitch
-     * @bodyParam media_urls array Array of uploaded file URLs
+     * @bodyParam media_files[] file Array of media files (images, videos, etc.) to upload
      */
     public function store(Request $request, Round $round): JsonResponse
     {
         $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string|max:10000',
-            'media_urls' => 'nullable|array',
-            'media_urls.*' => 'nullable|string|max:2048',
+            'title'          => 'required|string|max:255',
+            'description'    => 'nullable|string|max:10000',
+            'media_files'    => 'nullable|array|max:10',
+            'media_files.*'  => 'file|mimes:jpg,jpeg,png,gif,webp,mp4,mov,avi,mkv,pdf|max:102400', // max 100MB per file
         ]);
 
-        $user = auth('api')->user();
+        $user       = auth('api')->user();
         $contestant = $this->resolveContestantForRound($user, $round);
 
         if (!$contestant) {
@@ -58,11 +59,11 @@ class RoundSubmissionController extends Controller
         }
 
         $submission = $this->submissionService->submit(
-            contestant: $contestant,
-            round: $round,
-            title: $validated['title'],
+            contestant:  $contestant,
+            round:       $round,
+            title:       $validated['title'],
             description: $validated['description'] ?? null,
-            mediaUrls: $validated['media_urls'] ?? null,
+            mediaFiles:  $request->hasFile('media_files') ? $request->file('media_files') : null,
         );
 
         return $this->success('Submission saved successfully.', [
@@ -74,14 +75,18 @@ class RoundSubmissionController extends Controller
      * POST /api/v1/contest/rounds/{round}/submissions/draft
      *
      * Save a draft submission (not yet submitted).
+     *
+     * @bodyParam title string Submission title
+     * @bodyParam description string Submission description/pitch
+     * @bodyParam media_files[] file Array of media files (images, videos, etc.) to upload
      */
     public function saveDraft(Request $request, Round $round): JsonResponse
     {
         $validated = $request->validate([
             'title'       => 'nullable|string|max:255',
             'description' => 'nullable|string|max:10000',
-            'media_urls'  => 'nullable|array',
-            'media_urls.*' => 'nullable|string|max:2048',
+            'media_files' => 'nullable|array|max:10',
+            'media_files.*' => 'file|mimes:jpg,jpeg,png,gif,webp,mp4,mov,avi,mkv,pdf|max:102400',
         ]);
 
         $user       = auth('api')->user();
@@ -94,12 +99,13 @@ class RoundSubmissionController extends Controller
                 403
             );
         }
+
         $submission = $this->submissionService->saveDraft(
-            contestant: $contestant,
-            round: $round,
-            title: $validated['title'] ?? null,
+            contestant:  $contestant,
+            round:       $round,
+            title:       $validated['title'] ?? null,
             description: $validated['description'] ?? null,
-            mediaUrls: $validated['media_urls'] ?? null,
+            mediaFiles:  $request->hasFile('media_files') ? $request->file('media_files') : null,
         );
 
         return $this->success('Draft saved successfully.', [
@@ -120,6 +126,7 @@ class RoundSubmissionController extends Controller
         if (!$contestant) {
             return $this->error(null, 'You are not a contestant in this round.', 404);
         }
+
         $submission = $this->submissionService->getSubmission($contestant, $round);
 
         if (!$submission) {
@@ -127,7 +134,69 @@ class RoundSubmissionController extends Controller
         }
 
         return $this->success('Submission retrieved successfully.', [
-            'submission' => $submission,
+            'submission' => $submission->load(['contestant.contestable']),
+        ]);
+    }
+
+    /**
+     * GET /api/v1/contest/rounds/{round}/submissions/{submission}
+     *
+     * Get the details of a specific submission.
+     */
+    public function show(Round $round, RoundSubmission $submission): JsonResponse
+    {
+        if ($submission->round_id !== $round->id) {
+            return $this->error(null, 'Submission does not belong to this round.', 404);
+        }
+
+        return $this->success('Submission retrieved successfully.', [
+            'submission' => $submission->load(['contestant.contestable']),
+        ]);
+    }
+
+    /**
+     * POST /api/v1/contest/rounds/{round}/submissions/{submission}
+     *
+     * Update an existing submission. Only the owner can update.
+     * Use POST (not PUT/PATCH) so multipart/form-data file uploads work correctly.
+     *
+     * @bodyParam title string required Submission title
+     * @bodyParam description string Submission description/pitch
+     * @bodyParam media_files[] file New media files to replace existing ones
+     */
+    public function update(Request $request, Round $round, RoundSubmission $submission): JsonResponse
+    {
+        if ($submission->round_id !== $round->id) {
+            return $this->error(null, 'Submission does not belong to this round.', 404);
+        }
+
+        $user       = auth('api')->user();
+        $contestant = $this->resolveContestantForRound($user, $round);
+
+        if (!$contestant || $submission->contestant_id !== $contestant->id) {
+            return $this->error(null, 'You are not authorized to update this submission.', 403);
+        }
+
+        if (!$round->isSubmissionOpen()) {
+            return $this->error(null, 'Submissions are not currently open for this round.', 422);
+        }
+
+        $validated = $request->validate([
+            'title'          => 'required|string|max:255',
+            'description'    => 'nullable|string|max:10000',
+            'media_files'    => 'nullable|array|max:10',
+            'media_files.*'  => 'file|mimes:jpg,jpeg,png,gif,webp,mp4,mov,avi,mkv,pdf|max:102400',
+        ]);
+
+        $updated = $this->submissionService->updateSubmission(
+            submission:  $submission,
+            title:       $validated['title'],
+            description: $validated['description'] ?? null,
+            mediaFiles:  $request->hasFile('media_files') ? $request->file('media_files') : null,
+        );
+
+        return $this->success('Submission updated successfully.', [
+            'submission' => $updated->fresh()->load(['contestant.contestable']),
         ]);
     }
 

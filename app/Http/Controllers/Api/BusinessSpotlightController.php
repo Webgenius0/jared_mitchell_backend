@@ -10,6 +10,7 @@ use App\Http\Resources\BusinessSpotlightResource;
 use App\Models\BusinessSpotlight;
 use App\Traits\ApiResponse;
 use Exception;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -19,16 +20,43 @@ class BusinessSpotlightController extends Controller
 {
     use ApiResponse;
 
-    public function index()
+    /**
+     * List business spotlights for the authenticated boss user.
+     *
+     * Returns all non-draft spotlights owned by the currently authenticated
+     * user (boss role), ordered by most recently submitted first.
+     *
+     * @return JsonResponse
+     */
+    public function index(): JsonResponse
     {
-        $spotlights = BusinessSpotlight::where('status', '!=', 'draft')
+        $user = auth()->user();
+
+        $spotlights = BusinessSpotlight::where('user_id', $user->id)
+            ->where('status', '!=', 'draft')
             ->withCount(['likers', 'bookmarkers', 'shares'])
             ->orderBy('submitted_at', 'desc')
             ->paginate(15);
 
-        return BusinessSpotlightResource::collection($spotlights);
+        return $this->success('Business spotlights retrieved successfully.', [
+            'spotlights' => BusinessSpotlightResource::collection($spotlights->items()),
+            'pagination' => [
+                'total'  => $spotlights->total(),
+                'per_page' => $spotlights->perPage(),
+                'current_page' => $spotlights->currentPage(),
+                'last_page' => $spotlights->lastPage(),
+            ],
+        ]);
     }
 
+    /**
+     * Show a single business spotlight by ID.
+     *
+     * Only returns published (non-draft) spotlights.
+     *
+     * @param  int  $id
+     * @return BusinessSpotlightResource
+     */
     public function show($id)
     {
         $spotlight = BusinessSpotlight::withCount(['likers', 'bookmarkers', 'shares'])
@@ -40,8 +68,14 @@ class BusinessSpotlightController extends Controller
 
     /**
      * Store a new business spotlight submission.
+     *
+     * Associates the spotlight with the authenticated boss user and sets
+     * the status to "submitted" immediately.
+     *
+     * @param  BusinessSpotlightRequest  $request
+     * @return JsonResponse
      */
-    public function store(BusinessSpotlightRequest $request)
+    public function store(BusinessSpotlightRequest $request): JsonResponse
     {
         try {
             DB::beginTransaction();
@@ -50,6 +84,9 @@ class BusinessSpotlightController extends Controller
 
             // Handle file uploads
             $data = $this->handleFileUploads($request, $data);
+
+            // Associate with the authenticated user
+            $data['user_id'] = auth()->id();
 
             // Set submission tracking
             $data['status'] = 'submitted';
@@ -79,8 +116,14 @@ class BusinessSpotlightController extends Controller
 
     /**
      * Save a draft business spotlight (partial submission).
+     *
+     * Finds or creates a draft for the authenticated user. Only one
+     * active draft per user is allowed.
+     *
+     * @param  Request  $request
+     * @return JsonResponse
      */
-    public function saveDraft(Request $request)
+    public function saveDraft(Request $request): JsonResponse
     {
         try {
             $validator = Validator::make($request->all(), [
@@ -98,10 +141,11 @@ class BusinessSpotlightController extends Controller
             $data = $this->handleFileUploads($request, $data);
             $data['status'] = 'draft';
             $data['current_step'] = $request->input('current_step', 1);
+            $data['user_id'] = auth()->id();
 
-            // Find existing draft by email or create new
+            // Find existing draft for this user or create new
             $spotlight = BusinessSpotlight::updateOrCreate(
-                ['email' => $request->email, 'status' => 'draft'],
+                ['user_id' => auth()->id(), 'status' => 'draft'],
                 $data
             );
 
@@ -125,24 +169,22 @@ class BusinessSpotlightController extends Controller
     }
 
     /**
-     * Get a draft by email.
+     * Get the current draft for the authenticated user.
+     *
+     * Returns the most recent draft owned by the authenticated user,
+     * or a 404 response if none exists.
+     *
+     * @param  Request  $request
+     * @return JsonResponse
      */
-    public function getDraft(Request $request)
+    public function getDraft(Request $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email|max:255',
-        ]);
-
-        if ($validator->fails()) {
-            return $this->validationError($validator->errors());
-        }
-
-        $spotlight = BusinessSpotlight::where('email', $request->email)
+        $spotlight = BusinessSpotlight::where('user_id', auth()->id())
             ->where('status', 'draft')
             ->first();
 
         if (!$spotlight) {
-            return $this->notFound('No draft found for this email.');
+            return $this->notFound('No draft found.');
         }
 
         return $this->success(
@@ -152,9 +194,15 @@ class BusinessSpotlightController extends Controller
     }
 
     /**
-     * POST /api/business-spotlight/{id}/like
+     * Toggle the like status on a business spotlight.
+     *
+     * If the authenticated user has already liked it, the like is removed.
+     * Otherwise a new like is created.
+     *
+     * @param  int  $id
+     * @return JsonResponse
      */
-    public function toggleLike($id): \Illuminate\Http\JsonResponse
+    public function toggleLike($id): JsonResponse
     {
         $user = auth()->user();
         $spotlight = BusinessSpotlight::findOrFail($id);
@@ -175,9 +223,12 @@ class BusinessSpotlightController extends Controller
     }
 
     /**
-     * POST /api/business-spotlight/{id}/bookmark
+     * Toggle the bookmark status on a business spotlight.
+     *
+     * @param  int  $id
+     * @return JsonResponse
      */
-    public function toggleBookmark($id): \Illuminate\Http\JsonResponse
+    public function toggleBookmark($id): JsonResponse
     {
         $user = auth()->user();
         $spotlight = BusinessSpotlight::findOrFail($id);
@@ -198,9 +249,13 @@ class BusinessSpotlightController extends Controller
     }
 
     /**
-     * POST /api/business-spotlight/{id}/share
+     * Record a share event for a business spotlight.
+     *
+     * @param  Request  $request
+     * @param  int  $id
+     * @return JsonResponse
      */
-    public function recordShare(Request $request, $id): \Illuminate\Http\JsonResponse
+    public function recordShare(Request $request, $id): JsonResponse
     {
         $user = auth()->user();
         $spotlight = BusinessSpotlight::findOrFail($id);
@@ -214,15 +269,24 @@ class BusinessSpotlightController extends Controller
     }
 
     /**
-     * POST /api/business-spotlight/{id}/update
+     * Update an existing business spotlight.
      *
-     * Full update for an existing business spotlight.
+     * Only the owner (authenticated user who created it) can update.
      * Only fields that are sent will be updated; omitted fields keep their current values.
-     * Photos are replaced only when a new file is uploaded; otherwise the existing path is kept.
+     * Photos are replaced only when a new file is uploaded.
+     *
+     * @param  UpdateBusinessSpotlightRequest  $request
+     * @param  int  $id
+     * @return JsonResponse
      */
-    public function update(UpdateBusinessSpotlightRequest $request, $id)
+    public function update(UpdateBusinessSpotlightRequest $request, $id): JsonResponse
     {
         $spotlight = BusinessSpotlight::findOrFail($id);
+
+        // Ensure the authenticated user owns this spotlight
+        if ($spotlight->user_id !== auth()->id()) {
+            return $this->error(null, 'You are not authorized to update this spotlight.', 403);
+        }
 
         try {
             DB::beginTransaction();
@@ -302,7 +366,64 @@ class BusinessSpotlightController extends Controller
     }
 
     /**
+     * Soft-delete a business spotlight and remove all associated media files.
+     *
+     * Only the owner (authenticated user who created it) can delete.
+     *
+     * @param  int  $id
+     * @return JsonResponse
+     */
+    public function destroy($id): JsonResponse
+    {
+        $spotlight = BusinessSpotlight::findOrFail($id);
+
+        // Ensure the authenticated user owns this spotlight
+        if ($spotlight->user_id !== auth()->id()) {
+            return $this->error(null, 'You are not authorized to delete this spotlight.', 403);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Delete files
+            if ($spotlight->portrait_photo_path) {
+                FileHandle::fileDelete($spotlight->portrait_photo_path);
+            }
+            if ($spotlight->storefront_workspace_photo_path) {
+                FileHandle::fileDelete($spotlight->storefront_workspace_photo_path);
+            }
+            if ($spotlight->team_photo_path) {
+                FileHandle::fileDelete($spotlight->team_photo_path);
+            }
+            if ($spotlight->product_service_photo_paths) {
+                foreach ($spotlight->product_service_photo_paths as $path) {
+                    FileHandle::fileDelete($path);
+                }
+            }
+
+            $spotlight->delete();
+
+            DB::commit();
+
+            return $this->success('Business spotlight deleted successfully.');
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error('Business spotlight deletion failed: ' . $e->getMessage());
+
+            return $this->error(
+                ['exception' => $e->getMessage()],
+                'Failed to delete business spotlight. Please try again.',
+                500
+            );
+        }
+    }
+
+    /**
      * Handle file uploads for the business spotlight.
+     *
+     * @param  Request  $request
+     * @param  array  $data
+     * @return array
      */
     private function handleFileUploads(Request $request, array $data): array
     {
@@ -351,6 +472,8 @@ class BusinessSpotlightController extends Controller
 
     /**
      * Get all allowed fields for mass assignment.
+     *
+     * @return array
      */
     private function getAllowedFields(): array
     {
@@ -396,45 +519,5 @@ class BusinessSpotlightController extends Controller
             // Tracking
             'current_step',
         ];
-    }
-
-    public function destroy($id)
-    {
-        $spotlight = BusinessSpotlight::findOrFail($id);
-
-        try {
-            DB::beginTransaction();
-
-            // Delete files
-            if ($spotlight->portrait_photo_path) {
-                FileHandle::fileDelete($spotlight->portrait_photo_path);
-            }
-            if ($spotlight->storefront_workspace_photo_path) {
-                FileHandle::fileDelete($spotlight->storefront_workspace_photo_path);
-            }
-            if ($spotlight->team_photo_path) {
-                FileHandle::fileDelete($spotlight->team_photo_path);
-            }
-            if ($spotlight->product_service_photo_paths) {
-                foreach ($spotlight->product_service_photo_paths as $path) {
-                    FileHandle::fileDelete($path);
-                }
-            }
-
-            $spotlight->delete();
-
-            DB::commit();
-
-            return $this->success('Business spotlight deleted successfully.');
-        } catch (Exception $e) {
-            DB::rollBack();
-            Log::error('Business spotlight deletion failed: ' . $e->getMessage());
-
-            return $this->error(
-                ['exception' => $e->getMessage()],
-                'Failed to delete business spotlight. Please try again.',
-                500
-            );
-        }
     }
 }

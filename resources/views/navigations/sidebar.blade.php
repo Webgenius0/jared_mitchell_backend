@@ -209,6 +209,7 @@
                         'admin.business-spotlights.*',
                         'admin.artist-spotlights.*',
                         'admin.cms.artist-categories.*',
+                        'admin.spotlight.*',
                     );
                 @endphp
 
@@ -232,6 +233,33 @@
                                 <a href="{{ route('admin.artist-spotlights.index') }}"
                                     class="nav-link {{ request()->routeIs('admin.artist-spotlights.*') ? 'active' : '' }}">
                                     <i class="ri-user-star-line"></i> Artist
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <hr class="dropdown-divider my-1">
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('admin.spotlight.applications.index') }}"
+                                    class="nav-link {{ request()->routeIs('admin.spotlight.applications.*') ? 'active' : '' }}">
+                                    <i class="ri-file-list-3-line"></i> Applications
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('admin.spotlight.weeks.index') }}"
+                                    class="nav-link {{ request()->routeIs('admin.spotlight.weeks.*') ? 'active' : '' }}">
+                                    <i class="ri-calendar-event-line"></i> Spotlight Weeks
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('admin.spotlight.vote-purchases.index') }}"
+                                    class="nav-link {{ request()->routeIs('admin.spotlight.vote-purchases.*') ? 'active' : '' }}">
+                                    <i class="ri-shopping-cart-2-line"></i> Vote Purchases
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('admin.spotlight.vote-packages.index') }}"
+                                    class="nav-link {{ request()->routeIs('admin.spotlight.vote-packages.*') ? 'active' : '' }}">
+                                    <i class="ri-box-3-line"></i> Vote Packages
                                 </a>
                             </li>
                         </ul>

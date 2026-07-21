@@ -12,6 +12,8 @@ class BusinessSpotlight extends Model
     use SoftDeletes, HasFactory;
 
     protected $fillable = [
+        'user_id',
+
         // Step 1 – Business Information
         'business_name',
         'owner_founder_name',
@@ -74,9 +76,17 @@ class BusinessSpotlight extends Model
         'current_step' => 'integer',
     ];
 
+    /**
+     * The user (boss role) who owns this business spotlight.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
     public function reviewer(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\User::class, 'reviewed_by');
+        return $this->belongsTo(User::class, 'reviewed_by');
     }
 
     /**

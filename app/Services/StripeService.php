@@ -7,6 +7,7 @@ use Stripe\Event;
 use Stripe\Exception\ApiErrorException;
 use Stripe\Stripe;
 use Stripe\Webhook;
+use UnexpectedValueException;
 
 class StripeService
 {
@@ -85,7 +86,7 @@ class StripeService
 
         try {
             return Webhook::constructEvent($payload, $sigHeader, $endpointSecret);
-        } catch (\UnexpectedValueException|ApiErrorException $e) {
+        } catch (UnexpectedValueException|ApiErrorException $e) {
             return null;
         }
     }

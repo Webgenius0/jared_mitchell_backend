@@ -255,4 +255,26 @@ class User extends Authenticatable implements JWTSubject, Contestable
     {
         return $this->hasMany(Order::class);
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Spotlight Ownership
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Business spotlights owned by this user.
+     */
+    public function businessSpotlights(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(BusinessSpotlight::class, 'user_id');
+    }
+
+    /**
+     * Artist spotlights owned by this user.
+     */
+    public function artistSpotlights(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ArtistSpotlight::class, 'user_id');
+    }
 }

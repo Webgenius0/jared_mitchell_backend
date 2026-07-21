@@ -12,6 +12,8 @@ class ArtistSpotlight extends Model
     use SoftDeletes, HasFactory;
 
     protected $fillable = [
+        'user_id',
+
         // Identification
         'full_legal_name',
         'artist_stage_name',
@@ -75,6 +77,14 @@ class ArtistSpotlight extends Model
         'submitted_at' => 'datetime',
         'current_step' => 'integer',
     ];
+
+    /**
+     * The user (artist role) who owns this artist spotlight.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 
     public function category(): BelongsTo
     {
