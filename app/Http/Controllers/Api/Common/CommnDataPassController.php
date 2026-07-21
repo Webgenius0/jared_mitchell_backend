@@ -17,7 +17,7 @@ class CommnDataPassController extends Controller
     // Get Event Sponsor
     public function getEventSponsors()
     {
-        $cmsData = CMS::select(['title','metadata'])->where('page', CmsPage::HOME)
+        $cmsData = CMS::where('page', CmsPage::HOME)
             ->where('section', CmsSection::PARTNERS)
             ->get();
 
