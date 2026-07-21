@@ -15,7 +15,7 @@ class CommnDataPassController extends Controller
     use ApiResponse;
 
     // Get Event Sponsor
-    public function getEventSponsors(Request $request)
+    public function getEventSponsors()
     {
         $cmsData = CMS::where('page', CmsPage::HOME)
             ->where('section', CmsSection::PARTNERS)
@@ -24,6 +24,21 @@ class CommnDataPassController extends Controller
         return $this->success(
             'Event sponsors or community partner retrieved successfully.',
             CmsContentResource::collection($cmsData)->resolve()
+        );
+    }
+
+    // Get newsletter title
+    public function newsletterTitle()
+    {
+        $cmsData = CMS::where('page', CmsPage::HOME)
+            ->where('section', CmsSection::NEWSLETTER)->select('title')
+            ->first();
+
+        return $this->success(
+            'Newsletter title retrieved successfully.',
+            [
+                'newsletter_title' => $cmsData->value
+            ]
         );
     }
 }
