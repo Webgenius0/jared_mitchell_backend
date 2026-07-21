@@ -31,6 +31,7 @@ use App\Http\Controllers\Api\Cms\CmsSpotlightLadderController;
 use App\Http\Controllers\Api\Cms\EventController as CmsEventController;
 use App\Http\Controllers\Api\Cms\FAQController as ApiFAQController;
 use App\Http\Controllers\Api\Cms\ShopController;
+use App\Http\Controllers\Api\Cms\SponsorsipController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\Contest\BossBeginningSeasonController;
 use App\Http\Controllers\Api\Contest\ContestantProfileController;
