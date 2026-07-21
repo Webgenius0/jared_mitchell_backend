@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api\Spotlight;
 
 use App\Http\Controllers\Controller;
+use App\Models\ArtistSpotlight;
+use App\Models\BusinessSpotlight;
 use App\Models\Spotlight\SpotlightApplication;
 use App\Models\Spotlight\SpotlightWeek;
 use App\Models\Spotlight\SpotlightWeekNominee;
@@ -203,8 +205,8 @@ class SpotlightWeekController extends Controller
 
         $type = $validated['type'];
         $spotlightableType = $type === 'artist'
-            ? \App\Models\ArtistSpotlight::class
-            : \App\Models\BusinessSpotlight::class;
+            ? ArtistSpotlight::class
+            : BusinessSpotlight::class;
 
         $sixMonthsAgo = now()->subMonths(6);
 
@@ -235,7 +237,7 @@ class SpotlightWeekController extends Controller
      */
     private function formatWinner($nominee): array
     {
-        $isArtist = $nominee->spotlightable_type === \App\Models\ArtistSpotlight::class;
+        $isArtist = $nominee->spotlightable_type === ArtistSpotlight::class;
         $spotlight = $nominee->spotlightable;
 
         return [
