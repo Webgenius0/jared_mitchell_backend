@@ -8,7 +8,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Cms\CmsContentResource;
 use App\Models\CMS;
 use App\Traits\ApiResponse;
-use Illuminate\Http\Request;
 
 class CommnDataPassController extends Controller
 {
