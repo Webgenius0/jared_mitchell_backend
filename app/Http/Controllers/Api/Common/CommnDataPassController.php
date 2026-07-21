@@ -37,7 +37,7 @@ class CommnDataPassController extends Controller
         return $this->success(
             'Newsletter title retrieved successfully.',
             [
-                'newsletter_title' => $cmsData->value
+                'newsletter_title' => $cmsData->title
             ]
         );
     }
