@@ -26,6 +26,9 @@ use App\Http\Controllers\Web\Admin\Dashboard\AdminDashboardController;
 use App\Http\Controllers\Web\Admin\Event\EventController;
 use App\Http\Controllers\Web\Admin\Event\EventRegistrationController;
 use App\Http\Controllers\Web\Admin\NewsletterController as WebNewsletterController;
+use App\Http\Controllers\Web\Admin\Spotlight\SpotlightApplicationController as WebSpotlightApplicationController;
+use App\Http\Controllers\Web\Admin\Spotlight\SpotlightWeekController as WebSpotlightWeekController;
+use App\Http\Controllers\Web\Admin\Spotlight\SpotlightVotePurchaseController as WebSpotlightVotePurchaseController;
 use App\Http\Controllers\Web\Admin\Order\AdminOrderController;
 use App\Http\Controllers\Web\Admin\Product\AdminProductCategoryController;
 use App\Http\Controllers\Web\Admin\Product\AdminProductController;
@@ -439,4 +442,38 @@ Route::prefix('contacts')->name('admin.contacts.')->group(function () {
 Route::prefix('newsletters')->name('admin.newsletters.')->group(function () {
     Route::get('/', [WebNewsletterController::class, 'index'])->name('index');
     Route::delete('/{newsletter}', [WebNewsletterController::class, 'destroy'])->name('destroy');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Spotlight Voting — Week Management & Vote Purchases
+|--------------------------------------------------------------------------
+*/
+Route::prefix('spotlight')->name('admin.spotlight.')->group(function () {
+    // Week Management
+    Route::get('/weeks', [WebSpotlightWeekController::class, 'index'])->name('weeks.index');
+    Route::post('/weeks', [WebSpotlightWeekController::class, 'store'])->name('weeks.store');
+    Route::get('/weeks/{week}/edit', [WebSpotlightWeekController::class, 'edit'])->name('weeks.edit');
+    Route::put('/weeks/{week}', [WebSpotlightWeekController::class, 'update'])->name('weeks.update');
+    Route::get('/weeks/{week}', [WebSpotlightWeekController::class, 'show'])->name('weeks.show');
+    Route::get('/weeks/{week}/applications', [WebSpotlightWeekController::class, 'applications'])->name('weeks.applications');
+    Route::post('/weeks/{week}/select-nominees', [WebSpotlightWeekController::class, 'selectNominees'])->name('weeks.select-nominees');
+    Route::post('/weeks/{week}/close-voting', [WebSpotlightWeekController::class, 'closeVoting'])->name('weeks.close-voting');
+    Route::post('/weeks/{week}/announce-winner', [WebSpotlightWeekController::class, 'announceWinner'])->name('weeks.announce-winner');
+    Route::patch('/weeks/{week}/status', [WebSpotlightWeekController::class, 'updateStatus'])->name('weeks.update-status');
+    Route::patch('/weeks/{week}/cancel', [WebSpotlightWeekController::class, 'cancel'])->name('weeks.cancel');
+    Route::delete('/weeks/{week}', [WebSpotlightWeekController::class, 'destroy'])->name('weeks.destroy');
+
+    // Application Management (all weeks)
+    Route::get('/applications', [WebSpotlightApplicationController::class, 'index'])->name('applications.index');
+    Route::get('/applications/{application}', [WebSpotlightApplicationController::class, 'show'])->name('applications.show');
+    Route::post('/applications/{application}/approve', [WebSpotlightApplicationController::class, 'approve'])->name('applications.approve');
+    Route::post('/applications/{application}/update-status', [WebSpotlightApplicationController::class, 'updateStatus'])->name('applications.update-status');
+
+    // Vote Purchase Management
+    Route::get('/vote-purchases', [WebSpotlightVotePurchaseController::class, 'index'])->name('vote-purchases.index');
+    Route::get('/vote-purchases/pending-count', [WebSpotlightVotePurchaseController::class, 'pendingCount'])->name('vote-purchases.pending-count');
+    Route::get('/vote-purchases/{purchase}', [WebSpotlightVotePurchaseController::class, 'show'])->name('vote-purchases.show');
+    Route::post('/vote-purchases/{purchase}/approve', [WebSpotlightVotePurchaseController::class, 'approve'])->name('vote-purchases.approve');
+    Route::post('/vote-purchases/{purchase}/refund', [WebSpotlightVotePurchaseController::class, 'refund'])->name('vote-purchases.refund');
 });

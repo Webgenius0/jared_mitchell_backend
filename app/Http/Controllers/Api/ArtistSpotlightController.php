@@ -10,6 +10,7 @@ use App\Http\Resources\ArtistSpotlightResource;
 use App\Models\ArtistSpotlight;
 use App\Traits\ApiResponse;
 use Exception;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -19,16 +20,43 @@ class ArtistSpotlightController extends Controller
 {
     use ApiResponse;
 
-    public function index()
+    /**
+     * List artist spotlights for the authenticated artist user.
+     *
+     * Returns all non-draft spotlights owned by the currently authenticated
+     * user (artist role), ordered by most recently submitted first.
+     *
+     * @return JsonResponse
+     */
+    public function index(): JsonResponse
     {
-        $spotlights = ArtistSpotlight::where('status', '!=', 'draft')
+        $user = auth()->user();
+
+        $spotlights = ArtistSpotlight::where('user_id', $user->id)
+            ->where('status', '!=', 'draft')
             ->withCount(['likers', 'bookmarkers', 'shares'])
             ->orderBy('submitted_at', 'desc')
             ->paginate(15);
 
-        return ArtistSpotlightResource::collection($spotlights);
+        return $this->success('Artist spotlights retrieved successfully.', [
+            'spotlights' => ArtistSpotlightResource::collection($spotlights->items()),
+            'pagination' => [
+                'total'        => $spotlights->total(),
+                'per_page'     => $spotlights->perPage(),
+                'current_page' => $spotlights->currentPage(),
+                'last_page'    => $spotlights->lastPage(),
+            ],
+        ]);
     }
 
+    /**
+     * Show a single artist spotlight by ID.
+     *
+     * Only returns published (non-draft) spotlights.
+     *
+     * @param  int  $id
+     * @return ArtistSpotlightResource
+     */
     public function show($id)
     {
         $spotlight = ArtistSpotlight::withCount(['likers', 'bookmarkers', 'shares'])
@@ -40,8 +68,14 @@ class ArtistSpotlightController extends Controller
 
     /**
      * Store a new artist spotlight submission.
+     *
+     * Associates the spotlight with the authenticated artist user and sets
+     * the status to "submitted" immediately.
+     *
+     * @param  ArtistSpotlightRequest  $request
+     * @return JsonResponse
      */
-    public function store(ArtistSpotlightRequest $request)
+    public function store(ArtistSpotlightRequest $request): JsonResponse
     {
         try {
             DB::beginTransaction();
@@ -50,6 +84,9 @@ class ArtistSpotlightController extends Controller
 
             // Handle file uploads
             $data = $this->handleFileUploads($request, $data);
+
+            // Associate with the authenticated user
+            $data['user_id'] = auth()->id();
 
             // Set submission tracking
             $data['status'] = 'submitted';
@@ -79,8 +116,14 @@ class ArtistSpotlightController extends Controller
 
     /**
      * Save a draft artist spotlight (partial submission).
+     *
+     * Finds or creates a draft for the authenticated user. Only one
+     * active draft per user is allowed.
+     *
+     * @param  Request  $request
+     * @return JsonResponse
      */
-    public function saveDraft(Request $request)
+    public function saveDraft(Request $request): JsonResponse
     {
         try {
             $validator = Validator::make($request->all(), [
@@ -94,15 +137,15 @@ class ArtistSpotlightController extends Controller
 
             DB::beginTransaction();
 
-            // Only allow fields from the model
             $data = $request->only($this->getAllowedFields());
             $data = $this->handleFileUploads($request, $data);
             $data['status'] = 'draft';
             $data['current_step'] = $request->input('current_step', 1);
+            $data['user_id'] = auth()->id();
 
-            // Find existing draft by email or create new
+            // Find existing draft for this user or create new
             $spotlight = ArtistSpotlight::updateOrCreate(
-                ['email' => $request->email, 'status' => 'draft'],
+                ['user_id' => auth()->id(), 'status' => 'draft'],
                 $data
             );
 
@@ -126,24 +169,22 @@ class ArtistSpotlightController extends Controller
     }
 
     /**
-     * Get a draft by email.
+     * Get the current draft for the authenticated user.
+     *
+     * Returns the most recent draft owned by the authenticated user,
+     * or a 404 response if none exists.
+     *
+     * @param  Request  $request
+     * @return JsonResponse
      */
-    public function getDraft(Request $request)
+    public function getDraft(Request $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email|max:255',
-        ]);
-
-        if ($validator->fails()) {
-            return $this->validationError($validator->errors());
-        }
-
-        $spotlight = ArtistSpotlight::where('email', $request->email)
+        $spotlight = ArtistSpotlight::where('user_id', auth()->id())
             ->where('status', 'draft')
             ->first();
 
         if (!$spotlight) {
-            return $this->notFound('No draft found for this email.');
+            return $this->notFound('No draft found.');
         }
 
         return $this->success(
@@ -153,9 +194,12 @@ class ArtistSpotlightController extends Controller
     }
 
     /**
-     * POST /api/artist-spotlight/{id}/like
+     * Toggle the like status on an artist spotlight.
+     *
+     * @param  int  $id
+     * @return JsonResponse
      */
-    public function toggleLike($id): \Illuminate\Http\JsonResponse
+    public function toggleLike($id): JsonResponse
     {
         $user = auth()->user();
         $spotlight = ArtistSpotlight::findOrFail($id);
@@ -176,9 +220,12 @@ class ArtistSpotlightController extends Controller
     }
 
     /**
-     * POST /api/artist-spotlight/{id}/bookmark
+     * Toggle the bookmark status on an artist spotlight.
+     *
+     * @param  int  $id
+     * @return JsonResponse
      */
-    public function toggleBookmark($id): \Illuminate\Http\JsonResponse
+    public function toggleBookmark($id): JsonResponse
     {
         $user = auth()->user();
         $spotlight = ArtistSpotlight::findOrFail($id);
@@ -199,9 +246,13 @@ class ArtistSpotlightController extends Controller
     }
 
     /**
-     * POST /api/artist-spotlight/{id}/share
+     * Record a share event for an artist spotlight.
+     *
+     * @param  Request  $request
+     * @param  int  $id
+     * @return JsonResponse
      */
-    public function recordShare(Request $request, $id): \Illuminate\Http\JsonResponse
+    public function recordShare(Request $request, $id): JsonResponse
     {
         $user = auth()->user();
         $spotlight = ArtistSpotlight::findOrFail($id);
@@ -215,16 +266,24 @@ class ArtistSpotlightController extends Controller
     }
 
     /**
-     * PUT /api/v1/artist-spotlight/{id}
+     * Update an existing artist spotlight.
      *
-     * Full update for an existing artist spotlight.
-     * Only the authenticated artist who submitted it can update it.
+     * Only the owner (authenticated user who created it) can update.
      * Only fields that are sent will be updated; omitted fields keep their current values.
      * Media files are replaced only when a new file is uploaded.
+     *
+     * @param  UpdateArtistSpotlightRequest  $request
+     * @param  int  $id
+     * @return JsonResponse
      */
-    public function update(UpdateArtistSpotlightRequest $request, $id)
+    public function update(UpdateArtistSpotlightRequest $request, $id): JsonResponse
     {
         $spotlight = ArtistSpotlight::findOrFail($id);
+
+        // Ensure the authenticated user owns this spotlight
+        if ($spotlight->user_id !== auth()->id()) {
+            return $this->error(null, 'You are not authorized to update this spotlight.', 403);
+        }
 
         try {
             DB::beginTransaction();
@@ -261,7 +320,7 @@ class ArtistSpotlightController extends Controller
             }
             unset($data['intro_video']);
 
-            // --- Artwork photos (multiple) — replaces ALL existing artwork photos ---
+            // --- Artwork photos (multiple) ---
             if ($request->hasFile('artwork_photos')) {
                 if (!empty($spotlight->artwork_photo_paths)) {
                     foreach ($spotlight->artwork_photo_paths as $oldPath) {
@@ -303,14 +362,21 @@ class ArtistSpotlightController extends Controller
     }
 
     /**
-     * DELETE /api/v1/artist-spotlight/{id}
-     *
      * Soft-delete an artist spotlight and remove all associated media files.
-     * Only the authenticated artist who submitted it can delete it.
+     *
+     * Only the owner (authenticated user who created it) can delete.
+     *
+     * @param  int  $id
+     * @return JsonResponse
      */
-    public function destroy($id)
+    public function destroy($id): JsonResponse
     {
         $spotlight = ArtistSpotlight::findOrFail($id);
+
+        // Ensure the authenticated user owns this spotlight
+        if ($spotlight->user_id !== auth()->id()) {
+            return $this->error(null, 'You are not authorized to delete this spotlight.', 403);
+        }
 
         try {
             DB::beginTransaction();
@@ -345,6 +411,10 @@ class ArtistSpotlightController extends Controller
 
     /**
      * Handle file uploads for the artist spotlight.
+     *
+     * @param  Request  $request
+     * @param  array  $data
+     * @return array
      */
     private function handleFileUploads(Request $request, array $data): array
     {
@@ -393,6 +463,8 @@ class ArtistSpotlightController extends Controller
 
     /**
      * Get all allowed fields for mass assignment.
+     *
+     * @return array
      */
     private function getAllowedFields(): array
     {

@@ -46,6 +46,9 @@ use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PricingController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\RoundSessionApiController;
+use App\Http\Controllers\Api\Spotlight\SpotlightApplicationController;
+use App\Http\Controllers\Api\Spotlight\SpotlightVoteController;
+use App\Http\Controllers\Api\Spotlight\SpotlightWeekController;
 use App\Http\Controllers\Api\SpotlightController;
 use App\Http\Controllers\Api\StripeWebhookController;
 use App\Http\Controllers\Api\WishlistController;
@@ -164,8 +167,21 @@ Route::group(['prefix' => 'v1'], function ($router) {
         | Spotlights (Accessible by both guest and authenticated users)
         |--------------------------------------------------------------------------
         */
-        Route::get('/spotlight', [SpotlightController::class, 'index']);
+        Route::get('/spotlight', [SpotlightController::class, 'index']); // LIGACY ROUTE
         Route::get('/round-countdown', [RoundSessionApiController::class, 'countdown']);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Spotlight Voting — Public Routes (no auth required)
+        |--------------------------------------------------------------------------
+        */
+        Route::prefix('spotlight')->group(function () {
+            Route::get('/weeks', [SpotlightWeekController::class, 'index']); // DONE: All spotlight weeks
+            Route::get('/weeks/current', [SpotlightWeekController::class, 'current']); // DONE: Current voting week + leaderboard
+            Route::get('/weeks/winners', [SpotlightWeekController::class, 'winners']); // Winners archive
+            Route::get('/weeks/{week}/leaderboard', [SpotlightWeekController::class, 'leaderboard']); // DONE: Real-time leaderboard
+            Route::get('/votes/pricing', [SpotlightVoteController::class, 'pricing']); // DONE: Paid vote package pricing
+        });
 
         /*
         |--------------------------------------------------------------------------
@@ -423,6 +439,27 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::post('/rounds/{round}/votes', [VoteController::class, 'store']); // DONE: round voting
             Route::get('/rounds/{round}/votes/my', [VoteController::class, 'myVotes']); // DONE: my votes for a round
             Route::get('/rounds/{round}/votes/check/{contestant}', [VoteController::class, 'check']);
+        });
+
+        /*
+        |--------------------------------------------------------------------------
+        | Spotlight Voting — Authenticated Actions
+        |--------------------------------------------------------------------------
+        */
+        Route::prefix('spotlight')->group(function () {
+            // Applications: spotlight owner applies to weekly cycles
+            Route::get('/weeks/open', [SpotlightApplicationController::class, 'openWeeks']);  // DONE: List weeks accepting applications
+            Route::post('/weeks/{week}/apply', [SpotlightApplicationController::class, 'apply']);    // DONE: Apply to a week
+            Route::post('/applications/{application}/withdraw', [SpotlightApplicationController::class, 'withdraw']); // DONE: Withdraw application
+            Route::get('/my-applications', [SpotlightApplicationController::class, 'myApplications']); // DONE: My applications
+
+            // Free community voting (any authenticated user can vote)
+            Route::post('/nominees/{nominee}/vote', [SpotlightVoteController::class, 'vote']); // DONE: Cast / toggle vote
+            Route::get('/nominees/{nominee}/vote/check', [SpotlightVoteController::class, 'check']); // Check if I voted
+
+            // Paid vote purchases (nominee owner only)
+            Route::post('/nominees/{nominee}/purchase-votes', [SpotlightVoteController::class, 'purchaseVotes']); // Request paid vote package
+            Route::get('/nominees/{nominee}/purchases', [SpotlightVoteController::class, 'myPurchases']); // My purchase history
         });
 
         /*
