@@ -31,8 +31,7 @@ class CommnDataPassController extends Controller
     public function newsletterTitle()
     {
         $cmsData = CMS::where('page', CmsPage::HOME)
-            ->where('section', CmsSection::NEWSLETTER)->select('title')
-            ->first();
+            ->where('section', CmsSection::NEWSLETTER)->select('title');
 
         return $this->success(
             'Newsletter title retrieved successfully.',

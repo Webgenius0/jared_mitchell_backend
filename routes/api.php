@@ -219,8 +219,8 @@ Route::group(['prefix' => 'v1'], function ($router) {
         });
 
         // Event sponsors
-        Route::get('/common/event-sponsors',[CommnDataPassController::class,'getEventSponsors']);
-        Route::get('/common/newsletter/title',[CommnDataPassController::class,'newsletterTitle']);
+        Route::get('/common/event-sponsors',[CommnDataPassController::class,'getEventSponsors']); // DONE: All page common section (event sponsors)
+        Route::get('/common/newsletter/title',[CommnDataPassController::class,'newsletterTitle']); // DONE: All page common section (newsletter title)
     });
 
     /*
