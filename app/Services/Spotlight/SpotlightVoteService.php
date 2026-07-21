@@ -152,10 +152,22 @@ class SpotlightVoteService
      *
      * Returns nominees ordered by total_vote_count descending (highest first).
      * Includes only essential spotlight fields (resolved name, type, location).
+     *
+     * @param  int     $weekId
+     * @param  string|null $type  'artist', 'business', or null for all
      */
-    public function getLeaderboard(int $weekId): \Illuminate\Support\Collection
+    public function getLeaderboard(int $weekId, ?string $type = null): \Illuminate\Support\Collection
     {
-        return SpotlightWeekNominee::where('spotlight_week_id', $weekId)
+        $query = SpotlightWeekNominee::where('spotlight_week_id', $weekId);
+
+        if ($type === 'artist') {
+            $query->where('spotlightable_type', ArtistSpotlight::class);
+        } elseif ($type === 'business') {
+            $query->where('spotlightable_type', BusinessSpotlight::class);
+        }
+        // null / 'all' → no filter
+
+        return $query
             ->with('spotlightable', 'user.profile')
             ->orderByDesc('total_vote_count')
             ->orderByDesc('free_vote_count')

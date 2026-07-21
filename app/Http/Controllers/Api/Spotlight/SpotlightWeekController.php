@@ -28,9 +28,17 @@ class SpotlightWeekController extends Controller
      *
      * Returns the current active voting week with Top 12 leaderboard.
      * Public — no auth required.
+     *
+     * @queryParam type string Optional. Filter by 'artist', 'business', or 'all' (default).
      */
-    public function current(): JsonResponse
+    public function current(Request $request): JsonResponse
     {
+        $type = $request->input('type', 'all');
+
+        if (! in_array($type, ['all', 'artist', 'business'])) {
+            $type = 'all';
+        }
+
         $week = $this->weekService->getCurrentVotingWeek();
 
         if (! $week) {
@@ -44,7 +52,8 @@ class SpotlightWeekController extends Controller
             return $this->success('No active spotlight week found.', ['week' => null]);
         }
 
-        $leaderboard = $this->voteService->getLeaderboard($week->id);
+        $filterType = $type === 'all' ? null : $type;
+        $leaderboard = $this->voteService->getLeaderboard($week->id, $filterType);
 
         return $this->success('Current spotlight week retrieved.', [
             'week' => [
@@ -119,10 +128,19 @@ class SpotlightWeekController extends Controller
      *
      * Real-time leaderboard for a specific week.
      * Public — no auth required.
+     *
+     * @queryParam type string Optional. Filter by 'artist', 'business', or 'all' (default).
      */
-    public function leaderboard(SpotlightWeek $week): JsonResponse
+    public function leaderboard(Request $request, SpotlightWeek $week): JsonResponse
     {
-        $leaderboard = $this->voteService->getLeaderboard($week->id);
+        $type = $request->input('type', 'all');
+
+        if (! in_array($type, ['all', 'artist', 'business'])) {
+            $type = 'all';
+        }
+
+        $filterType = $type === 'all' ? null : $type;
+        $leaderboard = $this->voteService->getLeaderboard($week->id, $filterType);
 
         return $this->success('Leaderboard retrieved.', [
             'week' => [
@@ -131,6 +149,8 @@ class SpotlightWeekController extends Controller
                 'is_voting_open' => $week->isVotingOpen(),
                 'voting_ends_at' => $week->voting_ends_at,
             ],
+            'type'        => $type,
+            'nominees_count' => $leaderboard->count(),
             'leaderboard' => $leaderboard,
         ]);
     }
