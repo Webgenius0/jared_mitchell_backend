@@ -163,57 +163,52 @@ class SpotlightWeekController extends Controller
      *
      * @queryParam per_page int Optional. Items per page (default 10).
      */
-    public function winners(Request $request): JsonResponse
+    public function spotlightOfTheWeek(Request $request): JsonResponse
     {
-        $validated = $request->validate([
-            'per_page' => ['sometimes', 'integer', 'min:1', 'max:50'],
-        ]);
-
-        $perPage = $validated['per_page'] ?? 10;
         $latestWinner = $this->weekService->getLastWinner();
 
-        $archive = SpotlightWeekNominee::whereHas('week', function ($q) {
-                $q->where('status', 'completed')
-                  ->whereNotNull('announced_at');
-            })
-            ->where('is_winner', true)
-            ->with('spotlightable', 'week', 'user.profile')
-            ->latest()
-            ->paginate($perPage);
+        // $archive = SpotlightWeekNominee::whereHas('week', function ($q) {
+        //         $q->where('status', 'completed')
+        //           ->whereNotNull('announced_at');
+        //     })
+        //     ->where('is_winner', true)
+        //     ->with('spotlightable', 'week', 'user.profile')
+        //     ->latest()
+        //     ->paginate($perPage);
 
-        $archiveData = collect($archive->items())->map(function ($nominee) {
-            $isArtist = $nominee->spotlightable_type === ArtistSpotlight::class;
-            $spotlight = $nominee->spotlightable;
+        // $archiveData = collect($archive->items())->map(function ($nominee) {
+        //     $isArtist = $nominee->spotlightable_type === ArtistSpotlight::class;
+        //     $spotlight = $nominee->spotlightable;
 
-            return [
-                'id'              => $nominee->id,
-                'week_number'     => $nominee->week?->week_number,
-                'year'            => $nominee->week?->year,
-                'week_status'     => $nominee->week?->status,
-                'spotlight'       => $spotlight ? [
-                    'id'   => $spotlight->id,
-                    'type' => $isArtist ? 'artist' : 'business',
-                    'name' => $isArtist
-                        ? ($spotlight->artist_stage_name ?? $spotlight->full_legal_name)
-                        : ($spotlight->business_name ?? $spotlight->owner_founder_name),
-                    'city'  => $spotlight->city ?? null,
-                    'state' => $spotlight->state ?? null,
-                ] : null,
-                'total_votes'     => $nominee->total_vote_count,
-                'announced_at'    => $nominee->week?->announced_at,
-            ];
-        });
+        //     return [
+        //         'id'              => $nominee->id,
+        //         'week_number'     => $nominee->week?->week_number,
+        //         'year'            => $nominee->week?->year,
+        //         'week_status'     => $nominee->week?->status,
+        //         'spotlight'       => $spotlight ? [
+        //             'id'   => $spotlight->id,
+        //             'type' => $isArtist ? 'artist' : 'business',
+        //             'name' => $isArtist
+        //                 ? ($spotlight->artist_stage_name ?? $spotlight->full_legal_name)
+        //                 : ($spotlight->business_name ?? $spotlight->owner_founder_name),
+        //             'city'  => $spotlight->city ?? null,
+        //             'state' => $spotlight->state ?? null,
+        //         ] : null,
+        //         'total_votes'     => $nominee->total_vote_count,
+        //         'announced_at'    => $nominee->week?->announced_at,
+        //     ];
+        // });
 
         return $this->success('Spotlight winners retrieved.', [
             'current_winner' => $latestWinner ? $this->formatWinner($latestWinner) : null,
-            'archive'        => $archiveData,
-            'pagination'     => [
-                'total'        => $archive->total(),
-                'per_page'     => (int) $archive->perPage(),
-                'current_page' => $archive->currentPage(),
-                'last_page'    => $archive->lastPage(),
-                'has_more'     => $archive->hasMorePages(),
-            ],
+            // 'archive'        => $archiveData,
+            // 'pagination'     => [
+            //     'total'        => $archive->total(),
+            //     'per_page'     => (int) $archive->perPage(),
+            //     'current_page' => $archive->currentPage(),
+            //     'last_page'    => $archive->lastPage(),
+            //     'has_more'     => $archive->hasMorePages(),
+            // ],
         ]);
     }
 
@@ -245,8 +240,8 @@ class SpotlightWeekController extends Controller
             ->where('spotlightable_type', $spotlightableType)
             ->whereHas('week', function ($q) use ($sixMonthsAgo) {
                 $q->where('status', 'completed')
-                  ->whereNotNull('announced_at')
-                  ->where('voting_ends_at', '>=', $sixMonthsAgo);
+                    ->whereNotNull('announced_at')
+                    ->where('voting_ends_at', '>=', $sixMonthsAgo);
             })
             ->with(['spotlightable', 'week', 'user.profile'])
             ->orderByRaw('(SELECT voting_ends_at FROM spotlight_weeks WHERE id = spotlight_week_nominees.spotlight_week_id LIMIT 1) DESC')

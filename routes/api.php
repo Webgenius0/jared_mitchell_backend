@@ -180,8 +180,8 @@ Route::group(['prefix' => 'v1'], function ($router) {
         Route::prefix('spotlight')->group(function () {
             Route::get('/weeks', [SpotlightWeekController::class, 'index']); // DONE: All spotlight weeks
             Route::get('/weeks/current', [SpotlightWeekController::class, 'current']); // DONE: Current voting week + leaderboard
-            Route::get('/weeks/winners', [SpotlightWeekController::class, 'winners']); // Winners archive
-            Route::get('/historical-winners', [SpotlightWeekController::class, 'historicalWinners']); // Past 6 months winners by type
+            Route::get('/weeks/spotlight-of-the-week', [SpotlightWeekController::class, 'spotlightOfTheWeek']); // DONE: Spotight of the week
+            Route::get('/historical-winners', [SpotlightWeekController::class, 'historicalWinners']); // DONE: Past 6 months winners by type
             Route::get('/weeks/{week}/leaderboard', [SpotlightWeekController::class, 'leaderboard']); // DONE: Real-time leaderboard
             Route::get('/votes/pricing', [SpotlightVoteController::class, 'pricing']); // DONE: Paid vote package pricing
             Route::get('/nominated', [SpotlightWeekController::class, 'nominated']); // Nominated spotlights for voting
