@@ -35,6 +35,7 @@ use App\Http\Controllers\Web\Admin\Product\AdminProductController;
 use App\Http\Controllers\Web\Admin\Round\RoundSeasonController;
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Web\Admin\Spotlight\SpotlightVotePackageController;
 
 Route::get('/', [AdminDashboardController::class, 'index'])->name('show.admin.dashboard'); // show admin dashboard
 
@@ -476,4 +477,13 @@ Route::prefix('spotlight')->name('admin.spotlight.')->group(function () {
     Route::get('/vote-purchases/{purchase}', [WebSpotlightVotePurchaseController::class, 'show'])->name('vote-purchases.show');
     Route::post('/vote-purchases/{purchase}/approve', [WebSpotlightVotePurchaseController::class, 'approve'])->name('vote-purchases.approve');
     Route::post('/vote-purchases/{purchase}/refund', [WebSpotlightVotePurchaseController::class, 'refund'])->name('vote-purchases.refund');
+
+    // Vote Package Management
+    Route::get('/vote-packages', [SpotlightVotePackageController::class, 'index'])->name('vote-packages.index');
+    Route::get('/vote-packages/create', [SpotlightVotePackageController::class, 'create'])->name('vote-packages.create');
+    Route::post('/vote-packages', [SpotlightVotePackageController::class, 'store'])->name('vote-packages.store');
+    Route::get('/vote-packages/{package}/edit', [SpotlightVotePackageController::class, 'edit'])->name('vote-packages.edit');
+    Route::put('/vote-packages/{package}', [SpotlightVotePackageController::class, 'update'])->name('vote-packages.update');
+    Route::post('/vote-packages/{package}/toggle-active', [SpotlightVotePackageController::class, 'toggleActive'])->name('vote-packages.toggle-active');
+    Route::delete('/vote-packages/{package}', [SpotlightVotePackageController::class, 'destroy'])->name('vote-packages.destroy');
 });

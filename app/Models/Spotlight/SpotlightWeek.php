@@ -104,20 +104,6 @@ class SpotlightWeek extends Model
     }
 
     /**
-     * Get the package pricing map.
-     * Returns: ['starter' => ['votes' => 1, 'price' => 1.00], ...]
-     */
-    public static function votePricing(): array
-    {
-        return [
-            'starter' => ['votes' => 1, 'price' => 1.00, 'label' => '$1 = 1 vote'],
-            'popular' => ['votes' => 10, 'price' => 8.00, 'label' => '$8 = 10 votes'],
-            'boost' => ['votes' => 25, 'price' => 18.00, 'label' => '$18 = 25 votes'],
-            'power' => ['votes' => 50, 'price' => 35.00, 'label' => '$35 = 50 votes'],
-        ];
-    }
-
-    /**
      * Max purchased votes allowed per nominee per week.
      */
     public static function maxPurchasedVotes(): int

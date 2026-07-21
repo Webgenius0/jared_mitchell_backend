@@ -5,6 +5,7 @@ namespace App\Services\Spotlight;
 use App\Models\ArtistSpotlight;
 use App\Models\BusinessSpotlight;
 use App\Models\Spotlight\SpotlightVote;
+use App\Models\Spotlight\SpotlightVotePackage;
 use App\Models\Spotlight\SpotlightVotePurchase;
 use App\Models\Spotlight\SpotlightWeek;
 use App\Models\Spotlight\SpotlightWeekNominee;
@@ -14,6 +15,10 @@ use Illuminate\Support\Facades\Log;
 
 class SpotlightVoteService
 {
+    public function __construct(
+        protected SpotlightVotePurchaseService $purchaseService,
+    ) {}
+
     /**
      * Cast or toggle a free community vote on a nominee.
      * One vote per user per nominee per week. Voting again removes the vote.
@@ -91,162 +96,55 @@ class SpotlightVoteService
     }
 
     /**
-     * Create a paid vote purchase request (pending admin approval).
+     * Create a paid vote purchase request (delegates to SpotlightVotePurchaseService).
      *
      * @return array{success: bool, message: string, purchase?: SpotlightVotePurchase}
      */
     public function requestVotePurchase(
         User $user,
         SpotlightWeekNominee $nominee,
-        string $package
+        string $packageSlug
     ): array {
-        // 1. Validate the week is still open
-        if (! $nominee->week->isVotingOpen()) {
+        $package = SpotlightVotePackage::findBySlug($packageSlug);
+
+        if (! $package) {
             return [
                 'success' => false,
-                'message' => 'Voting is not currently open. You cannot purchase votes.',
+                'message' => "Package '{$packageSlug}' is not available.",
             ];
         }
 
-        // 2. Validate the package
-        $packageDetails = SpotlightVotePurchase::packageDetails($package);
-        if (! $packageDetails) {
-            return [
-                'success' => false,
-                'message' => "Invalid package '{$package}'. Choose: starter, popular, boost, or power.",
-            ];
-        }
-
-        // 3. Check cap: would adding these votes exceed 100?
-        $potentialPendingVotes = SpotlightVotePurchase::where('spotlight_week_nominee_id', $nominee->id)
-            ->whereIn('status', ['pending', 'completed'])
-            ->sum('votes_count');
-
-        $remainingSlots = SpotlightWeek::maxPurchasedVotes() - $potentialPendingVotes;
-
-        if ($remainingSlots <= 0) {
-            return [
-                'success' => false,
-                'message' => 'Maximum support reached for this nominee. No more votes can be purchased.',
-            ];
-        }
-
-        if ($packageDetails['votes'] > $remainingSlots) {
-            return [
-                'success' => false,
-                'message' => "This package adds {$packageDetails['votes']} votes but only {$remainingSlots} slots remain (100-vote cap).",
-            ];
-        }
-
-        // 4. Create the purchase request
-        $purchase = SpotlightVotePurchase::create([
-            'spotlight_week_nominee_id' => $nominee->id,
-            'user_id'                   => $user->id,
-            'package'                   => $package,
-            'votes_count'               => $packageDetails['votes'],
-            'amount_paid'               => $packageDetails['price'],
-            'status'                    => 'pending',
-        ]);
-
-        Log::info('SpotlightVoteService: Vote purchase requested', [
-            'user_id'     => $user->id,
-            'nominee_id'  => $nominee->id,
-            'package'     => $package,
-            'votes_count' => $packageDetails['votes'],
-            'amount'      => $packageDetails['price'],
-        ]);
-
-        return [
-            'success'  => true,
-            'message'  => "Purchase request submitted for {$packageDetails['votes']} vote(s) at \${$packageDetails['price']}. Pending admin approval.",
-            'purchase' => $purchase,
-        ];
+        return $this->purchaseService->requestPurchase($user, $nominee, $package);
     }
 
     /**
-     * Admin approves a vote purchase — credits votes to the nominee.
+     * Initiate payment for an approved purchase.
+     *
+     * @return array
+     */
+    public function initiatePayment(SpotlightVotePurchase $purchase, User $user): array
+    {
+        return $this->purchaseService->initiatePayment($purchase, $user);
+    }
+
+    /**
+     * Admin approves a pending purchase.
      *
      * @return array{success: bool, message: string}
      */
     public function approvePurchase(SpotlightVotePurchase $purchase, User $admin): array
     {
-        if (! $purchase->isPending()) {
-            return [
-                'success' => false,
-                'message' => "Purchase is already '{$purchase->status}'.",
-            ];
-        }
-
-        $nominee = $purchase->nominee;
-
-        // Re-check cap before crediting
-        if ($nominee->paid_vote_count + $purchase->votes_count > SpotlightWeek::maxPurchasedVotes()) {
-            return [
-                'success' => false,
-                'message' => 'Approving this purchase would exceed the 100-vote cap for this nominee.',
-            ];
-        }
-
-        DB::transaction(function () use ($purchase, $nominee, $admin) {
-            $purchase->update([
-                'status'      => 'completed',
-                'approved_by' => $admin->id,
-                'approved_at' => now(),
-            ]);
-
-            $nominee->addPaidVotes($purchase->votes_count);
-        });
-
-        Log::info('SpotlightVoteService: Vote purchase approved', [
-            'purchase_id' => $purchase->id,
-            'nominee_id'  => $nominee->id,
-            'votes_added' => $purchase->votes_count,
-            'admin_id'    => $admin->id,
-        ]);
-
-        return [
-            'success' => true,
-            'message' => "{$purchase->votes_count} vote(s) credited to the nominee.",
-        ];
+        return $this->purchaseService->approvePurchase($purchase, $admin);
     }
 
     /**
-     * Admin refunds a vote purchase — removes credited votes.
+     * Admin refunds a paid purchase.
      *
      * @return array{success: bool, message: string}
      */
     public function refundPurchase(SpotlightVotePurchase $purchase, User $admin, ?string $notes = null): array
     {
-        if (! $purchase->isCompleted()) {
-            return [
-                'success' => false,
-                'message' => "Can only refund 'completed' purchases. Current status: {$purchase->status}",
-            ];
-        }
-
-        $nominee = $purchase->nominee;
-
-        DB::transaction(function () use ($purchase, $nominee, $admin, $notes) {
-            $purchase->update([
-                'status'      => 'refunded',
-                'approved_by' => $admin->id,
-                'admin_notes' => $notes,
-            ]);
-
-            $nominee->removePaidVotes($purchase->votes_count);
-        });
-
-        Log::info('SpotlightVoteService: Vote purchase refunded', [
-            'purchase_id'    => $purchase->id,
-            'nominee_id'     => $nominee->id,
-            'votes_removed'  => $purchase->votes_count,
-            'admin_id'       => $admin->id,
-        ]);
-
-        return [
-            'success' => true,
-            'message' => "{$purchase->votes_count} vote(s) removed from nominee (refunded).",
-        ];
+        return $this->purchaseService->refundPurchase($purchase, $admin, $notes);
     }
 
     /**

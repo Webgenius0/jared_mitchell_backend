@@ -30,6 +30,7 @@ class DatabaseSeeder extends Seeder
             ArtistSpotlightSeeder::class,
             ServicePageSeeder::class,
             AboutPageSeeder::class,
+            SpotlightVotePackageSeeder::class,
             // HomePageSeeder::class,
             // BusinessSeeder::class,
         ]);

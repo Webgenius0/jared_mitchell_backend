@@ -3,27 +3,37 @@
 namespace App\Http\Controllers\Web\Admin\Spotlight;
 
 use App\Http\Controllers\Controller;
+use App\Models\Spotlight\SpotlightVotePackage;
 use App\Models\Spotlight\SpotlightVotePurchase;
+use App\Services\Spotlight\SpotlightVotePurchaseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 
 class SpotlightVotePurchaseController extends Controller
 {
+    public function __construct(
+        protected SpotlightVotePurchaseService $purchaseService,
+    ) {}
+
     /**
      * Display a listing of vote purchases.
      */
     public function index(Request $request)
     {
         $stats = [
-            'total'    => SpotlightVotePurchase::count(),
-            'pending'  => SpotlightVotePurchase::where('status', 'pending')->count(),
-            'completed'=> SpotlightVotePurchase::where('status', 'completed')->count(),
-            'refunded' => SpotlightVotePurchase::where('status', 'refunded')->count(),
+            'total' => SpotlightVotePurchase::count(),
+            'pending' => SpotlightVotePurchase::where('status', SpotlightVotePurchase::STATUS_PENDING)->count(),
+            'approved' => SpotlightVotePurchase::where('status', SpotlightVotePurchase::STATUS_APPROVED)->count(),
+            'paid' => SpotlightVotePurchase::where('status', SpotlightVotePurchase::STATUS_PAID)->count(),
+            'refunded' => SpotlightVotePurchase::where('status', SpotlightVotePurchase::STATUS_REFUNDED)->count(),
+            'cancelled' => SpotlightVotePurchase::where('status', SpotlightVotePurchase::STATUS_CANCELLED)->count(),
         ];
 
+        $packages = SpotlightVotePackage::ordered()->get();
+
         if ($request->ajax()) {
-            $query = SpotlightVotePurchase::with(['nominee.spotlightable', 'user.profile'])
+            $query = SpotlightVotePurchase::with(['nominee.spotlightable', 'user.profile', 'package'])
                 ->latest();
 
             // Apply filters
@@ -32,16 +42,22 @@ class SpotlightVotePurchaseController extends Controller
             }
 
             if ($request->filled('package')) {
-                $query->where('package', $request->package);
+                $query->where('spotlight_vote_package_id', $request->package);
             }
 
             if ($request->filled('search_query')) {
                 $search = $request->search_query;
-                $query->whereHas('user.profile', function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%");
-                })->orWhereHas('nominee.spotlightable', function ($q) use ($search) {
-                    $q->where('business_name', 'like', "%{$search}%")
-                      ->orWhere('brand_name', 'like', "%{$search}%");
+                $query->where(function ($q) use ($search) {
+                    $q->whereHas('user.profile', function ($qp) use ($search) {
+                        $qp->where('name', 'like', "%{$search}%");
+                    })->orWhereHas('user', function ($qu) use ($search) {
+                        $qu->where('email', 'like', "%{$search}%");
+                    })->orWhereHas('nominee.spotlightable', function ($qs) use ($search) {
+                        $qs->where('business_name', 'like', "%{$search}%")
+                          ->orWhere('brand_name', 'like', "%{$search}%")
+                          ->orWhere('artist_stage_name', 'like', "%{$search}%")
+                          ->orWhere('full_legal_name', 'like', "%{$search}%");
+                    });
                 });
             }
 
@@ -53,21 +69,28 @@ class SpotlightVotePurchaseController extends Controller
                 ->addColumn('nominee_name', function ($row) {
                     $spotlightable = $row->nominee?->spotlightable;
                     if (!$spotlightable) return '—';
-                    $name = $spotlightable->business_name ?? $spotlightable->brand_name ?? '#' . $spotlightable->id;
-                    return e($name);
+                    $isArtist = $spotlightable instanceof \App\Models\ArtistSpotlight;
+                    $name = $isArtist
+                        ? ($spotlightable->artist_stage_name ?? $spotlightable->full_legal_name)
+                        : ($spotlightable->business_name ?? $spotlightable->owner_founder_name);
+                    return e($name ?? '#' . $spotlightable->id);
                 })
-                ->addColumn('package_label', function ($row) {
-                    $details = SpotlightVotePurchase::packageDetails($row->package);
-                    return e($details['label'] ?? $row->package);
+                ->addColumn('package_name', function ($row) {
+                    return e($row->package?->name ?? $row->package ?? '—');
+                })
+                ->addColumn('package_votes', function ($row) {
+                    return $row->votes_count;
                 })
                 ->addColumn('amount_formatted', function ($row) {
                     return '$' . number_format($row->amount_paid, 2);
                 })
                 ->addColumn('status_badge', function ($row) {
                     $map = [
-                        'pending'   => 'bg-warning-subtle text-warning',
-                        'completed' => 'bg-success-subtle text-success',
-                        'refunded'  => 'bg-danger-subtle text-danger',
+                        'pending' => 'bg-warning-subtle text-warning',
+                        'approved' => 'bg-info-subtle text-info',
+                        'paid' => 'bg-success-subtle text-success',
+                        'refunded' => 'bg-danger-subtle text-danger',
+                        'cancelled' => 'bg-secondary-subtle text-secondary',
                     ];
                     $class = $map[$row->status] ?? 'bg-secondary-subtle text-secondary';
                     return '<span class="badge ' . $class . '">' . ucfirst(e($row->status)) . '</span>';
@@ -80,7 +103,7 @@ class SpotlightVotePurchaseController extends Controller
                 ->make(true);
         }
 
-        return view('web.admin.spotlight.vote-purchases.index', compact('stats'));
+        return view('web.admin.spotlight.vote-purchases.index', compact('stats', 'packages'));
     }
 
     /**
@@ -88,7 +111,7 @@ class SpotlightVotePurchaseController extends Controller
      */
     public function pendingCount()
     {
-        $count = SpotlightVotePurchase::where('status', 'pending')->count();
+        $count = SpotlightVotePurchase::where('status', SpotlightVotePurchase::STATUS_PENDING)->count();
 
         return response()->json([
             'success' => true,
@@ -101,13 +124,15 @@ class SpotlightVotePurchaseController extends Controller
      */
     public function show(SpotlightVotePurchase $purchase)
     {
-        $purchase->load(['nominee.spotlightable', 'user.profile', 'approver.profile', 'order']);
+        $purchase->load(['nominee.spotlightable', 'user.profile', 'approver.profile', 'order', 'package']);
 
         return view('web.admin.spotlight.vote-purchases.show', compact('purchase'));
     }
 
     /**
-     * Approve a pending purchase — credit votes to the nominee.
+     * Approve a pending purchase — changes status to 'approved'.
+     *
+     * The user must then pay via Stripe before votes are credited.
      */
     public function approve(Request $request, SpotlightVotePurchase $purchase)
     {
@@ -119,29 +144,33 @@ class SpotlightVotePurchaseController extends Controller
             'admin_notes' => 'nullable|string|max:1000',
         ]);
 
-        DB::transaction(function () use ($purchase, $validated) {
-            // Credit votes to the nominee
-            $purchase->nominee->addPaidVotes($purchase->votes_count);
+        // Admin user model for the approval
+        $admin = auth('admin')->user();
 
-            // Mark purchase as completed
-            $purchase->update([
-                'status'       => 'completed',
-                'approved_by'  => auth('admin')->id(),
-                'approved_at'  => now(),
-                'admin_notes'  => $validated['admin_notes'] ?? $purchase->admin_notes,
-            ]);
-        });
+        $result = $this->purchaseService->approvePurchase($purchase, $admin);
+
+        if (! $result['success']) {
+            return redirect()->back()->with('error', $result['message']);
+        }
+
+        // Add admin notes if provided
+        if (!empty($validated['admin_notes'])) {
+            $purchase->update(['admin_notes' => $validated['admin_notes']]);
+        }
 
         return redirect()->route('admin.spotlight.vote-purchases.show', $purchase->id)
-            ->with('success', 'Purchase approved and votes credited successfully.');
+            ->with('success', 'Purchase approved. The user can now proceed to payment via Stripe.');
     }
 
     /**
      * Refund a purchase — remove votes from the nominee.
+     *
+     * Handles both paid purchases (refund with vote removal)
+     * and pending/approved purchases (cancel without vote removal).
      */
     public function refund(Request $request, SpotlightVotePurchase $purchase)
     {
-        if ($purchase->status === 'refunded') {
+        if ($purchase->isRefunded()) {
             return redirect()->back()->with('error', 'This purchase has already been refunded.');
         }
 
@@ -149,22 +178,27 @@ class SpotlightVotePurchaseController extends Controller
             'admin_notes' => 'nullable|string|max:1000',
         ]);
 
-        DB::transaction(function () use ($purchase, $validated) {
-            // Remove votes from the nominee (if already credited)
-            if ($purchase->isCompleted()) {
-                $purchase->nominee->removePaidVotes($purchase->votes_count);
+        $admin = auth('admin')->user();
+
+        if ($purchase->isPaid()) {
+            // Refund — remove votes
+            $result = $this->purchaseService->refundPurchase($purchase, $admin, $validated['admin_notes'] ?? null);
+
+            if (! $result['success']) {
+                return redirect()->back()->with('error', $result['message']);
             }
 
-            // Mark purchase as refunded
-            $purchase->update([
-                'status'      => 'refunded',
-                'approved_by' => auth('admin')->id(),
-                'approved_at' => now(),
-                'admin_notes' => $validated['admin_notes'] ?? $purchase->admin_notes,
-            ]);
-        });
+            return redirect()->route('admin.spotlight.vote-purchases.show', $purchase->id)
+                ->with('success', $result['message']);
+        }
+
+        // Cancel pending/approved purchase (no votes to remove)
+        $purchase->update([
+            'status'      => SpotlightVotePurchase::STATUS_CANCELLED,
+            'admin_notes' => $validated['admin_notes'] ?? $purchase->admin_notes,
+        ]);
 
         return redirect()->route('admin.spotlight.vote-purchases.show', $purchase->id)
-            ->with('success', 'Purchase refunded and votes removed successfully.');
+            ->with('success', 'Purchase cancelled successfully.');
     }
 }

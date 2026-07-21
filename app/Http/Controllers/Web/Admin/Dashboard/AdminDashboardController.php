@@ -15,8 +15,9 @@ use App\Models\Contact;
 use App\Models\Newsletter;
 use App\Models\Contest\Season;
 use App\Models\ContestApplication;
-use App\Models\Spotlight\SpotlightWeek;
+use App\Models\Spotlight\SpotlightVotePackage;
 use App\Models\Spotlight\SpotlightVotePurchase;
+use App\Models\Spotlight\SpotlightWeek;
 use Illuminate\Http\Request;
 
 class AdminDashboardController extends Controller
@@ -86,18 +87,18 @@ class AdminDashboardController extends Controller
             // Spotlight Voting
             'active_spotlight_weeks' => SpotlightWeek::where('status', 'voting')->count(),
             'pending_spotlight_purchases' => SpotlightVotePurchase::where('status', 'pending')->count(),
-            'completed_spotlight_purchases' => SpotlightVotePurchase::where('status', 'completed')->count(),
-            'refunded_spotlight_purchases' => SpotlightVotePurchase::where('status', 'refunded')->count(),
+            'completed_spotlight_purchases' => SpotlightVotePurchase::where('status', SpotlightVotePurchase::STATUS_PAID)->count(),
+            'refunded_spotlight_purchases' => SpotlightVotePurchase::where('status', SpotlightVotePurchase::STATUS_REFUNDED)->count(),
             'total_spotlight_purchases' => SpotlightVotePurchase::count(),
-            'spotlight_purchase_revenue' => SpotlightVotePurchase::where('status', 'completed')->sum('amount_paid'),
+            'spotlight_purchase_revenue' => SpotlightVotePurchase::where('status', SpotlightVotePurchase::STATUS_PAID)->sum('amount_paid'),
         ];
 
         // ── Vote Purchase Package Breakdown ──────────────────────
-        $votePackageBreakdown = SpotlightVotePurchase::selectRaw('package, COUNT(*) as total, SUM(votes_count) as votes, SUM(amount_paid) as revenue')
-            ->where('status', 'completed')
-            ->groupBy('package')
+        $votePackageBreakdown = SpotlightVotePurchase::selectRaw('COALESCE(spotlight_vote_package_id, 0) as pkg_id, COUNT(*) as total, SUM(votes_count) as votes, SUM(amount_paid) as revenue')
+            ->where('status', SpotlightVotePurchase::STATUS_PAID)
+            ->groupBy('pkg_id')
             ->get()
-            ->keyBy('package');
+            ->keyBy('pkg_id');
 
         // ── Recent Pending Vote Purchases ────────────────────────
         $recentPendingPurchases = SpotlightVotePurchase::with(['user.profile', 'nominee.spotlightable'])
@@ -181,7 +182,7 @@ class AdminDashboardController extends Controller
             'selectedRange',
             'allowedRanges'
         ) + [
-            'votePackages' => \App\Models\Spotlight\SpotlightVotePurchase::PACKAGES,
+            'votePackages' => SpotlightVotePackage::active()->ordered()->get(),
         ]);
     }
 }

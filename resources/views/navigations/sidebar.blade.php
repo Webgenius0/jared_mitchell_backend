@@ -256,6 +256,12 @@
                                     <i class="ri-shopping-cart-2-line"></i> Vote Purchases
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a href="{{ route('admin.spotlight.vote-packages.index') }}"
+                                    class="nav-link {{ request()->routeIs('admin.spotlight.vote-packages.*') ? 'active' : '' }}">
+                                    <i class="ri-box-3-line"></i> Vote Packages
+                                </a>
+                            </li>
                         </ul>
                     </div>
                 </li>

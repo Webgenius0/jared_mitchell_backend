@@ -48,6 +48,7 @@ use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\RoundSessionApiController;
 use App\Http\Controllers\Api\Spotlight\SpotlightApplicationController;
 use App\Http\Controllers\Api\Spotlight\SpotlightVoteController;
+use App\Http\Controllers\Api\Spotlight\SpotlightVotePackageController;
 use App\Http\Controllers\Api\Spotlight\SpotlightWeekController;
 use App\Http\Controllers\Api\SpotlightController;
 use App\Http\Controllers\Api\StripeWebhookController;
@@ -168,7 +169,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
         |--------------------------------------------------------------------------
         */
         Route::get('/spotlight', [SpotlightController::class, 'index']); // LIGACY ROUTE
-        Route::get('/round-countdown', [RoundSessionApiController::class, 'countdown']);
+        Route::get('/round-countdown', [RoundSessionApiController::class, 'countdown']); // DONE: Upcoming round countdown
 
         /*
         |--------------------------------------------------------------------------
@@ -457,9 +458,17 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::post('/nominees/{nominee}/vote', [SpotlightVoteController::class, 'vote']); // DONE: Cast / toggle vote
             Route::get('/nominees/{nominee}/vote/check', [SpotlightVoteController::class, 'check']); // Check if I voted
 
+            // Vote packages (auth required — listing)
+            Route::get('/vote-packages', [SpotlightVotePackageController::class, 'index']); // DONE: List all active packages
+
             // Paid vote purchases (nominee owner only)
-            Route::post('/nominees/{nominee}/purchase-votes', [SpotlightVoteController::class, 'purchaseVotes']); // Request paid vote package
-            Route::get('/nominees/{nominee}/purchases', [SpotlightVoteController::class, 'myPurchases']); // My purchase history
+            Route::post('/nominees/{nominee}/purchase-votes', [SpotlightVoteController::class, 'purchaseVotes']); // DONE: Request paid vote package (pending admin approval)
+            Route::get('/nominees/{nominee}/purchases', [SpotlightVoteController::class, 'myPurchases']); // DONE: My purchase history
+
+            // Purchase payment
+            Route::post('/vote/purchases/{purchase}/pay', [SpotlightVoteController::class, 'pay'])->name('api.spotlight.purchases.pay'); // DONE: Pay for approved purchase via Stripe
+            Route::get('/vote/purchases/{purchase}', [SpotlightVoteController::class, 'showPurchase'])->name('api.spotlight.purchases.show'); // DONE: View purchase details
+            Route::get('/vote/my-pending-purchases', [SpotlightVoteController::class, 'myPendingPurchases']); // DONE: My pending/approved purchases
         });
 
         /*

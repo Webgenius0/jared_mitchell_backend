@@ -17,6 +17,8 @@
 
         {{-- Stats Cards --}}
         <div class="row">
+
+            {{-- Total --}}
             <div class="col-xl-3 col-md-6">
                 <div class="card card-animate">
                     <div class="card-body">
@@ -32,6 +34,8 @@
                     </div>
                 </div>
             </div>
+
+            {{-- Pending --}}
             <div class="col-xl-3 col-md-6">
                 <div class="card card-animate">
                     <div class="card-body">
@@ -47,6 +51,8 @@
                     </div>
                 </div>
             </div>
+
+            {{-- Completed --}}
             <div class="col-xl-3 col-md-6">
                 <div class="card card-animate">
                     <div class="card-body">
@@ -58,10 +64,12 @@
                                 <i class="ri-checkbox-circle-line fs-24 text-success"></i>
                             </div>
                         </div>
-                        <h4 class="mt-3 mb-0 text-success">{{ number_format($stats['completed']) }}</h4>
+                        <h4 class="mt-3 mb-0 text-success">{{ number_format($stats['paid']) }}</h4>
                     </div>
                 </div>
             </div>
+
+            {{-- Refunded --}}
             <div class="col-xl-3 col-md-6">
                 <div class="card card-animate">
                     <div class="card-body">
@@ -104,7 +112,7 @@
                                 <select class="form-select" id="statusFilter">
                                     <option value="">All Status</option>
                                     <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending</option>
-                                    <option value="completed" {{ request('status') === 'completed' ? 'selected' : '' }}>Completed</option>
+                                    {{-- <option value="completed" {{ request('status') === 'completed' ? 'selected' : '' }}>Completed</option> --}}
                                     <option value="refunded" {{ request('status') === 'refunded' ? 'selected' : '' }}>Refunded</option>
                                 </select>
                             </div>
@@ -112,8 +120,8 @@
                                 <label class="form-label text-muted small mb-1">Package</label>
                                 <select class="form-select" id="packageFilter">
                                     <option value="">All Packages</option>
-                                    @foreach(App\Models\Spotlight\SpotlightVotePurchase::PACKAGES as $key => $pkg)
-                                        <option value="{{ $key }}" {{ request('package') === $key ? 'selected' : '' }}>{{ $pkg['label'] }}</option>
+                                    @foreach($packages as $pkg)
+                                        <option value="{{ $pkg->id }}" {{ request('package') == $pkg->id ? 'selected' : '' }}>{{ $pkg->name }} ({{ $pkg->votes_count }} votes)</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -185,7 +193,7 @@
                 { data: 'DT_RowIndex',  name: 'DT_RowIndex', orderable: false, searchable: false },
                 { data: 'user_name',    name: 'user_id' },
                 { data: 'nominee_name', name: 'nominee_id' },
-                { data: 'package_label', name: 'package' },
+                { data: 'package_name', name: 'package' },
                 { data: 'votes_count',  name: 'votes_count', className: 'text-center' },
                 { data: 'amount_formatted', name: 'amount_paid', className: 'text-center' },
                 { data: 'status_badge',  name: 'status', className: 'text-center' },

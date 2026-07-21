@@ -12,13 +12,17 @@ class SpotlightVotePurchase extends Model
     protected $fillable = [
         'spotlight_week_nominee_id',
         'user_id',
+        'spotlight_vote_package_id',
         'package',
         'votes_count',
         'amount_paid',
         'order_id',
+        'stripe_checkout_session_id',
+        'stripe_payment_intent_id',
         'status',
         'approved_by',
         'approved_at',
+        'paid_at',
         'admin_notes',
     ];
 
@@ -26,23 +30,31 @@ class SpotlightVotePurchase extends Model
         'amount_paid'  => 'decimal:2',
         'votes_count'  => 'integer',
         'approved_at'  => 'datetime',
+        'paid_at'      => 'datetime',
     ];
 
-    /**
-     * Pricing configuration. Centralized here as the single source of truth.
-     */
-    public const PACKAGES = [
-        'starter' => ['votes' => 1,  'price' => 1.00,  'label' => '$1 = 1 vote'],
-        'popular' => ['votes' => 10, 'price' => 8.00,  'label' => '$8 = 10 votes'],
-        'boost'   => ['votes' => 25, 'price' => 18.00, 'label' => '$18 = 25 votes'],
-        'power'   => ['votes' => 50, 'price' => 35.00, 'label' => '$35 = 50 votes'],
-    ];
+    /*
+    |--------------------------------------------------------------------------
+    | Status Constants
+    |--------------------------------------------------------------------------
+    */
+
+    public const STATUS_PENDING   = 'pending';   // User submitted request
+    public const STATUS_APPROVED  = 'approved';  // Admin approved, awaiting payment
+    public const STATUS_PAID      = 'paid';      // Payment received via Stripe, votes credited
+    public const STATUS_REFUNDED  = 'refunded';  // Refunded by admin, votes removed
+    public const STATUS_CANCELLED = 'cancelled'; // Cancelled before payment
 
     /*
     |--------------------------------------------------------------------------
     | Relationships
     |--------------------------------------------------------------------------
     */
+
+    public function package(): BelongsTo
+    {
+        return $this->belongsTo(SpotlightVotePackage::class, 'spotlight_vote_package_id');
+    }
 
     public function nominee(): BelongsTo
     {
@@ -72,12 +84,27 @@ class SpotlightVotePurchase extends Model
 
     public function scopePending($query)
     {
-        return $query->where('status', 'pending');
+        return $query->where('status', self::STATUS_PENDING);
     }
 
-    public function scopeCompleted($query)
+    public function scopeApproved($query)
     {
-        return $query->where('status', 'completed');
+        return $query->where('status', self::STATUS_APPROVED);
+    }
+
+    public function scopePaid($query)
+    {
+        return $query->where('status', self::STATUS_PAID);
+    }
+
+    public function scopeRefunded($query)
+    {
+        return $query->where('status', self::STATUS_REFUNDED);
+    }
+
+    public function scopeAwaitingPayment($query)
+    {
+        return $query->whereIn('status', [self::STATUS_APPROVED, self::STATUS_PENDING]);
     }
 
     /*
@@ -88,19 +115,52 @@ class SpotlightVotePurchase extends Model
 
     public function isPending(): bool
     {
-        return $this->status === 'pending';
+        return $this->status === self::STATUS_PENDING;
     }
 
-    public function isCompleted(): bool
+    public function isApproved(): bool
     {
-        return $this->status === 'completed';
+        return $this->status === self::STATUS_APPROVED;
+    }
+
+    public function isPaid(): bool
+    {
+        return $this->status === self::STATUS_PAID;
+    }
+
+    public function isRefunded(): bool
+    {
+        return $this->status === self::STATUS_REFUNDED;
     }
 
     /**
-     * Get the package details for a given package key.
+     * Whether the user can pay for this purchase (approved but not yet paid).
+     */
+    public function isPayable(): bool
+    {
+        return $this->status === self::STATUS_APPROVED;
+    }
+
+    /**
+     * Get the package details.
+     *
+     * Maintained for backward compatibility with code that references
+     * the old hardcoded PACKAGES constant. New code should use the
+     * package() relationship instead.
+     *
+     * @deprecated Use $purchase->package relationship instead.
      */
     public static function packageDetails(string $package): ?array
     {
-        return self::PACKAGES[$package] ?? null;
+        $pkg = static::packageModel($package);
+        return $pkg ? ['votes' => $pkg->votes_count, 'price' => $pkg->price, 'label' => $pkg->label] : null;
+    }
+
+    /**
+     * Resolve a SpotlightVotePackage model by slug for backward compatibility.
+     */
+    private static function packageModel(string $slug): ?SpotlightVotePackage
+    {
+        return SpotlightVotePackage::where('slug', $slug)->first();
     }
 }
