@@ -271,6 +271,120 @@ class SpotlightWeekController extends Controller
     }
 
     /**
+     * GET /api/v1/spotlight/nominated
+     *
+     * Get the nominated spotlights for a given week — the spotlights selected for voting.
+     * Defaults to the current voting week. Includes the spotlight and owner details.
+     * Public — no auth required.
+     *
+     * @queryParam week_id int Optional. Week ID (defaults to current voting week).
+     * @queryParam type string Optional. Filter by 'artist', 'business', or 'all' (default).
+     * @queryParam per_page int Optional. Items per page (default 12).
+     */
+    public function nominated(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'week_id'  => ['sometimes', 'integer', 'exists:spotlight_weeks,id'],
+            'type'     => ['sometimes', 'string', 'in:all,artist,business'],
+            'per_page' => ['sometimes', 'integer', 'min:1', 'max:50'],
+        ]);
+
+        $perPage = $validated['per_page'] ?? 12;
+        $type = $validated['type'] ?? 'all';
+
+        // Resolve the week: given week_id, or current voting week
+        if (! empty($validated['week_id'])) {
+            $week = SpotlightWeek::findOrFail($validated['week_id']);
+        } else {
+            $week = $this->weekService->getCurrentVotingWeek();
+
+            if (! $week) {
+                $week = SpotlightWeek::whereIn('status', ['nominating', 'voting', 'completed'])
+                    ->latest('voting_starts_at')
+                    ->first();
+            }
+
+            if (! $week) {
+                return $this->success('No active week with nominees found.', [
+                    'week'     => null,
+                    'nominees' => [],
+                ]);
+            }
+        }
+
+        // Build the query
+        $query = SpotlightWeekNominee::where('spotlight_week_id', $week->id);
+
+        if ($type === 'artist') {
+            $query->where('spotlightable_type', ArtistSpotlight::class);
+        } elseif ($type === 'business') {
+            $query->where('spotlightable_type', BusinessSpotlight::class);
+        }
+        // 'all' → no filter
+
+        $nominees = $query
+            ->with(['spotlightable', 'user.profile', 'week'])
+            ->orderByDesc('total_vote_count')
+            ->orderByDesc('free_vote_count')
+            ->paginate($perPage);
+
+        $data = collect($nominees->items())->map(function ($nominee) {
+            $isArtist = $nominee->spotlightable_type === ArtistSpotlight::class;
+            $spotlight = $nominee->spotlightable;
+
+            return [
+                'id'            => $nominee->id,
+                'rank'          => $nominee->rank,
+                'is_winner'     => $nominee->is_winner,
+                'spotlight'     => $spotlight ? [
+                    'id'       => $spotlight->id,
+                    'type'     => $isArtist ? 'artist' : 'business',
+                    'name'     => $isArtist
+                        ? ($spotlight->artist_stage_name ?? $spotlight->full_legal_name)
+                        : ($spotlight->business_name ?? $spotlight->owner_founder_name),
+                    'city'     => $spotlight->city ?? null,
+                    'state'    => $spotlight->state ?? null,
+                    'headshot' => $isArtist ? ($spotlight->headshot_path ?? null) : ($spotlight->portrait_photo_path ?? null),
+                ] : null,
+                'owner'         => [
+                    'id'   => $nominee->user->id,
+                    'name' => $nominee->user->profile?->name ?? $nominee->user->email ?? '—',
+                ],
+                'votes'         => [
+                    'free'          => $nominee->free_vote_count,
+                    'paid'          => $nominee->paid_vote_count,
+                    'total'         => $nominee->total_vote_count,
+                    'paid_cap'      => SpotlightWeek::maxPurchasedVotes(),
+                    'cap_reached'   => $nominee->hasReachedPaidVoteCap(),
+                    'remaining_slots' => $nominee->remainingPaidVoteSlots(),
+                ],
+            ];
+        });
+
+        return $this->success('Nominated spotlights retrieved.', [
+            'week' => [
+                'id'               => $week->id,
+                'week_number'      => $week->week_number,
+                'year'             => $week->year,
+                'status'           => $week->status,
+                'is_voting_open'   => $week->isVotingOpen(),
+                'voting_starts_at' => $week->voting_starts_at,
+                'voting_ends_at'   => $week->voting_ends_at,
+            ],
+            'type'         => $type,
+            'nominees_count' => $nominees->total(),
+            'nominees'     => $data,
+            'pagination'   => [
+                'current_page' => $nominees->currentPage(),
+                'per_page'     => (int) $nominees->perPage(),
+                'last_page'    => $nominees->lastPage(),
+                'total'        => $nominees->total(),
+                'has_more'     => $nominees->hasMorePages(),
+            ],
+        ]);
+    }
+
+    /**
      * Format a spotlight week nominee winner into a clean response array.
      */
     private function formatWinner($nominee): array

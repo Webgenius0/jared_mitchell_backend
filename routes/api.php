@@ -184,6 +184,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::get('/historical-winners', [SpotlightWeekController::class, 'historicalWinners']); // Past 6 months winners by type
             Route::get('/weeks/{week}/leaderboard', [SpotlightWeekController::class, 'leaderboard']); // DONE: Real-time leaderboard
             Route::get('/votes/pricing', [SpotlightVoteController::class, 'pricing']); // DONE: Paid vote package pricing
+            Route::get('/nominated', [SpotlightWeekController::class, 'nominated']); // Nominated spotlights for voting
         });
 
         /*
