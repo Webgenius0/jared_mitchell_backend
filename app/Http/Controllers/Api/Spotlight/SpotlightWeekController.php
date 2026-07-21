@@ -160,9 +160,16 @@ class SpotlightWeekController extends Controller
      *
      * Get the most recent spotlight winner. Includes archive list.
      * Public — no auth required.
+     *
+     * @queryParam per_page int Optional. Items per page (default 10).
      */
-    public function winners(): JsonResponse
+    public function winners(Request $request): JsonResponse
     {
+        $validated = $request->validate([
+            'per_page' => ['sometimes', 'integer', 'min:1', 'max:50'],
+        ]);
+
+        $perPage = $validated['per_page'] ?? 10;
         $latestWinner = $this->weekService->getLastWinner();
 
         $archive = SpotlightWeekNominee::whereHas('week', function ($q) {
@@ -172,10 +179,10 @@ class SpotlightWeekController extends Controller
             ->where('is_winner', true)
             ->with('spotlightable', 'week', 'user.profile')
             ->latest()
-            ->paginate(10);
+            ->paginate($perPage);
 
         $archiveData = collect($archive->items())->map(function ($nominee) {
-            $isArtist = $nominee->spotlightable_type === \App\Models\ArtistSpotlight::class;
+            $isArtist = $nominee->spotlightable_type === ArtistSpotlight::class;
             $spotlight = $nominee->spotlightable;
 
             return [
@@ -202,9 +209,10 @@ class SpotlightWeekController extends Controller
             'archive'        => $archiveData,
             'pagination'     => [
                 'total'        => $archive->total(),
-                'per_page'     => $archive->perPage(),
+                'per_page'     => (int) $archive->perPage(),
                 'current_page' => $archive->currentPage(),
                 'last_page'    => $archive->lastPage(),
+                'has_more'     => $archive->hasMorePages(),
             ],
         ]);
     }
@@ -216,14 +224,17 @@ class SpotlightWeekController extends Controller
      * Public — no auth required.
      *
      * @queryParam type string Required. Either 'artist' or 'business'. Filter winners by spotlight type.
+     * @queryParam per_page int Optional. Items per page (default 10).
      */
     public function historicalWinners(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'type' => ['required', 'string', 'in:artist,business'],
+            'type'     => ['required', 'string', 'in:artist,business'],
+            'per_page' => ['sometimes', 'integer', 'min:1', 'max:50'],
         ]);
 
         $type = $validated['type'];
+        $perPage = $validated['per_page'] ?? 10;
         $spotlightableType = $type === 'artist'
             ? ArtistSpotlight::class
             : BusinessSpotlight::class;
@@ -239,16 +250,23 @@ class SpotlightWeekController extends Controller
             })
             ->with(['spotlightable', 'week', 'user.profile'])
             ->orderByRaw('(SELECT voting_ends_at FROM spotlight_weeks WHERE id = spotlight_week_nominees.spotlight_week_id LIMIT 1) DESC')
-            ->get();
+            ->paginate($perPage);
 
-        $data = $winners->map(function ($nominee) {
+        $data = collect($winners->items())->map(function ($nominee) {
             return $this->formatWinner($nominee);
         });
 
         return $this->success("Past 6 months {$type} spotlight winners retrieved.", [
             'type'    => $type,
-            'total'   => $data->count(),
+            'total'   => $winners->total(),
             'winners' => $data,
+            'pagination' => [
+                'current_page' => $winners->currentPage(),
+                'per_page'     => (int) $winners->perPage(),
+                'last_page'    => $winners->lastPage(),
+                'total'        => $winners->total(),
+                'has_more'     => $winners->hasMorePages(),
+            ],
         ]);
     }
 
