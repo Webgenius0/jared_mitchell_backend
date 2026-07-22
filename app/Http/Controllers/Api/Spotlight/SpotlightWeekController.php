@@ -67,16 +67,16 @@ class SpotlightWeekController extends Controller
             ],
             'nominees_count' => $leaderboard->count(),
             'leaderboard' => $leaderboard,
-            'pricing' => \App\Models\Spotlight\SpotlightVotePackage::active()->ordered()->get()->map(function ($pkg) {
-                return [
-                    'id'          => $pkg->id,
-                    'name'        => $pkg->name,
-                    'slug'        => $pkg->slug,
-                    'votes'       => $pkg->votes_count,
-                    'price'       => (float) $pkg->price,
-                    'label'       => $pkg->label,
-                ];
-            }),
+            // 'pricing' => \App\Models\Spotlight\SpotlightVotePackage::active()->ordered()->get()->map(function ($pkg) {
+            //     return [
+            //         'id'          => $pkg->id,
+            //         'name'        => $pkg->name,
+            //         'slug'        => $pkg->slug,
+            //         'votes'       => $pkg->votes_count,
+            //         'price'       => (float) $pkg->price,
+            //         'label'       => $pkg->label,
+            //     ];
+            // }),
             'max_paid_votes' => SpotlightWeek::maxPurchasedVotes(),
         ]);
     }

@@ -15,7 +15,7 @@ class PricingController extends Controller
     public function __construct(
         protected StripeProductSyncService $stripeSync,
     ) {}
-{
+
     // List all plans
     public function index(Request $request)
     {
