@@ -5,6 +5,9 @@
     <div class="card-body p-2">
         <div class="list-group list-group-flush">
             @foreach ($pages as $page)
+                @if($page->value === 'sponsorship')
+                    @continue
+                @endif
                 <a href="{{ route('admin.cms.content.index', ['page' => $page->value]) }}"
                     class="list-group-item list-group-item-action {{ $currentPage === $page->value ? 'active' : '' }}">
                     <div class="d-flex align-items-center">
