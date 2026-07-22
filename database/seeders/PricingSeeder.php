@@ -3,14 +3,18 @@
 namespace Database\Seeders;
 
 use App\Models\PricingPlan;
+use App\Services\StripeProductSyncService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
 class PricingSeeder extends Seeder
 {
-    public function run(): void
+    public function run(StripeProductSyncService $stripeSync): void
     {
-        DB::transaction(function () {
+        $synced = 0;
+        $failed = 0;
+
+        DB::transaction(function () use ($stripeSync, &$synced, &$failed) {
             // Clear existing pricing data
             PricingPlan::query()->each(function ($plan) {
                 $plan->featureGroups()->each(fn($g) => $g->items()->delete());
@@ -55,6 +59,16 @@ class PricingSeeder extends Seeder
                 ],
             ]);
 
+            // Sync to Stripe (creates Product + recurring Price)
+            try {
+                $stripeSync->sync($basic);
+                $this->command?->info("  ✓ Stripe: {$basic->plan_name}");
+                $synced++;
+            } catch (\Exception $e) {
+                $this->command?->warn("  ⚠ Stripe sync failed for {$basic->plan_name}: {$e->getMessage()}");
+                $failed++;
+            }
+
             // 2. GROWTH PLAN
             $growth = PricingPlan::create([
                 'plan_name' => 'GROWTH PLAN',
@@ -98,6 +112,16 @@ class PricingSeeder extends Seeder
                     'Access to OSI network resources + job board',
                 ],
             ]);
+
+            // Sync to Stripe
+            try {
+                $stripeSync->sync($growth);
+                $this->command?->info("  ✓ Stripe: {$growth->plan_name}");
+                $synced++;
+            } catch (\Exception $e) {
+                $this->command?->warn("  ⚠ Stripe sync failed for {$growth->plan_name}: {$e->getMessage()}");
+                $failed++;
+            }
 
             // 3. PRO BUSINESS
             $pro = PricingPlan::create([
@@ -144,7 +168,19 @@ class PricingSeeder extends Seeder
                     'Partner dashboard access',
                 ],
             ]);
+
+            // Sync to Stripe
+            try {
+                $stripeSync->sync($pro);
+                $this->command?->info("  ✓ Stripe: {$pro->plan_name}");
+                $synced++;
+            } catch (\Exception $e) {
+                $this->command?->warn("  ⚠ Stripe sync failed for {$pro->plan_name}: {$e->getMessage()}");
+                $failed++;
+            }
         });
+
+        $this->command?->info("Pricing seeded. Stripe: {$synced} synced, {$failed} failed.");
     }
 
     private function addGroups(PricingPlan $plan, array $groups)

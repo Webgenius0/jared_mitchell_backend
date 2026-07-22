@@ -166,6 +166,74 @@
                                     </div>
                                 </div>
 
+                                {{-- Stripe Sync Status --}}
+                                @if($plan->exists && $plan->stripe_product_id)
+                                <hr class="my-3">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Stripe Sync</label>
+                                    <div class="bg-light rounded p-3">
+                                        <div class="d-flex align-items-center gap-2 mb-2">
+                                            <span class="badge bg-success">Synced</span>
+                                            <small class="text-muted">Product & price exist on Stripe</small>
+                                        </div>
+                                        <div class="small">
+                                            <div><strong>Product ID:</strong> <code>{{ $plan->stripe_product_id }}</code></div>
+                                            <div><strong>Price ID:</strong> <code>{{ $plan->stripe_price_id }}</code></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                @elseif($plan->exists && !$plan->stripe_product_id)
+                                <hr class="my-3">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Stripe Sync</label>
+                                    <div class="bg-warning bg-opacity-10 rounded p-3">
+                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                            <span class="badge bg-warning text-dark">Not Synced</span>
+                                            <small class="text-muted">No Stripe product/price yet</small>
+                                        </div>
+                                        <p class="small text-muted mb-0">
+                                            A Stripe product & recurring price will be auto-created when you save this plan.
+                                            The <strong>price_suffix</strong> determines the billing interval (e.g. "/month" → monthly, "/year" → yearly).
+                                        </p>
+                                    </div>
+                                </div>
+                                @endif
+
+                                <div class="form-check mb-3">
+                                    <input
+                                        class="form-check-input" type="checkbox"
+                                        name="skip_stripe_sync" value="1"
+                                        id="skipStripeSync"
+                                        {{ old('skip_stripe_sync') ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="skipStripeSync">
+                                        <small>Skip Stripe sync (manual ID entry)</small>
+                                    </label>
+                                </div>
+
+                                {{-- Manual Stripe ID inputs (shown when "Skip Stripe sync" is checked) --}}
+                                <div class="mb-3" id="manualStripeIds" style="display:none;">
+                                    <label class="form-label fw-semibold">Manual Stripe IDs</label>
+                                    <p class="small text-muted mb-2">Enter existing Stripe Product & Price IDs to link this plan.</p>
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <input
+                                                type="text" name="stripe_product_id"
+                                                class="form-control form-control-sm"
+                                                value="{{ old('stripe_product_id', $plan->stripe_product_id) }}"
+                                                placeholder="prod_...">
+                                            <small class="text-muted">Product ID</small>
+                                        </div>
+                                        <div class="col-6">
+                                            <input
+                                                type="text" name="stripe_price_id"
+                                                class="form-control form-control-sm"
+                                                value="{{ old('stripe_price_id', $plan->stripe_price_id) }}"
+                                                placeholder="price_...">
+                                            <small class="text-muted">Price ID</small>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 {{-- Toggles --}}
                                 <div class="d-flex gap-4 mt-1">
                                     <div class="form-check form-switch">
@@ -246,6 +314,11 @@
                     ])->values()
                     : []
             );
+
+            // Toggle manual Stripe ID fields when "Skip Stripe sync" is checked
+            $('#skipStripeSync').on('change', function() {
+                $('#manualStripeIds').toggle($(this).is(':checked'));
+            });
 
             function updateEmptyState() {
                 $empty.toggleClass('d-none', $groups.find('.js-group-card').length > 0);

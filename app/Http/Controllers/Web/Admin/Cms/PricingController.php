@@ -4,12 +4,17 @@ namespace App\Http\Controllers\Web\Admin\Cms;
 
 use App\Http\Controllers\Controller;
 use App\Models\PricingPlan;
+use App\Services\StripeProductSyncService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 
 class PricingController extends Controller
+{
+    public function __construct(
+        protected StripeProductSyncService $stripeSync,
+    ) {}
 {
     // List all plans
     public function index(Request $request)
@@ -73,12 +78,23 @@ class PricingController extends Controller
             return $plan;
         });
 
+        // Auto-create Stripe Product + Price if user opted in
+        $skipStripe = $request->boolean('skip_stripe_sync', false);
+        if (!$skipStripe) {
+            try {
+                $this->stripeSync->sync($plan);
+            } catch (\Exception $e) {
+                report($e);
+                // Plan was created but Stripe sync failed — admin can retry later
+            }
+        }
+
         $this->bustPricingCache();
 
         if ($request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Plan created successfully.',
+                'message' => 'Plan created successfully.' . (!$skipStripe && $plan->stripe_price_id ? ' Stripe product & price created.' : ''),
                 'data' => [
                     'plan' => $plan,
                     'redirect' => route('admin.pricing.index'),
@@ -110,12 +126,22 @@ class PricingController extends Controller
             $this->syncFeatureGroups($plan, (array) $request->input('feature_groups', []));
         });
 
+        // Sync Stripe product/price on update if user opted in
+        $skipStripe = $request->boolean('skip_stripe_sync', false);
+        if (!$skipStripe) {
+            try {
+                $this->stripeSync->sync($plan);
+            } catch (\Exception $e) {
+                report($e);
+            }
+        }
+
         $this->bustPricingCache();
 
         if ($request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Plan updated successfully.',
+                'message' => 'Plan updated successfully.' . (!$skipStripe && $plan->fresh()->stripe_price_id ? ' Stripe product & price synced.' : ''),
                 'data' => [
                     'plan' => $plan->fresh('featureGroups.items'),
                     'redirect' => route('admin.pricing.index'),
@@ -169,6 +195,9 @@ class PricingController extends Controller
             'button_label' => ['nullable', 'string', 'max:150'],
             'button_url' => ['nullable', 'string', 'max:255'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
+            'stripe_product_id' => ['nullable', 'string', 'max:255'],
+            'stripe_price_id' => ['nullable', 'string', 'max:255'],
+            'skip_stripe_sync' => ['nullable', 'boolean'],
             'feature_groups' => ['nullable', 'array'],
             'feature_groups.*.title' => ['nullable', 'string', 'max:255'],
             'feature_groups.*.items' => ['nullable', 'array'],

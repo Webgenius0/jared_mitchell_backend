@@ -11,6 +11,7 @@ use App\Services\StripeService;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Laravel\Cashier\Http\Controllers\WebhookController as CashierWebhookHandler;
 use Stripe\Event;
 
 class StripeWebhookController extends Controller
@@ -25,7 +26,9 @@ class StripeWebhookController extends Controller
     /**
      * POST /api/webhooks/stripe
      *
-     * Handle incoming Stripe webhook events.
+     * Single Stripe webhook endpoint that handles:
+     *   - Subscription events → Cashier's WebhookController
+     *   - Order / event / vote payments → custom handlers
      */
     public function handle(Request $request): JsonResponse
     {
@@ -39,13 +42,24 @@ class StripeWebhookController extends Controller
         }
 
         try {
+            // 1. Process subscription-related events via Cashier
+            //    Cashier handles: customer.subscription.*, invoice.*, customer.*,
+            //    and checkout.session.completed for subscription checkouts.
+            //    We instantiate directly (middleware is bypassed since our
+            //    signature validation already ran).
+            app(CashierWebhookHandler::class)->handleWebhook($request);
+        } catch (Exception $e) {
+            report($e);
+        }
+
+        try {
+            // 2. Process custom application events
             match ($event->type) {
                 'checkout.session.completed' => $this->handleCheckoutCompleted($event),
                 'checkout.session.expired' => $this->handleCheckoutExpired($event),
                 default => null,
             };
         } catch (Exception $e) {
-            // Log the error but still return 200 to acknowledge receipt
             report($e);
         }
 

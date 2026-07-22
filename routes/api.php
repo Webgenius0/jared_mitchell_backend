@@ -55,6 +55,7 @@ use App\Http\Controllers\Api\Spotlight\SpotlightVotePackageController;
 use App\Http\Controllers\Api\Spotlight\SpotlightWeekController;
 use App\Http\Controllers\Api\SpotlightController;
 use App\Http\Controllers\Api\StripeWebhookController;
+use App\Http\Controllers\Api\SubscriptionController;
 use App\Http\Controllers\Api\WishlistController;
 use Illuminate\Support\Facades\Route;
 
@@ -191,10 +192,11 @@ Route::group(['prefix' => 'v1'], function ($router) {
 
         /*
         |--------------------------------------------------------------------------
-        | Pricing (Accessible by both guest and authenticated users)
+        | Pricing & Subscriptions (Accessible by both guest and authenticated users)
         |--------------------------------------------------------------------------
         */
         Route::get('/pricing', [PricingController::class, 'index']);
+        Route::get('/subscription-plans', [SubscriptionController::class, 'index']);
 
         /*
         |--------------------------------------------------------------------------
@@ -433,6 +435,16 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::post('/{id}/cancel', [EventController::class, 'cancelRegistration']);
         });
 
+        // Subscriptions
+        Route::prefix('subscription')->group(function () {
+            Route::post('/checkout', [SubscriptionController::class, 'checkout']); // DONE: Checkout subscription
+            Route::get('/status', [SubscriptionController::class, 'status']); // DONE: Get subscription status
+            Route::post('/cancel', [SubscriptionController::class, 'cancel']); // DONE: Cancel subscription
+            Route::post('/resume', [SubscriptionController::class, 'resume']); // DONE: Resume subscription
+            Route::post('/swap', [SubscriptionController::class, 'swap']); // DONE: Swap subscription
+            Route::post('/billing-portal', [SubscriptionController::class, 'billingPortal']); // DONE: Get billing portal
+        });
+
         /*
         |--------------------------------------------------------------------------
         | Contest — Voting, Submissions & Leaderboard
@@ -559,7 +571,15 @@ Route::group(['prefix' => 'v2'], function () {
 
 /*
 |--------------------------------------------------------------------------
-| Stripe Webhook (public, no auth)
+| Stripe Webhook — single entry point
+|--------------------------------------------------------------------------
+| Handles all Stripe events in one place:
+|   - Subscription lifecycle → dispatched to Cashier internally
+|   - Order / event / vote payments → custom handlers
+|
+| Configure this single URL in the Stripe Dashboard.
+| Required events: checkout.session.completed, checkout.session.expired,
+|                  customer.subscription.*, invoice.*, customer.*
 |--------------------------------------------------------------------------
 */
 Route::post('/webhooks/stripe', [StripeWebhookController::class, 'handle']);
