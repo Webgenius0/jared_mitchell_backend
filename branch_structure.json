@@ -1,0 +1,33 @@
+{
+  "default_branch": "master",
+  "branches": [
+    "MASTER",
+    "ariful",
+    "deploy",
+    "master",
+    "najim",
+    "origin",
+    "rayhan",
+    "reform"
+  ],
+  "parent": {
+    "MASTER": "master",
+    "ariful": "master",
+    "deploy": "master",
+    "master": null,
+    "najim": "master",
+    "origin": "master",
+    "rayhan": "master",
+    "reform": "master"
+  },
+  "order": [
+    "master",
+    "MASTER",
+    "ariful",
+    "deploy",
+    "najim",
+    "origin",
+    "rayhan",
+    "reform"
+  ]
+}
