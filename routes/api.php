@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\Auth\V1\MemberProfileController;
 use App\Http\Controllers\Api\Auth\V1\SponsorProfileController;
 use App\Http\Controllers\Api\Auth\V2\ForgotPasswordController as V2ForgotPasswordController;
 use App\Http\Controllers\Api\Auth\V2\RegisterController as V2RegisterController;
+use App\Http\Controllers\Api\BossDashboardController;
 use App\Http\Controllers\Api\BusinessController;
 use App\Http\Controllers\Api\BusinessSpotlightController;
 use App\Http\Controllers\Api\CartController;
@@ -332,6 +333,12 @@ Route::group(['prefix' => 'v1'], function ($router) {
                 Route::post('/update/{id}', [BusinessSpotlightController::class, 'update']); // Full update
                 Route::delete('/delete/{id}', [BusinessSpotlightController::class, 'destroy']); // Delete spotlight
             });
+
+            // Boss Dashboard
+            Route::prefix('dashboard')->group(function () {
+                Route::get('/stats', [BossDashboardController::class, 'overview']); // DONE: Overview stats (total businesses, spotlights, votes, event purchases)
+                Route::get('/spotlight-performance', [BossDashboardController::class, 'spotlightPerformance']); // DONE: Current spotlight week performance with vote trend
+            });
         });
 
         // Business interactions (clap, save, share)
@@ -422,7 +429,6 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::get('/{order}', [OrderController::class, 'show']); // DONE: show order
             Route::post('/{order}/cancel', [OrderController::class, 'cancel']); // DONE: cancel order
         });
-
 
         // Notifications
         Route::prefix('notifications')->group(function () {
