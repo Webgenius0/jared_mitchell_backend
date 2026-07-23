@@ -50,6 +50,7 @@ use App\Http\Controllers\Api\PricingController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\RoundSessionApiController;
 use App\Http\Controllers\Api\Spotlight\SpotlightApplicationController;
+use App\Http\Controllers\Api\Spotlight\SpotlightDetailsController;
 use App\Http\Controllers\Api\Spotlight\SpotlightVoteController;
 use App\Http\Controllers\Api\Spotlight\SpotlightVotePackageController;
 use App\Http\Controllers\Api\Spotlight\SpotlightWeekController;
@@ -188,6 +189,10 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::get('/weeks/{week}/leaderboard', [SpotlightWeekController::class, 'leaderboard']); // DONE: Real-time leaderboard
             Route::get('/votes/pricing', [SpotlightVoteController::class, 'pricing']); // DONE: Paid vote package pricing
             Route::get('/nominated', [SpotlightWeekController::class, 'nominated']); // Nominated spotlights for voting
+
+            // Spotlight details (public, no auth required)
+            Route::get('/details/artist/{id}', [SpotlightDetailsController::class, 'artistDetails']); // DONE: Full artist spotlight details (voting, media, interactions)
+            Route::get('/details/business/{id}', [SpotlightDetailsController::class, 'businessDetails']); // DONE: Full business spotlight details (voting, media, interactions)
         });
 
         /*
