@@ -245,17 +245,30 @@
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
-                                <div class="mb-3">
-                                    <div class="form-check form-switch form-switch-md">
-                                        <input class="form-check-input" type="checkbox" id="is_active" name="is_active"
-                                            value="1" {{ old('is_active') ? 'checked' : '' }}>
-                                        <label class="form-check-label fw-semibold" for="is_active">Active</label>
-                                    </div>
+                            <div class="mb-3">
+                                <div class="form-check form-switch form-switch-md">
+                                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active"
+                                        value="1" {{ old('is_active') ? 'checked' : '' }}>
+                                    <label class="form-check-label fw-semibold" for="is_active">Active</label>
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="card">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Sponsor</label>
+                                <select name="sponsor_id" class="form-select @error('sponsor_id') is-invalid @enderror">
+                                    <option value="">— No Sponsor —</option>
+                                    @foreach ($sponsors as $sponsor)
+                                        <option value="{{ $sponsor->id }}" {{ old('sponsor_id') == $sponsor->id ? 'selected' : '' }}>
+                                            {{ $sponsor->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('sponsor_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
                             <div class="card-body">
                                 <button type="submit" class="btn btn-success w-100">
                                     <i class="ri-save-line align-bottom me-1"></i> Save Round Session

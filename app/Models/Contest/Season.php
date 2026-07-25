@@ -5,6 +5,8 @@ namespace App\Models\Contest;
 use App\Models\Contest\ContestApplication;
 use App\Models\Contest\Contestant;
 use App\Models\Round;
+use App\Models\SeasonSponsor;
+use App\Models\Sponsor;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
@@ -71,6 +73,21 @@ class Season extends Model
     public function applications()
     {
         return $this->hasMany(ContestApplication::class, 'season_id');
+    }
+
+    /**
+     * The sponsor assigned to this season (one sponsor per season).
+     */
+    public function sponsor()
+    {
+        return $this->hasOneThrough(
+            Sponsor::class,
+            SeasonSponsor::class,
+            'season_id', // Foreign key on season_sponsor table
+            'id',        // Foreign key on sponsors table
+            'id',        // Local key on seasons table
+            'sponsor_id' // Local key on season_sponsor table
+        );
     }
 
     /**

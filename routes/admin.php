@@ -35,6 +35,7 @@ use App\Http\Controllers\Web\Admin\Product\AdminProductController;
 use App\Http\Controllers\Web\Admin\Round\RoundSeasonController;
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Web\Admin\SponsorController;
 use App\Http\Controllers\Web\Admin\Spotlight\SpotlightVotePackageController;
 
 Route::get('/', [AdminDashboardController::class, 'index'])->name('show.admin.dashboard'); // show admin dashboard
@@ -190,6 +191,20 @@ Route::prefix('cms/shop')->name('admin.cms.shop.')->group(function () {
     Route::post('/featured', [ShopCmsController::class, 'updateFeatured'])->name('update.featured');
     Route::post('/limited-drops', [ShopCmsController::class, 'updateLimitedDrops'])->name('update.limited_drops');
     Route::post('/faq', [ShopCmsController::class, 'updateFaq'])->name('update.faq');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Sponsors Management
+|--------------------------------------------------------------------------
+*/
+Route::prefix('sponsors')->name('admin.sponsors.')->group(function () {
+    Route::get('/', [SponsorController::class, 'index'])->name('index');
+    Route::get('/data', [SponsorController::class, 'getData'])->name('data');
+    Route::post('/', [SponsorController::class, 'store'])->name('store');
+    Route::put('/{sponsor}', [SponsorController::class, 'update'])->name('update');
+    Route::patch('/{sponsor}/toggle-status', [SponsorController::class, 'toggleStatus'])->name('toggle-status');
+    Route::delete('/{sponsor}', [SponsorController::class, 'destroy'])->name('destroy');
 });
 
 // Sponsorship CMS Routes

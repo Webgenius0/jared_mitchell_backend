@@ -30,6 +30,9 @@ class SeasonResource extends JsonResource
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
 
+            // Sponsor when eager-loaded
+            'sponsor' => new SponsorResource($this->whenLoaded('sponsor')),
+
             // Nested rounds when eager-loaded
             'rounds' => RoundResource::collection($this->whenLoaded('rounds')),
         ];

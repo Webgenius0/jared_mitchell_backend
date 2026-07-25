@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Web\Admin\Round;
 
 use App\Http\Controllers\Controller;
 use App\Models\Contest\Season;
+use App\Models\SeasonSponsor;
+use App\Models\Sponsor;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -107,7 +109,8 @@ class RoundSeasonController extends Controller
      */
     public function create()
     {
-        return view('web.admin.rounds.create');
+        $sponsors = Sponsor::active()->sorted()->get();
+        return view('web.admin.rounds.create', compact('sponsors'));
     }
 
     /**
@@ -125,6 +128,7 @@ class RoundSeasonController extends Controller
             'ends_at' => 'nullable|date|after_or_equal:starts_at',
             'applications_starts_at' => 'nullable|date',
             'applications_ends_at' => 'nullable|date|after_or_equal:applications_starts_at',
+            'sponsor_id' => 'nullable|integer|exists:sponsors,id',
             'rounds' => 'nullable|array',
             'rounds.*.round_number' => 'required|integer|min:1',
             'rounds.*.title' => 'required|string|max:255',
@@ -142,7 +146,8 @@ class RoundSeasonController extends Controller
 
         $data = $validated;
         $data['is_active'] = $request->boolean('is_active');
-        unset($data['rounds']);
+        $sponsorId = $data['sponsor_id'] ?? null;
+        unset($data['rounds'], $data['sponsor_id']);
 
         // If activating, deactivate all other seasons first
         if ($data['is_active']) {
@@ -150,6 +155,14 @@ class RoundSeasonController extends Controller
         }
 
         $season = Season::create($data);
+
+        // Assign sponsor if provided
+        if ($sponsorId) {
+            SeasonSponsor::updateOrCreate(
+                ['season_id' => $season->id],
+                ['sponsor_id' => $sponsorId]
+            );
+        }
 
         // Create nested rounds
         if ($request->has('rounds')) {
@@ -178,8 +191,9 @@ class RoundSeasonController extends Controller
      */
     public function edit(Season $season)
     {
-        $season->load('rounds');
-        return view('web.admin.rounds.edit', compact('season'));
+        $season->load(['rounds', 'sponsor']);
+        $sponsors = Sponsor::active()->sorted()->get();
+        return view('web.admin.rounds.edit', compact('season', 'sponsors'));
     }
 
     /**
@@ -197,6 +211,7 @@ class RoundSeasonController extends Controller
             'ends_at' => 'nullable|date|after_or_equal:starts_at',
             'applications_starts_at' => 'nullable|date',
             'applications_ends_at' => 'nullable|date|after_or_equal:applications_starts_at',
+            'sponsor_id' => 'nullable|integer|exists:sponsors,id',
             'rounds' => 'nullable|array',
             'rounds.*.id' => 'nullable|exists:rounds,id',
             'rounds.*.round_number' => 'required|integer|min:1',
@@ -215,7 +230,8 @@ class RoundSeasonController extends Controller
 
         $data = $validated;
         $data['is_active'] = $request->boolean('is_active');
-        unset($data['rounds']);
+        $sponsorId = $data['sponsor_id'] ?? null;
+        unset($data['rounds'], $data['sponsor_id']);
 
         // If activating, deactivate all other seasons first
         if ($data['is_active']) {
@@ -223,6 +239,16 @@ class RoundSeasonController extends Controller
         }
 
         $season->update($data);
+
+        // Assign sponsor if provided, or delete existing pivot
+        if ($sponsorId) {
+            SeasonSponsor::updateOrCreate(
+                ['season_id' => $season->id],
+                ['sponsor_id' => $sponsorId]
+            );
+        } else {
+            SeasonSponsor::where('season_id', $season->id)->delete();
+        }
 
         // Sync rounds: delete removed ones, update existing, create new
         $existingIds = collect($request->rounds)->pluck('id')->filter()->toArray();

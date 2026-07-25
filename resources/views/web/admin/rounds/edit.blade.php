@@ -385,6 +385,19 @@
                                     <label class="form-check-label fw-semibold" for="is_active">Active</label>
                                 </div>
                             </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Sponsor</label>
+                                <select name="sponsor_id" class="form-select @error('sponsor_id') is-invalid @enderror">
+                                    <option value="">— No Sponsor —</option>
+                                    @foreach ($sponsors as $sponsor)
+                                        <option value="{{ $sponsor->id }}" {{ old('sponsor_id', $season->sponsor?->id) == $sponsor->id ? 'selected' : '' }}>
+                                            {{ $sponsor->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('sponsor_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            </div>
                         </div>
                     </div>
 

@@ -369,6 +369,19 @@
                     </div>
                 </li>
 
+                {{-- Sponsors --}}
+                @php
+                    $sponsorsOpen = request()->routeIs('admin.sponsors.*');
+                @endphp
+
+                <li class="nav-item">
+                    <a class="nav-link menu-link {{ $sponsorsOpen ? 'active' : '' }}"
+                        href="{{ route('admin.sponsors.index') }}">
+                        <i class="ri-hand-heart-line"></i>
+                        <span>Sponsors</span>
+                    </a>
+                </li>
+
                 {{-- Contact Forms --}}
                 <li class="nav-item">
                     <a class="nav-link menu-link {{ request()->routeIs('admin.contacts.*') ? 'active' : '' }}"

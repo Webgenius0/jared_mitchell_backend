@@ -26,9 +26,12 @@ class BossBeginningSeasonController extends Controller
             return $this->error(null, 'No active season found.', 404);
         }
 
-        $season->load(['rounds' => function ($query) {
-            $query->orderBy('round_number');
-        }]);
+        $season->load([
+            'sponsor',
+            'rounds' => function ($query) {
+                $query->orderBy('round_number');
+            },
+        ]);
 
         return $this->success('Active season rounds retrieved successfully.', [
             'season' => new SeasonResource($season),
