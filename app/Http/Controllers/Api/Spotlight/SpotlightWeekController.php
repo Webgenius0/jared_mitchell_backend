@@ -13,6 +13,7 @@ use App\Services\Spotlight\SpotlightWeekService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class SpotlightWeekController extends Controller
 {
@@ -399,6 +400,7 @@ class SpotlightWeekController extends Controller
                     : ($spotlight->business_name ?? $spotlight->owner_founder_name),
                 'city'  => $spotlight->city ?? null,
                 'state' => $spotlight->state ?? null,
+                'media' => $this->formatSpotlightMedia($spotlight, $isArtist),
             ] : null,
             'owner'       => [
                 'id'   => $nominee->user->id,
@@ -409,5 +411,63 @@ class SpotlightWeekController extends Controller
             'paid_votes'   => $nominee->paid_vote_count,
             'announced_at' => $nominee->week?->announced_at,
         ];
+    }
+
+    /**
+     * Format spotlight media into full URLs, matching the pattern in SpotlightDetailsController.
+     */
+    private function formatSpotlightMedia($spotlight, bool $isArtist): array
+    {
+        $media = [];
+
+        if ($isArtist) {
+            if ($spotlight->headshot_path) {
+                $media['headshot'] = $this->formatImageUrl($spotlight->headshot_path);
+            }
+            if ($spotlight->artwork_photo_paths && is_array($spotlight->artwork_photo_paths)) {
+                $media['artwork_photos'] = array_values(
+                    array_filter(array_map([$this, 'formatImageUrl'], $spotlight->artwork_photo_paths))
+                );
+            }
+            if ($spotlight->behind_scenes_photo_path) {
+                $media['behind_scenes_photo'] = $this->formatImageUrl($spotlight->behind_scenes_photo_path);
+            }
+            if ($spotlight->intro_video_path) {
+                $media['intro_video'] = $this->formatImageUrl($spotlight->intro_video_path);
+            }
+        } else {
+            if ($spotlight->portrait_photo_path) {
+                $media['portrait_photo'] = $this->formatImageUrl($spotlight->portrait_photo_path);
+            }
+            if ($spotlight->storefront_workspace_photo_path) {
+                $media['storefront_workspace_photo'] = $this->formatImageUrl($spotlight->storefront_workspace_photo_path);
+            }
+            if ($spotlight->product_service_photo_paths && is_array($spotlight->product_service_photo_paths)) {
+                $media['product_service_photos'] = array_values(
+                    array_filter(array_map([$this, 'formatImageUrl'], $spotlight->product_service_photo_paths))
+                );
+            }
+            if ($spotlight->team_photo_path) {
+                $media['team_photo'] = $this->formatImageUrl($spotlight->team_photo_path);
+            }
+        }
+
+        return $media;
+    }
+
+    /**
+     * Convert a storage path or URL to a public URL.
+     */
+    private function formatImageUrl(?string $path): ?string
+    {
+        if (! $path) {
+            return null;
+        }
+
+        if (filter_var($path, FILTER_VALIDATE_URL)) {
+            return $path;
+        }
+
+        return Storage::disk('public')->url($path);
     }
 }
