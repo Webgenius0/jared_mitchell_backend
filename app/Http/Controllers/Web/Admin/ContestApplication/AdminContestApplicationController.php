@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Web\Admin\ContestApplication;
 use App\Exports\ContestApplicationsExport;
 use App\Http\Controllers\Controller;
 use App\Models\ContestApplication;
+use App\Models\Contest\Contestant;
 use App\Models\Contest\Season;
 use App\Models\Round;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -146,6 +148,8 @@ class AdminContestApplicationController extends Controller
                 'approved_at' => now(),
                 'approved_by' => auth('admin')->id(),
             ]);
+
+            $this->createContestantFor($contestApplication);
 
             return response()->json([
                 'success' => true,
@@ -375,6 +379,8 @@ class AdminContestApplicationController extends Controller
                     'approved_at' => now(),
                     'approved_by' => auth('admin')->id(),
                 ]);
+
+                $this->createContestantFor($application);
             } else {
                 $application->update([
                     'status' => 'rejected',
@@ -412,6 +418,47 @@ class AdminContestApplicationController extends Controller
         return response()->json([
             'success' => true,
             'message' => "{$deleted} application(s) deleted successfully.",
+        ]);
+    }
+
+    /**
+     * Create a Contestant record for an approved contest application.
+     * Skips if a contestant already exists for this business in the season.
+     */
+    private function createContestantFor(ContestApplication $application): void
+    {
+        $business = $application->business;
+
+        if (!$business) {
+            Log::warning('Contestant not created: business relationship null', [
+                'application_id' => $application->id,
+                'season_id'      => $application->season_id,
+            ]);
+            return;
+        }
+
+        $existing = Contestant::where('season_id', $application->season_id)
+            ->where('contestable_type', get_class($business))
+            ->where('contestable_id', $business->id)
+            ->first();
+
+        if ($existing) {
+            return;
+        }
+
+        $firstRound = Round::where('season_id', $application->season_id)
+            ->orderBy('round_number')
+            ->first();
+
+        Contestant::create([
+            'season_id'        => $application->season_id,
+            'contestable_type' => get_class($business),
+            'contestable_id'   => $business->id,
+            'display_name'     => $business->business_name ?? $business->owner_founder_name,
+            'slug'             => Str::slug($business->business_name ?? $business->owner_founder_name),
+            'status'           => 'active',
+            'current_round_id' => $firstRound?->id,
+            'entered_at'       => now(),
         ]);
     }
 }
