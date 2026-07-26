@@ -4,9 +4,12 @@ namespace App\Services;
 
 use App\Models\Business;
 use App\Models\ContestApplication;
+use App\Models\Contest\Contestant;
 use App\Models\Contest\Season;
+use App\Models\Round;
 use App\Services\Contest\AiReviewService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class ContestApplicationService
 {
@@ -164,6 +167,23 @@ class ContestApplicationService
             'status'      => 'approved',
             'approved_at' => now(),
             'approved_by' => auth('api')->id(),
+        ]);
+
+        // Create a Contestant record linking the business to the season
+        $business = $application->business;
+        $firstRound = Round::where('season_id', $application->season_id)
+            ->orderBy('round_number')
+            ->first();
+
+        Contestant::create([
+            'season_id'        => $application->season_id,
+            'contestable_type' => get_class($business),
+            'contestable_id'   => $business->id,
+            'display_name'     => $business->business_name ?? $business->owner_founder_name,
+            'slug'             => Str::slug($business->business_name ?? $business->owner_founder_name),
+            'status'           => 'active',
+            'current_round_id' => $firstRound?->id,
+            'entered_at'       => now(),
         ]);
 
         return ['success' => true, 'application' => $application->fresh(['business', 'season', 'approver'])];

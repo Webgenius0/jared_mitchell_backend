@@ -35,14 +35,14 @@ class Season extends Model
     ];
 
     protected $casts = [
-        'configuration'          => 'array',
-        'metadata'               => 'array',
+        'configuration' => 'array',
+        'metadata' => 'array',
         'applications_starts_at' => 'datetime',
-        'applications_ends_at'   => 'datetime',
-        'starts_at'              => 'datetime',
-        'ends_at'                => 'datetime',
-        'is_active'              => 'boolean',
-        'is_featured'            => 'boolean',
+        'applications_ends_at' => 'datetime',
+        'starts_at' => 'datetime',
+        'ends_at' => 'datetime',
+        'is_active' => 'boolean',
+        'is_featured' => 'boolean',
     ];
 
     /*
@@ -175,10 +175,10 @@ class Season extends Model
      */
     public function canApply(): bool
     {
-        return $this->status === 'open'
-            && $this->applications_starts_at
-            && $this->applications_ends_at
-            && now()->between($this->applications_starts_at, $this->applications_ends_at);
+        return $this->is_active
+            && $this->starts_at
+            && $this->ends_at
+            && now()->between($this->starts_at, $this->ends_at);
     }
 
     /**
