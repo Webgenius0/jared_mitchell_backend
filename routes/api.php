@@ -198,14 +198,6 @@ Route::group(['prefix' => 'v1'], function ($router) {
 
         /*
         |--------------------------------------------------------------------------
-        | Pricing & Subscriptions (Accessible by both guest and authenticated users)
-        |--------------------------------------------------------------------------
-        */
-        Route::get('/pricing', [PricingController::class, 'index']);
-        Route::get('/subscription-plans', [SubscriptionController::class, 'index']);
-
-        /*
-        |--------------------------------------------------------------------------
         | Contest — Voting, Submissions & Leaderboard
         |--------------------------------------------------------------------------
         */
@@ -244,6 +236,14 @@ Route::group(['prefix' => 'v1'], function ($router) {
     Route::prefix('events')->group(function () {
         Route::post('/register', [EventController::class, 'register']); // Register (Guest & Auth)
     });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Pricing & Subscriptions (Accessible by both guest and authenticated users)
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/pricing', [PricingController::class, 'index']);
+    Route::get('/subscription-plans', [SubscriptionController::class, 'index']);
 
 
     /*
