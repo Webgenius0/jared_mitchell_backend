@@ -11,6 +11,7 @@ use App\Services\StripeService;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Laravel\Cashier\Http\Controllers\WebhookController as CashierWebhookHandler;
 use Stripe\Event;
 
@@ -41,26 +42,28 @@ class StripeWebhookController extends Controller
             return response()->json(['error' => 'Invalid signature'], 400);
         }
 
-        try {
-            // 1. Process subscription-related events via Cashier
-            //    Cashier handles: customer.subscription.*, invoice.*, customer.*,
-            //    and checkout.session.completed for subscription checkouts.
-            //    We instantiate directly (middleware is bypassed since our
-            //    signature validation already ran).
-            app(CashierWebhookHandler::class)->handleWebhook($request);
-        } catch (Exception $e) {
-            report($e);
-        }
+        // 1. Process subscription-related events via Cashier
+        //    Cashier handles: customer.subscription.*, invoice.*, customer.*,
+        //    and checkout.session.completed for subscription checkouts.
+        //
+        //    IMPORTANT: No try/catch here — if Cashier fails, Stripe gets a 5xx
+        //    response and will RETRY the webhook. A silent catch would permanently
+        //    lose the subscription.
+        app(CashierWebhookHandler::class)->handleWebhook($request);
 
+        // 2. Process custom application events (orders, event registrations, votes)
         try {
-            // 2. Process custom application events
             match ($event->type) {
                 'checkout.session.completed' => $this->handleCheckoutCompleted($event),
                 'checkout.session.expired' => $this->handleCheckoutExpired($event),
                 default => null,
             };
         } catch (Exception $e) {
-            report($e);
+            Log::error('Stripe webhook: custom handler failed', [
+                'event_type' => $event->type ?? 'unknown',
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
         }
 
         return response()->json(['received' => true]);

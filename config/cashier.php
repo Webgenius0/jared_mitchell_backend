@@ -43,6 +43,7 @@ return [
     'webhook' => [
         'path' => env('CASHIER_WEBHOOK_PATH', 'webhooks/stripe/cashier'),
         'tries' => env('CASHIER_WEBHOOK_TRIES', 3),
+        'secret' => env('STRIPE_WEBHOOK_SECRET'),
     ],
 
     /*
