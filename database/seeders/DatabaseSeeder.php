@@ -34,6 +34,7 @@ class DatabaseSeeder extends Seeder
             SpotlightSeasonSeeder::class,
             SpotlightHistoricalWinnersSeeder::class,
             ContestWinnersSeeder::class,
+            PastSixMonthsWinnersSeeder::class,
             // HomePageSeeder::class,
             // BusinessSeeder::class,
         ]);
