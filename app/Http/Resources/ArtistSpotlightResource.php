@@ -35,6 +35,7 @@ class ArtistSpotlightResource extends JsonResource
 
             // Category
             'category' => new ArtistCategoryResource($this->whenLoaded('category')),
+            'category_name' => $this->whenLoaded('category', fn() => $this->category->name),
             'artist_category_id' => $this->artist_category_id,
             'category_other_description' => $this->category_other_description,
 
@@ -85,6 +86,18 @@ class ArtistSpotlightResource extends JsonResource
             // Timestamps
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
+
+            // Spotlight week duration (from nominees)
+            'duration' => $this->whenLoaded('nominees', function () {
+                $nominee = $this->nominees->first();
+                if ($nominee && $nominee->relationLoaded('week') && $nominee->week) {
+                    return [
+                        'voting_starts_at' => $nominee->week->voting_starts_at?->toIso8601String(),
+                        'voting_ends_at' => $nominee->week->voting_ends_at?->toIso8601String(),
+                    ];
+                }
+                return null;
+            }),
 
             // Interaction counts
             'likes_count' => (int) ($this->likers_count ?? 0),

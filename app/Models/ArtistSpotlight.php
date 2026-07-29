@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use App\Models\Spotlight\SpotlightWeekNominee;
 
 class ArtistSpotlight extends Model
 {
@@ -94,6 +96,14 @@ class ArtistSpotlight extends Model
     public function reviewer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reviewed_by');
+    }
+
+    /**
+     * The spotlight week nominees for this artist spotlight.
+     */
+    public function nominees(): MorphMany
+    {
+        return $this->morphMany(SpotlightWeekNominee::class, 'spotlightable');
     }
 
     /**

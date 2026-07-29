@@ -34,6 +34,7 @@ class ArtistSpotlightController extends Controller
 
         $spotlights = ArtistSpotlight::where('user_id', $user->id)
             ->where('status', '!=', 'draft')
+            ->with(['category', 'nominees.week'])
             ->withCount(['likers', 'bookmarkers', 'shares'])
             ->orderBy('submitted_at', 'desc')
             ->paginate(15);
@@ -59,7 +60,8 @@ class ArtistSpotlightController extends Controller
      */
     public function show($id)
     {
-        $spotlight = ArtistSpotlight::withCount(['likers', 'bookmarkers', 'shares'])
+        $spotlight = ArtistSpotlight::with(['category', 'nominees.week'])
+            ->withCount(['likers', 'bookmarkers', 'shares'])
             ->where('status', '!=', 'draft')
             ->findOrFail($id);
 
