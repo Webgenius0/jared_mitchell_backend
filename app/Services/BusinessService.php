@@ -18,10 +18,12 @@ class BusinessService
      */
     public function list(array $filters = []): LengthAwarePaginator
     {
-        $query = Business::with(['user.profile', 'category', 'media']);
+        $userId = auth('api')->id();
+
+        $query = Business::with(['user.profile', 'category', 'media'])
+            ->where('user_id', $userId);
 
         // Eager load the current user's interactions for interaction state checking
-        $userId = auth('api')->id();
         if ($userId) {
             $query->with(['interactions' => function ($q) use ($userId) {
                 $q->where('user_id', $userId)->whereIn('action_type', ['clap', 'save', 'share']);
