@@ -96,12 +96,17 @@ class BusinessSpotlightResource extends JsonResource
 
     /**
      * Get the full URL for an image path.
+     *
+     * Strips the 'storage/' prefix that FileHandle adds so it is not
+     * duplicated when Storage::disk('public')->url() prepends it.
      */
     private function getImageUrl(?string $path): ?string
     {
         if (!$path) {
             return null;
         }
+
+        $path = preg_replace('#^storage/#', '', $path);
 
         return Storage::disk('public')->url($path);
     }

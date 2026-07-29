@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api\Spotlight;
 
 use App\Http\Controllers\Controller;
+use App\Models\ArtistSpotlight;
+use App\Models\BusinessSpotlight;
 use App\Models\Spotlight\SpotlightVotePackage;
 use App\Models\Spotlight\SpotlightVotePurchase;
 use App\Models\Spotlight\SpotlightWeek;
@@ -60,6 +62,127 @@ class SpotlightVoteController extends Controller
         return $this->success('Vote status retrieved.', [
             'nominee_id' => $nominee->id,
             'has_voted'  => $hasVoted,
+        ]);
+    }
+
+    /**
+     * POST /api/v1/spotlight/nominees/{nominee}/like
+     *
+     * Toggle like/unlike on a nominee's spotlight (works for both artist and business).
+     * First call = like, second call = unlike.
+     * Uses the nominee ID from the nominated API so you don't need separate artist/business endpoints.
+     */
+    public function toggleLike(SpotlightWeekNominee $nominee): JsonResponse
+    {
+        $user = auth()->user();
+
+        // Load the spotlight (polymorphic: ArtistSpotlight or BusinessSpotlight)
+        $nominee->load('spotlightable');
+        $spotlight = $nominee->spotlightable;
+
+        if (! $spotlight) {
+            return $this->notFound('Spotlight not found.');
+        }
+
+        $isArtist = $nominee->spotlightable_type === ArtistSpotlight::class;
+
+        if ($isArtist) {
+            $exists = $user->likedArtistSpotlights()
+                ->where('artist_spotlight_id', $spotlight->id)
+                ->exists();
+
+            if ($exists) {
+                $user->likedArtistSpotlights()->detach($spotlight->id);
+                $message = 'Spotlight unliked successfully.';
+                $liked = false;
+            } else {
+                $user->likedArtistSpotlights()->attach($spotlight->id);
+                $message = 'Spotlight liked successfully.';
+                $liked = true;
+            }
+        } else {
+            $exists = $user->likedBusinessSpotlights()
+                ->where('business_spotlight_id', $spotlight->id)
+                ->exists();
+
+            if ($exists) {
+                $user->likedBusinessSpotlights()->detach($spotlight->id);
+                $message = 'Spotlight unliked successfully.';
+                $liked = false;
+            } else {
+                $user->likedBusinessSpotlights()->attach($spotlight->id);
+                $message = 'Spotlight liked successfully.';
+                $liked = true;
+            }
+        }
+
+        return $this->success($message, [
+            'nominee_id'   => $nominee->id,
+            'spotlight_id' => $spotlight->id,
+            'type'         => $isArtist ? 'artist' : 'business',
+            'is_liked'     => $liked,
+        ]);
+    }
+
+    /**
+     * POST /api/v1/spotlight/like/{type}/{id}
+     *
+     * Toggle like/unlike on a spotlight by its type and ID.
+     * Works for both artist and business spotlights in a single endpoint.
+     * First call = like, second call = unlike.
+     *
+     * @param string $type "artist" or "business"
+     * @param int    $id   Spotlight ID (e.g. 12 for your Business Spotlight)
+     */
+    public function toggleLikeBySpotlight(string $type, int $id): JsonResponse
+    {
+        $user = auth()->user();
+        $isArtist = $type === 'artist';
+
+        if ($isArtist) {
+            $spotlight = ArtistSpotlight::find($id);
+            if (! $spotlight) {
+                return $this->notFound('Artist spotlight not found.');
+            }
+
+            $exists = $user->likedArtistSpotlights()
+                ->where('artist_spotlight_id', $id)
+                ->exists();
+
+            if ($exists) {
+                $user->likedArtistSpotlights()->detach($id);
+                $liked = false;
+                $message = 'Spotlight unliked successfully.';
+            } else {
+                $user->likedArtistSpotlights()->attach($id);
+                $liked = true;
+                $message = 'Spotlight liked successfully.';
+            }
+        } else {
+            $spotlight = BusinessSpotlight::find($id);
+            if (! $spotlight) {
+                return $this->notFound('Business spotlight not found.');
+            }
+
+            $exists = $user->likedBusinessSpotlights()
+                ->where('business_spotlight_id', $id)
+                ->exists();
+
+            if ($exists) {
+                $user->likedBusinessSpotlights()->detach($id);
+                $liked = false;
+                $message = 'Spotlight unliked successfully.';
+            } else {
+                $user->likedBusinessSpotlights()->attach($id);
+                $liked = true;
+                $message = 'Spotlight liked successfully.';
+            }
+        }
+
+        return $this->success($message, [
+            'spotlight_id' => $id,
+            'type'         => $type,
+            'is_liked'     => $liked,
         ]);
     }
 

@@ -494,6 +494,9 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::post('/nominees/{nominee}/vote', [SpotlightVoteController::class, 'vote']); // DONE: Cast / toggle vote
             Route::get('/nominees/{nominee}/vote/check', [SpotlightVoteController::class, 'check']); // Check if I voted
 
+            // Unified toggle like/unlike — works for both artist and business by type + spotlight ID
+            Route::post('/like/{type}/{id}', [SpotlightVoteController::class, 'toggleLikeBySpotlight']); // DONE: Toggle like/unlike
+
             // Vote packages (auth required — listing)
             Route::get('/vote-packages', [SpotlightVotePackageController::class, 'index']); // DONE: List all active packages
 

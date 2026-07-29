@@ -276,6 +276,7 @@ class SpotlightWeekController extends Controller
      * @queryParam week_id int Optional. Week ID (defaults to current voting week).
      * @queryParam type string Optional. Filter by 'artist', 'business', or 'all' (default).
      * @queryParam per_page int Optional. Items per page (default 12).
+     * @queryParam grouped bool Optional. If true, returns artists and businesses as separate groups (default false).
      */
     public function nominated(Request $request): JsonResponse
     {
@@ -283,10 +284,12 @@ class SpotlightWeekController extends Controller
             'week_id' => ['sometimes', 'integer', 'exists:spotlight_weeks,id'],
             'type' => ['sometimes', 'string', 'in:all,artist,business'],
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:50'],
+            'grouped' => ['sometimes', 'boolean'],
         ]);
 
         $perPage = $validated['per_page'] ?? 12;
         $type = $validated['type'] ?? 'all';
+        $grouped = $validated['grouped'] ?? false;
 
         // Resolve the week: given week_id, or current voting week
         if (! empty($validated['week_id'])) {
@@ -308,7 +311,86 @@ class SpotlightWeekController extends Controller
             }
         }
 
-        // Build the query
+        // ── Week response data ────────────────────────────────────────
+        $weekData = [
+            'id'               => $week->id,
+            'week_number'      => $week->week_number,
+            'year'             => $week->year,
+            'status'           => $week->status,
+            'is_voting_open'   => $week->isVotingOpen(),
+            'voting_starts_at' => $week->voting_starts_at,
+            'voting_ends_at'   => $week->voting_ends_at,
+        ];
+
+        // ── GROUPED: return artists + businesses as separate groups ───
+        if ($grouped) {
+            $allNominees = SpotlightWeekNominee::where('spotlight_week_id', $week->id)
+                ->with(['spotlightable', 'user.profile', 'week'])
+                ->orderByDesc('total_vote_count')
+                ->orderByDesc('free_vote_count')
+                ->get();
+
+            $formatItem = function ($nominee): array {
+                $isArtist = $nominee->spotlightable_type === ArtistSpotlight::class;
+                $spotlight = $nominee->spotlightable;
+
+                $image = null;
+                if ($isArtist) {
+                    $image = $spotlight?->headshot_path
+                        ? $this->formatImageUrl($spotlight->headshot_path)
+                        : 'https://placehold.co/400x600?text=Artist';
+                } else {
+                    $image = $spotlight?->portrait_photo_path
+                        ? $this->formatImageUrl($spotlight->portrait_photo_path)
+                        : 'https://placehold.co/400x600?text=Business';
+                }
+
+                return [
+                    'id'        => $nominee->id,
+                    'rank'      => $nominee->rank,
+                    'is_winner' => $nominee->is_winner,
+                    'spotlight' => $spotlight ? [
+                        'id'    => $spotlight->id,
+                        'type'  => $isArtist ? 'artist' : 'business',
+                        'name'  => $isArtist
+                            ? ($spotlight->artist_stage_name ?? $spotlight->full_legal_name)
+                            : ($spotlight->business_name ?? $spotlight->owner_founder_name),
+                        'city'  => $spotlight->city ?? null,
+                        'state' => $spotlight->state ?? null,
+                        'image' => $image,
+                    ] : null,
+                    'owner'     => [
+                        'id'   => $nominee->user->id,
+                        'name' => $nominee->user->profile?->name ?? $nominee->user->email ?? '—',
+                    ],
+                    'votes'     => [
+                        'free'            => $nominee->free_vote_count,
+                        'paid'            => $nominee->paid_vote_count,
+                        'total'           => $nominee->total_vote_count,
+                        'paid_cap'        => SpotlightWeek::maxPurchasedVotes(),
+                        'cap_reached'     => $nominee->hasReachedPaidVoteCap(),
+                        'remaining_slots' => $nominee->remainingPaidVoteSlots(),
+                    ],
+                ];
+            };
+
+            $artistNominees   = $allNominees->where('spotlightable_type', ArtistSpotlight::class)->take($perPage)->values()->map($formatItem);
+            $businessNominees = $allNominees->where('spotlightable_type', BusinessSpotlight::class)->take($perPage)->values()->map($formatItem);
+
+            return $this->success('Nominated spotlights retrieved.', [
+                'week'       => $weekData,
+                'artists'    => [
+                    'nominees_count' => $artistNominees->count(),
+                    'nominees'       => $artistNominees,
+                ],
+                'businesses' => [
+                    'nominees_count' => $businessNominees->count(),
+                    'nominees'       => $businessNominees,
+                ],
+            ]);
+        }
+
+        // ── DEFAULT (backward compatible): flat list with pagination ──
         $query = SpotlightWeekNominee::where('spotlight_week_id', $week->id);
 
         if ($type === 'artist') {
@@ -329,53 +411,44 @@ class SpotlightWeekController extends Controller
             $spotlight = $nominee->spotlightable;
 
             return [
-                'id' => $nominee->id,
-                'rank' => $nominee->rank,
+                'id'        => $nominee->id,
+                'rank'      => $nominee->rank,
                 'is_winner' => $nominee->is_winner,
                 'spotlight' => $spotlight ? [
-                    'id' => $spotlight->id,
-                    'type' => $isArtist ? 'artist' : 'business',
-                    'name' => $isArtist
+                    'id'       => $spotlight->id,
+                    'type'     => $isArtist ? 'artist' : 'business',
+                    'name'     => $isArtist
                         ? ($spotlight->artist_stage_name ?? $spotlight->full_legal_name)
                         : ($spotlight->business_name ?? $spotlight->owner_founder_name),
-                    'city' => $spotlight->city ?? null,
-                    'state' => $spotlight->state ?? null,
+                    'city'     => $spotlight->city ?? null,
+                    'state'    => $spotlight->state ?? null,
                     'headshot' => $isArtist ? ($spotlight->headshot_path ?? null) : ($spotlight->portrait_photo_path ?? null),
                 ] : null,
-                'owner' => [
-                    'id' => $nominee->user->id,
+                'owner'     => [
+                    'id'   => $nominee->user->id,
                     'name' => $nominee->user->profile?->name ?? $nominee->user->email ?? '—',
                 ],
-                'votes' => [
-                    'free' => $nominee->free_vote_count,
-                    'paid' => $nominee->paid_vote_count,
-                    'total' => $nominee->total_vote_count,
-                    'paid_cap' => SpotlightWeek::maxPurchasedVotes(),
-                    'cap_reached' => $nominee->hasReachedPaidVoteCap(),
+                'votes'     => [
+                    'free'            => $nominee->free_vote_count,
+                    'paid'            => $nominee->paid_vote_count,
+                    'total'           => $nominee->total_vote_count,
+                    'paid_cap'        => SpotlightWeek::maxPurchasedVotes(),
+                    'cap_reached'     => $nominee->hasReachedPaidVoteCap(),
                     'remaining_slots' => $nominee->remainingPaidVoteSlots(),
                 ],
             ];
         });
 
         return $this->success('Nominated spotlights retrieved.', [
-            'week' => [
-                'id' => $week->id,
-                'week_number' => $week->week_number,
-                'year' => $week->year,
-                'status' => $week->status,
-                'is_voting_open' => $week->isVotingOpen(),
-                'voting_starts_at' => $week->voting_starts_at,
-                'voting_ends_at'   => $week->voting_ends_at,
-            ],
-            'type' => $type,
-            'nominees_count' => $nominees->total(),
-            'nominees' => $data,
-            'pagination' => [
+            'week'            => $weekData,
+            'type'            => $type,
+            'nominees_count'  => $nominees->total(),
+            'nominees'        => $data,
+            'pagination'      => [
                 'current_page' => $nominees->currentPage(),
-                'per_page' => (int) $nominees->perPage(),
-                'last_page' => $nominees->lastPage(),
-                'total' => $nominees->total(),
-                // 'has_more'     => $nominees->hasMorePages(),
+                'per_page'     => (int) $nominees->perPage(),
+                'last_page'    => $nominees->lastPage(),
+                'total'        => $nominees->total(),
             ],
         ]);
     }
@@ -457,6 +530,9 @@ class SpotlightWeekController extends Controller
 
     /**
      * Convert a storage path or URL to a public URL.
+     *
+     * Strips the 'storage/' prefix that FileHandle adds so it is not
+     * duplicated when Storage::disk('public')->url() prepends it.
      */
     private function formatImageUrl(?string $path): ?string
     {
@@ -467,6 +543,8 @@ class SpotlightWeekController extends Controller
         if (filter_var($path, FILTER_VALIDATE_URL)) {
             return $path;
         }
+
+        $path = preg_replace('#^storage/#', '', $path);
 
         return Storage::disk('public')->url($path);
     }

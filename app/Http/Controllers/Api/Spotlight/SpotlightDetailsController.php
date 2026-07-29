@@ -471,6 +471,10 @@ class SpotlightDetailsController extends Controller
 
     /**
      * Convert a storage path or URL to a public URL.
+     *
+     * Handles paths that already include the 'storage/' prefix
+     * (as stored by FileHandle helper) by stripping it before
+     * passing to Storage::url() to avoid duplication.
      */
     private function formatImageUrl(?string $path): ?string
     {
@@ -481,6 +485,9 @@ class SpotlightDetailsController extends Controller
         if (filter_var($path, FILTER_VALIDATE_URL)) {
             return $path;
         }
+
+        // Remove 'storage/' prefix if present since Storage::disk('public')->url() already adds it
+        $path = preg_replace('#^storage/#', '', $path);
 
         return Storage::disk('public')->url($path);
     }

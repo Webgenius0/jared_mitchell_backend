@@ -117,6 +117,9 @@ class SpotlightController extends Controller
 
     /**
      * Format the image path/URL.
+     *
+     * Strips the 'storage/' prefix that FileHandle adds so it is not
+     * duplicated when Storage::disk('public')->url() prepends it.
      */
     private function formatImageUrl(?string $path): ?string
     {
@@ -127,6 +130,8 @@ class SpotlightController extends Controller
         if (filter_var($path, FILTER_VALIDATE_URL)) {
             return $path;
         }
+
+        $path = preg_replace('#^storage/#', '', $path);
 
         return Storage::disk('public')->url($path);
     }
