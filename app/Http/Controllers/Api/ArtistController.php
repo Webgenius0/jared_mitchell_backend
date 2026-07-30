@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ArtistResource;
+use App\Models\ArtistSpotlight;
+use App\Models\EventRegistration;
+use App\Models\Spotlight\SpotlightWeekNominee;
 use App\Models\User;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
@@ -77,6 +80,115 @@ class ArtistController extends Controller
             'Artist profile retrieved successfully.',
             new ArtistResource($artist)
         );
+    }
+
+    /**
+     * GET /api/v1/artists/{id}/analytics
+     *
+     * Get artist analytics for a given artist including:
+     * - Basic artist info
+     * - Total spotlight count & total approved spotlight count
+     * - Total event ticket purchases
+     * - Monthly performance chart (12 months, normalized 0-100)
+     */
+    public function analytics($id): JsonResponse
+    {
+        $artist = User::role('artist', 'api')
+            ->with(['profile', 'artistCategory'])
+            ->where('status', 'active')
+            ->find($id);
+
+        if (!$artist) {
+            return $this->error('Artist not found.', null, 404);
+        }
+
+        // --- Statistics ---
+
+        // Total spotlight records
+        $totalSpotlights = ArtistSpotlight::where('user_id', $artist->id)->count();
+
+        // Total approved/selected spotlight records
+        $totalApprovedSpotlights = ArtistSpotlight::where('user_id', $artist->id)
+            ->whereIn('status', ['approved', 'selected'])
+            ->count();
+
+        // Total ticket purchases (paid event registrations)
+        $totalTicketPurchases = EventRegistration::where('user_id', $artist->id)
+            ->where('payment_status', 'paid')
+            ->count();
+
+        // --- Monthly Performance (current year, normalized 0-100) ---
+
+        $currentYear = now()->year;
+        $monthlyPerformance = [];
+
+        $artistSpotlightIds = ArtistSpotlight::where('user_id', $artist->id)->pluck('id');
+
+        if ($artistSpotlightIds->isNotEmpty()) {
+            // Get all nominee entries for this artist's spotlights within the current year
+            $nominees = SpotlightWeekNominee::where('spotlightable_type', ArtistSpotlight::class)
+                ->whereIn('spotlightable_id', $artistSpotlightIds)
+                ->whereHas('week', function ($q) use ($currentYear) {
+                    $q->whereYear('voting_starts_at', $currentYear)
+                      ->orWhereYear('voting_ends_at', $currentYear);
+                })
+                ->with('week')
+                ->get();
+
+            // Aggregate total votes per month
+            $monthlyVotes = [];
+            foreach ($nominees as $nominee) {
+                if ($nominee->week && $nominee->week->voting_starts_at) {
+                    $month = $nominee->week->voting_starts_at->month;
+                    $monthlyVotes[$month] = ($monthlyVotes[$month] ?? 0) + $nominee->total_vote_count;
+                }
+            }
+
+            $maxVotes = !empty($monthlyVotes) ? max($monthlyVotes) : 1;
+
+            for ($m = 1; $m <= 12; $m++) {
+                $votes = $monthlyVotes[$m] ?? 0;
+                $value = $maxVotes > 0 ? (int) round(($votes / $maxVotes) * 100) : 0;
+                $monthlyPerformance[] = [
+                    'month' => $m,
+                    'label' => date('M', mktime(0, 0, 0, $m, 1)),
+                    'value' => min($value, 100),
+                ];
+            }
+        } else {
+            // No spotlight data — return zero-fill for all 12 months
+            for ($m = 1; $m <= 12; $m++) {
+                $monthlyPerformance[] = [
+                    'month' => $m,
+                    'label' => date('M', mktime(0, 0, 0, $m, 1)),
+                    'value' => 0,
+                ];
+            }
+        }
+
+        return $this->success('Artist analytics retrieved successfully.', [
+            'artist' => [
+                'id'       => $artist->id,
+                'name'     => $artist->profile->name ?? '',
+                'username' => $artist->profile->username ?? '',
+                'avatar'   => $artist->profile->avatar_url ?? asset('admin/default/user.jpg'),
+                'category' => [
+                    'id'   => $artist->artistCategory->id ?? null,
+                    'name' => $artist->artistCategory->name ?? 'Uncategorized',
+                    'slug' => $artist->artistCategory->slug ?? '',
+                ],
+            ],
+            'statistics' => [
+                'total_spotlights'         => $totalSpotlights,
+                'total_approved_spotlights' => $totalApprovedSpotlights,
+                'total_ticket_purchases'   => $totalTicketPurchases,
+            ],
+            'performance' => [
+                'year'         => $currentYear,
+                'max_value'    => 100,
+                'monthly_data' => $monthlyPerformance,
+            ],
+        ]);
     }
 
     /**

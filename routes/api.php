@@ -79,6 +79,17 @@ Route::group(['prefix' => 'v1'], function ($router) {
 
     /*
     |--------------------------------------------------------------------------
+    | Artist Analytics — Public (no auth middleware needed)
+    | Must be BEFORE guest:api group and BEFORE the {id} wildcard to match
+    | correctly. Auth is resolved inside the controller by artist ID.
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('artists')->group(function () {
+        Route::get('/{id}/analytics', [ArtistController::class, 'analytics']);
+    });
+
+    /*
+    |--------------------------------------------------------------------------
     | Public route
     |--------------------------------------------------------------------------
     */
@@ -224,8 +235,8 @@ Route::group(['prefix' => 'v1'], function ($router) {
         });
 
         // Event sponsors
-        Route::get('/common/event-sponsors',[CommnDataPassController::class,'getEventSponsors']); // DONE: All page common section (event sponsors)
-        Route::get('/common/newsletter/title',[CommnDataPassController::class,'newsletterTitle']); // DONE: All page common section (newsletter title)
+        Route::get('/common/event-sponsors', [CommnDataPassController::class, 'getEventSponsors']); // DONE: All page common section (event sponsors)
+        Route::get('/common/newsletter/title', [CommnDataPassController::class, 'newsletterTitle']); // DONE: All page common section (newsletter title)
     });
 
     /*
@@ -244,7 +255,6 @@ Route::group(['prefix' => 'v1'], function ($router) {
     */
     Route::get('/pricing', [PricingController::class, 'index']);
     Route::get('/subscription-plans', [SubscriptionController::class, 'index']);
-
 
     /*
     |--------------------------------------------------------------------------
@@ -376,6 +386,8 @@ Route::group(['prefix' => 'v1'], function ($router) {
         Route::prefix('artists')->group(function () {
             Route::post('/{id}/like', [ArtistController::class, 'toggleLike']);
             Route::post('/{id}/bookmark', [ArtistController::class, 'toggleBookmark']);
+
+
         });
 
         // Event interactions

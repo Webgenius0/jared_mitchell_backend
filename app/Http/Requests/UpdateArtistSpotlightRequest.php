@@ -20,12 +20,14 @@ class UpdateArtistSpotlightRequest extends FormRequest
     /**
      * Validation rules — every field is nullable so partial updates work.
      * Media fields accept new uploads but are not required (existing files kept if omitted).
+     * File type/size validation is applied only when a file is actually uploaded,
+     * so empty or omitted file fields don't cause false validation failures.
      */
     public function rules(): array
     {
         $minAgeDate = Carbon::now()->subYears(18)->format('Y-m-d');
 
-        return [
+        $rules = [
             // Step 1 – Artist Identification
             'full_legal_name'   => 'nullable|string|max:255',
             'artist_stage_name' => 'nullable|string|max:255',
@@ -53,12 +55,12 @@ class UpdateArtistSpotlightRequest extends FormRequest
             'community_message' => 'nullable|string|max:2000',
             'current_goals'     => 'nullable|string|max:2000',
 
-            // Step 4 – Media Uploads (optional on update — omit to keep existing files)
-            'headshot'              => 'nullable|image|mimes:jpeg,png,jpg,webp,heic|max:153600',
-            'artwork_photos'        => 'nullable|array|min:1|max:5',
-            'artwork_photos.*'      => 'image|mimes:jpeg,png,jpg,webp,heic|max:153600',
-            'behind_scenes_photo'   => 'nullable|image|mimes:jpeg,png,jpg,webp,heic|max:153600',
-            'intro_video'           => 'nullable|mimetypes:video/mp4,video/quicktime|max:153600',
+            // Step 4 – Media Uploads (conditional — only validate type/size when file is actually uploaded)
+            'headshot'              => 'nullable',
+            'artwork_photos'        => 'nullable|array|max:5',
+            'artwork_photos.*'      => 'nullable',
+            'behind_scenes_photo'   => 'nullable',
+            'intro_video'           => 'nullable',
 
             // Step 5 – Consent & Rights
             'consent_public_release'        => 'nullable|boolean',
@@ -75,6 +77,27 @@ class UpdateArtistSpotlightRequest extends FormRequest
             'preferred_contact_method'=> 'nullable|string|max:100',
             'interview_availability'  => 'nullable|string|max:2000',
         ];
+
+        // Only apply file-type validation rules when a file is actually uploaded.
+        // This prevents false validation failures when a field is present in the
+        // multipart form but no actual file was selected (common in partial updates).
+        if ($this->hasFile('headshot')) {
+            $rules['headshot'] = 'nullable|image|mimes:jpeg,png,jpg,webp,heic|max:153600';
+        }
+
+        if ($this->hasFile('behind_scenes_photo')) {
+            $rules['behind_scenes_photo'] = 'nullable|image|mimes:jpeg,png,jpg,webp,heic|max:153600';
+        }
+
+        if ($this->hasFile('intro_video')) {
+            $rules['intro_video'] = 'nullable|mimetypes:video/mp4,video/quicktime|max:153600';
+        }
+
+        if ($this->hasFile('artwork_photos')) {
+            $rules['artwork_photos.*'] = 'image|mimes:jpeg,png,jpg,webp,heic|max:153600';
+        }
+
+        return $rules;
     }
 
     /**

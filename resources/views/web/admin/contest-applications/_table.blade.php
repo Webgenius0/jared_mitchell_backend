@@ -99,6 +99,6 @@
         </tbody>
     </table>
 </div>
-<div class="mt-3 pagination-links">
+<div class="mt-3 pagination-links d-flex justify-content-center">
     {{ $applications->links() }}
 </div>

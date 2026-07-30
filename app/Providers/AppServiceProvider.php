@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Policies\RolePolicy;
 use App\Policies\UserPolicy;
 use App\Services\AiService;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -28,6 +29,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Use Bootstrap 5 pagination globally
+        Paginator::useBootstrapFive();
+
         // ── Super-admin bypass: grant all permissions ──
         Gate::before(function ($user, $ability) {
             if ($user->hasRole('super-admin')) {
