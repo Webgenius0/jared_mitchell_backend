@@ -21,6 +21,7 @@ class LeaderboardEntryResource extends JsonResource
             'contestant' => [
                 'id' => $contestant->id,
                 'season_id' => $contestant->season_id,
+                'business_id' => $contestable?->id ?? null,
                 'display_name' => $contestant->display_name,
                 'slug' => $contestant->slug,
                 'avatar_url' => $contestant->avatar_url ? asset('storage/' . $contestant->avatar_url) : asset('admin/default/user.jpg'),
