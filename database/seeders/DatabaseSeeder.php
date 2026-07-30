@@ -37,6 +37,7 @@ class DatabaseSeeder extends Seeder
             PastSixMonthsWinnersSeeder::class,
             // HomePageSeeder::class,
             // BusinessSeeder::class,
+            RoundSessionSeeder::class,
         ]);
     }
 }
