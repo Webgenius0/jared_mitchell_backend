@@ -82,6 +82,9 @@ class LeaderboardService
                 'total_score' => $totalScore,
                 'votes_count' => $votesCount,
                 'avg_score' => $avgScore,
+                'claps'  => $contestable->total_claps ?? 0,
+                'shares' => $contestable->total_shares ?? 0,
+                'saves'  => $contestable->total_saves ?? 0,
                 'trend' => $trend,
             ];
         }
@@ -143,6 +146,9 @@ class LeaderboardService
                 'contestable_name' => $contestable ? $contestable->getContestantName() : null,
                 'total_score'     => (float) ($voteData->total_score ?? 0),
                 'votes_count'     => (int) ($voteData->votes_count ?? 0),
+                'claps'           => $contestable->total_claps ?? 0,
+                'shares'          => $contestable->total_shares ?? 0,
+                'saves'           => $contestable->total_saves ?? 0,
                 'trend'           => 'neutral', // Overall trend can be neutral or calculated later
             ];
         }
