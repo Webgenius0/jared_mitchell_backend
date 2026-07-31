@@ -174,13 +174,20 @@
                         <span>CMS</span>
                     </a>
 
-                    <div class="collapse menu-dropdown {{ request()->routeIs('admin.cms.pages.index', 'admin.cms.pricing.index', 'admin.cms.content.index', 'admin.cms.faq.*') ? 'show' : '' }}"
+                    <div class="collapse menu-dropdown {{ request()->routeIs('admin.cms.pages.index', 'admin.cms.pricing.index', 'admin.cms.content.index', 'admin.cms.faq.*', 'admin.cms.rounds.*') ? 'show' : '' }}"
                         id="sidebarCmsPage">
                         <ul class="nav nav-sm flex-column">
                             <li class="nav-item">
                                 <a href="{{ route('admin.cms.content.index') }}"
                                     class="nav-link {{ request()->routeIs('admin.cms.content.index') ? 'active' : '' }}">
                                     <i class="ri-article-line"></i> CMS Pages
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a href="{{ route('admin.cms.rounds.index') }}"
+                                    class="nav-link {{ request()->routeIs('admin.cms.rounds.*') ? 'active' : '' }}">
+                                    <i class="ri-trophy-line"></i> OSI Pannel
                                 </a>
                             </li>
 

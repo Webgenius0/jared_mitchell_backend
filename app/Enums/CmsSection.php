@@ -116,4 +116,12 @@ enum CmsSection: string
     // Boss Beginnings Winner Chosen Sections
     case BOSS_BEGINNINGS_WINNER_CHOSEN_SECTION1 = 'boss_beginnings_winner_chosen_section1';
     case BOSS_BEGINNINGS_WINNER_CHOSEN_SECTION2 = 'boss_beginnings_winner_chosen_section2';
+
+    // Rounds Page Sections
+    case ROUNDS_HEADER = 'rounds_header';
+    case ROUNDS_CONTENT_BLOCKS = 'rounds_content_blocks';
+    case ROUNDS_GOAL = 'rounds_goal';
+
+    // Rounds Page (container — stores all rounds in metadata['rounds'])
+    case ROUNDS = 'rounds';
 }

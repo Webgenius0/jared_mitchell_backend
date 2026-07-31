@@ -14,6 +14,7 @@ use App\Http\Controllers\Web\Admin\Cms\CmsHomePageController;
 use App\Http\Controllers\Web\Admin\Cms\EventCmsController;
 use App\Http\Controllers\Web\Admin\Cms\FAQController;
 use App\Http\Controllers\Web\Admin\Cms\PricingController;
+use App\Http\Controllers\Web\Admin\Cms\RoundCmsController;
 use App\Http\Controllers\Web\Admin\Cms\ServiceCmsController;
 use App\Http\Controllers\Web\Admin\Cms\ShopCmsController;
 use App\Http\Controllers\Web\Admin\Cms\SponsorshipCmsController;
@@ -233,6 +234,12 @@ Route::prefix('cms/winner-chosen')->name('admin.cms.winner-chosen.')->group(func
     Route::get('/', [BossBeginningWinnerChossenCMSController::class, 'index'])->name('index');
     Route::post('/update-section1', [BossBeginningWinnerChossenCMSController::class, 'updateSection1'])->name('update.section1');
     Route::post('/update-section2', [BossBeginningWinnerChossenCMSController::class, 'updateSection2'])->name('update.section2');
+});
+
+// Round CMS Routes
+Route::prefix('cms/rounds')->name('admin.cms.rounds.')->group(function () {
+    Route::get('/', [RoundCmsController::class, 'index'])->name('index');
+    Route::post('/', [RoundCmsController::class, 'updateRounds'])->name('update');
 });
 
 /*

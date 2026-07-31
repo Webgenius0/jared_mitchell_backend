@@ -27,6 +27,7 @@ use App\Http\Controllers\Api\Cms\CmsArtistSpotlightController;
 use App\Http\Controllers\Api\Cms\CmsBusinessSpotlightController;
 use App\Http\Controllers\Api\Cms\CmsHomePageController;
 use App\Http\Controllers\Api\Cms\CmsPricingController;
+use App\Http\Controllers\Api\Cms\CmsRoundsController;
 use App\Http\Controllers\Api\Cms\CmsServiceController;
 use App\Http\Controllers\Api\Cms\CmsSpotlightLadderController;
 use App\Http\Controllers\Api\Cms\EventController as CmsEventController;
@@ -132,6 +133,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::get('/events', [CmsEventController::class, 'index']); // Events page CMS
             Route::get('/shop', [ShopController::class, 'index']); // Shop page CMS
             Route::get('/sponsorsip', [SponsorsipController::class, 'index']); // Sponsorship page CMS
+            Route::get('/osi-rounds', [CmsRoundsController::class, 'index']); // Rounds page CMS
             Route::get('/faq', [ApiFAQController::class, 'index']); // Active FAQs
         });
 

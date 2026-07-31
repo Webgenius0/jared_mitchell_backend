@@ -15,4 +15,5 @@ enum CmsPage: string
     case SPONSORSHIP = 'sponsorship';
     case BOSS_BEGINNINGS = 'boss_beginnings';
     case BOSS_BEGINNINGS_WINNER_CHOSEN = 'boss_beginnings_winner_chosen';
+    case ROUNDS = 'rounds';
 }

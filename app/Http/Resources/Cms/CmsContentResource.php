@@ -104,10 +104,20 @@ class CmsContentResource extends JsonResource
                 } elseif (is_string($value) && !empty($value)) {
 
                     if (
-                        in_array($key, ['image', 'file', 'icon_path', 'bg', 'video']) ||
+                        in_array($key, ['image', 'file', 'icon_path', 'icon', 'bg', 'video']) ||
                         str_contains($key, 'image_file')
                     ) {
                         if (!filter_var($value, FILTER_VALIDATE_URL)) {
+                            // Guard against CSS-class icons (e.g. "fa-solid fa-star"): only
+                            // convert to a URL when the value looks like a file path (has a
+                            // directory separator or a known image extension).
+                            if (
+                                $key === 'icon'
+                                && !\Illuminate\Support\Str::contains($value, '/')
+                                && !preg_match('/\.(png|jpe?g|webp|gif|svg|avif)$/i', $value)
+                            ) {
+                                continue;
+                            }
                             $metadata[$key] = url(\Illuminate\Support\Str::startsWith($value, 'storage/') ? $value : Storage::url($value));
                         }
                     }
