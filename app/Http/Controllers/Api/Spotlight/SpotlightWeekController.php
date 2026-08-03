@@ -157,16 +157,21 @@ class SpotlightWeekController extends Controller
     }
 
     /**
-     * GET /api/v1/spotlight/weeks/winners
+     * GET /api/v1/spotlight/weeks/spotlight-of-the-week
      *
-     * Get the most recent spotlight winner. Includes archive list.
+     * Get the most recent announced spotlight winner.
      * Public — no auth required.
      *
-     * @queryParam per_page int Optional. Items per page (default 10).
+     * @queryParam type string Optional. Filter by 'artist', 'business', or 'all' (default).
      */
     public function spotlightOfTheWeek(Request $request): JsonResponse
     {
-        $latestWinner = $this->weekService->getLastWinner();
+        $validated = $request->validate([
+            'type' => ['sometimes', 'string', 'in:all,artist,business'],
+        ]);
+
+        $type = $validated['type'] ?? 'all';
+        $latestWinner = $this->weekService->getLastWinner($type === 'all' ? null : $type);
 
         // $archive = SpotlightWeekNominee::whereHas('week', function ($q) {
         //         $q->where('status', 'completed')
@@ -201,6 +206,7 @@ class SpotlightWeekController extends Controller
         // });
 
         return $this->success('Spotlight winners retrieved.', [
+            'type'           => $type,
             'current_winner' => $latestWinner ? $this->formatWinner($latestWinner) : null,
             // 'archive'        => $archiveData,
             // 'pagination'     => [
@@ -422,7 +428,9 @@ class SpotlightWeekController extends Controller
                         : ($spotlight->business_name ?? $spotlight->owner_founder_name),
                     'city'     => $spotlight->city ?? null,
                     'state'    => $spotlight->state ?? null,
-                    'headshot' => $isArtist ? ($spotlight->headshot_path ?? null) : ($spotlight->portrait_photo_path ?? null),
+                    'headshot' => $isArtist
+                        ? $this->formatImageUrl($spotlight->headshot_path)
+                        : $this->formatImageUrl($spotlight->portrait_photo_path),
                 ] : null,
                 'owner'     => [
                     'id'   => $nominee->user->id,

@@ -2,6 +2,8 @@
 
 namespace App\Services\Spotlight;
 
+use App\Models\ArtistSpotlight;
+use App\Models\BusinessSpotlight;
 use App\Models\Spotlight\SpotlightApplication;
 use App\Models\Spotlight\SpotlightWeek;
 use App\Models\Spotlight\SpotlightWeekNominee;
@@ -216,13 +218,28 @@ class SpotlightWeekService
 
     /**
      * Get the most recent completed (announced) week.
+     *
+     * @param  string|null  $type  Optional. Filter by spotlight type: 'artist', 'business', or null for any.
      */
-    public function getLastWinner(): ?SpotlightWeekNominee
+    public function getLastWinner(?string $type = null): ?SpotlightWeekNominee
     {
-        $week = SpotlightWeek::where('status', 'completed')
+        $query = SpotlightWeek::where('status', 'completed')
             ->whereNotNull('announced_at')
-            ->latest('voting_ends_at')
-            ->first();
+            ->latest('voting_ends_at');
+
+        if ($type === 'artist') {
+            $query->whereHas('nominees', function ($q) {
+                $q->where('is_winner', true)
+                    ->where('spotlightable_type', ArtistSpotlight::class);
+            });
+        } elseif ($type === 'business') {
+            $query->whereHas('nominees', function ($q) {
+                $q->where('is_winner', true)
+                    ->where('spotlightable_type', BusinessSpotlight::class);
+            });
+        }
+
+        $week = $query->first();
 
         return $week?->nominees()->where('is_winner', true)->with('spotlightable', 'user')->first();
     }
