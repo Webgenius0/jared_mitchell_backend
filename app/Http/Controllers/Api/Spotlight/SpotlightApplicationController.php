@@ -7,6 +7,7 @@ use App\Models\ArtistSpotlight;
 use App\Models\BusinessSpotlight;
 use App\Models\Spotlight\SpotlightApplication;
 use App\Models\Spotlight\SpotlightWeek;
+use App\Services\Spotlight\SpotlightAiReviewService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -77,11 +78,6 @@ class SpotlightApplicationController extends Controller
             return $this->forbidden('You do not own this spotlight.');
         }
 
-        // Check spotlight is approved
-        if (! in_array($spotlight->status ?? '', ['approved', 'featured'])) {
-            return $this->error(null, 'Only approved spotlights can apply to weekly voting.', 422);
-        }
-
         // Morphable type map
         $morphType = $this->getMorphType($validated['spotlightable_type']);
 
@@ -108,8 +104,11 @@ class SpotlightApplicationController extends Controller
             'applied_at' => now(),
         ]);
 
+        // Score the new application with AI (auto-skipped when AI is not configured)
+        app(SpotlightAiReviewService::class)->review($application);
+
         return $this->success('Application submitted successfully.', [
-            'application' => $application->load('week'),
+            'application' => $application->refresh()->load('week'),
         ], 201);
     }
 

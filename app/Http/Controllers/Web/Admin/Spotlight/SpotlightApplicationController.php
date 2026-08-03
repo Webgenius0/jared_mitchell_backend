@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Web\Admin\Spotlight;
 
 use App\Http\Controllers\Controller;
 use App\Models\Spotlight\SpotlightApplication;
+use App\Models\Spotlight\SpotlightWeek;
 use App\Models\Spotlight\SpotlightWeekNominee;
+use App\Services\Spotlight\SpotlightAiReviewService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
@@ -43,6 +45,10 @@ class SpotlightApplicationController extends Controller
                 $query->where('spotlightable_type', $type);
             }
 
+            if ($request->filled('week_id')) {
+                $query->where('spotlight_week_id', $request->week_id);
+            }
+
             if ($request->filled('search_query')) {
                 $search = $request->search_query;
                 $query->where(function ($q) use ($search) {
@@ -56,6 +62,10 @@ class SpotlightApplicationController extends Controller
 
             return DataTables::of($query)
                 ->addIndexColumn()
+                ->addColumn('checkbox', function ($row) {
+                    // Every record gets a checkbox; bulk actions skip ineligible rows safely.
+                    return '<input type="checkbox" class="form-check-input dt-row-checkbox" value="' . $row->id . '">';
+                })
                 ->addColumn('week_label', function ($row) {
                     if (!$row->week) return '—';
                     return 'Week ' . e($row->week->week_number) . ' (' . e($row->week->year) . ')';
@@ -102,6 +112,25 @@ class SpotlightApplicationController extends Controller
                     $label = $isArtist ? 'Artist' : 'Business';
                     return '<span class="badge bg-light text-dark"><i class="' . $icon . ' me-1"></i>' . $label . '</span>';
                 })
+                ->addColumn('ai_score', function ($row) {
+                    if ($row->ai_score === null) {
+                        return '<span class="text-muted">—</span>';
+                    }
+
+                    $score = (float) $row->ai_score;
+                    $class = $score >= 70
+                        ? 'bg-success-subtle text-success'
+                        : ($score >= 50
+                            ? 'bg-warning-subtle text-warning'
+                            : 'bg-danger-subtle text-danger');
+
+                    $title = $row->ai_reviewed_at
+                        ? 'AI reviewed ' . $row->ai_reviewed_at->format('M d, Y h:i A')
+                        : 'AI score';
+
+                    return '<span class="badge ' . $class . '" title="' . e($title) . '">'
+                        . number_format($score, 1) . '</span>';
+                })
                 ->addColumn('status_badge', function ($row) {
                     $map = [
                         'pending'   => 'bg-warning-subtle text-warning',
@@ -121,6 +150,14 @@ class SpotlightApplicationController extends Controller
 
                     // View button
                     $btns .= '<a href="' . route('admin.spotlight.applications.show', $row->id) . '" class="btn btn-sm btn-soft-info" title="View"><i class="ri-eye-line"></i></a>';
+
+                    // Run AI review
+                    $btns .= '
+                        <form action="' . route('admin.spotlight.applications.ai-review', $row->id) . '" method="POST" class="d-inline" data-confirm="Run AI review on this application? An AI provider call will be made and the score stored." data-confirm-type="confirm">
+                            ' . csrf_field() . '
+                            <button type="submit" class="btn btn-sm btn-soft-warning" title="Run AI Review"><i class="ri-robot-2-line"></i></button>
+                        </form>
+                    ';
 
                     // Quick approve (only for pending with an active week)
                     if ($row->isPending() && $row->week && in_array($row->week->status, ['pending', 'nominating'])) {
@@ -157,11 +194,13 @@ class SpotlightApplicationController extends Controller
                     $btns .= '</div>';
                     return $btns;
                 })
-                ->rawColumns(['applicant', 'spotlight_type', 'status_badge', 'action'])
+                ->rawColumns(['checkbox', 'applicant', 'spotlight_type', 'ai_score', 'status_badge', 'action'])
                 ->make(true);
         }
 
-        return view('web.admin.spotlight.applications.index', compact('stats'));
+        $weeks = SpotlightWeek::orderByDesc('voting_starts_at')->get();
+
+        return view('web.admin.spotlight.applications.index', compact('stats', 'weeks'));
     }
 
     /**
@@ -183,6 +222,21 @@ class SpotlightApplicationController extends Controller
             ->first();
 
         return view('web.admin.spotlight.applications.show', compact('application', 'existingNominee'));
+    }
+
+    /**
+     * Run AI review for a single application and store the score.
+     * POST /admin/spotlight/applications/{application}/ai-review
+     */
+    public function runAiReview(SpotlightApplication $application)
+    {
+        $score = app(SpotlightAiReviewService::class)->review($application);
+
+        if ($score === null) {
+            return redirect()->back()->with('warning', 'AI review could not be completed. Make sure an AI provider is configured (Settings → AI Platform) and try again.');
+        }
+
+        return redirect()->back()->with('success', 'AI review completed. Score: ' . number_format($score, 1) . '/100.');
     }
 
     /**
@@ -269,6 +323,69 @@ class SpotlightApplicationController extends Controller
         };
 
         return redirect()->route('admin.spotlight.applications.show', $application->id)
+            ->with('success', $message);
+    }
+
+    /**
+     * Bulk approve multiple pending applications.
+     * POST /admin/spotlight/applications/bulk-approve
+     */
+    public function bulkApprove(Request $request)
+    {
+        $validated = $request->validate([
+            'application_ids'   => 'required|array|min:1',
+            'application_ids.*' => 'integer|exists:spotlight_applications,id',
+        ]);
+
+        $approved = 0;
+        $skipped  = 0;
+
+        foreach ($validated['application_ids'] as $id) {
+            $application = SpotlightApplication::find($id);
+
+            if (!$application || !$application->isPending()) {
+                $skipped++;
+                continue;
+            }
+
+            $week = $application->week;
+            if (!$week || !in_array($week->status, ['pending', 'nominating'])) {
+                $skipped++;
+                continue;
+            }
+
+            DB::transaction(function () use ($application, $week) {
+                $application->update([
+                    'status'      => 'selected',
+                    'reviewed_at' => now(),
+                    'reviewed_by' => auth('admin')->id(),
+                ]);
+
+                SpotlightWeekNominee::firstOrCreate(
+                    [
+                        'spotlight_week_id'  => $week->id,
+                        'spotlightable_type' => $application->spotlightable_type,
+                        'spotlightable_id'   => $application->spotlightable_id,
+                    ],
+                    [
+                        'user_id'          => $application->user_id,
+                        'free_vote_count'  => 0,
+                        'paid_vote_count'  => 0,
+                        'total_vote_count' => 0,
+                        'is_winner'        => false,
+                    ]
+                );
+            });
+
+            $approved++;
+        }
+
+        $message = "Bulk approved {$approved} application(s) successfully.";
+        if ($skipped > 0) {
+            $message .= " {$skipped} skipped (not pending or week not open)";
+        }
+
+        return redirect()->route('admin.spotlight.applications.index')
             ->with('success', $message);
     }
 }

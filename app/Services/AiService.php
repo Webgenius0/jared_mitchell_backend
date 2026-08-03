@@ -65,7 +65,7 @@ class AiService
 
         return config("ai.models.{$p}") ?? match ($p) {
             'anthropic' => 'claude-3-5-sonnet-20241022',
-            'gemini'    => 'gemini-1.5-pro',
+            'gemini'    => 'gemini-2.5-flash',
             default     => 'gpt-4o',
         };
     }

@@ -19,11 +19,15 @@ class SpotlightApplication extends Model
         'reviewed_at',
         'reviewed_by',
         'reviewer_notes',
+        'ai_score',
+        'ai_reviewed_at',
     ];
 
     protected $casts = [
-        'applied_at'   => 'datetime',
-        'reviewed_at'  => 'datetime',
+        'applied_at'     => 'datetime',
+        'reviewed_at'    => 'datetime',
+        'ai_score'       => 'float',
+        'ai_reviewed_at' => 'datetime',
     ];
 
     /*

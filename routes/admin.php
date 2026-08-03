@@ -489,6 +489,8 @@ Route::prefix('spotlight')->name('admin.spotlight.')->group(function () {
 
     // Application Management (all weeks)
     Route::get('/applications', [WebSpotlightApplicationController::class, 'index'])->name('applications.index');
+    Route::post('/applications/bulk-approve', [WebSpotlightApplicationController::class, 'bulkApprove'])->name('applications.bulk-approve');
+    Route::post('/applications/{application}/ai-review', [WebSpotlightApplicationController::class, 'runAiReview'])->name('applications.ai-review');
     Route::get('/applications/{application}', [WebSpotlightApplicationController::class, 'show'])->name('applications.show');
     Route::post('/applications/{application}/approve', [WebSpotlightApplicationController::class, 'approve'])->name('applications.approve');
     Route::post('/applications/{application}/update-status', [WebSpotlightApplicationController::class, 'updateStatus'])->name('applications.update-status');

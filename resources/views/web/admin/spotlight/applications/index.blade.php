@@ -108,7 +108,7 @@
                     {{-- Search & Filter Bar --}}
                     <div class="card-body border-bottom pb-2">
                         <div class="row g-2 align-items-end">
-                            <div class="col-xl-4 col-md-4">
+                            <div class="col-xl-3 col-md-4">
                                 <label class="form-label text-muted small mb-1">Search</label>
                                 <div class="search-box">
                                     <input type="text" class="form-control" id="searchInput"
@@ -116,7 +116,7 @@
                                     <i class="ri-search-line search-icon"></i>
                                 </div>
                             </div>
-                            <div class="col-xl-3 col-md-4">
+                            <div class="col-xl-2 col-md-3">
                                 <label class="form-label text-muted small mb-1">Status</label>
                                 <select class="form-select" id="statusFilter">
                                     <option value="">All Status</option>
@@ -126,12 +126,25 @@
                                     <option value="withdrawn">Withdrawn</option>
                                 </select>
                             </div>
-                            <div class="col-xl-3 col-md-4">
+                            <div class="col-xl-2 col-md-3">
                                 <label class="form-label text-muted small mb-1">Spotlight Type</label>
                                 <select class="form-select" id="typeFilter">
                                     <option value="">All Types</option>
                                     <option value="artist">Artist</option>
                                     <option value="business">Business</option>
+                                </select>
+                            </div>
+                            <div class="col-xl-3 col-md-4">
+                                <label class="form-label text-muted small mb-1">Week</label>
+                                <select class="form-select" id="weekFilter">
+                                    <option value="">All Weeks</option>
+                                    @foreach($weeks as $week)
+                                        <option value="{{ $week->id }}">
+                                            Week {{ $week->week_number }} ({{ $week->year }})
+                                            — {{ $week->voting_starts_at?->format('M d') }}
+                                            to {{ $week->voting_ends_at?->format('M d, Y') }}
+                                        </option>
+                                    @endforeach
                                 </select>
                             </div>
                             <div class="col-xl-2 col-md-3">
@@ -143,16 +156,48 @@
                         </div>
                     </div>
 
+                    {{-- Selection Toolbar (hidden until rows selected) --}}
+                    <div class="card-body border-bottom pb-2 pt-2 d-none" id="bulkToolbar">
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            <span class="text-muted small fw-medium"><span id="bulkCount">0</span> selected</span>
+
+                            {{-- Bulk Approve (global, works with any selection) --}}
+                            <form id="bulkApproveForm" action="{{ route('admin.spotlight.applications.bulk-approve') }}" method="POST" class="d-inline d-none">
+                                @csrf
+                                <div id="bulkApproveIdsContainer"></div>
+                                <button type="button" id="bulkApproveBtn" class="btn btn-sm btn-success">
+                                    <i class="ri-check-double-line me-1"></i> Bulk Approve
+                                </button>
+                            </form>
+
+                            {{-- Select as Nominees (only when a week is filtered) --}}
+                            <form id="selectNomineesForm" action="" method="POST" class="d-inline d-none">
+                                @csrf
+                                <div id="nomineeIdsContainer"></div>
+                                <button type="button" id="selectNomineesBtn" class="btn btn-sm btn-primary">
+                                    <i class="ri-trophy-line me-1"></i> Select as Nominees for Week
+                                </button>
+                            </form>
+
+                            <span class="text-muted small" id="nomineesHint" style="display:none;">
+                                <i class="ri-alert-line text-warning me-1"></i>
+                                "Select as Nominees" will reject all <strong>other</strong> pending apps for the selected week and open voting.
+                            </span>
+                        </div>
+                    </div>
+
                     <div class="card-body">
                         <div class="table-responsive">
                             <table id="applicationsTable" class="table table-bordered align-middle table-nowrap mb-0">
                                 <thead class="table-light">
                                     <tr>
+                                        <th style="width:40px;"><input type="checkbox" class="form-check-input" id="selectAllDt" title="Select all on this page"></th>
                                         <th style="width: 50px;">#</th>
                                         <th>Week</th>
                                         <th>Applicant</th>
                                         <th>Spotlight</th>
                                         <th>Type</th>
+                                        <th>AI Score</th>
                                         <th>Status</th>
                                         <th>Applied Date</th>
                                         <th class="text-center" style="width: 80px;">Action</th>
@@ -175,6 +220,9 @@
     (function () {
         'use strict';
 
+        // Base URL for select-nominees: /admin/spotlight/weeks/{id}/select-nominees
+        const selectNomineesBaseUrl = '{{ url('admin/spotlight/weeks') }}';
+
         @if(session('success'))
             Toast.success(@json(session('success')));
         @endif
@@ -196,22 +244,31 @@
                     d.search_query = document.getElementById('searchInput').value;
                     d.status       = document.getElementById('statusFilter').value;
                     d.type         = document.getElementById('typeFilter').value;
+                    d.week_id      = document.getElementById('weekFilter').value;
                 }
             },
             columns: [
-                { data: 'DT_RowIndex',  name: 'DT_RowIndex', orderable: false, searchable: false },
-                { data: 'week_label',   name: 'spotlight_week_id' },
-                { data: 'applicant',    name: 'user_id', orderable: false },
+                { data: 'checkbox',      name: 'checkbox',           orderable: false, searchable: false, className: 'text-center' },
+                { data: 'DT_RowIndex',   name: 'DT_RowIndex',        orderable: false, searchable: false },
+                { data: 'week_label',    name: 'spotlight_week_id' },
+                { data: 'applicant',     name: 'user_id',            orderable: false },
                 { data: 'spotlight_name', name: 'spotlightable_id' },
                 { data: 'spotlight_type', name: 'spotlightable_type', className: 'text-center' },
-                { data: 'status_badge',  name: 'status', className: 'text-center' },
+                { data: 'ai_score',      name: 'ai_score',            className: 'text-center' },
+                { data: 'status_badge',  name: 'status',             className: 'text-center' },
                 { data: 'applied_date',  name: 'applied_at' },
-                { data: 'action',        name: 'action', orderable: false, searchable: false, className: 'text-center' },
+                { data: 'action',        name: 'action',             orderable: false, searchable: false, className: 'text-center' },
             ],
             language: {
                 processing: '<div class="spinner-border spinner-border-sm text-primary"></div>',
             },
-            order: [[6, 'desc']]
+            // Default: highest AI score first, then the rest below
+            order: [[6, 'desc']],
+            drawCallback: function () {
+                bindRowCheckboxes();
+                syncSelectAll();
+                updateBulkToolbar();
+            }
         });
 
         // ── Filter events ──
@@ -229,14 +286,138 @@
             table.ajax.reload(null, false);
         });
 
+        document.getElementById('weekFilter').addEventListener('change', function () {
+            table.ajax.reload(null, false);
+            // Show/hide bulk actions based on week selection
+            updateBulkActionsVisibility();
+        });
+
         document.getElementById('resetFilters').addEventListener('click', function () {
             document.getElementById('searchInput').value = '';
             document.getElementById('statusFilter').value = '';
             document.getElementById('typeFilter').value = '';
+            document.getElementById('weekFilter').value = '';
             table.ajax.reload(null, false);
+            updateBulkActionsVisibility();
         });
 
-        // ── SweetAlert for DataTable forms with data-confirm (delegated because rows are re-rendered) ──
+        // ── Select All (header checkbox) ──
+        document.getElementById('selectAllDt').addEventListener('change', function () {
+            const checked = this.checked;
+            document.querySelectorAll('.dt-row-checkbox').forEach(cb => cb.checked = checked);
+            updateBulkToolbar();
+        });
+
+        function bindRowCheckboxes() {
+            document.querySelectorAll('.dt-row-checkbox').forEach(cb => {
+                cb.removeEventListener('change', onRowCheckboxChange);
+                cb.addEventListener('change', onRowCheckboxChange);
+            });
+        }
+
+        function onRowCheckboxChange() {
+            syncSelectAll();
+            updateBulkToolbar();
+        }
+
+        function syncSelectAll() {
+            const all     = document.querySelectorAll('.dt-row-checkbox');
+            const checked = document.querySelectorAll('.dt-row-checkbox:checked');
+            const hdr = document.getElementById('selectAllDt');
+            hdr.checked       = all.length > 0 && checked.length === all.length;
+            hdr.indeterminate = checked.length > 0 && checked.length < all.length;
+        }
+
+        function updateBulkToolbar() {
+            const checked = document.querySelectorAll('.dt-row-checkbox:checked');
+            const toolbar = document.getElementById('bulkToolbar');
+            document.getElementById('bulkCount').textContent = checked.length;
+            toolbar.classList.toggle('d-none', checked.length === 0);
+            updateBulkActionsVisibility();
+        }
+
+        function updateBulkActionsVisibility() {
+            const weekId       = document.getElementById('weekFilter').value;
+            const checked      = document.querySelectorAll('.dt-row-checkbox:checked');
+            const hasSelection = checked.length > 0;
+
+            // Bulk approve works with any selection (no week filter required)
+            document.getElementById('bulkApproveForm').classList.toggle('d-none', !hasSelection);
+
+            // Select as nominees only makes sense when a specific week is filtered
+            const form = document.getElementById('selectNomineesForm');
+            const hint = document.getElementById('nomineesHint');
+            const show = weekId && hasSelection;
+
+            form.classList.toggle('d-none', !show);
+            hint.style.display = show ? '' : 'none';
+
+            if (weekId) {
+                // Build the action URL: /admin/spotlight/weeks/{weekId}/select-nominees
+                form.action = selectNomineesBaseUrl + '/' + weekId + '/select-nominees';
+            }
+        }
+
+        // ── Select as Nominees submit ──
+        document.getElementById('selectNomineesBtn').addEventListener('click', function () {
+            const checked = document.querySelectorAll('.dt-row-checkbox:checked');
+            const weekFilter = document.getElementById('weekFilter');
+            const weekText = weekFilter.options[weekFilter.selectedIndex]?.text ?? 'selected week';
+
+            if (!checked.length) return;
+
+            Alert.confirm(
+                'Select ' + checked.length + ' application(s) as nominees for <strong>' + weekText + '</strong>?<br>' +
+                '<small class="text-danger">All other pending applications for this week will be <strong>rejected</strong>, and voting will open.</small>',
+                {
+                    type: 'danger',
+                    confirmText: 'Yes, select nominees & open voting',
+                }
+            ).then(function (confirmed) {
+                if (!confirmed) return;
+
+                const container = document.getElementById('nomineeIdsContainer');
+                container.innerHTML = '';
+                checked.forEach(cb => {
+                    const input = document.createElement('input');
+                    input.type  = 'hidden';
+                    input.name  = 'nominee_ids[]';
+                    input.value = cb.value;
+                    container.appendChild(input);
+                });
+                document.getElementById('selectNomineesForm').submit();
+            });
+        });
+
+        // ── Bulk Approve submit ──
+        document.getElementById('bulkApproveBtn').addEventListener('click', function () {
+            const checked = document.querySelectorAll('.dt-row-checkbox:checked');
+            if (!checked.length) return;
+
+            Alert.confirm(
+                'Approve ' + checked.length + ' selected application(s)?<br>' +
+                '<small class="text-muted">Each selected application will be marked as <strong>Selected</strong> and a nominee record will be created for its week.</small>',
+                {
+                    type: 'confirm',
+                    confirmText: 'Yes, approve',
+                }
+            ).then(function (confirmed) {
+                if (!confirmed) return;
+
+                const container = document.getElementById('bulkApproveIdsContainer');
+                container.innerHTML = '';
+                checked.forEach(cb => {
+                    const input = document.createElement('input');
+                    input.type  = 'hidden';
+                    input.name  = 'application_ids[]';
+                    input.value = cb.value;
+                    container.appendChild(input);
+                });
+                document.getElementById('bulkApproveForm').submit();
+            });
+        });
+
+        // ── SweetAlert for DataTable form confirmations ──
         document.querySelector('#applicationsTable').addEventListener('submit', function (e) {
             var form = e.target.closest('form[data-confirm]');
             if (!form) return;
