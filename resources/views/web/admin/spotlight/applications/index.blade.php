@@ -220,8 +220,9 @@
     (function () {
         'use strict';
 
-        // Base URL for select-nominees: /admin/spotlight/weeks/{id}/select-nominees
-        const selectNomineesBaseUrl = '{{ url('admin/spotlight/weeks') }}';
+        // Template for select-nominees — built with the route helper so it always
+        // matches the real route (no hardcoded /admin prefix).
+        const selectNomineesUrlTemplate = '{{ route('admin.spotlight.weeks.select-nominees', ['week' => '__WEEK__']) }}';
 
         @if(session('success'))
             Toast.success(@json(session('success')));
@@ -353,8 +354,8 @@
             hint.style.display = show ? '' : 'none';
 
             if (weekId) {
-                // Build the action URL: /admin/spotlight/weeks/{weekId}/select-nominees
-                form.action = selectNomineesBaseUrl + '/' + weekId + '/select-nominees';
+                // Build the action URL: replace the placeholder with the selected week id
+                form.action = selectNomineesUrlTemplate.replace('__WEEK__', weekId);
             }
         }
 
