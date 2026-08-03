@@ -25,6 +25,7 @@ class SpotlightApplicationController extends Controller
     public function openWeeks(): JsonResponse
     {
         $weeks = SpotlightWeek::whereIn('status', ['pending', 'nominating'])
+            ->where('voting_starts_at', '>', now())
             ->latest('voting_starts_at')
             ->get()
             ->map(fn($week) => [
