@@ -189,45 +189,79 @@ class AdminBusinessController extends Controller
 
     /**
      * Get a single business for the details modal.
+     *
+     * Returns the complete business payload: every business field, the owner
+     * profile, and all business media (every picture/video) so the modal can
+     * display everything.
      */
-public function show(Business $business)
-{
-    $business->load('user.profile');
+    public function show(Business $business)
+    {
+        $business->load(['user.profile', 'media', 'category']);
 
-    return response()->json([
-        'success' => true,
-        'data' => [
-            'id' => $business->id,
-            'user_id' => $business->user_id,
+        $profile = $business->user?->profile;
 
-            'business_name' => $business->business_name,
-            'slug' => $business->slug,
-            'owner_founder_name' => $business->owner_founder_name,
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'id' => $business->id,
+                'user_id' => $business->user_id,
 
-            'story' => $business->story,
-            'mission' => $business->mission,
-            'website_social_media' => $business->website_social_media,
-            'community_impact_statement' => $business->community_impact_statement,
-            'revenue_stage' => $business->revenue_stage,
-            'why_they_deserve_to_compete' => $business->why_they_deserve_to_compete,
+                'business_name' => $business->business_name,
+                'slug' => $business->slug,
+                'owner_founder_name' => $business->owner_founder_name,
+                'owner_name' => $business->owner_name,
 
-            'photo_video' => $business->photo_video
-                ? asset('storage/' . $business->photo_video)
-                : null,
+                'category_name' => $business->category?->name,
 
-            'status' => $business->status,
+                'story' => $business->story,
+                'mission' => $business->mission,
+                'website_social_media' => $business->website_social_media,
+                'community_impact_statement' => $business->community_impact_statement,
+                'revenue_stage' => $business->revenue_stage,
+                'why_they_deserve_to_compete' => $business->why_they_deserve_to_compete,
 
-            'user_name' => $business->user?->profile?->name
-                ?? $business->user?->email
-                ?? '—',
+                'photo_video' => $business->photo_video
+                    ? asset('storage/' . $business->photo_video)
+                    : null,
 
-            'user_email' => $business->user?->email ?? '—',
+                'status' => $business->status,
+                'is_featured' => (bool) $business->is_featured,
+                'total_claps' => (int) ($business->total_claps ?? 0),
+                'total_saves' => (int) ($business->total_saves ?? 0),
+                'total_shares' => (int) ($business->total_shares ?? 0),
+                'total_points' => (int) ($business->total_points ?? 0),
 
-            'created_at' => $business->created_at?->format('M d, Y h:i A'),
-            'updated_at' => $business->updated_at?->format('M d, Y h:i A'),
-        ],
-    ]);
-}
+                // Media gallery (every picture/video)
+                'media' => $business->media->map(function ($m) {
+                    return [
+                        'id'        => $m->id,
+                        'url'       => $m->file_path ? asset('storage/' . $m->file_path) : null,
+                        'file_name' => $m->file_name,
+                        'mime_type' => $m->mime_type,
+                        'file_size' => $m->file_size,
+                    ];
+                })->values()->all(),
+
+                // Owner / account
+                'user_name' => $profile?->name
+                    ?? $business->user?->email
+                    ?? '—',
+
+                'user_email' => $business->user?->email ?? '—',
+                'user_username' => $profile?->username,
+                'user_avatar' => $profile?->avatar
+                    ? asset('storage/' . $profile->avatar)
+                    : null,
+                'user_biography' => $profile?->biography,
+                'user_address' => $profile?->address,
+                'user_website' => $profile?->website_link,
+                'user_social_links' => $profile?->social_links,
+
+                'created_at' => $business->created_at?->format('M d, Y h:i A'),
+                'updated_at' => $business->updated_at?->format('M d, Y h:i A'),
+            ],
+        ]);
+    }
 
     /**
      * Toggle business status between active and inactive.

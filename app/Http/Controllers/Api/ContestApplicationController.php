@@ -24,15 +24,50 @@ class ContestApplicationController extends Controller
     /**
      * GET /api/v1/active-round-session
      *
-     * Get the currently active season.
+     * Get the next season that has NOT started yet (future starts_at), its
+     * rounds, and the currently running/open round session (if any).
+     *
+     * Sessions whose start date has already passed are skipped — once a
+     * session has started it is no longer returned, and the next future
+     * session is shown instead.
+     *
+     * All original season keys are preserved — rounds & current_round are
+     * additive, so existing consumers are unaffected.
      */
     public function activeRoundSession(): JsonResponse
     {
-        $season = $this->contestApplicationService->activeSeason();
+        $season = $this->contestApplicationService->nextUpcomingSeason();
 
         if (!$season) {
-            return $this->error(null, 'No active season found.', 404);
+            return $this->error(null, 'No upcoming session found.', 200);
         }
+
+        $now = now();
+
+        $rounds = $season->rounds()
+            ->orderBy('round_number')
+            ->get()
+            ->map(function ($round) use ($now) {
+                return [
+                    'id' => $round->id,
+                    'round_number' => $round->round_number,
+                    'title' => $round->title,
+                    'is_active' => $round->is_active,
+                    // A round session is "open" when it is active AND its time
+                    // window currently covers now().
+                    'is_open' => $round->is_active
+                        && $round->starts_at
+                        && $round->ends_at
+                        && $now->between($round->starts_at, $round->ends_at),
+                    'starts_at' => $round->starts_at,
+                    'ends_at' => $round->ends_at,
+                    'voting_ends_at' => $round->voting_ends_at,
+                ];
+            });
+
+        // Only an actually-open round is reported as current — a future session
+        // has no running round yet, so this stays null until one opens.
+        $currentRound = $rounds->firstWhere('is_open', true);
 
         return $this->success(
             'Active season retrieved successfully.',
@@ -48,6 +83,9 @@ class ContestApplicationController extends Controller
                 'applications_ends_at' => $season->applications_ends_at,
                 'starts_at' => $season->starts_at,
                 'ends_at' => $season->ends_at,
+                // Currently running / open round session (like spotlight weeks/open).
+                'current_round' => $currentRound,
+                'rounds' => $rounds->all(),
             ]
         );
     }

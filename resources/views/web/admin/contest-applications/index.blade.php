@@ -211,7 +211,7 @@
 
 {{-- View Details Modal --}}
 <div class="modal fade" id="viewModal" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Contest Application Details</h5>
@@ -254,6 +254,74 @@
 </div>
 @endsection
 
+@push('styles')
+    {{-- GLightbox for full-size media preview in the details modal --}}
+    <link href="{{ asset('admin/assets/libs/glightbox/css/glightbox.min.css') }}" rel="stylesheet" type="text/css" />
+    <style>
+        .view-modal-media-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+        }
+        .view-modal-media-item {
+            position: relative;
+            display: block;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid rgba(0, 0, 0, .08);
+            background: #f5f6f8;
+            text-decoration: none;
+            transition: transform .15s ease, box-shadow .15s ease;
+        }
+        .view-modal-media-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(0, 0, 0, .14);
+        }
+        .view-modal-media-item img,
+        .view-modal-media-item video {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            display: block;
+        }
+        .view-modal-play-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, .28);
+            transition: background .15s ease;
+            pointer-events: none;
+        }
+        .view-modal-play-overlay i {
+            font-size: 36px;
+            color: rgba(255, 255, 255, .95);
+            text-shadow: 0 2px 8px rgba(0, 0, 0, .45);
+        }
+        .view-modal-media-item:hover .view-modal-play-overlay {
+            background: rgba(0, 0, 0, .15);
+        }
+        .view-modal-media-item .media-caption {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to top, rgba(0, 0, 0, .72), transparent);
+            color: #fff;
+            font-size: 11px;
+            padding: 20px 8px 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
+@endpush
+
+@push('scripts')
+    <script src="{{ asset('admin/assets/libs/glightbox/js/glightbox.min.js') }}"></script>
+@endpush
+
 @push('scripts')
 <script>
     (function() {
@@ -262,6 +330,42 @@
         let currentApplicationId = null;
         let selectedIds = [];
         let searchTimeout = null;
+
+        // ──────────────────────────────────────────────
+        //  HTML HELPERS (used by the details modal)
+        // ──────────────────────────────────────────────
+
+        function esc(str) {
+            return String(str == null ? '' : str).replace(/[&<>"']/g, function(c) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+            });
+        }
+
+        function isVideoUrl(url) {
+            return /\.(mp4|webm|ogv|mov|m4v)(\?.*)?$/i.test(url || '');
+        }
+
+        function isVideoMime(mime) {
+            return String(mime || '').toLowerCase().indexOf('video/') === 0;
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === null || bytes === undefined || isNaN(bytes)) return '';
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / 1048576).toFixed(1) + ' MB';
+        }
+
+        function detailRow(label, value) {
+            const v = (value === null || value === undefined || value === '') ? '—' : value;
+            return '<tr><th class="text-muted fw-normal" style="width:38%;vertical-align:top;">' + label + '</th><td>' + v + '</td></tr>';
+        }
+
+        function sectionTitle(icon, title) {
+            return '<div class="d-flex align-items-center gap-2 mb-2">' +
+                '<i class="' + icon + ' text-primary fs-16"></i>' +
+                '<h6 class="mb-0 fw-semibold text-uppercase text-muted" style="font-size:.78rem;letter-spacing:.5px;">' + title + '</h6></div>';
+        }
 
         @if (session('success'))
             Toast.success(@json(session('success')));
@@ -610,6 +714,14 @@
             $('#viewModal').modal('show');
         });
 
+        // Destroy the lightbox when the modal closes so it does not leak listeners
+        $('#viewModal').on('hidden.bs.modal', function() {
+            if (window.__contestLightbox) {
+                try { window.__contestLightbox.destroy(); } catch (e) {}
+                window.__contestLightbox = null;
+            }
+        });
+
         function loadApplicationDetails(id) {
             $('#viewModalBody').html(
                 '<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>');
@@ -621,6 +733,21 @@
                     const d = res.data.data;
                     let html = buildDetailsHtml(d);
                     $('#viewModalBody').html(html);
+
+                    // Re-init GLightbox for the freshly injected media links
+                    if (window.GLightbox) {
+                        try {
+                            if (window.__contestLightbox) {
+                                window.__contestLightbox.destroy();
+                            }
+                        } catch (e) {}
+                        window.__contestLightbox = GLightbox({
+                            selector: '.view-modal-glightbox',
+                            touchNavigation: true,
+                            loop: true,
+                            closeButton: true,
+                        });
+                    }
 
                     // Build footer with action buttons
                     let footerHtml = '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>';
@@ -651,47 +778,197 @@
                 'pending': '<span class="badge bg-warning-subtle text-warning">Pending</span>',
                 'approved': '<span class="badge bg-success-subtle text-success">Approved</span>',
                 'rejected': '<span class="badge bg-danger-subtle text-danger">Cancelled</span>',
-            }[d.status] || '<span class="badge bg-secondary-subtle text-secondary">' + d.status + '</span>';
+            }[d.status] || '<span class="badge bg-secondary-subtle text-secondary">' + esc(d.status) + '</span>';
+
+            let businessStatusBadge = '';
+            if (d.business_status) {
+                const map = {
+                    'active': 'bg-success-subtle text-success',
+                    'inactive': 'bg-secondary-subtle text-secondary',
+                    'terminated': 'bg-danger-subtle text-danger',
+                };
+                const cls = map[d.business_status] || 'bg-secondary-subtle text-secondary';
+                businessStatusBadge = '<span class="badge ' + cls + '">Business: ' + esc(d.business_status) + '</span>';
+            }
+
+            const featuredBadge = d.is_featured
+                ? '<span class="badge bg-info-subtle text-info"><i class="ri-star-fill me-1"></i>Featured</span>'
+                : '';
 
             const logoHtml = d.business_logo
-                ? '<img src="' + d.business_logo + '" class="img-fluid rounded" style="max-height:80px;" alt="Logo">'
-                : '<span class="text-muted">—</span>';
+                ? '<a href="' + esc(d.business_logo) + '" target="_blank" title="Open logo"><img src="' + esc(d.business_logo) + '" class="rounded border" style="width:72px;height:72px;object-fit:cover;" alt="Logo"></a>'
+                : '<div class="d-flex align-items-center justify-content-center rounded border bg-light" style="width:72px;height:72px;"><i class="ri-store-2-line fs-24 text-muted"></i></div>';
+
+            const statsHtml = [
+                { icon: 'ri-hand-clap-line', label: 'Claps', value: d.total_claps, color: 'primary' },
+                { icon: 'ri-heart-line', label: 'Saves', value: d.total_saves, color: 'success' },
+                { icon: 'ri-share-forward-line', label: 'Shares', value: d.total_shares, color: 'info' },
+                { icon: 'ri-trophy-line', label: 'Points', value: d.total_points, color: 'warning' },
+            ].map(function (s) {
+                return '<div class="col-6 col-md-3">' +
+                    '<div class="card mb-0 shadow-none border text-center py-2">' +
+                    '<div class="card-body py-1">' +
+                    '<i class="' + s.icon + ' text-' + s.color + ' fs-18"></i>' +
+                    '<h5 class="mb-0 mt-1">' + Number(s.value || 0).toLocaleString() + '</h5>' +
+                    '<span class="text-muted small">' + s.label + '</span>' +
+                    '</div></div></div>';
+            }).join('');
+
+            // AI review block
+            let aiHtml = '';
+            if (d.ai_verdict || d.ai_confidence || d.ai_reviewed_at) {
+                const verdictMap = {
+                    'approve': '<span class="badge bg-success-subtle text-success">Approve</span>',
+                    'reject': '<span class="badge bg-danger-subtle text-danger">Reject</span>',
+                    'needs_review': '<span class="badge bg-warning-subtle text-warning">Needs Review</span>',
+                };
+                const verdictBadge = d.ai_verdict
+                    ? (verdictMap[d.ai_verdict] || '<span class="badge bg-secondary-subtle text-secondary">' + esc(d.ai_verdict) + '</span>')
+                    : '<span class="text-muted">—</span>';
+                aiHtml = '<div class="row mt-3"><div class="col-12">' + sectionTitle('ri-robot-2-line', 'AI Review') +
+                    '<table class="table table-sm table-borderless mb-0">' +
+                    detailRow('AI Verdict', verdictBadge) +
+                    detailRow('AI Confidence', d.ai_confidence ? '<strong>' + esc(d.ai_confidence) + '</strong>' : null) +
+                    detailRow('AI Reviewed At', esc(d.ai_reviewed_at)) +
+                    '</table></div></div>';
+            }
+
+            // Single photo/video field
+            let photoVideoHtml = '';
+            if (d.photo_video) {
+                photoVideoHtml = '<div class="row mt-3"><div class="col-12">' + sectionTitle('ri-video-line', 'Photo / Video') +
+                    (isVideoUrl(d.photo_video)
+                        ? '<video src="' + esc(d.photo_video) + '" controls class="w-100 rounded" style="max-height:340px;background:#000;"></video>'
+                        : '<a href="' + esc(d.photo_video) + '" class="view-modal-glightbox" title="Photo / Video"><img src="' + esc(d.photo_video) + '" class="img-fluid rounded" style="max-height:340px;width:auto;" alt="Photo / Video"></a>') +
+                    '</div></div>';
+            }
+
+            // Media gallery — every picture & video
+            let galleryHtml = '';
+            const media = Array.isArray(d.media) ? d.media : [];
+            if (media.length) {
+                galleryHtml = '<div class="row mt-3"><div class="col-12">' + sectionTitle('ri-image-line', 'Media Gallery (' + media.length + ')') +
+                    '<div class="view-modal-media-grid">';
+                media.forEach(function (m) {
+                    if (!m.url) return;
+                    const caption = esc(m.file_name || 'Media #' + m.id);
+                    const sizeLabel = formatBytes(m.file_size);
+                    const captionLine = sizeLabel ? caption + ' · ' + sizeLabel : caption;
+                    if (isVideoMime(m.mime_type) || isVideoUrl(m.url)) {
+                        galleryHtml += '<div class="view-modal-media-item" title="' + caption.replace(/"/g, '&quot;') + '">' +
+                            '<video src="' + esc(m.url) + '" controls preload="metadata" muted></video>' +
+                            '<div class="view-modal-play-overlay"><i class="ri-play-circle-fill"></i></div>' +
+                            '<div class="media-caption"><i class="ri-video-line me-1"></i>' + captionLine + '</div></div>';
+                    } else {
+                        galleryHtml += '<a href="' + esc(m.url) + '" class="view-modal-media-item view-modal-glightbox" title="' + caption.replace(/"/g, '&quot;') + '">' +
+                            '<img src="' + esc(m.url) + '" loading="lazy" alt="' + caption + '">' +
+                            '<div class="media-caption">' + captionLine + '</div></a>';
+                    }
+                });
+                galleryHtml += '</div>' +
+                    '<div class="text-muted small mt-2"><i class="ri-zoom-in-line me-1"></i>Click an image to view full size</div>' +
+                    '</div></div>';
+            }
+
+            // Application metadata (raw JSON)
+            let metadataHtml = '';
+            if (d.metadata && typeof d.metadata === 'object') {
+                metadataHtml = '<div class="row mt-3"><div class="col-12">' + sectionTitle('ri-file-list-3-line', 'Application Metadata') +
+                    '<pre class="bg-light rounded p-3 mb-0" style="max-height:240px;overflow:auto;font-size:.8rem;">' + esc(JSON.stringify(d.metadata, null, 2)) + '</pre>' +
+                    '</div></div>';
+            }
+
+            // Owner social links
+            let socialHtml = '';
+            if (d.owner_social_links && typeof d.owner_social_links === 'object') {
+                const links = Object.keys(d.owner_social_links).filter(function (k) { return d.owner_social_links[k]; });
+                if (links.length) {
+                    socialHtml = '<div class="mt-2">' + links.map(function (k) {
+                        return '<a href="' + esc(d.owner_social_links[k]) + '" target="_blank" class="badge bg-light text-dark text-decoration-none me-1 mb-1 border"><i class="ri-external-link-line me-1"></i>' + esc(k) + '</a>';
+                    }).join('') + '</div>';
+                }
+            }
+
+            const ownerAvatarHtml = d.owner_avatar
+                ? '<img src="' + esc(d.owner_avatar) + '" class="rounded-circle border mt-2" style="width:90px;height:90px;object-fit:cover;" alt="Owner avatar">'
+                : '<div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-light border mt-2" style="width:90px;height:90px;"><i class="ri-user-line fs-24 text-muted"></i></div>';
 
             return `
-                <div class="row">
-                    <div class="col-md-2 text-center mb-3">
-                        ${logoHtml}
-                    </div>
-                    <div class="col-md-10">
-                        <h5 class="mb-1">${d.business_name}</h5>
-                        <p class="text-muted mb-0"><i class="ri-user-line me-1"></i>${d.owner_name}</p>
-                        <p class="text-muted mb-0"><i class="ri-mail-line me-1"></i>${d.owner_email}</p>
-                        <p class="mb-0 mt-1">${statusBadge}</p>
+                <div class="d-flex align-items-start gap-3 mb-3">
+                    <div class="flex-shrink-0">${logoHtml}</div>
+                    <div class="flex-grow-1">
+                        <h5 class="mb-1">${esc(d.business_name)} ${featuredBadge}</h5>
+                        <p class="text-muted mb-1"><i class="ri-user-line me-1"></i>${esc(d.owner_name)}${d.owner_email && d.owner_email !== '—' ? ' <span class="text-muted">· ' + esc(d.owner_email) + '</span>' : ''}</p>
+                        <div class="d-flex gap-1 flex-wrap">${statusBadge} ${businessStatusBadge}</div>
                     </div>
                 </div>
 
-                <hr>
+                <div class="row g-2 mb-3">${statsHtml}</div>
+
+                <hr class="my-3">
 
                 <div class="row">
                     <div class="col-md-6">
-                        <h6 class="text-primary"><i class="ri-information-line me-1"></i>Application Info</h6>
-                        <table class="table table-sm table-borderless">
-                            <tr><th width="40%">Application ID</th><td>#${d.id}</td></tr>
-                            <tr><th>Season</th><td>${d.season_name}</td></tr>
-                            <tr><th>Status</th><td>${statusBadge}</td></tr>
-                            <tr><th>Applied Date</th><td>${d.created_at}</td></tr>
+                        ${sectionTitle('ri-information-line', 'Application Info')}
+                        <table class="table table-sm table-borderless mb-0">
+                            ${detailRow('Application ID', '#' + d.id)}
+                            ${detailRow('Season', esc(d.season_name))}
+                            ${detailRow('Status', statusBadge)}
+                            ${detailRow('Applied Date', esc(d.created_at))}
+                            ${detailRow('Last Updated', esc(d.updated_at))}
+                            ${detailRow('Admin Note', d.admin_note ? esc(d.admin_note) : null)}
+                            ${detailRow('Rejected Reason', d.rejected_reason ? esc(d.rejected_reason) : null)}
                         </table>
                     </div>
                     <div class="col-md-6">
-                        <h6 class="text-primary"><i class="ri-shield-check-line me-1"></i>Admin Info</h6>
-                        <table class="table table-sm table-borderless">
-                            <tr><th width="40%">Approved By</th><td>${d.approver_name}</td></tr>
-                            <tr><th>Approved At</th><td>${d.approved_at || '—'}</td></tr>
-                            <tr><th>Admin Note</th><td>${d.admin_note || '—'}</td></tr>
-                            <tr><th>Last Updated</th><td>${d.updated_at}</td></tr>
+                        ${sectionTitle('ri-shield-check-line', 'Admin Info')}
+                        <table class="table table-sm table-borderless mb-0">
+                            ${detailRow('Approved By', esc(d.approver_name))}
+                            ${detailRow('Approver ID', d.approver_id ? d.approver_id : null)}
+                            ${detailRow('Approved At', esc(d.approved_at))}
                         </table>
                     </div>
                 </div>
+
+                ${aiHtml}
+
+                <div class="row mt-3">
+                    <div class="col-12">
+                        ${sectionTitle('ri-store-2-line', 'Business Information')}
+                        <table class="table table-sm table-borderless mb-0">
+                            ${detailRow('Business Name', esc(d.business_name))}
+                            ${detailRow('Owner / Founder', esc(d.owner_founder_name))}
+                            ${detailRow('Slug', d.business_slug ? '<code>' + esc(d.business_slug) + '</code>' : null)}
+                            ${detailRow('Status', businessStatusBadge || null)}
+                            ${detailRow('Website / Social Media', d.website_social_media ? '<a href="' + esc(d.website_social_media) + '" target="_blank">' + esc(d.website_social_media) + ' <i class="ri-external-link-line"></i></a>' : null)}
+                            ${detailRow('Revenue Stage', esc(d.revenue_stage))}
+                            ${detailRow('Story', d.story ? esc(d.story) : null)}
+                            ${detailRow('Mission', d.mission ? esc(d.mission) : null)}
+                            ${detailRow('Community Impact Statement', d.community_impact_statement ? esc(d.community_impact_statement) : null)}
+                            ${detailRow('Why They Deserve to Compete', d.why_they_deserve_to_compete ? esc(d.why_they_deserve_to_compete) : null)}
+                        </table>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        ${sectionTitle('ri-user-line', 'Owner Profile')}
+                        <table class="table table-sm table-borderless mb-0">
+                            ${detailRow('Name', esc(d.owner_name))}
+                            ${detailRow('Username', d.owner_username ? '<code>' + esc(d.owner_username) + '</code>' : null)}
+                            ${detailRow('Email', d.owner_email ? '<a href="mailto:' + esc(d.owner_email) + '">' + esc(d.owner_email) + '</a>' : null)}
+                            ${detailRow('Address', esc(d.owner_address))}
+                            ${detailRow('Website', d.owner_website ? '<a href="' + esc(d.owner_website) + '" target="_blank">' + esc(d.owner_website) + '</a>' : null)}
+                            ${detailRow('Biography', esc(d.owner_biography))}
+                        </table>
+                        ${socialHtml}
+                    </div>
+                    <div class="col-md-6 text-center">${ownerAvatarHtml}</div>
+                </div>
+
+                ${photoVideoHtml}
+                ${galleryHtml}
+                ${metadataHtml}
             `;
         }
 

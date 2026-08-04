@@ -26,6 +26,22 @@ class ContestApplicationService
     }
 
     /**
+     * Get the next season that has NOT started yet.
+     *
+     * Seasons whose start date has already passed (already started) are
+     * skipped — only seasons with a future starts_at are considered.
+     * Returns the nearest upcoming season, or null when none exists.
+     */
+    public function nextUpcomingSeason(): ?Season
+    {
+        return Season::query()
+            ->whereNotNull('starts_at')
+            ->where('starts_at', '>', now())
+            ->orderBy('starts_at', 'asc')
+            ->first();
+    }
+
+    /**
      * Apply a business to a season.
      *
      * AI review runs synchronously immediately after creation.

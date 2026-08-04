@@ -82,28 +82,97 @@ class AdminContestApplicationController extends Controller
 
     /**
      * Show a single contest application (JSON for modal).
+     *
+     * Returns the complete application payload: every application field,
+     * every business field, the owner profile, and all business media
+     * (every picture/video) so the modal can display everything.
      */
     public function show(ContestApplication $contestApplication)
     {
-        $contestApplication->load(['business.user.profile', 'season', 'approver']);
+        $contestApplication->load([
+            'business.media',
+            'business.user.profile',
+            'season',
+            'approver.profile',
+        ]);
+
+        $business = $contestApplication->business;
+        $profile  = $business?->user?->profile;
 
         return response()->json([
             'success' => true,
             'data'    => [
+                // ── Application ───────────────────────────────────────────
                 'id'                 => $contestApplication->id,
                 'status'             => $contestApplication->status,
                 'admin_note'         => $contestApplication->admin_note,
+                'rejected_reason'    => $contestApplication->rejected_reason,
                 'approved_at'        => $contestApplication->approved_at?->format('M d, Y h:i A'),
                 'created_at'         => $contestApplication->created_at->format('M d, Y h:i A'),
                 'updated_at'         => $contestApplication->updated_at->format('M d, Y h:i A'),
-                'business_name'      => $contestApplication->business?->business_name ?? '—',
-                'business_logo'      => $contestApplication->business?->logo
-                    ? asset('storage/' . $contestApplication->business->logo)
+
+                // ── AI review ────────────────────────────────────────────
+                'ai_reviewed_at'     => $contestApplication->ai_reviewed_at?->format('M d, Y h:i A'),
+                'ai_verdict'         => $contestApplication->ai_verdict,
+                'ai_confidence'      => $contestApplication->ai_confidence !== null
+                    ? round((float) $contestApplication->ai_confidence * 100) . '%'
                     : null,
-                'owner_name'         => $contestApplication->business?->user?->profile?->name ?? '—',
-                'owner_email'        => $contestApplication->business?->user?->email ?? '—',
+                'metadata'           => $contestApplication->metadata,
+
+                // ── Business ─────────────────────────────────────────────
+                'business_name'      => $business?->business_name ?? '—',
+                'business_slug'      => $business?->slug,
+                'business_logo'      => $business?->logo
+                    ? asset('storage/' . $business->logo)
+                    : null,
+                'owner_founder_name' => $business?->owner_founder_name,
+                'story'              => $business?->story,
+                'mission'            => $business?->mission,
+                'website_social_media'       => $business?->website_social_media,
+                'community_impact_statement' => $business?->community_impact_statement,
+                'revenue_stage'      => $business?->revenue_stage,
+                'why_they_deserve_to_compete' => $business?->why_they_deserve_to_compete,
+                'photo_video'        => $business?->photo_video
+                    ? asset('storage/' . $business->photo_video)
+                    : null,
+                'business_status'    => $business?->status,
+                'is_featured'        => (bool) $business?->is_featured,
+                'total_claps'        => (int) ($business?->total_claps ?? 0),
+                'total_saves'        => (int) ($business?->total_saves ?? 0),
+                'total_shares'       => (int) ($business?->total_shares ?? 0),
+                'total_points'       => (int) ($business?->total_points ?? 0),
+
+                // ── Media gallery (every picture/video) ──────────────────
+                'media'              => $business && $business->media
+                    ? $business->media->map(function ($m) {
+                        return [
+                            'id'        => $m->id,
+                            'url'       => $m->file_path ? asset('storage/' . $m->file_path) : null,
+                            'file_name' => $m->file_name,
+                            'mime_type' => $m->mime_type,
+                            'file_size' => $m->file_size,
+                        ];
+                    })->values()->all()
+                    : [],
+
+                // ── Owner ────────────────────────────────────────────────
+                'owner_name'         => $profile?->name ?? '—',
+                'owner_email'        => $business?->user?->email ?? '—',
+                'owner_username'     => $profile?->username,
+                'owner_avatar'       => $profile?->avatar
+                    ? asset('storage/' . $profile->avatar)
+                    : null,
+                'owner_biography'    => $profile?->biography,
+                'owner_address'      => $profile?->address,
+                'owner_website'      => $profile?->website_link,
+                'owner_social_links' => $profile?->social_links,
+
+                // ── Season ───────────────────────────────────────────────
                 'season_name'        => $contestApplication->season?->title ?? '—',
                 'season_id'          => $contestApplication->season?->id,
+
+                // ── Approver ─────────────────────────────────────────────
+                'approver_id'        => $contestApplication->approved_by,
                 'approver_name'      => $contestApplication->approver?->profile?->name
                     ?? $contestApplication->approver?->email
                     ?? '—',
