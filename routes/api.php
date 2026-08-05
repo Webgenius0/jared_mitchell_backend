@@ -41,6 +41,7 @@ use App\Http\Controllers\Api\Contest\BossBeginningWinnerController;
 use App\Http\Controllers\Api\Contest\ContestantProfileController;
 use App\Http\Controllers\Api\Contest\LeaderboardController;
 use App\Http\Controllers\Api\Contest\RoundSubmissionController;
+use App\Http\Controllers\Api\Contest\RoundWiseBusinessController;
 use App\Http\Controllers\Api\Contest\VoteController;
 use App\Http\Controllers\Api\ContestApplicationController;
 use App\Http\Controllers\Api\EventController;
@@ -230,6 +231,9 @@ Route::group(['prefix' => 'v1'], function ($router) {
 
             // Active season rounds
             Route::get('/active-season-rounds', [BossBeginningSeasonController::class, 'activeRounds']); // DONE: Active season's round list
+
+            // Round-wise businesses (which businesses reached each round) — defaults to active season, ?season_id= to pick one
+            Route::get('/season-rounds', [RoundWiseBusinessController::class, 'index']); // DONE: Round-wise business list
 
             // Winners
             Route::get('/winners/current', [BossBeginningWinnerController::class, 'currentWinner']); // DONE: Current season winner
@@ -478,6 +482,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
         Route::prefix('contest')->group(function () {
             //My contest
             Route::get('/my-contests', [ContestApplicationController::class, 'myContests']); // DONE: get all my contest
+            Route::get('/my-rounds', [RoundWiseBusinessController::class, 'myBusiness']); // DONE: my business(es) round-wise journey (auth only)
 
             // Submissions
             Route::post('/rounds/{round}/submissions', [RoundSubmissionController::class, 'store']); // DONE: round wise media file submission
