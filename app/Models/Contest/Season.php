@@ -172,13 +172,37 @@ class Season extends Model
 
     /**
      * Whether this season is currently accepting applications.
+     *
+     * Users can apply BEFORE the season starts. Once the season's start date
+     * (starts_at) has arrived, applications are closed.
+     *
+     * If an explicit application window (applications_starts_at /
+     * applications_ends_at) is configured, it is also respected.
      */
     public function canApply(): bool
     {
-        return $this->is_active
-            && $this->starts_at
-            && $this->ends_at
-            && now()->between($this->starts_at, $this->ends_at);
+        // Must be active and have a defined start date
+        if (!$this->is_active || !$this->starts_at) {
+            return false;
+        }
+
+        $now = now();
+
+        // Applications close once the season has started
+        if ($now->gte($this->starts_at)) {
+            return false;
+        }
+
+        // Respect an explicit application window when configured
+        if ($this->applications_starts_at && $now->lt($this->applications_starts_at)) {
+            return false;
+        }
+
+        if ($this->applications_ends_at && $now->gt($this->applications_ends_at)) {
+            return false;
+        }
+
+        return true;
     }
 
     /**

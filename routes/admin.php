@@ -33,6 +33,7 @@ use App\Http\Controllers\Web\Admin\Spotlight\SpotlightVotePurchaseController as 
 use App\Http\Controllers\Web\Admin\Order\AdminOrderController;
 use App\Http\Controllers\Web\Admin\Product\AdminProductCategoryController;
 use App\Http\Controllers\Web\Admin\Product\AdminProductController;
+use App\Http\Controllers\Web\Admin\Contest\WinnerController;
 use App\Http\Controllers\Web\Admin\Round\RoundSeasonController;
 
 use Illuminate\Support\Facades\Route;
@@ -382,6 +383,17 @@ Route::prefix('round-sessions')->name('admin.round-sessions.')->group(function (
     Route::put('/{season}', [RoundSeasonController::class, 'update'])->name('update');
     Route::patch('/{season}/toggle-active', [RoundSeasonController::class, 'toggleActive'])->name('toggle-active');
     Route::delete('/{season}', [RoundSeasonController::class, 'destroy'])->name('destroy');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Winners (final-round top 3 + admin winner confirmation)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('winners')->name('admin.winners.')->group(function () {
+    Route::get('/', [WinnerController::class, 'index'])->name('index');
+    Route::get('/rounds', [WinnerController::class, 'rounds'])->name('rounds');
+    Route::post('/{round}/confirm-winner', [WinnerController::class, 'confirmWinner'])->name('confirm-winner');
 });
 
 /*

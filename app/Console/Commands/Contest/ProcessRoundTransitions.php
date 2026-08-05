@@ -31,8 +31,14 @@ class ProcessRoundTransitions extends Command
         } else {
             $rounds = $eliminationService->findRoundsNeedingTransition();
 
+            // --force without --round: process every active round in round order,
+            // regardless of its end date (a full run-to-winner flow in one go).
             if ($force) {
-                $rounds = Round::ended()->get()->all();
+                $rounds = Round::where('is_active', true)
+                    ->orderBy('season_id')
+                    ->orderBy('round_number')
+                    ->get()
+                    ->all();
             }
         }
 
@@ -52,12 +58,22 @@ class ProcessRoundTransitions extends Command
             $this->line("  Round #{$round->id} ({$round->title}) — {$round->elimination_rule}");
 
             if ($dryRun) {
-                $this->line("[DRY RUN] Would dispatch transition job.");
+                $this->line("[DRY RUN] Would process transition.");
                 continue;
             }
 
-            ProcessRoundTransition::dispatch($round);
-            $this->info("Transition job dispatched.");
+            if ($force) {
+                // Force = manual/testing action. Run synchronously so the result is
+                // immediate and does not depend on a queue worker being online.
+                $result = $eliminationService->processRoundTransition($round);
+                $this->info(
+                    '  ✅ Processed: ' . count($result['advanced']) . ' advanced, '
+                    . count($result['eliminated']) . ' eliminated.'
+                );
+            } else {
+                ProcessRoundTransition::dispatch($round);
+                $this->info('Transition job dispatched.');
+            }
         }
 
         return Command::SUCCESS;

@@ -89,12 +89,17 @@ class LeaderboardService
             ];
         }
 
-        // Sort by total_score descending, then votes_count
+        // Sort by total_score descending, then votes_count, then contestant id
+        // (contestant id keeps the order fully deterministic when everything ties,
+        // e.g. when a round has no votes yet).
         usort($leaderboard, function ($a, $b) {
             if ($b['total_score'] !== $a['total_score']) {
                 return $b['total_score'] <=> $a['total_score'];
             }
-            return $b['votes_count'] <=> $a['votes_count'];
+            if ($b['votes_count'] !== $a['votes_count']) {
+                return $b['votes_count'] <=> $a['votes_count'];
+            }
+            return $a['contestant_id'] <=> $b['contestant_id'];
         });
 
         // Assign ranks (with tie handling)
@@ -153,12 +158,16 @@ class LeaderboardService
             ];
         }
 
-        // Sort by total_score descending
+        // Sort by total_score descending, then votes_count, then contestant id
+        // for deterministic ordering.
         usort($leaderboard, function ($a, $b) {
             if ($b['total_score'] !== $a['total_score']) {
                 return $b['total_score'] <=> $a['total_score'];
             }
-            return $b['votes_count'] <=> $a['votes_count'];
+            if ($b['votes_count'] !== $a['votes_count']) {
+                return $b['votes_count'] <=> $a['votes_count'];
+            }
+            return $a['contestant_id'] <=> $b['contestant_id'];
         });
 
         // Assign ranks
@@ -208,8 +217,13 @@ class LeaderboardService
             ];
         }
 
-        // Sort by total_score descending
-        usort($leaderboard, fn($a, $b) => $b['total_score'] <=> $a['total_score']);
+        // Sort by total_score descending, then contestant id for determinism.
+        usort($leaderboard, function ($a, $b) {
+            if ($b['total_score'] !== $a['total_score']) {
+                return $b['total_score'] <=> $a['total_score'];
+            }
+            return $a['contestant_id'] <=> $b['contestant_id'];
+        });
 
         // Assign ranks (with tie handling) — same logic as round 2+
         $rank = 1;

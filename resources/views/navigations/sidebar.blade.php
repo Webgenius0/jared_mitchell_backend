@@ -92,6 +92,7 @@
                             'admin.round-sessions.*',
                             'admin.businesses.*',
                             'admin.contest-applications.*',
+                            'admin.winners.*',
                         );
                     @endphp
 
@@ -152,9 +153,9 @@
 
                                 @canany(['manage permissions', 'manage users'])
                                     <li class="nav-item">
-                                        <a href="{{ route('admin.permissions.index') }}"
-                                            class="nav-link {{ request()->routeIs('admin.permissions.*') ? 'active' : '' }}">
-                                            <i class="ri-key-line"></i> Winners
+                                        <a href="{{ route('admin.winners.index') }}"
+                                            class="nav-link {{ request()->routeIs('admin.winners.*') ? 'active' : '' }}">
+                                            <i class="ri-trophy-line"></i> Winners
                                         </a>
                                     </li>
                                 @endcanany

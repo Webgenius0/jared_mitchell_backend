@@ -21,13 +21,14 @@ class ProcessRoundTransition implements ShouldQueue
     public $backoff = [10, 30, 60];
 
     public function __construct(
-        public Round $round
+        public Round $round,
+        public bool $force = false,
     ) {}
 
     public function handle(EliminationService $eliminationService): void
     {
-        // Check round has ended
-        if (!$this->round->hasEnded()) {
+        // Check round has ended — unless explicitly forced via --force.
+        if (!$this->force && !$this->round->hasEnded()) {
             Log::info('ProcessRoundTransition: Round has not ended yet, skipping', [
                 'round_id' => $this->round->id,
                 'ends_at'  => $this->round->ends_at,

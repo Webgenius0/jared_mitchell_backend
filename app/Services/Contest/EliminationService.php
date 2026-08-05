@@ -109,9 +109,11 @@ class EliminationService
                 }
             }
 
-            // Guard: only auto-finalize when the rule is NOT admin_pick
+            // Guard: only auto-finalize when the rule is NOT admin_pick.
+            // Pass the ranked finalists (already sorted best → worst) so the
+            // winner is the actual top scorer, not an arbitrary DB order.
             if (!$nextRound && $round->elimination_rule !== 'admin_pick') {
-                $this->finalizeSeason($round);
+                $this->finalizeSeason($round, $result['advanced']);
             }
 
             // admin_pick + no next round → mark season as "awaiting admin decision"
@@ -136,6 +138,11 @@ class EliminationService
         $rule = $round->elimination_rule ?? 'advance_limit';
         $config = $round->advancement_config ?? [];
 
+        // The admin form saves the limit in the dedicated `advance_limit` column,
+        // so fall back to it when the config array does not define one. Without
+        // this, the limit is silently ignored and every contestant advances.
+        $config['advance_limit'] = $config['advance_limit'] ?? $round->advance_limit;
+
         return match ($rule) {
             'bottom_n'              => $this->eliminateBottomN($leaderboard, $config),
             'top_percent'           => $this->keepTopPercent($leaderboard, $config),
@@ -153,7 +160,7 @@ class EliminationService
     private function advanceLimit(array $leaderboard, array $config): array
     {
         $advanceLimit = $config['advance_limit'] ?? count($leaderboard);
-        $tieBreaker   = $config['cutoff_tie_breaker'] ?? 'all_tied_advance';
+        $tieBreaker   = $config['cutoff_tie_breaker'] ?? 'strict';
 
         return $this->splitAtCutoff($leaderboard, $advanceLimit, $tieBreaker);
     }
@@ -163,14 +170,14 @@ class EliminationService
         $eliminateCount = $config['eliminate_count'] ?? 1;
         $advanceLimit   = max(0, count($leaderboard) - $eliminateCount);
 
-        return $this->splitAtCutoff($leaderboard, $advanceLimit, 'all_tied_advance');
+        return $this->splitAtCutoff($leaderboard, $advanceLimit, 'strict');
     }
 
     private function keepTopPercent(array $leaderboard, array $config): array
     {
         $percent      = max(1, min(100, $config['keep_percent'] ?? 50));
         $advanceLimit = max(1, (int) ceil(count($leaderboard) * $percent / 100));
-        $tieBreaker   = $config['cutoff_tie_breaker'] ?? 'all_tied_advance';
+        $tieBreaker   = $config['cutoff_tie_breaker'] ?? 'strict';
 
         return $this->splitAtCutoff($leaderboard, $advanceLimit, $tieBreaker);
     }
@@ -240,64 +247,81 @@ class EliminationService
         return ['advanced' => [], 'eliminated' => []];
     }
 
-    private function splitAtCutoff(array $leaderboard, int $cutoff, string $tieBreaker = 'all_tied_advance'): array
+    /**
+     * Split a ranked leaderboard at a cutoff position.
+     *
+     * Default behaviour ('strict'): exactly $cutoff contestants advance. When
+     * contestants tie at the cutoff score, the tie is filled in leaderboard order
+     * (score desc → votes desc → contestant id asc), so a tied group never pushes
+     * more people through than the configured limit — e.g. advance_limit = 3 with
+     * all-equal scores still advances exactly 3.
+     *
+     * An explicit 'all_tied_advance' config keeps the legacy behaviour of letting
+     * every contestant tied at the cutoff advance together. Any other config value
+     * (including the old, buggy 'all_tied_eliminate') behaves like 'strict'.
+     */
+    private function splitAtCutoff(array $leaderboard, int $cutoff, string $tieBreaker = 'strict'): array
     {
         $advanced   = [];
         $eliminated = [];
 
-        $cutoffIndex = max(0, min($cutoff - 1, count($leaderboard) - 1));
-        $cutoffEntry = $leaderboard[$cutoffIndex] ?? null;
-        $cutoffScore = $cutoffEntry['total_score'] ?? null;
-
-        if ($cutoffScore === null) {
-            return ['advanced' => [], 'eliminated' => []];
+        if (empty($leaderboard) || $cutoff <= 0) {
+            return ['advanced' => [], 'eliminated' => array_values($leaderboard)];
         }
 
+        $cutoff = min($cutoff, count($leaderboard));
+        $cutoffScore = $leaderboard[$cutoff - 1]['total_score'] ?? null;
+
+        if ($cutoffScore === null) {
+            return ['advanced' => [], 'eliminated' => array_values($leaderboard)];
+        }
+
+        // Legacy option: everyone tied at the cutoff advances together.
+        if ($tieBreaker === 'all_tied_advance') {
+            foreach ($leaderboard as $entry) {
+                $data = [
+                    'contestant_id' => $entry['contestant_id'],
+                    'display_name'  => $entry['display_name'],
+                    'rank'          => $entry['rank'],
+                    'score'         => $entry['total_score'],
+                ];
+
+                if ($entry['total_score'] >= $cutoffScore) {
+                    $advanced[] = $data;
+                } else {
+                    $eliminated[] = $data;
+                }
+            }
+
+            return compact('advanced', 'eliminated');
+        }
+
+        // Strict deterministic cap — fill up to $cutoff in leaderboard order.
         $scoresAbove = 0;
-        $tieZone = [];
-        $belowZone = [];
+        foreach ($leaderboard as $entry) {
+            if ($entry['total_score'] > $cutoffScore) {
+                $scoresAbove++;
+            }
+        }
+
+        $remaining = $cutoff - $scoresAbove;
 
         foreach ($leaderboard as $entry) {
             $data = [
-                'contestant_id'  => $entry['contestant_id'],
-                'display_name'   => $entry['display_name'],
-                'rank'           => $entry['rank'],
-                'score'          => $entry['total_score'],
+                'contestant_id' => $entry['contestant_id'],
+                'display_name'  => $entry['display_name'],
+                'rank'          => $entry['rank'],
+                'score'         => $entry['total_score'],
             ];
 
             if ($entry['total_score'] > $cutoffScore) {
                 $advanced[] = $data;
-                $scoresAbove++;
-            } elseif ($entry['total_score'] === $cutoffScore) {
-                $tieZone[] = $data;
+            } elseif ($remaining > 0) {
+                $advanced[] = $data;
+                $remaining--;
             } else {
-                $belowZone[] = $data;
+                $eliminated[] = $data;
             }
-        }
-
-        $remainingSlots = $cutoff - $scoresAbove;
-        $hasTie = count($tieZone) > 1 && count($tieZone) > $remainingSlots;
-
-        if ($hasTie) {
-            match ($tieBreaker) {
-                'all_tied_advance' => [
-                    array_push($advanced, ...$tieZone),
-                    array_push($eliminated, ...$belowZone),
-                ],
-                'all_tied_eliminate' => [
-                    array_push($eliminated, ...$tieZone),
-                    $fillCount = min(count($belowZone), $remainingSlots),
-                    array_push($advanced, ...array_slice($belowZone, 0, $fillCount)),
-                    array_push($eliminated, ...array_slice($belowZone, $fillCount)),
-                ],
-                default => [
-                    array_push($eliminated, ...$tieZone),
-                    array_push($eliminated, ...$belowZone),
-                ],
-            };
-        } else {
-            array_push($advanced, ...$tieZone);
-            array_push($eliminated, ...$belowZone);
         }
 
         return compact('advanced', 'eliminated');
@@ -305,43 +329,109 @@ class EliminationService
 
     private function findNextRound(Round $currentRound): ?Round
     {
+        // sort_order can be null for rounds created without it (e.g. via the
+        // admin Round Sessions form), which would break the query comparison.
+        $sortOrder = $currentRound->sort_order ?? 0;
+
         return Round::where('season_id', $currentRound->season_id)
-            ->where(function ($q) use ($currentRound) {
+            ->where(function ($q) use ($currentRound, $sortOrder) {
                 $q->where('round_number', '>', $currentRound->round_number)
-                    ->orWhere('sort_order', '>', $currentRound->sort_order);
+                    ->orWhere('sort_order', '>', $sortOrder);
             })
             ->orderBy('round_number')
             ->orderBy('sort_order')
             ->first();
     }
 
-    private function finalizeSeason(Round $finalRound): void
+    private function finalizeSeason(Round $finalRound, array $rankedFinalists = []): void
     {
-        $activeContestants = Contestant::where('season_id', $finalRound->season_id)
+        // Build ranked finalists from the leaderboard list (already sorted best → worst).
+        $ranked = [];
+        foreach ($rankedFinalists as $entry) {
+            $contestant = Contestant::find($entry['contestant_id'] ?? null);
+            if ($contestant) {
+                $ranked[] = [
+                    'contestant' => $contestant,
+                    'score'      => $entry['score'] ?? null,
+                ];
+            }
+        }
+
+        // Fallback: any remaining active contestants not covered by the ranked list,
+        // ordered by their stored score so the ranking stays deterministic.
+        $already = collect($ranked)->pluck('contestant.id')->all();
+        $leftover = Contestant::where('season_id', $finalRound->season_id)
             ->where('status', 'active')
+            ->whereNotIn('id', $already)
+            ->orderByDesc('total_score')
             ->get();
 
-        DB::transaction(function () use ($activeContestants, $finalRound) {
+        foreach ($leftover as $contestant) {
+            $ranked[] = [
+                'contestant' => $contestant,
+                'score'      => $contestant->total_score,
+            ];
+        }
+
+        // The scheduler does NOT decide the winner. All finalists are kept as
+        // 'finalist' (no 'winner' status) and the season waits for the admin to
+        // confirm the winner from the top 3 — only then does the winner appear
+        // in the public API (which reads status = 'winner').
+        $candidates = [];
+
+        DB::transaction(function () use ($ranked, $finalRound, &$candidates) {
             $rank = 1;
-            foreach ($activeContestants as $contestant) {
-                $status = match ($rank) {
-                    1    => 'winner',
-                    2    => 'runner_up',
-                    3    => 'finalist',
-                    default => 'finalist',
-                };
+            foreach ($ranked as $entry) {
+                $contestant = $entry['contestant'];
+                $score      = $entry['score'] ?? $contestant->total_score;
 
                 $contestant->update([
-                    'status'                => $status,
+                    'status'                 => 'finalist',
                     'eliminated_in_round_id' => null,
+                    'total_score'            => $score,
+                    'metadata'               => array_merge($contestant->metadata ?? [], [
+                        'final_rank'  => $rank,
+                        'final_score' => $score,
+                    ]),
                 ]);
+
+                // Snapshot the top 3 candidates so the Winners page shows a
+                // stable leaderboard even if votes are later deleted.
+                if ($rank <= 3) {
+                    $candidates[] = [
+                        'contestant_id' => $contestant->id,
+                        'display_name'  => $contestant->display_name,
+                        'contestable_id'=> $contestant->contestable_id,
+                        'rank'          => $rank,
+                        'score'         => $score,
+                    ];
+                }
                 $rank++;
             }
         });
 
-        $finalRound->season()->update([
-            'status'   => 'completed',
-            'ends_at'  => now(),
+        $season = $finalRound->season;
+        $metadata = $season->metadata ?? [];
+        $metadata['winner_candidates'] = $candidates;
+        $metadata['winner_confirmed']  = false;
+        unset(
+            $metadata['winner_contestant_id'],
+            $metadata['winner_business_id'],
+            $metadata['winner_confirmed_at']
+        );
+
+        $season->update([
+            'metadata'   => $metadata,
+            'status'     => 'awaiting_final_review',
+            'is_active'  => false,
+            'ends_at'    => now(),
+        ]);
+
+        Log::info('Season final round completed — awaiting admin winner confirmation', [
+            'round_id'   => $finalRound->id,
+            'season_id'  => $season->id,
+            'finalists'  => count($ranked),
+            'candidates' => count($candidates),
         ]);
     }
 
@@ -350,6 +440,10 @@ class EliminationService
      */
     public function findRoundsNeedingTransition(): array
     {
-        return Round::ended()->get()->all();
+        return Round::ended()
+            ->orderBy('season_id')
+            ->orderBy('round_number')
+            ->get()
+            ->all();
     }
 }

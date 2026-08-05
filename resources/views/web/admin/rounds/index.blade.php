@@ -123,7 +123,7 @@
                 confirmText: 'Yes, delete it'
             }).then(confirmed => {
                 if (!confirmed) return;
-                axios.delete(`{{ url('admin/round-sessions') }}/${id}`)
+                axios.delete(`{{ route('admin.round-sessions.destroy', ':id') }}`.replace(':id', id))
                     .then(res => {
                         Toast.success('Round session deleted successfully.');
                         table.draw(false);
