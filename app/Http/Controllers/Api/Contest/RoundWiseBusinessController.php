@@ -20,9 +20,10 @@ use Illuminate\Support\Facades\Storage;
  * GET /api/v1/contest/my-rounds     → auth: ONLY the caller's own business(es)
  *
  * my-rounds behaviour:
- *   - Pass ?round_number=2 → returns whether MY business is staying in round 2
- *     or not; if staying, the business's FULL details + contest id are included.
- *   - No ?round_number     → returns my business(es) with their full round-wise
+ *   - Pass ?round_id=58 (or ?round_number=2) → returns whether MY business is
+ *     staying in that round or not; if staying, the business's FULL details +
+ *     contest id are included. Passing a round id in round_number also works.
+ *   - No round param      → returns my business(es) with their full round-wise
  *     journey (no season/session wrapper).
  *   - The season is resolved automatically (active season, then the caller's
  *     most recent season). ?season_id= is still accepted if needed.
@@ -74,27 +75,22 @@ class RoundWiseBusinessController extends Controller
             return $this->notFound('No season found for your account.');
         }
 
-        $myContestants = Contestant::where('season_id', $season->id)
-            ->where('contestable_type', Business::class)
-            ->whereIn('contestable_id', Business::where('user_id', $userId)->pluck('id'))
-            ->with(['contestable.media', 'eliminatedInRound', 'currentRound'])
-            ->orderBy('contestable_id')
-            ->get();
-
-        if ($myContestants->isEmpty()) {
-            return $this->success('You are not participating in this season.', [
-                'businesses' => [],
-            ]);
-        }
-
-        // ── Round-number check: is MY business staying in this round? ──────
-        if ($request->filled('round_number')) {
-            $round = $season->rounds()
-                ->where('round_number', $request->integer('round_number'))
-                ->first();
+        // ── Round check: is MY business staying in this round? ─────────────
+        if ($request->filled('round_number') || $request->filled('round_id')) {
+            $round = $this->resolveRound($request, $season);
 
             if (!$round) {
-                return $this->notFound('Round not found in this season.');
+                return $this->notFound('Round not found.');
+            }
+
+            // The found round defines the season (an id lookup may cross seasons).
+            $season = $round->season;
+
+            $myContestants = $this->myContestants($season, $userId);
+            if ($myContestants->isEmpty()) {
+                return $this->success('You are not participating in this season.', [
+                    'businesses' => [],
+                ]);
             }
 
             // Ranked field for this round so points/rank are true positions.
@@ -123,7 +119,15 @@ class RoundWiseBusinessController extends Controller
             ]);
         }
 
-        // ── No round_number: full round-wise journey (no season wrapper) ────
+        // ── No round: full round-wise journey (no season wrapper) ──────────
+        $myContestants = $this->myContestants($season, $userId);
+
+        if ($myContestants->isEmpty()) {
+            return $this->success('You are not participating in this season.', [
+                'businesses' => [],
+            ]);
+        }
+
         $rounds = $this->buildRounds($season);
 
         $businesses = [];
@@ -204,6 +208,40 @@ class RoundWiseBusinessController extends Controller
             ->first();
 
         return $contestant?->season;
+    }
+
+    /**
+     * The caller's own contestant records in a season.
+     */
+    private function myContestants(Season $season, int $userId)
+    {
+        return Contestant::where('season_id', $season->id)
+            ->where('contestable_type', Business::class)
+            ->whereIn('contestable_id', Business::where('user_id', $userId)->pluck('id'))
+            ->with(['contestable.media', 'eliminatedInRound', 'currentRound'])
+            ->orderBy('contestable_id')
+            ->get();
+    }
+
+    /**
+     * Resolve the round from the request. Accepts:
+     *   ?round_id=58        → by round id (recommended)
+     *   ?round_number=2     → by round number within the season
+     *   ?round_number=58    → if no round has that number, falls back to id 58
+     *                        (so passing a round id in round_number still works)
+     */
+    private function resolveRound(Request $request, Season $season): ?Round
+    {
+        $roundId = $request->integer('round_id');
+        if ($roundId) {
+            return Round::find($roundId);
+        }
+
+        $roundNumber = $request->integer('round_number');
+        $round = $season->rounds()->where('round_number', $roundNumber)->first();
+
+        // Lenient fallback: the client may have passed a round id as round_number.
+        return $round ?? Round::find($roundNumber);
     }
 
     private function seasonSummary(Season $season): array
