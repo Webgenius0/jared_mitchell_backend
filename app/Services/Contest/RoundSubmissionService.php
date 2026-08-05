@@ -19,7 +19,7 @@ class RoundSubmissionService
     public function submit(
         Contestant $contestant,
         Round $round,
-        string $title,
+        ?string $title = null,
         ?string $description = null,
         ?array $mediaFiles = null,
         ?array $metadata = null,
@@ -126,7 +126,7 @@ class RoundSubmissionService
      */
     public function updateSubmission(
         RoundSubmission $submission,
-        string $title,
+        ?string $title = null,
         ?string $description = null,
         ?array $mediaFiles = null,
     ): RoundSubmission {

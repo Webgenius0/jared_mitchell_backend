@@ -24,23 +24,34 @@ class RoundSubmissionController extends Controller
     /**
      * POST /api/v1/contest/rounds/{round}/submissions
      *
-     * Submit or update a submission for the authenticated user's contestant record.
+     * Submit or update a submission for a contestant in the round.
      *
-     * @bodyParam title string required Submission title
-     * @bodyParam description string Submission description/pitch
-     * @bodyParam media_files[] file Array of media files (images, videos, etc.) to upload
+     * The contestant is resolved automatically from the authenticated user's own
+     * records (or the businesses they own). Pass an optional contestant_id to
+     * submit for a SPECIFIC one of your businesses when you own several in the
+     * same round. Submitting for someone else's contestant is rejected.
+     *
+     * @bodyParam contestant_id int optional The contestant to submit for (must be your own)
+     * @bodyParam title string optional Submission title
+     * @bodyParam description string optional Submission description/pitch
+     * @bodyParam media_files[] file required One or more video files (mp4, mov, avi, mkv) — max 100MB each
      */
     public function store(Request $request, Round $round): JsonResponse
     {
         $validated = $request->validate([
-            'title'          => 'required|string|max:255',
-            'description'    => 'nullable|string|max:10000',
-            'media_files'    => 'nullable|array|max:10',
-            'media_files.*'  => 'file|mimes:jpg,jpeg,png,gif,webp,mp4,mov,avi,mkv,pdf|max:102400', // max 100MB per file
+            'contestant_id' => 'nullable|integer|exists:contestants,id',
+            'title'         => 'nullable|string|max:255',
+            'description'   => 'nullable|string|max:10000',
+            'media_files'   => 'required|array|min:1|max:10',
+            'media_files.*' => 'file|mimes:mp4,mov,avi,mkv|max:102400', // max 100MB per video
         ]);
 
         $user       = auth('api')->user();
-        $contestant = $this->resolveContestantForRound($user, $round);
+        $contestant = $this->resolveContestantForRound(
+            $user,
+            $round,
+            $validated['contestant_id'] ?? null
+        );
 
         if (!$contestant) {
             return $this->error(
@@ -61,9 +72,9 @@ class RoundSubmissionController extends Controller
         $submission = $this->submissionService->submit(
             contestant:  $contestant,
             round:       $round,
-            title:       $validated['title'],
+            title:       $validated['title'] ?? null,
             description: $validated['description'] ?? null,
-            mediaFiles:  $request->hasFile('media_files') ? $request->file('media_files') : null,
+            mediaFiles:  $request->file('media_files'),
         );
 
         return $this->success('Submission saved successfully.', [
@@ -160,9 +171,9 @@ class RoundSubmissionController extends Controller
      * Update an existing submission. Only the owner can update.
      * Use POST (not PUT/PATCH) so multipart/form-data file uploads work correctly.
      *
-     * @bodyParam title string required Submission title
+     * @bodyParam title string optional Submission title
      * @bodyParam description string Submission description/pitch
-     * @bodyParam media_files[] file New media files to replace existing ones
+     * @bodyParam media_files[] file New video files to replace existing ones
      */
     public function update(Request $request, Round $round, RoundSubmission $submission): JsonResponse
     {
@@ -170,10 +181,19 @@ class RoundSubmissionController extends Controller
             return $this->error(null, 'Submission does not belong to this round.', 404);
         }
 
-        $user       = auth('api')->user();
-        $contestant = $this->resolveContestantForRound($user, $round);
+        $user = auth('api')->user();
 
-        if (!$contestant || $submission->contestant_id !== $contestant->id) {
+        // The submission's contestant must belong to the caller and still be an
+        // active contestant in this round. Checking the submission's OWN
+        // contestant works even when the user owns several businesses in the
+        // same round — it never picks the wrong one.
+        $submissionContestant = $submission->contestant;
+        $canUpdate = $submissionContestant
+            && $submissionContestant->current_round_id === $round->id
+            && $submissionContestant->status === 'active'
+            && $this->ownsContestant($user, $submissionContestant);
+
+        if (!$canUpdate) {
             return $this->error(null, 'You are not authorized to update this submission.', 403);
         }
 
@@ -182,15 +202,15 @@ class RoundSubmissionController extends Controller
         }
 
         $validated = $request->validate([
-            'title'          => 'required|string|max:255',
-            'description'    => 'nullable|string|max:10000',
-            'media_files'    => 'nullable|array|max:10',
-            'media_files.*'  => 'file|mimes:jpg,jpeg,png,gif,webp,mp4,mov,avi,mkv,pdf|max:102400',
+            'title'         => 'nullable|string|max:255',
+            'description'   => 'nullable|string|max:10000',
+            'media_files'   => 'nullable|array|max:10',
+            'media_files.*' => 'file|mimes:mp4,mov,avi,mkv|max:102400',
         ]);
 
         $updated = $this->submissionService->updateSubmission(
             submission:  $submission,
-            title:       $validated['title'],
+            title:       $validated['title'] ?? null,
             description: $validated['description'] ?? null,
             mediaFiles:  $request->hasFile('media_files') ? $request->file('media_files') : null,
         );
@@ -216,33 +236,53 @@ class RoundSubmissionController extends Controller
 
     /**
      * Resolve the current contestant for a user in a given round.
-     * Searches through the user's own contestant records AND
-     * contestant records of businesses the user owns.
+     *
+     * When $contestantId is provided, ONLY that contestant is considered, and it
+     * must belong to the user (the user themselves, or a business the user owns).
+     * Otherwise it searches the user's own contestant records AND the contestant
+     * records of businesses the user owns.
      */
-    private function resolveContestantForRound($user, Round $round): ?Contestant
+    private function resolveContestantForRound($user, Round $round, ?int $contestantId = null): ?Contestant
     {
-        // 1. Check if the user themselves is a contestant
-        $contestant = Contestant::where('current_round_id', $round->id)
-            ->where('contestable_type', $user->getMorphClass())
-            ->where('contestable_id', $user->id)
-            ->active()
-            ->first();
+        $query = Contestant::where('current_round_id', $round->id)->active();
 
-        if ($contestant) {
-            return $contestant;
+        if ($contestantId) {
+            $query->where('id', $contestantId);
+        } else {
+            // 1. User themselves, or 2. any business the user owns.
+            $query->where(function ($q) use ($user) {
+                $q->where('contestable_type', $user->getMorphClass())
+                    ->where('contestable_id', $user->id)
+                    ->orWhere(function ($b) use ($user) {
+                        $b->where('contestable_type', 'App\\Models\\Business')
+                            ->whereIn('contestable_id', Business::where('user_id', $user->id)->pluck('id'));
+                    });
+            });
         }
 
-        // 2. Check if any of the user's businesses are contestants
-        $businessIds = Business::where('user_id', $user->id)->pluck('id');
+        $contestant = $query->first();
 
-        if ($businessIds->isNotEmpty()) {
-            $contestant = Contestant::where('current_round_id', $round->id)
-                ->where('contestable_type', 'App\\Models\\Business')
-                ->whereIn('contestable_id', $businessIds)
-                ->active()
-                ->first();
+        // Ownership safety check — never allow submitting for someone else's entry.
+        if ($contestant && $contestantId && !$this->ownsContestant($user, $contestant)) {
+            return null;
         }
 
         return $contestant;
+    }
+
+    /**
+     * Whether the given contestant belongs to the user (the user themselves,
+     * or one of the businesses the user owns).
+     */
+    private function ownsContestant($user, Contestant $contestant): bool
+    {
+        if ($contestant->contestable_type === $user->getMorphClass()) {
+            return $contestant->contestable_id === $user->id;
+        }
+
+        return $contestant->contestable_type === 'App\\Models\\Business'
+            && Business::where('user_id', $user->id)
+                ->where('id', $contestant->contestable_id)
+                ->exists();
     }
 }
