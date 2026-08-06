@@ -63,6 +63,11 @@ class RoundWiseBusinessController extends Controller
      * that round. If it is, the response includes the business's full details
      * and the contest (contestant) id. Ranks are computed against the full field.
      *
+     * Rounds are only treated as "not open" when they are genuinely future
+     * rounds: not active, not started yet, and no contestant assigned or
+     * eliminated in them. Completed and currently-running rounds (e.g. round
+     * 57 complete / 58 running) keep returning their businesses.
+     *
      * Without ?round_number: returns my businesses with their complete round-wise
      * journey (no season wrapper).
      */
@@ -86,6 +91,36 @@ class RoundWiseBusinessController extends Controller
             // The found round defines the season (an id lookup may cross seasons).
             $season = $round->season;
 
+            // A round is only treated as "not open" when it is genuinely a
+            // future round: not the active round, not started yet, and no
+            // contestant has been assigned or eliminated in it yet.
+            // Completed rounds (57) and the currently running round (58) keep
+            // showing their businesses as before.
+            $hasParticipants = Contestant::where('season_id', $round->season_id)
+                ->where(fn ($q) => $q->where('current_round_id', $round->id)
+                    ->orWhere('eliminated_in_round_id', $round->id))
+                ->exists();
+
+            $roundNotOpen = !$round->is_active
+                && $round->starts_at
+                && $round->starts_at->isFuture()
+                && !$hasParticipants;
+
+            if ($roundNotOpen) {
+                return $this->success('This round has not opened yet.', [
+                    'round' => [
+                        'round_id'     => $round->id,
+                        'round_number' => $round->round_number,
+                        'title'        => $round->title,
+                        'is_active'    => $round->is_active,
+                        'is_open'      => false,
+                        'starts_at'    => $round->starts_at?->toIso8601String(),
+                        'ends_at'      => $round->ends_at?->toIso8601String(),
+                    ],
+                    'businesses' => [],
+                ]);
+            }
+
             $myContestants = $this->myContestants($season, $userId);
             if ($myContestants->isEmpty()) {
                 return $this->success('You are not participating in this season.', [
@@ -93,11 +128,22 @@ class RoundWiseBusinessController extends Controller
                 ]);
             }
 
-            // Ranked field for this round so points/rank are true positions.
-            $roundData = collect($this->buildRounds($season))
-                ->firstWhere('id', $round->id);
-            $entriesByContestant = collect($roundData['businesses'] ?? [])
-                ->keyBy('contestant_id');
+            // Only MY businesses are returned for this round. Points and rank are
+            // still computed against the full field, but the heavy all-round /
+            // all-business build is not needed here.
+            $fieldScores = $this->roundFieldScores($season, $round);
+
+            $businesses = [];
+            foreach ($myContestants as $contestant) {
+                $business = $this->businessInRound($contestant, $round);
+                if (!($business['in_round'] ?? false)) {
+                    continue;
+                }
+
+                $business['points'] = $fieldScores[$contestant->id] ?? 0;
+                $business['rank'] = $this->roundRank($fieldScores, $contestant->id);
+                $businesses[] = $business;
+            }
 
             return $this->success('My business round check retrieved successfully.', [
                 'round' => [
@@ -105,17 +151,11 @@ class RoundWiseBusinessController extends Controller
                     'round_number' => $round->round_number,
                     'title'        => $round->title,
                     'is_active'    => $round->is_active,
+                    'is_open'      => true,
                     'starts_at'    => $round->starts_at?->toIso8601String(),
                     'ends_at'      => $round->ends_at?->toIso8601String(),
                 ],
-                'businesses' => $myContestants
-                    ->map(fn ($contestant) => $this->businessInRound(
-                        $contestant,
-                        $round,
-                        $entriesByContestant->get($contestant->id, [])
-                    ))
-                    ->values()
-                    ->all(),
+                'businesses' => $businesses,
             ]);
         }
 
@@ -257,10 +297,9 @@ class RoundWiseBusinessController extends Controller
 
     /**
      * Whether a contestant is staying in the given round, plus full details.
-     *
-     * $entry is the optional ranked entry (points/rank) for this round.
+     * Points/rank are attached by the caller (computed against the full field).
      */
-    private function businessInRound(Contestant $contestant, Round $round, array $entry = []): array
+    private function businessInRound(Contestant $contestant, Round $round): array
     {
         $eliminatedRound = $contestant->eliminatedInRound;
 
@@ -283,10 +322,78 @@ class RoundWiseBusinessController extends Controller
 
         return array_merge($this->businessDetails($contestant), [
             'in_round' => $reached,
-            'points'   => $entry['points'] ?? null,
-            'rank'     => $entry['rank'] ?? null,
             'status'   => $status,
         ]);
+    }
+
+    /**
+     * Scores for the whole field in a single round (contestant_id → total score).
+     * Only contestants who actually reached this round are included, so ranks
+     * stay true against the full field — no business details are built here.
+     */
+    private function roundFieldScores(Season $season, Round $round): array
+    {
+        $voteTotals = Vote::where('round_id', $round->id)
+            ->where('votable_type', Contestant::class)
+            ->selectRaw('votable_id as contestant_id')
+            ->selectRaw('COALESCE(SUM(weight), 0) as total_score')
+            ->groupBy('votable_id')
+            ->pluck('total_score', 'contestant_id');
+
+        $scores = [];
+        $contestants = Contestant::where('season_id', $season->id)
+            ->with(['eliminatedInRound', 'contestable'])
+            ->get();
+
+        foreach ($contestants as $contestant) {
+            // Same "reached this round" rule as buildRounds().
+            $eliminatedRound = $contestant->eliminatedInRound;
+            if ($contestant->eliminated_in_round_id !== null
+                && ($eliminatedRound === null
+                    || $eliminatedRound->round_number === null
+                    || $eliminatedRound->round_number < $round->round_number)
+            ) {
+                continue;
+            }
+
+            $scores[$contestant->id] = $round->round_number === 1
+                ? (float) ($contestant->contestable?->total_points ?? 0)
+                : (float) ($voteTotals[$contestant->id] ?? 0);
+        }
+
+        return $scores;
+    }
+
+    /**
+     * Competition-style rank for one contestant within a round field.
+     * Ties share a rank (1, 2, 2, 4) — identical to the round-wise lists.
+     */
+    private function roundRank(array $fieldScores, int $contestantId): ?int
+    {
+        if (!array_key_exists($contestantId, $fieldScores)) {
+            return null;
+        }
+
+        arsort($fieldScores);
+
+        $rank = 1;
+        $prevScore = null;
+        $prevRank = null;
+        foreach ($fieldScores as $id => $score) {
+            $entryRank = $prevScore !== null && (float) $score === (float) $prevScore
+                ? $prevRank
+                : $rank;
+
+            if ($id === $contestantId) {
+                return $entryRank;
+            }
+
+            $prevScore = $score;
+            $prevRank = $entryRank;
+            $rank++;
+        }
+
+        return null;
     }
 
     /**
