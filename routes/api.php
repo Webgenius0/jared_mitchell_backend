@@ -465,7 +465,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
         });
 
         // Subscriptions
-        Route::prefix('subscription')->group(function () {
+        Route::middleware('role:boss|artist,api')->prefix('subscription')->group(function () {
             Route::post('/checkout', [SubscriptionController::class, 'checkout']); // DONE: Checkout subscription
             Route::get('/status', [SubscriptionController::class, 'status']); // DONE: Get subscription status
             Route::post('/cancel', [SubscriptionController::class, 'cancel']); // DONE: Cancel subscription

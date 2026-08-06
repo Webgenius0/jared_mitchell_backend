@@ -118,7 +118,7 @@ class OrderController extends Controller
             'shipping.city' => 'required|string|max:255',
             'shipping.state' => 'nullable|string|max:255',
             'shipping.zip' => 'nullable|string|max:20',
-            'shipping.country' => 'nullable|string|max:2',
+            'shipping.country' => 'nullable|string|max:255',
 
             // Billing address (optional — if billing group is provided, all required fields become required)
             'billing' => 'nullable|array',
@@ -130,7 +130,7 @@ class OrderController extends Controller
             'billing.city' => 'required_with:billing|string|max:255',
             'billing.state' => 'nullable|string|max:255',
             'billing.zip' => 'nullable|string|max:20',
-            'billing.country' => 'nullable|string|max:2',
+            'billing.country' => 'nullable|string|max:255',
 
             'payment_method' => 'nullable|string|in:cod,card|max:50',
             'notes' => 'nullable|string|max:1000',
