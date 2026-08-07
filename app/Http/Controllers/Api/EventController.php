@@ -68,7 +68,8 @@ class EventController extends Controller
             ->with([
                 'ticketTiers' => function ($q) {
                     $q->where('is_active', true)->orderBy('sort_order');
-                }
+                },
+                'sponsors'
             ])
             ->withCount(['likers', 'bookmarkers', 'shares']);
 
@@ -116,7 +117,8 @@ class EventController extends Controller
             ->with([
                 'ticketTiers' => function ($q) {
                     $q->where('is_active', true)->orderBy('sort_order');
-                }
+                },
+                'sponsors'
             ])
             ->withCount(['likers', 'bookmarkers', 'shares'])
             ->orderBy('starts_at', 'asc');
@@ -221,7 +223,8 @@ class EventController extends Controller
             ->with([
                 'ticketTiers' => function ($q) {
                     $q->where('is_active', true)->orderBy('sort_order');
-                }
+                },
+                'sponsors'
             ])
             ->withCount(['likers', 'bookmarkers', 'shares'])
             ->orderBy('ends_at', 'desc');
@@ -256,6 +259,7 @@ class EventController extends Controller
                 'media',
                 'artists.profile',
                 'artists.artistCategory',
+                'sponsors'
             ])
             ->withCount(['likers', 'bookmarkers', 'shares'])
             ->first();
@@ -441,5 +445,30 @@ class EventController extends Controller
         ]);
 
         return $this->success('Event share recorded successfully.');
+    }
+
+    /**
+     * Get all active event sponsors.
+     */
+    public function sponsors()
+    {
+        // Fetches all active sponsors that are linked to ANY event (no latest/first limits)
+        $sponsors = \App\Models\Sponsor::where('is_active', true)
+            ->whereHas('events')
+            ->orderBy('name', 'asc')
+            ->get()
+            ->map(function ($sponsor) {
+                return [
+                    'id' => $sponsor->id,
+                    'name' => $sponsor->name,
+                    'logo' => $sponsor->logo ? asset('/' . ltrim($sponsor->logo, '/')) : null,
+                    'url' => $sponsor->website_url,
+                    'description' => $sponsor->description,
+                ];
+            });
+
+        return $this->success('Event sponsors retrieved successfully.', [
+            'sponsors' => $sponsors
+        ]);
     }
 }

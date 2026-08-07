@@ -54,6 +54,17 @@ class EventResource extends JsonResource
                     ];
                 });
             }),
+            'event_sponsors' => $this->whenLoaded('sponsors', function () {
+                return $this->sponsors->map(function ($sponsor) {
+                    return [
+                        'id' => $sponsor->id,
+                        'name' => $sponsor->name,
+                        'logo' => $sponsor->logo ? asset('/' . ltrim($sponsor->logo, '/')) : null,
+                        'url' => $sponsor->website_url,
+                        'description' => $sponsor->description,
+                    ];
+                });
+            }),
             // Interaction counts
             'likes_count' => (int) ($this->likers_count ?? 0),
             'bookmarks_count' => (int) ($this->bookmarkers_count ?? 0),

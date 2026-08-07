@@ -33,4 +33,12 @@ class Sponsor extends Model
     {
         return $query->orderBy('name');
     }
+
+    /**
+     * The events that belong to the sponsor.
+     */
+    public function events()
+    {
+        return $this->belongsToMany(Event::class, 'event_sponsor');
+    }
 }

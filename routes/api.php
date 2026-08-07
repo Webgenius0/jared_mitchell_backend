@@ -148,6 +148,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
         |--------------------------------------------------------------------------
         */
         Route::prefix('events')->group(function () {
+            Route::get('/sponsors', [EventController::class, 'sponsors']); // GET Event sponsors
             Route::get('/', [EventController::class, 'index']); // DONE: List all events (public)
             Route::get('/upcomming-events', [EventController::class, 'upcommingEvents']); // DONE: Upcoming events(from today onwards)
             Route::get('/calendar-views', [EventController::class, 'eventCalaenderView']); // DONE : event calender view for Event Calendar Page

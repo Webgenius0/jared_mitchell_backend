@@ -39,28 +39,28 @@ class SpotlightApplicationController extends Controller
                 'voting_ends_at' => $week->voting_ends_at,
             ]);
 
-        $activeEvent = \App\Models\Event::where('status', 'published')
-            ->with('sponsors')
-            ->latest('starts_at')
-            ->first();
+        // $activeEvent = \App\Models\Event::where('status', 'published')
+        //     ->with('sponsors')
+        //     ->latest('starts_at')
+        //     ->first();
 
-        $eventData = null;
-        if ($activeEvent) {
-            $eventData = [
-                'id' => $activeEvent->id,
-                'title' => $activeEvent->title,
-                'sponsors' => $activeEvent->sponsors->map(fn($sponsor) => [
-                    'id' => $sponsor->id,
-                    'name' => $sponsor->name,
-                    'logo' => $sponsor->logo ? asset($sponsor->logo) : null,
-                    'url' => $sponsor->url,
-                ])
-            ];
-        }
+        // $eventData = null;
+        // if ($activeEvent) {
+        //     $eventData = [
+        //         'id' => $activeEvent->id,
+        //         'title' => $activeEvent->title,
+        //         'sponsors' => $activeEvent->sponsors->map(fn($sponsor) => [
+        //             'id' => $sponsor->id,
+        //             'name' => $sponsor->name,
+        //             'logo' => $sponsor->logo ? asset($sponsor->logo) : null,
+        //             'url' => $sponsor->url,
+        //         ])
+        //     ];
+        // }
 
         return $this->success('Open spotlight weeks retrieved.', [
             'weeks' => $weeks,
-            'active_event' => $eventData
+            // 'active_event' => $eventData
         ]);
     }
 
@@ -74,7 +74,7 @@ class SpotlightApplicationController extends Controller
      */
     public function apply(Request $request, SpotlightWeek $week): JsonResponse
     {
-        if (! $week->isAcceptingApplications()) {
+        if (!$week->isAcceptingApplications()) {
             return $this->error(null, 'This week is no longer accepting applications.', 422);
         }
 
@@ -91,12 +91,12 @@ class SpotlightApplicationController extends Controller
             $validated['spotlightable_id']
         );
 
-        if (! $spotlight) {
+        if (!$spotlight) {
             return $this->notFound('Spotlight not found.');
         }
 
         // Check ownership via email or user association
-        if (! $this->userOwnsSpotlight($user, $spotlight, $validated['spotlightable_type'])) {
+        if (!$this->userOwnsSpotlight($user, $spotlight, $validated['spotlightable_type'])) {
             return $this->forbidden('You do not own this spotlight.');
         }
 
@@ -147,7 +147,7 @@ class SpotlightApplicationController extends Controller
             return $this->forbidden('You do not own this application.');
         }
 
-        if (! $application->canBeWithdrawn()) {
+        if (!$application->canBeWithdrawn()) {
             return $this->error(
                 null,
                 "Cannot withdraw an application with status: {$application->status}",
@@ -180,29 +180,29 @@ class SpotlightApplicationController extends Controller
             $isArtist = $app->spotlightable_type === ArtistSpotlight::class;
 
             return [
-                'id'              => $app->id,
+                'id' => $app->id,
                 'spotlight_week_id' => $app->spotlight_week_id,
-                'status'          => $app->status,
-                'applied_at'      => $app->applied_at,
-                'reviewed_at'     => $app->reviewed_at,
-                'reviewer_notes'  => $app->reviewer_notes,
+                'status' => $app->status,
+                'applied_at' => $app->applied_at,
+                'reviewed_at' => $app->reviewed_at,
+                'reviewer_notes' => $app->reviewer_notes,
 
                 'week' => $app->week ? [
-                    'id'           => $app->week->id,
-                    'week_number'  => $app->week->week_number,
-                    'year'         => $app->week->year,
-                    'status'       => $app->week->status,
+                    'id' => $app->week->id,
+                    'week_number' => $app->week->week_number,
+                    'year' => $app->week->year,
+                    'status' => $app->week->status,
                     'voting_starts_at' => $app->week->voting_starts_at,
-                    'voting_ends_at'   => $app->week->voting_ends_at,
+                    'voting_ends_at' => $app->week->voting_ends_at,
                 ] : null,
 
                 'spotlightable' => $spotlight ? [
-                    'id'   => $spotlight->id,
+                    'id' => $spotlight->id,
                     'type' => $isArtist ? 'artist' : 'business',
                     'name' => $isArtist
                         ? ($spotlight->artist_stage_name ?? $spotlight->full_legal_name)
                         : ($spotlight->business_name ?? $spotlight->owner_founder_name),
-                    'city'  => $spotlight->city ?? null,
+                    'city' => $spotlight->city ?? null,
                     'state' => $spotlight->state ?? null,
                     'email' => $spotlight->email ?? null,
                     'status' => $spotlight->status ?? null,
@@ -213,10 +213,10 @@ class SpotlightApplicationController extends Controller
         return $this->success('My applications retrieved.', [
             'applications' => $data,
             'pagination' => [
-                'total'        => $applications->total(),
-                'per_page'     => $applications->perPage(),
+                'total' => $applications->total(),
+                'per_page' => $applications->perPage(),
                 'current_page' => $applications->currentPage(),
-                'last_page'    => $applications->lastPage(),
+                'last_page' => $applications->lastPage(),
             ],
         ]);
     }
@@ -230,18 +230,18 @@ class SpotlightApplicationController extends Controller
     private function resolveSpotlight(string $type, int $id)
     {
         return match ($type) {
-            'artist'   => ArtistSpotlight::find($id),
+            'artist' => ArtistSpotlight::find($id),
             'business' => BusinessSpotlight::find($id),
-            default    => null,
+            default => null,
         };
     }
 
     private function getMorphType(string $type): string
     {
         return match ($type) {
-            'artist'   => ArtistSpotlight::class,
+            'artist' => ArtistSpotlight::class,
             'business' => BusinessSpotlight::class,
-            default    => ArtistSpotlight::class,
+            default => ArtistSpotlight::class,
         };
     }
 
