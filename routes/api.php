@@ -61,6 +61,7 @@ use App\Http\Controllers\Api\SpotlightController;
 use App\Http\Controllers\Api\StripeWebhookController;
 use App\Http\Controllers\Api\SubscriptionController;
 use App\Http\Controllers\Api\WishlistController;
+use App\Http\Controllers\Api\SponsorApplicationController;
 use Illuminate\Support\Facades\Route;
 
 // health check
@@ -159,6 +160,9 @@ Route::group(['prefix' => 'v1'], function ($router) {
 
         // Contact Us
         Route::post('/contact', [ContactController::class, 'store']);
+
+        // Sponsorship Application
+        Route::post('/sponsorship/apply', [SponsorApplicationController::class, 'store']);
 
         // Newsletter
         Route::post('/newsletter', [NewsletterController::class, 'store']);

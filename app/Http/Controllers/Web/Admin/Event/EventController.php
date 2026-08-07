@@ -7,6 +7,7 @@ use App\Helpers\FileHandle;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\EventTicketTier;
+use App\Models\Sponsor;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -114,7 +115,8 @@ class EventController extends Controller
     public function create()
     {
         $artists = User::role('artist', 'api')->with('profile')->get();
-        return view('web.admin.events.create', compact('artists'));
+        $sponsors = Sponsor::active()->sorted()->get();
+        return view('web.admin.events.create', compact('artists', 'sponsors'));
     }
 
     public function store(Request $request)
@@ -151,9 +153,11 @@ class EventController extends Controller
             'event_media.*.file' => 'required_with:event_media|file|mimes:jpeg,png,jpg,gif,mp4,mov,avi|max:20480',
             'artists' => 'nullable|array',
             'artists.*' => 'exists:users,id',
+            'sponsors' => 'nullable|array',
+            'sponsors.*' => 'exists:sponsors,id',
         ]);
 
-        $data = $request->except(['cover_image', 'promo_video', 'ticket_tiers', 'event_media', 'artists']);
+        $data = $request->except(['cover_image', 'promo_video', 'ticket_tiers', 'event_media', 'artists', 'sponsors']);
         $data['is_spotlight_eligible'] = $request->has('is_spotlight_eligible') ? true : false;
         $data['is_featured'] = $request->has('is_featured') ? true : false;
         $data['created_by'] = auth()->id();
@@ -165,6 +169,10 @@ class EventController extends Controller
 
         if ($request->has('artists')) {
             $event->artists()->sync($request->artists);
+        }
+
+        if ($request->has('sponsors')) {
+            $event->sponsors()->sync($request->sponsors);
         }
 
         foreach ($request->ticket_tiers as $index => $tierData) {
@@ -204,9 +212,10 @@ class EventController extends Controller
 
     public function edit(Event $event)
     {
-        $event->load(['ticketTiers', 'artists']);
+        $event->load(['ticketTiers', 'artists', 'sponsors']);
         $artists = \App\Models\User::role('artist', 'api')->with('profile')->get();
-        return view('web.admin.events.edit', compact('event', 'artists'));
+        $sponsors = Sponsor::active()->sorted()->get();
+        return view('web.admin.events.edit', compact('event', 'artists', 'sponsors'));
     }
 
     public function update(Request $request, Event $event)
@@ -242,9 +251,11 @@ class EventController extends Controller
             'event_media.*.file' => 'nullable|file|mimes:jpeg,png,jpg,gif,mp4,mov,avi|max:20480',
             'artists' => 'nullable|array',
             'artists.*' => 'exists:users,id',
+            'sponsors' => 'nullable|array',
+            'sponsors.*' => 'exists:sponsors,id',
         ]);
 
-        $data = $request->except(['cover_image', 'promo_video', 'ticket_tiers', 'event_media', 'artists']);
+        $data = $request->except(['cover_image', 'promo_video', 'ticket_tiers', 'event_media', 'artists', 'sponsors']);
         $data['is_spotlight_eligible'] = $request->has('is_spotlight_eligible') ? true : false;
         $data['is_featured'] = $request->has('is_featured') ? true : false;
 
@@ -257,6 +268,12 @@ class EventController extends Controller
             $event->artists()->sync($request->artists);
         } else {
             $event->artists()->sync([]);
+        }
+
+        if ($request->has('sponsors')) {
+            $event->sponsors()->sync($request->sponsors);
+        } else {
+            $event->sponsors()->sync([]);
         }
 
         // Simple sync for ticket tiers

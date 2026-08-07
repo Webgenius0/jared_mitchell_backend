@@ -47,6 +47,11 @@ class Event extends Model
         return $this->hasMany(EventRegistration::class);
     }
 
+    public function sponsors()
+    {
+        return $this->belongsToMany(Sponsor::class, 'event_sponsor', 'event_id', 'sponsor_id')->withTimestamps();
+    }
+
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');

@@ -390,6 +390,19 @@
                     </a>
                 </li>
 
+                {{-- Sponsor Applications --}}
+                @php
+                    $sponsorAppsOpen = request()->routeIs('admin.sponsor-applications.*');
+                @endphp
+
+                <li class="nav-item">
+                    <a class="nav-link menu-link {{ $sponsorAppsOpen ? 'active' : '' }}"
+                        href="{{ route('admin.sponsor-applications.index') }}">
+                        <i class="ri-file-user-line"></i>
+                        <span>Sponsor Applications</span>
+                    </a>
+                </li>
+
                 {{-- Contact Forms --}}
                 <li class="nav-item">
                     <a class="nav-link menu-link {{ request()->routeIs('admin.contacts.*') ? 'active' : '' }}"

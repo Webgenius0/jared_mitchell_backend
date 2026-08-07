@@ -182,6 +182,34 @@
 
                         <div class="card">
                             <div class="card-header border-bottom-dashed">
+                                <h5 class="card-title mb-0">Assign Sponsors</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Select Sponsor</label>
+                                    <div class="input-group">
+                                        <select id="sponsor-select" class="form-select">
+                                            <option value="">-- Choose a Sponsor --</option>
+                                            @foreach ($sponsors as $sponsor)
+                                                <option value="{{ $sponsor->id }}"
+                                                    data-name="{{ $sponsor->name }}"
+                                                    data-image="{{ $sponsor->logo ? asset($sponsor->logo) : asset('admin/assets/images/default/no-img.png') }}">
+                                                    {{ $sponsor->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        <button type="button" id="add-sponsor-btn" class="btn btn-primary">Add
+                                            Sponsor</button>
+                                    </div>
+                                </div>
+                                <div id="assigned-sponsors-container" class="d-flex flex-wrap gap-2 mt-2">
+                                    <!-- Sponsor capsules will be injected here -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header border-bottom-dashed">
                                 <div class="d-flex align-items-center">
                                     <h5 class="card-title mb-0 flex-grow-1">Ticket Tiers <span
                                             class="text-danger">*</span>
@@ -646,6 +674,48 @@
                     }
                     if (e.target.classList.contains('btn-close')) {
                         e.target.closest('.artist-card-item').remove();
+                    }
+                });
+
+                // Assign Sponsors Logic
+                const sponsorSelect = document.getElementById('sponsor-select');
+                const addSponsorBtn = document.getElementById('add-sponsor-btn');
+                const assignedSponsorsContainer = document.getElementById('assigned-sponsors-container');
+
+                addSponsorBtn.addEventListener('click', function() {
+                    const selectedOption = sponsorSelect.options[sponsorSelect.selectedIndex];
+                    if (!selectedOption.value) return;
+
+                    const sponsorId = selectedOption.value;
+                    const sponsorName = selectedOption.getAttribute('data-name');
+                    const sponsorImage = selectedOption.getAttribute('data-image');
+
+                    if (document.querySelector(`input[name="sponsors[]"][value="${sponsorId}"]`)) {
+                        alert('Sponsor already assigned to this event.');
+                        return;
+                    }
+
+                    const cardHtml = `
+                        <div class="sponsor-card-item">
+                            <input type="hidden" name="sponsors[]" value="${sponsorId}">
+                            <div class="d-flex align-items-center gap-2 px-3 py-2 rounded-pill border bg-light shadow-sm" style="display:inline-flex; width:fit-content;">
+                                <img src="${sponsorImage}" alt="" class="rounded-circle object-fit-cover flex-shrink-0" style="width:36px; height:36px; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.15);">
+                                <span class="fw-medium text-truncate" style="max-width:120px; font-size:0.875rem;" title="${sponsorName}">${sponsorName}</span>
+                                <button type="button" class="remove-sponsor-btn btn-close btn-close-sm flex-shrink-0" aria-label="Remove" style="font-size:0.65rem;"></button>
+                            </div>
+                        </div>
+                    `;
+
+                    assignedSponsorsContainer.insertAdjacentHTML('beforeend', cardHtml);
+                    sponsorSelect.value = '';
+                });
+
+                assignedSponsorsContainer.addEventListener('click', function(e) {
+                    if (e.target.classList.contains('remove-sponsor-btn')) {
+                        e.target.closest('.sponsor-card-item').remove();
+                    }
+                    if (e.target.classList.contains('btn-close')) {
+                        e.target.closest('.sponsor-card-item').remove();
                     }
                 });
             });

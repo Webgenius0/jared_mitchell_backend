@@ -38,6 +38,7 @@ use App\Http\Controllers\Web\Admin\Round\RoundSeasonController;
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Web\Admin\SponsorController;
+use App\Http\Controllers\Web\Admin\SponsorApplicationController;
 use App\Http\Controllers\Web\Admin\Spotlight\SpotlightVotePackageController;
 
 Route::get('/', [AdminDashboardController::class, 'index'])->name('show.admin.dashboard'); // show admin dashboard
@@ -207,6 +208,17 @@ Route::prefix('sponsors')->name('admin.sponsors.')->group(function () {
     Route::put('/{sponsor}', [SponsorController::class, 'update'])->name('update');
     Route::patch('/{sponsor}/toggle-status', [SponsorController::class, 'toggleStatus'])->name('toggle-status');
     Route::delete('/{sponsor}', [SponsorController::class, 'destroy'])->name('destroy');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Sponsor Applications Management
+|--------------------------------------------------------------------------
+*/
+Route::prefix('sponsor-applications')->name('admin.sponsor-applications.')->group(function () {
+    Route::get('/', [SponsorApplicationController::class, 'index'])->name('index');
+    Route::get('/data', [SponsorApplicationController::class, 'getData'])->name('data');
+    Route::delete('/{sponsorApplication}', [SponsorApplicationController::class, 'destroy'])->name('destroy');
 });
 
 // Sponsorship CMS Routes

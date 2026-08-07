@@ -39,7 +39,29 @@ class SpotlightApplicationController extends Controller
                 'voting_ends_at' => $week->voting_ends_at,
             ]);
 
-        return $this->success('Open spotlight weeks retrieved.', ['weeks' => $weeks]);
+        $activeEvent = \App\Models\Event::where('status', 'published')
+            ->with('sponsors')
+            ->latest('starts_at')
+            ->first();
+
+        $eventData = null;
+        if ($activeEvent) {
+            $eventData = [
+                'id' => $activeEvent->id,
+                'title' => $activeEvent->title,
+                'sponsors' => $activeEvent->sponsors->map(fn($sponsor) => [
+                    'id' => $sponsor->id,
+                    'name' => $sponsor->name,
+                    'logo' => $sponsor->logo ? asset($sponsor->logo) : null,
+                    'url' => $sponsor->url,
+                ])
+            ];
+        }
+
+        return $this->success('Open spotlight weeks retrieved.', [
+            'weeks' => $weeks,
+            'active_event' => $eventData
+        ]);
     }
 
     /**

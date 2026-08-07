@@ -159,6 +159,44 @@
 
                     <div class="card">
                         <div class="card-header border-bottom-dashed">
+                            <h5 class="card-title mb-0">Assign Sponsors</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Select Sponsor</label>
+                                <div class="input-group">
+                                    <select id="sponsor-select" class="form-select">
+                                        <option value="">-- Choose a Sponsor --</option>
+                                        @foreach($sponsors as $sponsor)
+                                            <option value="{{ $sponsor->id }}" 
+                                                data-name="{{ $sponsor->name }}" 
+                                                data-image="{{ $sponsor->logo ? asset($sponsor->logo) : asset('admin/assets/images/default/no-img.png') }}">
+                                                {{ $sponsor->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <button type="button" id="add-sponsor-btn" class="btn btn-primary">Add Sponsor</button>
+                                </div>
+                            </div>
+                            <div id="assigned-sponsors-container" class="row g-3 mt-2">
+                                @foreach($event->sponsors as $assignedSponsor)
+                                    <div class="col-sm-6 col-md-4 col-lg-3 sponsor-card-item">
+                                        <div class="card border shadow-none mb-0">
+                                            <div class="card-body text-center p-3">
+                                                <input type="hidden" name="sponsors[]" value="{{ $assignedSponsor->id }}">
+                                                <img src="{{ $assignedSponsor->logo ? asset($assignedSponsor->logo) : asset('admin/assets/images/default/no-img.png') }}" alt="" class="rounded-circle avatar-md mb-2 object-fit-cover" style="width: 64px; height: 64px;">
+                                                <h6 class="mb-2 text-truncate" title="{{ $assignedSponsor->name }}">{{ $assignedSponsor->name }}</h6>
+                                                <button type="button" class="btn btn-sm btn-soft-danger remove-sponsor-btn w-100">Remove</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header border-bottom-dashed">
                             <div class="d-flex align-items-center">
                                 <h5 class="card-title mb-0 flex-grow-1">Ticket Tiers <span class="text-danger">*</span></h5>
                                 <div class="flex-shrink-0">
@@ -625,6 +663,52 @@
                 }
             });
         }
+
+        // Assign Sponsors Logic
+        const sponsorSelect = document.getElementById('sponsor-select');
+        const addSponsorBtn = document.getElementById('add-sponsor-btn');
+        const assignedSponsorsContainer = document.getElementById('assigned-sponsors-container');
+
+        if (addSponsorBtn) {
+            addSponsorBtn.addEventListener('click', function() {
+                const selectedOption = sponsorSelect.options[sponsorSelect.selectedIndex];
+                if (!selectedOption.value) return;
+
+                const sponsorId = selectedOption.value;
+                const sponsorName = selectedOption.getAttribute('data-name');
+                const sponsorImage = selectedOption.getAttribute('data-image');
+
+                if (document.querySelector(`input[name="sponsors[]"][value="${sponsorId}"]`)) {
+                    alert('Sponsor already assigned to this event.');
+                    return;
+                }
+
+                const cardHtml = `
+                    <div class="col-sm-6 col-md-4 col-lg-3 sponsor-card-item">
+                        <div class="card border shadow-none mb-0">
+                            <div class="card-body text-center p-3">
+                                <input type="hidden" name="sponsors[]" value="${sponsorId}">
+                                <img src="${sponsorImage}" alt="" class="rounded-circle avatar-md mb-2 object-fit-cover" style="width: 64px; height: 64px;">
+                                <h6 class="mb-2 text-truncate" title="${sponsorName}">${sponsorName}</h6>
+                                <button type="button" class="btn btn-sm btn-soft-danger remove-sponsor-btn w-100">Remove</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                assignedSponsorsContainer.insertAdjacentHTML('beforeend', cardHtml);
+                sponsorSelect.value = '';
+            });
+        }
+
+        if (assignedSponsorsContainer) {
+            assignedSponsorsContainer.addEventListener('click', function(e) {
+                if (e.target.classList.contains('remove-sponsor-btn')) {
+                    e.target.closest('.sponsor-card-item').remove();
+                }
+            });
+        }
+
 
         // Dropify Initialization
         $('.dropify').dropify({
