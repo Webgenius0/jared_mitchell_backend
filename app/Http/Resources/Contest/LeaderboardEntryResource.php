@@ -39,10 +39,10 @@ class LeaderboardEntryResource extends JsonResource
         }
 
         return [
-            'video_1' => $video1,
-            'video_2' => $video2,
-            'video_3' => $video3,
-            'video_4' => $video4,
+            'video_2' => $video1,
+            'video_3' => $video2,
+            'video_4' => $video3,
+            'video_5' => $video4,
             'contestant' => [
                 'id' => $contestant->id,
                 'season_id' => $contestant->season_id,
