@@ -17,7 +17,32 @@ class LeaderboardEntryResource extends JsonResource
         $contestant = $this['contestant'];
         $contestable = $contestant->contestable ?? null;
 
+        $video1 = null;
+        $video2 = null;
+        $video3 = null;
+        $video4 = null;
+
+        if ($contestant && $contestant->relationLoaded('submissions')) {
+            foreach ($contestant->submissions as $submission) {
+                if ($submission->round) {
+                    $roundNumber = $submission->round->round_number;
+                    // usually $submission->media_full_urls is an array, we get the first one for the video
+                    $videoUrl = $submission->media_full_urls[0] ?? null;
+                    
+                    // Round 2 is video 1, Round 3 is video 2, etc. (since videos start at Round 2)
+                    if ($roundNumber == 2) $video1 = $videoUrl;
+                    elseif ($roundNumber == 3) $video2 = $videoUrl;
+                    elseif ($roundNumber == 4) $video3 = $videoUrl;
+                    elseif ($roundNumber == 5) $video4 = $videoUrl;
+                }
+            }
+        }
+
         return [
+            'video_1' => $video1,
+            'video_2' => $video2,
+            'video_3' => $video3,
+            'video_4' => $video4,
             'contestant' => [
                 'id' => $contestant->id,
                 'season_id' => $contestant->season_id,

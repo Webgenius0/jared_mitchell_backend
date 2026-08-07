@@ -23,7 +23,7 @@ class LeaderboardService
         $contestants = Contestant::where('season_id', $seasonId)
             ->where('current_round_id', $round->id)
             ->where('status', 'active')
-            ->with('contestable')
+            ->with(['contestable', 'submissions.round'])
             ->get();
 
         // Get vote aggregates per contestant for this round
@@ -129,7 +129,7 @@ class LeaderboardService
         // Sum vote scores across all rounds for active contestants
         $contestants = Contestant::where('season_id', $seasonId)
             ->whereIn('status', ['active', 'winner', 'runner_up', 'finalist'])
-            ->with('contestable')
+            ->with(['contestable', 'submissions.round'])
             ->get();
 
         $leaderboard = [];
@@ -194,7 +194,7 @@ class LeaderboardService
         $contestants = Contestant::where('season_id', $round->season_id)
             ->where('current_round_id', $round->id)
             ->where('status', 'active')
-            ->with('contestable')
+            ->with(['contestable', 'submissions.round'])
             ->get();
 
         $leaderboard = [];
