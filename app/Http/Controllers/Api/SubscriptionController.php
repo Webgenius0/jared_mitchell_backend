@@ -49,6 +49,12 @@ class SubscriptionController extends Controller
 
         $user = auth('api')->user();
 
+
+
+
+
+
+
         // Create the Stripe Checkout Session
         $checkout = $user->newSubscription('default', $plan->stripe_price_id)
             ->checkout([

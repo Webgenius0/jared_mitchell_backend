@@ -429,15 +429,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::post('/{id}/cancel', [EventController::class, 'cancelRegistration']);
         });
 
-        // Subscriptions
-        Route::middleware('role:boss|artist,api')->prefix('subscription')->group(function () {
-            Route::post('/checkout', [SubscriptionController::class, 'checkout']); // DONE: Checkout subscription
-            Route::get('/status', [SubscriptionController::class, 'status']); // DONE: Get subscription status
-            Route::post('/cancel', [SubscriptionController::class, 'cancel']); // DONE: Cancel subscription
-            Route::post('/resume', [SubscriptionController::class, 'resume']); // DONE: Resume subscription
-            Route::post('/swap', [SubscriptionController::class, 'swap']); // DONE: Swap subscription
-            Route::post('/billing-portal', [SubscriptionController::class, 'billingPortal']); // DONE: Get billing portal
-        });
+
 
         /*
         |--------------------------------------------------------------------------
@@ -594,6 +586,15 @@ Route::group(['prefix' => 'v1'], function ($router) {
     });
 
 
+    // Subscriptions
+    Route::middleware('role:boss|artist|user,api')->prefix('subscription')->group(function () {
+        Route::post('/checkout', [SubscriptionController::class, 'checkout']); // DONE: Checkout subscription
+        Route::get('/status', [SubscriptionController::class, 'status']); // DONE: Get subscription status
+        Route::post('/cancel', [SubscriptionController::class, 'cancel']); // DONE: Cancel subscription
+        Route::post('/resume', [SubscriptionController::class, 'resume']); // DONE: Resume subscription
+        Route::post('/swap', [SubscriptionController::class, 'swap']); // DONE: Swap subscription
+        Route::post('/billing-portal', [SubscriptionController::class, 'billingPortal']); // DONE: Get billing portal
+    });
 
 
 
