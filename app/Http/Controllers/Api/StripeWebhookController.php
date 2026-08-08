@@ -19,10 +19,11 @@ class StripeWebhookController extends Controller
 {
     public function __construct(
         protected StripeService $stripeService,
-        protected OrderService  $orderService,
+        protected OrderService $orderService,
         protected EventRegistrationService $eventRegistrationService,
         protected SpotlightVotePurchaseService $votePurchaseService,
-    ) {}
+    ) {
+    }
 
     /**
      * POST /api/webhooks/stripe
@@ -112,7 +113,7 @@ class StripeWebhookController extends Controller
     {
         $purchaseId = $session->metadata->purchase_id ?? null;
 
-        if (! $purchaseId) {
+        if (!$purchaseId) {
             return;
         }
 
@@ -129,13 +130,13 @@ class StripeWebhookController extends Controller
     {
         $orderId = $session->metadata->order_id ?? null;
 
-        if (! $orderId) {
+        if (!$orderId) {
             return;
         }
 
         $order = Order::find($orderId);
 
-        if (! $order) {
+        if (!$order) {
             return;
         }
 
@@ -197,13 +198,13 @@ class StripeWebhookController extends Controller
     {
         $orderId = $session->metadata->order_id ?? null;
 
-        if (! $orderId) {
+        if (!$orderId) {
             return;
         }
 
         $order = Order::find($orderId);
 
-        if (! $order) {
+        if (!$order) {
             return;
         }
 

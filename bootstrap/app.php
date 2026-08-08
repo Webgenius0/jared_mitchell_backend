@@ -15,7 +15,7 @@ use Spatie\Permission\Middleware\RoleOrPermissionMiddleware;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        channels: __DIR__.'/../routes/channels.php',
+        channels: __DIR__ . '/../routes/channels.php',
         web: __DIR__ . '/../routes/web.php',
         api: __DIR__ . '/../routes/api.php',
         commands: __DIR__ . '/../routes/console.php',
@@ -40,7 +40,15 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => PermissionMiddleware::class,
             'role_or_permission' => RoleOrPermissionMiddleware::class,
         ]);
+
+        $middleware->validateCsrfTokens(except: [
+            'stripe/*',
+        ]);
     })
+
+
+
+
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (UnauthorizedException $e, Request $request) {
             if ($request->wantsJson() || $request->is('api/*')) {
@@ -68,9 +76,9 @@ return Application::configure(basePath: dirname(__DIR__))
             return response()->json([
                 'success' => false,
                 'message' => $message,
-                'data'    => null,
-                'errors'  => null,
-                'code'    => 404,
+                'data' => null,
+                'errors' => null,
+                'code' => 404,
             ], 404);
         });
     })
