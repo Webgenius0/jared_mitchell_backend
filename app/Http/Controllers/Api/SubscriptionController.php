@@ -21,7 +21,7 @@ class SubscriptionController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'data'   => $plans,
+            'data' => $plans,
         ]);
     }
 
@@ -30,6 +30,7 @@ class SubscriptionController extends Controller
      */
     public function checkout(Request $request): JsonResponse
     {
+        // dd($request->all());
         $request->validate([
             'pricing_plan_id' => ['required', 'exists:pricing_plans,id'],
             'success_url' => ['nullable', 'url'],
@@ -37,26 +38,27 @@ class SubscriptionController extends Controller
         ]);
 
         $plan = PricingPlan::findOrFail($request->pricing_plan_id);
+        // dd($plan);
 
         if (!$plan->stripe_price_id) {
             return response()->json([
-                'status'  => 'error',
+                'status' => 'error',
                 'message' => 'This plan is not configured for Stripe subscriptions.',
             ], 400);
         }
 
-        $user = $request->user();
+        $user = auth('api')->user();
 
         // Create the Stripe Checkout Session
         $checkout = $user->newSubscription('default', $plan->stripe_price_id)
             ->checkout([
                 'success_url' => $request->success_url ?? config('app.frontend_url') . '/subscription/success?session_id={CHECKOUT_SESSION_ID}',
-                'cancel_url'  => $request->cancel_url ?? config('app.frontend_url') . '/subscription/cancel',
+                'cancel_url' => $request->cancel_url ?? config('app.frontend_url') . '/subscription/cancel',
             ]);
 
         return response()->json([
             'status' => 'success',
-            'data'   => [
+            'data' => [
                 'checkout_url' => $checkout->url,
             ],
         ]);
@@ -67,33 +69,35 @@ class SubscriptionController extends Controller
      */
     public function status(Request $request): JsonResponse
     {
-        $user = $request->user();
-        $subscription = $user->subscription('default');
+        $user = auth('api')->user();
 
-        if (!$subscription) {
-            return response()->json([
-                'status' => 'success',
-                'data'   => [
-                    'is_subscribed' => false,
-                    'details'       => null,
-                ],
-            ]);
-        }
+        $subscription = $user->subscription('default');
+        // dd($subscription);
+
+        // if (!$subscription) {
+        //     return response()->json([
+        //         'status' => 'success',
+        //         'data' => [
+        //             'is_subscribed' => false,
+        //             'details' => null,
+        //         ],
+        //     ]);
+        // }
 
         return response()->json([
             'status' => 'success',
-            'data'   => [
+            'data' => [
                 'is_subscribed' => $subscription->valid(),
-                'details'       => [
-                    'name'           => $subscription->name,
-                    'stripe_id'      => $subscription->stripe_id,
-                    'stripe_status'  => $subscription->stripe_status,
-                    'stripe_price'   => $subscription->stripe_price,
-                    'quantity'       => $subscription->quantity,
-                    'trial_ends_at'  => $subscription->trial_ends_at,
-                    'ends_at'        => $subscription->ends_at,
-                    'on_grace_period'=> $subscription->onGracePeriod(),
-                    'canceled'       => $subscription->canceled(),
+                'details' => [
+                    'name' => $subscription->name,
+                    'stripe_id' => $subscription->stripe_id,
+                    'stripe_status' => $subscription->stripe_status,
+                    'stripe_price' => $subscription->stripe_price,
+                    'quantity' => $subscription->quantity,
+                    'trial_ends_at' => $subscription->trial_ends_at,
+                    'ends_at' => $subscription->ends_at,
+                    'on_grace_period' => $subscription->onGracePeriod(),
+                    'canceled' => $subscription->canceled(),
                 ],
             ],
         ]);
@@ -104,12 +108,12 @@ class SubscriptionController extends Controller
      */
     public function cancel(Request $request): JsonResponse
     {
-        $user = $request->user();
+        $user = auth('api')->user();
         $subscription = $user->subscription('default');
 
         if (!$subscription || !$subscription->valid()) {
             return response()->json([
-                'status'  => 'error',
+                'status' => 'error',
                 'message' => 'You do not have an active subscription.',
             ], 400);
         }
@@ -117,7 +121,7 @@ class SubscriptionController extends Controller
         $subscription->cancel();
 
         return response()->json([
-            'status'  => 'success',
+            'status' => 'success',
             'message' => 'Subscription canceled successfully. It will remain active until the end of the billing period.',
         ]);
     }
@@ -132,7 +136,7 @@ class SubscriptionController extends Controller
 
         if (!$subscription || !$subscription->onGracePeriod()) {
             return response()->json([
-                'status'  => 'error',
+                'status' => 'error',
                 'message' => 'You do not have a canceled subscription on a grace period.',
             ], 400);
         }
@@ -140,7 +144,7 @@ class SubscriptionController extends Controller
         $subscription->resume();
 
         return response()->json([
-            'status'  => 'success',
+            'status' => 'success',
             'message' => 'Subscription resumed successfully.',
         ]);
     }
@@ -159,7 +163,7 @@ class SubscriptionController extends Controller
 
         if (!$subscription || !$subscription->valid()) {
             return response()->json([
-                'status'  => 'error',
+                'status' => 'error',
                 'message' => 'You do not have an active subscription to change.',
             ], 400);
         }
@@ -168,14 +172,14 @@ class SubscriptionController extends Controller
 
         if (!$plan->stripe_price_id) {
             return response()->json([
-                'status'  => 'error',
+                'status' => 'error',
                 'message' => 'The selected plan is not configured for Stripe subscriptions.',
             ], 400);
         }
 
         if ($subscription->hasPrice($plan->stripe_price_id)) {
             return response()->json([
-                'status'  => 'error',
+                'status' => 'error',
                 'message' => 'You are already on this plan.',
             ], 400);
         }
@@ -184,7 +188,7 @@ class SubscriptionController extends Controller
         $subscription->swap($plan->stripe_price_id);
 
         return response()->json([
-            'status'  => 'success',
+            'status' => 'success',
             'message' => 'Subscription plan successfully updated.',
         ]);
     }
@@ -199,7 +203,7 @@ class SubscriptionController extends Controller
         // If the user doesn't have a Stripe Customer ID yet, they haven't subscribed
         if (!$user->hasStripeId()) {
             return response()->json([
-                'status'  => 'error',
+                'status' => 'error',
                 'message' => 'You do not have a billing profile.',
             ], 400);
         }
@@ -211,7 +215,7 @@ class SubscriptionController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'data'   => [
+            'data' => [
                 'portal_url' => $portalUrl,
             ],
         ]);
