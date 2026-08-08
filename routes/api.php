@@ -305,6 +305,43 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::post('/update/{id}', [ArtistSpotlightController::class, 'update']); // Full update (owner only)
             Route::delete('/delete/{id}', [ArtistSpotlightController::class, 'destroy']); // Delete (owner only)
         });
+
+        /*
+        |--------------------------------------------------------------------------
+        | Spotlight — Vote packages (auth required, listing)
+        |--------------------------------------------------------------------------
+        */
+        Route::prefix('spotlight')->group(function () {
+            Route::get('/vote-packages', [SpotlightVotePackageController::class, 'index']); // DONE: List all active packages
+        });
+        /*
+|--------------------------------------------------------------------------
+| Spotlight Voting — Authenticated Actions
+|--------------------------------------------------------------------------
+*/
+        Route::prefix('spotlight')->group(function () {
+            // Applications: spotlight owner applies to weekly cycles
+            Route::get('/weeks/open', [SpotlightApplicationController::class, 'openWeeks']);  // DONE: List weeks accepting applications
+            Route::post('/weeks/{week}/apply', [SpotlightApplicationController::class, 'apply']);    // DONE: Apply to a week
+            Route::post('/applications/{application}/withdraw', [SpotlightApplicationController::class, 'withdraw']); // DONE: Withdraw application
+            Route::get('/my-applications', [SpotlightApplicationController::class, 'myApplications']); // DONE: My applications
+
+            // Free community voting (any authenticated user can vote)
+            Route::post('/nominees/{nominee}/vote', [SpotlightVoteController::class, 'vote']); // DONE: Cast / toggle vote
+            Route::get('/nominees/{nominee}/vote/check', [SpotlightVoteController::class, 'check']); // Check if I voted
+
+            // Unified toggle like/unlike — works for both artist and business by type + spotlight ID
+            Route::post('/like/{type}/{id}', [SpotlightVoteController::class, 'toggleLikeBySpotlight']); // DONE: Toggle like/unlike
+
+            // Paid vote purchases (nominee owner only)
+            Route::post('/nominees/{nominee}/purchase-votes', [SpotlightVoteController::class, 'purchaseVotes']); // DONE: Request paid vote package (pending admin approval)
+            Route::get('/nominees/{nominee}/purchases', [SpotlightVoteController::class, 'myPurchases']); // DONE: My purchase history
+
+            // Purchase payment
+            Route::post('/vote/purchases/{purchase}/pay', [SpotlightVoteController::class, 'pay'])->name('api.spotlight.purchases.pay'); // DONE: Pay for approved purchase via Stripe
+            Route::get('/vote/purchases/{purchase}', [SpotlightVoteController::class, 'showPurchase'])->name('api.spotlight.purchases.show'); // DONE: View purchase details
+            Route::get('/vote/my-pending-purchases', [SpotlightVoteController::class, 'myPendingPurchases']); // DONE: My pending/approved purchases
+        });
     });
 
 
@@ -314,21 +351,6 @@ Route::group(['prefix' => 'v1'], function ($router) {
         Route::prefix('artist/dashboard')->group(function () {
             Route::get('/stats', [\App\Http\Controllers\Api\ArtistDashboardController::class, 'stats']);
             Route::get('/analytics', [\App\Http\Controllers\Api\ArtistDashboardController::class, 'analytics']);
-        });
-
-        /*
-        |--------------------------------------------------------------------------
-        | Businesses/Boss Route (protected by boss role) - Business Dashboard
-        |--------------------------------------------------------------------------
-        */
-
-
-        // Business interactions (clap, save, share)
-        Route::group(['prefix' => 'businesses', 'role:boss|member|artist|sponsor,api'], function () {
-            Route::post('/{business}/clap', [BusinessController::class, 'toggleClap']);
-            Route::post('/{business}/save', [BusinessController::class, 'toggleSave']);
-            Route::post('/{business}/share', [BusinessController::class, 'toggleShare']);
-            Route::get('/{business}/interactions', [BusinessController::class, 'userInteractions']);
         });
 
         /*
@@ -454,37 +476,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::get('/rounds/{round}/votes/check/{contestant}', [VoteController::class, 'check']);
         });
 
-        /*
-        |--------------------------------------------------------------------------
-        | Spotlight Voting — Authenticated Actions
-        |--------------------------------------------------------------------------
-        */
-        Route::prefix('spotlight')->group(function () {
-            // Applications: spotlight owner applies to weekly cycles
-            Route::get('/weeks/open', [SpotlightApplicationController::class, 'openWeeks']);  // DONE: List weeks accepting applications
-            Route::post('/weeks/{week}/apply', [SpotlightApplicationController::class, 'apply']);    // DONE: Apply to a week
-            Route::post('/applications/{application}/withdraw', [SpotlightApplicationController::class, 'withdraw']); // DONE: Withdraw application
-            Route::get('/my-applications', [SpotlightApplicationController::class, 'myApplications']); // DONE: My applications
 
-            // Free community voting (any authenticated user can vote)
-            Route::post('/nominees/{nominee}/vote', [SpotlightVoteController::class, 'vote']); // DONE: Cast / toggle vote
-            Route::get('/nominees/{nominee}/vote/check', [SpotlightVoteController::class, 'check']); // Check if I voted
-
-            // Unified toggle like/unlike — works for both artist and business by type + spotlight ID
-            Route::post('/like/{type}/{id}', [SpotlightVoteController::class, 'toggleLikeBySpotlight']); // DONE: Toggle like/unlike
-
-            // Vote packages (auth required — listing)
-            Route::get('/vote-packages', [SpotlightVotePackageController::class, 'index']); // DONE: List all active packages
-
-            // Paid vote purchases (nominee owner only)
-            Route::post('/nominees/{nominee}/purchase-votes', [SpotlightVoteController::class, 'purchaseVotes']); // DONE: Request paid vote package (pending admin approval)
-            Route::get('/nominees/{nominee}/purchases', [SpotlightVoteController::class, 'myPurchases']); // DONE: My purchase history
-
-            // Purchase payment
-            Route::post('/vote/purchases/{purchase}/pay', [SpotlightVoteController::class, 'pay'])->name('api.spotlight.purchases.pay'); // DONE: Pay for approved purchase via Stripe
-            Route::get('/vote/purchases/{purchase}', [SpotlightVoteController::class, 'showPurchase'])->name('api.spotlight.purchases.show'); // DONE: View purchase details
-            Route::get('/vote/my-pending-purchases', [SpotlightVoteController::class, 'myPendingPurchases']); // DONE: My pending/approved purchases
-        });
 
         /*
         |--------------------------------------------------------------------------
@@ -528,6 +520,18 @@ Route::group(['prefix' => 'v1'], function ($router) {
         });
     });
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Business Interactions (clap, save, share) — open to all member roles
+    |--------------------------------------------------------------------------
+    */
+    Route::middleware('role:boss|member|artist|sponsor,api')->prefix('businesses')->group(function () {
+        Route::post('/{business}/clap', [BusinessController::class, 'toggleClap']);
+        Route::post('/{business}/save', [BusinessController::class, 'toggleSave']);
+        Route::post('/{business}/share', [BusinessController::class, 'toggleShare']);
+        Route::get('/{business}/interactions', [BusinessController::class, 'userInteractions']);
+    });
 
     // boss role
     Route::middleware('role:boss,api')->group(function () {

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AdminAuthCheckMiddleware;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -44,12 +45,26 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'stripe/*',
         ]);
+
+        // No named 'login' route exists in this app. Point the guest redirect at a
+        // URL so unauthenticated requests fail cleanly (401 JSON via the API
+        // exception renderer) instead of throwing RouteNotFoundException.
+        $middleware->redirectGuestsTo(fn () => '/login');
     })
 
 
 
 
     ->withExceptions(function (Exceptions $exceptions): void {
+        $exceptions->render(function (AuthenticationException $e, Request $request) {
+            if ($request->wantsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthenticated.',
+                ], 401);
+            }
+        });
+
         $exceptions->render(function (UnauthorizedException $e, Request $request) {
             if ($request->wantsJson() || $request->is('api/*')) {
                 return response()->json([
