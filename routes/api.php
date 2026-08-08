@@ -364,12 +364,14 @@ Route::group(['prefix' => 'v1'], function ($router) {
             });
 
             // Boss Dashboard
-            Route::prefix('dashboard')->group(function () {
+            Route::group(['prefix' => 'dashboard'], function () {
                 Route::get('/stats', [BossDashboardController::class, 'overview']); // DONE: Overview stats (total businesses, spotlights, votes, event purchases)
                 Route::get('/summary', [BossDashboardController::class, 'summary']); // DONE: Combined summary of activities, spotlight performance, and voting stats
                 Route::get('/analytics', [BossDashboardController::class, 'analytics']); // DONE: Chart and data stats mimicking the new analytics widget
                 Route::get('/spotlight-performance', [BossDashboardController::class, 'spotlightPerformance']); // DONE: Current spotlight week performance with vote trend
             });
+
+
         });
 
         // Business interactions (clap, save, share)
