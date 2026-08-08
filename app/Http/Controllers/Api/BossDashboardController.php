@@ -12,6 +12,10 @@ use App\Models\Spotlight\SpotlightWeek;
 use App\Models\Spotlight\SpotlightWeekNominee;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
+use App\Models\Round;
+use App\Models\Contest\Contestant;
+use App\Models\Contest\Vote as ContestVote;
+use App\Services\Contest\LeaderboardService;
 
 class BossDashboardController extends Controller
 {
@@ -400,6 +404,114 @@ class BossDashboardController extends Controller
                 'profile_visits' => $profileVisits,
                 'total_vote' => $totalVote,
             ]
+        ]);
+    }
+
+    /**
+     * GET /api/v1/boss/dashboard/contest-summary
+     *
+     * Get overall contest summary, year-wise monthly summary, and round-wise data.
+     */
+    public function contestSummary(LeaderboardService $leaderboardService): JsonResponse
+    {
+        $userId = auth('api')->id();
+
+        // 1. Find user's businesses and contestants
+        $businessIds = Business::where('user_id', $userId)->pluck('id');
+        $contestants = Contestant::where('contestable_type', Business::class)
+            ->whereIn('contestable_id', $businessIds)
+            ->get();
+        $contestantIds = $contestants->pluck('id');
+
+        // ==== OVERALL SUMMARY ====
+        $allVotesQuery = ContestVote::where('votable_type', Contestant::class)
+            ->whereIn('votable_id', $contestantIds);
+
+        $totalVotes = $allVotesQuery->count();
+        $todayVotes = (clone $allVotesQuery)->whereDate('created_at', today())->count();
+        $weekVotes = (clone $allVotesQuery)->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->count();
+        $monthVotes = (clone $allVotesQuery)->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->count();
+
+        // Year-based monthly summary
+        $year = request('year', now()->year);
+        $interactions = \App\Models\BusinessInteraction::whereIn('business_id', $businessIds)
+            ->whereIn('action_type', ['clap', 'share', 'save', 'fire'])
+            ->whereYear('created_at', $year)
+            ->selectRaw('MONTH(created_at) as month_num, action_type, COUNT(*) as count')
+            ->groupBy('month_num', 'action_type')
+            ->get();
+
+        $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        $monthlySummary = [];
+        foreach ($months as $index => $monthName) {
+            $monthNum = $index + 1;
+            $monthlySummary[] = [
+                'month' => $monthName,
+                'clap' => (int) $interactions->where('month_num', $monthNum)->where('action_type', 'clap')->sum('count'),
+                'share' => (int) $interactions->where('month_num', $monthNum)->where('action_type', 'share')->sum('count'),
+                'fire' => (int) $interactions->where('month_num', $monthNum)->whereIn('action_type', ['save', 'fire'])->sum('count'), // Mapping to fire/save
+            ];
+        }
+
+        // ==== ROUND-WISE SUMMARY ====
+        $rounds = Round::orderBy('round_number')->take(5)->get();
+        $roundWiseSummary = [];
+
+        foreach ($rounds as $round) {
+            $roundVotesQuery = ContestVote::where('votable_type', Contestant::class)
+                ->whereIn('votable_id', $contestantIds)
+                ->where('round_id', $round->id);
+
+            if ($round->round_number === 1) {
+                // Find rank
+                $leaderboard = $leaderboardService->getLeaderboard($round);
+                $rank = 0;
+                foreach ($leaderboard as $entry) {
+                    if ($contestantIds->contains($entry['contestant_id'])) {
+                        // Lowest rank (best position) if multiple contestants
+                        if ($rank === 0 || $entry['rank'] < $rank) {
+                            $rank = $entry['rank'];
+                        }
+                    }
+                }
+
+                $totalClap = Business::whereIn('id', $businessIds)->sum('total_claps');
+                $totalSave = Business::whereIn('id', $businessIds)->sum('total_saves');
+                $totalFire = \App\Models\BusinessInteraction::whereIn('business_id', $businessIds)->where('action_type', 'fire')->count();
+
+                $roundWiseSummary[] = [
+                    'round' => 'Round 1',
+                    'total_votes' => $roundVotesQuery->count(),
+                    'todays_votes' => (clone $roundVotesQuery)->whereDate('created_at', today())->count(),
+                    'weekly_votes' => (clone $roundVotesQuery)->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->count(),
+                    'monthly_votes' => (clone $roundVotesQuery)->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->count(),
+                    'voting_summary' => [
+                        'total_clap' => (int) $totalClap,
+                        'total_save' => (int) $totalSave,
+                        'total_fire' => (int) $totalFire, // Keep original values as requested
+                        'rank' => $rank,
+                    ],
+                ];
+            } else {
+                $roundWiseSummary[] = [
+                    'round' => 'Round ' . $round->round_number,
+                    'total_points' => (float) (clone $roundVotesQuery)->sum('weight'),
+                    'todays_points' => (float) (clone $roundVotesQuery)->whereDate('created_at', today())->sum('weight'),
+                    'weekly_points' => (float) (clone $roundVotesQuery)->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->sum('weight'),
+                    'monthly_points' => (float) (clone $roundVotesQuery)->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->sum('weight'),
+                ];
+            }
+        }
+
+        return $this->success('Contest summary retrieved successfully.', [
+            'overall_summary' => [
+                'total_votes' => $totalVotes,
+                'todays_votes' => $todayVotes,
+                'this_weeks_votes' => $weekVotes,
+                'this_months_votes' => $monthVotes,
+            ],
+            'year_based_monthly_summary' => $monthlySummary,
+            'round_wise_summary' => $roundWiseSummary,
         ]);
     }
 

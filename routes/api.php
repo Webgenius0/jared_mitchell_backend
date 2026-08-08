@@ -580,6 +580,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::get('/summary', [BossDashboardController::class, 'summary']); // DONE: Combined summary of activities, spotlight performance, and voting stats
             Route::get('/analytics', [BossDashboardController::class, 'analytics']); // DONE: Chart and data stats mimicking the new analytics widget
             Route::get('/spotlight-performance', [BossDashboardController::class, 'spotlightPerformance']); // DONE: Current spotlight week performance with vote trend
+            Route::get('/contest-summary', [BossDashboardController::class, 'contestSummary']); // DONE: Contest summary matching the Dashboard mockups
         });
 
 
