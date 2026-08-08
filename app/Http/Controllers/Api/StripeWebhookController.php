@@ -82,6 +82,12 @@ class StripeWebhookController extends Controller
 
         $type = $session->metadata->type ?? null;
 
+        // Custom subscription handler: manually save subscription data without Cashier Webhook
+        if ($session->mode === 'subscription') {
+            $this->handleSubscriptionCheckoutCompleted($session);
+            return;
+        }
+
         match ($type) {
             'event_registration' => $this->handleEventRegistrationPayment($session),
             'vote_purchase' => $this->handleVotePurchasePayment($session),
@@ -101,6 +107,71 @@ class StripeWebhookController extends Controller
                 $session->id,
                 $session->payment_intent
             );
+        }
+    }
+
+    /**
+     * Handle successful subscription checkout and manually store the data.
+     */
+    private function handleSubscriptionCheckoutCompleted($session): void
+    {
+        $customerId = $session->customer;
+        $user = \App\Models\User::where('stripe_id', $customerId)->first();
+
+        if (!$user && $session->client_reference_id) {
+            $user = \App\Models\User::find($session->client_reference_id);
+            if ($user && !$user->stripe_id) {
+                $user->stripe_id = $customerId;
+                $user->save();
+            }
+        }
+
+        if (!$user) {
+            Log::error('Stripe webhook: User not found for subscription', ['customer' => $customerId]);
+            return;
+        }
+
+        $subscriptionId = $session->subscription;
+        if (!$subscriptionId) {
+            return;
+        }
+
+        try {
+            $stripeSubscription = \Stripe\Subscription::retrieve($subscriptionId);
+
+            $isSinglePrice = count($stripeSubscription->items->data) === 1;
+            $firstItem = $stripeSubscription->items->data[0];
+
+            $trialEndsAt = $stripeSubscription->trial_end
+                ? \Carbon\Carbon::createFromTimestamp($stripeSubscription->trial_end)
+                : null;
+
+            $subscription = $user->subscriptions()->updateOrCreate([
+                'stripe_id' => $stripeSubscription->id,
+            ], [
+                'type' => 'default',
+                'stripe_status' => $stripeSubscription->status,
+                'stripe_price' => $isSinglePrice ? $firstItem->price->id : null,
+                'quantity' => $isSinglePrice ? ($firstItem->quantity ?? 1) : null,
+                'trial_ends_at' => $trialEndsAt,
+                'ends_at' => null,
+            ]);
+
+            foreach ($stripeSubscription->items->data as $item) {
+                $subscription->items()->updateOrCreate([
+                    'stripe_id' => $item->id,
+                ], [
+                    'stripe_product' => $item->price->product,
+                    'stripe_price' => $item->price->id,
+                    'quantity' => $item->quantity ?? null,
+                ]);
+            }
+
+            Log::info('Stripe webhook: custom subscription stored successfully', ['user_id' => $user->id]);
+        } catch (\Exception $e) {
+            Log::error('Stripe webhook: failed to manually store subscription', [
+                'error' => $e->getMessage()
+            ]);
         }
     }
 
