@@ -287,23 +287,31 @@ Route::group(['prefix' => 'v1'], function ($router) {
         | Artist Route
         |--------------------------------------------------------------------------
         */
-        Route::middleware('role:artist,api')->prefix('')->group(function () {
-            // Artist profile update
-            Route::group(['prefix' => 'artist'], function () {
-                Route::post('/profile/store', [ArtistProfileController::class, 'store']);
-                Route::post('/profile/update', [ArtistProfileController::class, 'update']);
-            });
 
-            // Artist Spotlight
-            Route::group(['prefix' => 'artist-spotlight'], function () {
-                Route::get('/', [ArtistSpotlightController::class, 'index']); // List all
-                Route::post('/', [ArtistSpotlightController::class, 'store']); // Submit complete form
-                Route::post('/draft', [ArtistSpotlightController::class, 'saveDraft']); // Save draft (partial)
-                Route::get('/draft', [ArtistSpotlightController::class, 'getDraft']); // Retrieve draft by email
-                Route::get('/{id}', [ArtistSpotlightController::class, 'show']); // Get single spotlight
-                Route::post('/update/{id}', [ArtistSpotlightController::class, 'update']); // Full update (owner only)
-                Route::delete('/delete/{id}', [ArtistSpotlightController::class, 'destroy']); // Delete (owner only)
-            });
+
+        // Artist profile update
+        Route::group(['prefix' => 'artist'], function () {
+            Route::post('/profile/store', [ArtistProfileController::class, 'store']);
+            Route::post('/profile/update', [ArtistProfileController::class, 'update']);
+        });
+
+        // Artist Spotlight
+        Route::group(['prefix' => 'artist-spotlight'], function () {
+            Route::get('/', [ArtistSpotlightController::class, 'index']); // List all
+            Route::post('/', [ArtistSpotlightController::class, 'store']); // Submit complete form
+            Route::post('/draft', [ArtistSpotlightController::class, 'saveDraft']); // Save draft (partial)
+            Route::get('/draft', [ArtistSpotlightController::class, 'getDraft']); // Retrieve draft by email
+            Route::get('/{id}', [ArtistSpotlightController::class, 'show']); // Get single spotlight
+            Route::post('/update/{id}', [ArtistSpotlightController::class, 'update']); // Full update (owner only)
+            Route::delete('/delete/{id}', [ArtistSpotlightController::class, 'destroy']); // Delete (owner only)
+        });
+    });
+
+    Route::middleware('role:artist,api')->prefix('')->group(function () {
+        // Artist Dashboard
+        Route::prefix('artist/dashboard')->group(function () {
+            Route::get('/stats', [\App\Http\Controllers\Api\ArtistDashboardController::class, 'stats']);
+            Route::get('/analytics', [\App\Http\Controllers\Api\ArtistDashboardController::class, 'analytics']);
         });
 
         /*
@@ -358,6 +366,8 @@ Route::group(['prefix' => 'v1'], function ($router) {
             // Boss Dashboard
             Route::prefix('dashboard')->group(function () {
                 Route::get('/stats', [BossDashboardController::class, 'overview']); // DONE: Overview stats (total businesses, spotlights, votes, event purchases)
+                Route::get('/summary', [BossDashboardController::class, 'summary']); // DONE: Combined summary of activities, spotlight performance, and voting stats
+                Route::get('/analytics', [BossDashboardController::class, 'analytics']); // DONE: Chart and data stats mimicking the new analytics widget
                 Route::get('/spotlight-performance', [BossDashboardController::class, 'spotlightPerformance']); // DONE: Current spotlight week performance with vote trend
             });
         });

@@ -152,6 +152,257 @@ class BossDashboardController extends Controller
     }
 
     /**
+     * GET /api/v1/boss/dashboard/summary
+     *
+     * Get a combined summary of recent activities, spotlight performance, and voting summary.
+     */
+    public function summary(): JsonResponse
+    {
+        $userId = auth('api')->id();
+
+        // 1. Recent Activity
+        // Business Interactions
+        $businessInteractions = \App\Models\BusinessInteraction::with('user.profile')
+            ->latest()
+            ->take(10)
+            ->get()
+            ->map(function ($interaction) {
+                return [
+                    'user_name' => $interaction->user->profile->name ?? $interaction->user->email ?? 'Unknown User',
+                    'avatar'    => $interaction->user->profile->avatar_url ?? null,
+                    'activity'  => 'Business ' . e($interaction->action_type),
+                    'created_at'=> $interaction->created_at,
+                ];
+            });
+
+        // Spotlight Votes
+        $spotlightVotes = \App\Models\Spotlight\SpotlightVote::with('user.profile')
+            ->latest()
+            ->take(10)
+            ->get()
+            ->map(function ($vote) {
+                return [
+                    'user_name' => $vote->user->profile->name ?? $vote->user->email ?? 'Unknown User',
+                    'avatar'    => $vote->user->profile->avatar_url ?? null,
+                    'activity'  => 'Voted for spotlight',
+                    'created_at'=> $vote->created_at,
+                ];
+            });
+
+        // Profile Updates
+        $profileUpdates = \App\Models\Profile::with('user')
+            ->whereColumn('updated_at', '>', 'created_at')
+            ->latest('updated_at')
+            ->take(10)
+            ->get()
+            ->map(function ($profile) {
+                return [
+                    'user_name' => $profile->name ?? $profile->user->email ?? 'Unknown User',
+                    'avatar'    => $profile->avatar_url,
+                    'activity'  => 'Updated profile',
+                    'created_at'=> $profile->updated_at,
+                ];
+            });
+
+        $recentActivity = $businessInteractions->concat($spotlightVotes)->concat($profileUpdates)
+            ->sortByDesc('created_at')
+            ->take(15)
+            ->values()
+            ->toArray();
+
+        // 2. Spotlight Performance
+        $fullPerformanceData = $this->spotlightPerformance()->getData(true)['data'] ?? [];
+        
+        // Ensure week_base is not null
+        $weekBase = $fullPerformanceData['week'] ?? [
+            'id'               => 0,
+            'week_number'      => 0,
+            'year'             => date('Y'),
+            'status'           => 'none',
+            'is_voting_open'   => false,
+            'voting_starts_at' => null,
+            'voting_ends_at'   => null,
+        ];
+
+        // Ensure day_wise has exactly 7 days starting from Sunday
+        // We will map any existing trend data to its day of the week name
+        $trendData = collect($fullPerformanceData['vote_trend'] ?? [])
+            ->mapWithKeys(function ($item) {
+                if (isset($item['date'])) {
+                    $dayName = \Carbon\Carbon::parse($item['date'])->format('l'); // Returns "Sunday", "Monday", etc.
+                    return [$dayName => $item['total_vote_count'] ?? 0];
+                }
+                return [];
+            });
+
+        $daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+        $dayWise = [];
+        foreach ($daysOfWeek as $dayName) {
+            $dayWise[] = [
+                'day'   => $dayName,
+                'value' => $trendData->get($dayName, 0),
+            ];
+        }
+
+        // Add profile visits day wise (last 7 days)
+        $businessesIds = Business::where('user_id', $userId)->pluck('id');
+        $visitsByDate = \App\Models\BusinessInteraction::whereIn('business_id', $businessesIds)
+            ->where('action_type', 'profile_visit')
+            ->where('created_at', '>=', now()->subDays(7))
+            ->selectRaw('DATE(created_at) as date, COUNT(*) as visit_count')
+            ->groupBy('date')
+            ->pluck('visit_count', 'date');
+
+        $visitsTrendData = $visitsByDate->mapWithKeys(function ($count, $date) {
+            $dayName = \Carbon\Carbon::parse($date)->format('l');
+            return [$dayName => $count];
+        });
+
+        $profileVisitsDayWise = [];
+        foreach ($daysOfWeek as $dayName) {
+            $profileVisitsDayWise[] = [
+                'day'   => $dayName,
+                'value' => $visitsTrendData->get($dayName, 0),
+            ];
+        }
+
+        $performanceData = [
+            'week_base'               => $weekBase,
+            'day_wise'                => $dayWise, // vote trend day-wise
+            'profile_visits_day_wise' => $profileVisitsDayWise,
+        ];
+
+        // 3. Voting Summary
+        $businesses = Business::where('user_id', $userId)->get();
+        $totalClap = $businesses->sum('total_claps');
+        $totalShare = $businesses->sum('total_shares');
+
+        $totalVote = SpotlightWeekNominee::where('user_id', $userId)
+            ->sum('total_vote_count');
+
+        // Get rank based on the active spotlight week shown in performance
+        $rank = 0;
+        if (!empty($weekBase['id'])) {
+            $rank = SpotlightWeekNominee::where('user_id', $userId)
+                ->where('spotlight_week_id', $weekBase['id'])
+                ->min('rank');
+        }
+
+        // Fallback to absolute minimum rank if this week had no rank or no week given
+        if (is_null($rank)) {
+            $rank = SpotlightWeekNominee::where('user_id', $userId)->min('rank') ?? 0;
+        }
+
+        return $this->success('Boss dashboard summary retrieved successfully.', [
+            'recent_activity'       => $recentActivity,
+            'spotlight_performance' => $performanceData,
+            'voting_summary'        => [
+                'total_clap'  => $totalClap,
+                'total_vote'  => $totalVote,
+                'total_share' => $totalShare,
+                'rank'        => $rank,
+            ]
+        ]);
+    }
+
+    /**
+     * GET /api/v1/boss/dashboard/analytics
+     *
+     * Get detailed analytics matching the UI dashboard widgets.
+     */
+    public function analytics(): JsonResponse
+    {
+        $userId = auth('api')->id();
+        
+        // 1. Votes
+        $totalVote = SpotlightWeekNominee::where('user_id', $userId)->sum('total_vote_count');
+        
+        $nomineeIds = SpotlightWeekNominee::where('user_id', $userId)->pluck('id');
+        
+        $todaysVoteFree = SpotlightVote::whereIn('spotlight_week_nominee_id', $nomineeIds)
+            ->whereDate('created_at', today())
+            ->count();
+        $todaysVotePaid = SpotlightVotePurchase::whereIn('spotlight_week_nominee_id', $nomineeIds)
+            ->where('status', SpotlightVotePurchase::STATUS_PAID)
+            ->whereDate('paid_at', today())
+            ->sum('votes_count');
+        $todaysVote = $todaysVoteFree + $todaysVotePaid;
+        
+        $weeklyVoteFree = SpotlightVote::whereIn('spotlight_week_nominee_id', $nomineeIds)
+            ->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])
+            ->count();
+        $weeklyVotePaid = SpotlightVotePurchase::whereIn('spotlight_week_nominee_id', $nomineeIds)
+            ->where('status', SpotlightVotePurchase::STATUS_PAID)
+            ->whereBetween('paid_at', [now()->startOfWeek(), now()->endOfWeek()])
+            ->sum('votes_count');
+        $weeklyVote = $weeklyVoteFree + $weeklyVotePaid;
+        
+        $monthlyVoteFree = SpotlightVote::whereIn('spotlight_week_nominee_id', $nomineeIds)
+            ->whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->count();
+        $monthlyVotePaid = SpotlightVotePurchase::whereIn('spotlight_week_nominee_id', $nomineeIds)
+            ->where('status', SpotlightVotePurchase::STATUS_PAID)
+            ->whereMonth('paid_at', now()->month)
+            ->whereYear('paid_at', now()->year)
+            ->sum('votes_count');
+        $monthlyVote = $monthlyVoteFree + $monthlyVotePaid;
+
+        // 2. Spotlight Reach
+        $businessIds = Business::where('user_id', $userId)->pluck('id');
+        $profileVisits = \App\Models\BusinessInteraction::whereIn('business_id', $businessIds)
+            ->where('action_type', 'profile_visit')
+            ->count();
+        $spotlightView = 0; // Not explicitly recorded natively in system yet
+        
+        // 3. Votes Performance (12 Months chart for clap, share, save)
+        $performanceInteractions = \App\Models\BusinessInteraction::whereIn('business_id', $businessIds)
+            ->whereIn('action_type', ['clap', 'share', 'save'])
+            ->whereYear('created_at', now()->year)
+            ->selectRaw('MONTH(created_at) as month_num, action_type, COUNT(*) as count')
+            ->groupBy('month_num', 'action_type')
+            ->get();
+            
+        $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        $votesPerformance = [];
+        foreach ($months as $index => $monthName) {
+            $monthNum = $index + 1;
+            
+            $clap = $performanceInteractions->where('month_num', $monthNum)->where('action_type', 'clap')->sum('count');
+            $share = $performanceInteractions->where('month_num', $monthNum)->where('action_type', 'share')->sum('count');
+            $save = $performanceInteractions->where('month_num', $monthNum)->where('action_type', 'save')->sum('count');
+
+            $votesPerformance[] = [
+                'month' => $monthName,
+                'clap'  => $clap,
+                'share' => $share,
+                'save'  => $save,
+            ];
+        }
+
+        return $this->success('Analytics retrieved successfully.', [
+            'votes' => [
+                'total_vote'   => $totalVote,
+                'todays_vote'  => $todaysVote,
+                'weekly_vote'  => $weeklyVote,
+                'monthly_vote' => $monthlyVote,
+            ],
+            'spotlight_reach' => [
+                'total_reach'    => $profileVisits + $spotlightView,
+                'profile_visits' => $profileVisits,
+                'spotlight_view' => $spotlightView,
+            ],
+            'votes_performance' => $votesPerformance,
+            'engagement_rate' => [
+                'spotlight_view' => $spotlightView,
+                'profile_visits' => $profileVisits,
+                'total_vote'     => $totalVote,
+            ]
+        ]);
+    }
+
+    /**
      * Build aggregated daily vote trend across ALL of this user's nominees in the week.
      *
      * Returns daily breakdown of free votes (SpotlightVote) and paid votes
