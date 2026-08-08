@@ -51,9 +51,9 @@ class BossDashboardController extends Controller
             ->count();
 
         return $this->success('Business dashboard stats retrieved successfully.', [
-            'total_businesses'      => $totalBusinesses,
-            'total_spotlights'      => $totalSpotlights,
-            'total_votes'           => $totalVotes,
+            'total_businesses' => $totalBusinesses,
+            'total_spotlights' => $totalSpotlights,
+            'total_votes' => $totalVotes,
             'total_event_purchases' => $totalEventPurchases,
         ]);
     }
@@ -79,17 +79,17 @@ class BossDashboardController extends Controller
             // Try current voting week first, then fall back to most recent active week
             $week = SpotlightWeek::votingOpen()->latest('voting_starts_at')->first();
 
-            if (! $week) {
+            if (!$week) {
                 $week = SpotlightWeek::whereIn('status', ['nominating', 'voting', 'completed'])
                     ->latest('voting_starts_at')
                     ->first();
             }
         }
 
-        if (! $week) {
+        if (!$week) {
             return $this->success('No spotlight week found.', [
-                'week'       => null,
-                'nominees'   => [],
+                'week' => null,
+                'nominees' => [],
                 'vote_trend' => [],
             ]);
         }
@@ -106,23 +106,23 @@ class BossDashboardController extends Controller
             $spotlight = $nominee->spotlightable;
 
             return [
-                'id'               => $nominee->id,
-                'rank'             => $nominee->rank,
-                'is_winner'        => $nominee->is_winner,
-                'free_vote_count'  => $nominee->free_vote_count,
-                'paid_vote_count'  => $nominee->paid_vote_count,
+                'id' => $nominee->id,
+                'rank' => $nominee->rank,
+                'is_winner' => $nominee->is_winner,
+                'free_vote_count' => $nominee->free_vote_count,
+                'paid_vote_count' => $nominee->paid_vote_count,
                 'total_vote_count' => $nominee->total_vote_count,
-                'paid_vote_cap'    => SpotlightWeek::maxPurchasedVotes(),
-                'cap_reached'      => $nominee->hasReachedPaidVoteCap(),
-                'remaining_slots'  => $nominee->remainingPaidVoteSlots(),
-                'spotlight'        => $spotlight ? [
-                    'id'           => $spotlight->id,
-                    'name'         => $spotlight->business_name ?? $spotlight->owner_founder_name ?? '—',
-                    'category'     => $spotlight->business_category ?? null,
-                    'city'         => $spotlight->city ?? null,
-                    'state'        => $spotlight->state ?? null,
-                    'photo'        => $spotlight->portrait_photo_path ?? null,
-                    'status'       => $spotlight->status ?? null,
+                'paid_vote_cap' => SpotlightWeek::maxPurchasedVotes(),
+                'cap_reached' => $nominee->hasReachedPaidVoteCap(),
+                'remaining_slots' => $nominee->remainingPaidVoteSlots(),
+                'spotlight' => $spotlight ? [
+                    'id' => $spotlight->id,
+                    'name' => $spotlight->business_name ?? $spotlight->owner_founder_name ?? '—',
+                    'category' => $spotlight->business_category ?? null,
+                    'city' => $spotlight->city ?? null,
+                    'state' => $spotlight->state ?? null,
+                    'photo' => $spotlight->portrait_photo_path ?? null,
+                    'status' => $spotlight->status ?? null,
                 ] : null,
             ];
         });
@@ -135,19 +135,19 @@ class BossDashboardController extends Controller
 
         return $this->success('Spotlight performance retrieved successfully.', [
             'week' => [
-                'id'               => $week->id,
-                'week_number'      => $week->week_number,
-                'year'             => $week->year,
-                'status'           => $week->status,
-                'is_voting_open'   => $week->isVotingOpen(),
+                'id' => $week->id,
+                'week_number' => $week->week_number,
+                'year' => $week->year,
+                'status' => $week->status,
+                'is_voting_open' => $week->isVotingOpen(),
                 'voting_starts_at' => $week->voting_starts_at,
-                'voting_ends_at'   => $week->voting_ends_at,
+                'voting_ends_at' => $week->voting_ends_at,
             ],
-            'nominees'               => $nomineesData,
-            'nominees_count'         => $nominees->count(),
-            'vote_trend'             => $aggregateTrend,
-            'nominee_vote_trends'    => $nomineeTrends,
-            'max_paid_votes'         => SpotlightWeek::maxPurchasedVotes(),
+            'nominees' => $nomineesData,
+            'nominees_count' => $nominees->count(),
+            'vote_trend' => $aggregateTrend,
+            'nominee_vote_trends' => $nomineeTrends,
+            'max_paid_votes' => SpotlightWeek::maxPurchasedVotes(),
         ]);
     }
 
@@ -160,6 +160,7 @@ class BossDashboardController extends Controller
     {
         $userId = auth('api')->id();
 
+
         // 1. Recent Activity
         // Business Interactions
         $businessInteractions = \App\Models\BusinessInteraction::with('user.profile')
@@ -169,9 +170,9 @@ class BossDashboardController extends Controller
             ->map(function ($interaction) {
                 return [
                     'user_name' => $interaction->user->profile->name ?? $interaction->user->email ?? 'Unknown User',
-                    'avatar'    => $interaction->user->profile->avatar_url ?? null,
-                    'activity'  => 'Business ' . e($interaction->action_type),
-                    'created_at'=> $interaction->created_at,
+                    'avatar' => $interaction->user->profile->avatar_url ?? null,
+                    'activity' => 'Business ' . e($interaction->action_type),
+                    'created_at' => $interaction->created_at,
                 ];
             });
 
@@ -183,9 +184,9 @@ class BossDashboardController extends Controller
             ->map(function ($vote) {
                 return [
                     'user_name' => $vote->user->profile->name ?? $vote->user->email ?? 'Unknown User',
-                    'avatar'    => $vote->user->profile->avatar_url ?? null,
-                    'activity'  => 'Voted for spotlight',
-                    'created_at'=> $vote->created_at,
+                    'avatar' => $vote->user->profile->avatar_url ?? null,
+                    'activity' => 'Voted for spotlight',
+                    'created_at' => $vote->created_at,
                 ];
             });
 
@@ -198,9 +199,9 @@ class BossDashboardController extends Controller
             ->map(function ($profile) {
                 return [
                     'user_name' => $profile->name ?? $profile->user->email ?? 'Unknown User',
-                    'avatar'    => $profile->avatar_url,
-                    'activity'  => 'Updated profile',
-                    'created_at'=> $profile->updated_at,
+                    'avatar' => $profile->avatar_url,
+                    'activity' => 'Updated profile',
+                    'created_at' => $profile->updated_at,
                 ];
             });
 
@@ -212,16 +213,16 @@ class BossDashboardController extends Controller
 
         // 2. Spotlight Performance
         $fullPerformanceData = $this->spotlightPerformance()->getData(true)['data'] ?? [];
-        
+
         // Ensure week_base is not null
         $weekBase = $fullPerformanceData['week'] ?? [
-            'id'               => 0,
-            'week_number'      => 0,
-            'year'             => date('Y'),
-            'status'           => 'none',
-            'is_voting_open'   => false,
+            'id' => 0,
+            'week_number' => 0,
+            'year' => date('Y'),
+            'status' => 'none',
+            'is_voting_open' => false,
             'voting_starts_at' => null,
-            'voting_ends_at'   => null,
+            'voting_ends_at' => null,
         ];
 
         // Ensure day_wise has exactly 7 days starting from Sunday
@@ -240,7 +241,7 @@ class BossDashboardController extends Controller
         $dayWise = [];
         foreach ($daysOfWeek as $dayName) {
             $dayWise[] = [
-                'day'   => $dayName,
+                'day' => $dayName,
                 'value' => $trendData->get($dayName, 0),
             ];
         }
@@ -262,14 +263,14 @@ class BossDashboardController extends Controller
         $profileVisitsDayWise = [];
         foreach ($daysOfWeek as $dayName) {
             $profileVisitsDayWise[] = [
-                'day'   => $dayName,
+                'day' => $dayName,
                 'value' => $visitsTrendData->get($dayName, 0),
             ];
         }
 
         $performanceData = [
-            'week_base'               => $weekBase,
-            'day_wise'                => $dayWise, // vote trend day-wise
+            'week_base' => $weekBase,
+            'day_wise' => $dayWise, // vote trend day-wise
             'profile_visits_day_wise' => $profileVisitsDayWise,
         ];
 
@@ -295,13 +296,13 @@ class BossDashboardController extends Controller
         }
 
         return $this->success('Boss dashboard summary retrieved successfully.', [
-            'recent_activity'       => $recentActivity,
+            'recent_activity' => $recentActivity,
             'spotlight_performance' => $performanceData,
-            'voting_summary'        => [
-                'total_clap'  => $totalClap,
-                'total_vote'  => $totalVote,
+            'voting_summary' => [
+                'total_clap' => $totalClap,
+                'total_vote' => $totalVote,
                 'total_share' => $totalShare,
-                'rank'        => $rank,
+                'rank' => $rank,
             ]
         ]);
     }
@@ -314,12 +315,12 @@ class BossDashboardController extends Controller
     public function analytics(): JsonResponse
     {
         $userId = auth('api')->id();
-        
+
         // 1. Votes
         $totalVote = SpotlightWeekNominee::where('user_id', $userId)->sum('total_vote_count');
-        
+
         $nomineeIds = SpotlightWeekNominee::where('user_id', $userId)->pluck('id');
-        
+
         $todaysVoteFree = SpotlightVote::whereIn('spotlight_week_nominee_id', $nomineeIds)
             ->whereDate('created_at', today())
             ->count();
@@ -328,7 +329,7 @@ class BossDashboardController extends Controller
             ->whereDate('paid_at', today())
             ->sum('votes_count');
         $todaysVote = $todaysVoteFree + $todaysVotePaid;
-        
+
         $weeklyVoteFree = SpotlightVote::whereIn('spotlight_week_nominee_id', $nomineeIds)
             ->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])
             ->count();
@@ -337,7 +338,7 @@ class BossDashboardController extends Controller
             ->whereBetween('paid_at', [now()->startOfWeek(), now()->endOfWeek()])
             ->sum('votes_count');
         $weeklyVote = $weeklyVoteFree + $weeklyVotePaid;
-        
+
         $monthlyVoteFree = SpotlightVote::whereIn('spotlight_week_nominee_id', $nomineeIds)
             ->whereMonth('created_at', now()->month)
             ->whereYear('created_at', now()->year)
@@ -355,7 +356,7 @@ class BossDashboardController extends Controller
             ->where('action_type', 'profile_visit')
             ->count();
         $spotlightView = 0; // Not explicitly recorded natively in system yet
-        
+
         // 3. Votes Performance (12 Months chart for clap, share, save)
         $performanceInteractions = \App\Models\BusinessInteraction::whereIn('business_id', $businessIds)
             ->whereIn('action_type', ['clap', 'share', 'save'])
@@ -363,33 +364,33 @@ class BossDashboardController extends Controller
             ->selectRaw('MONTH(created_at) as month_num, action_type, COUNT(*) as count')
             ->groupBy('month_num', 'action_type')
             ->get();
-            
+
         $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         $votesPerformance = [];
         foreach ($months as $index => $monthName) {
             $monthNum = $index + 1;
-            
+
             $clap = $performanceInteractions->where('month_num', $monthNum)->where('action_type', 'clap')->sum('count');
             $share = $performanceInteractions->where('month_num', $monthNum)->where('action_type', 'share')->sum('count');
             $save = $performanceInteractions->where('month_num', $monthNum)->where('action_type', 'save')->sum('count');
 
             $votesPerformance[] = [
                 'month' => $monthName,
-                'clap'  => $clap,
+                'clap' => $clap,
                 'share' => $share,
-                'save'  => $save,
+                'save' => $save,
             ];
         }
 
         return $this->success('Analytics retrieved successfully.', [
             'votes' => [
-                'total_vote'   => $totalVote,
-                'todays_vote'  => $todaysVote,
-                'weekly_vote'  => $weeklyVote,
+                'total_vote' => $totalVote,
+                'todays_vote' => $todaysVote,
+                'weekly_vote' => $weeklyVote,
                 'monthly_vote' => $monthlyVote,
             ],
             'spotlight_reach' => [
-                'total_reach'    => $profileVisits + $spotlightView,
+                'total_reach' => $profileVisits + $spotlightView,
                 'profile_visits' => $profileVisits,
                 'spotlight_view' => $spotlightView,
             ],
@@ -397,7 +398,7 @@ class BossDashboardController extends Controller
             'engagement_rate' => [
                 'spotlight_view' => $spotlightView,
                 'profile_visits' => $profileVisits,
-                'total_vote'     => $totalVote,
+                'total_vote' => $totalVote,
             ]
         ]);
     }
@@ -415,7 +416,7 @@ class BossDashboardController extends Controller
     {
         $nomineeIds = $this->getUserNomineeIds($week->id, $userId);
 
-        if ($nomineeIds->isEmpty() || ! $week->voting_starts_at) {
+        if ($nomineeIds->isEmpty() || !$week->voting_starts_at) {
             return [];
         }
 
@@ -463,12 +464,12 @@ class BossDashboardController extends Controller
             $cumulativePaid += $dayPaid;
 
             $trend[] = [
-                'date'             => $dateKey,
-                'free_vote_count'  => $dayFree,
-                'paid_vote_count'  => $dayPaid,
+                'date' => $dateKey,
+                'free_vote_count' => $dayFree,
+                'paid_vote_count' => $dayPaid,
                 'total_vote_count' => $dayTotal,
-                'cumulative_free'  => $cumulativeFree,
-                'cumulative_paid'  => $cumulativePaid,
+                'cumulative_free' => $cumulativeFree,
+                'cumulative_paid' => $cumulativePaid,
                 'cumulative_total' => $cumulativeFree + $cumulativePaid,
             ];
 
@@ -488,7 +489,7 @@ class BossDashboardController extends Controller
     {
         $nomineeIds = $nominees->pluck('id');
 
-        if ($nomineeIds->isEmpty() || ! $week->voting_starts_at) {
+        if ($nomineeIds->isEmpty() || !$week->voting_starts_at) {
             return [];
         }
 
@@ -556,12 +557,12 @@ class BossDashboardController extends Controller
                 $cumulativePaid += $dayPaid;
 
                 $data[] = [
-                    'date'             => $dateKey,
-                    'free_vote_count'  => $dayFree,
-                    'paid_vote_count'  => $dayPaid,
+                    'date' => $dateKey,
+                    'free_vote_count' => $dayFree,
+                    'paid_vote_count' => $dayPaid,
                     'total_vote_count' => $dayFree + $dayPaid,
-                    'cumulative_free'  => $cumulativeFree,
-                    'cumulative_paid'  => $cumulativePaid,
+                    'cumulative_free' => $cumulativeFree,
+                    'cumulative_paid' => $cumulativePaid,
                     'cumulative_total' => $cumulativeFree + $cumulativePaid,
                 ];
 
@@ -569,11 +570,11 @@ class BossDashboardController extends Controller
             }
 
             $trends[] = [
-                'nominee_id'    => $nomineeId,
-                'name'          => $name,
-                'spotlight_id'  => $spotlight?->id,
-                'total_votes'   => $nominee->total_vote_count,
-                'data'          => $data,
+                'nominee_id' => $nomineeId,
+                'name' => $name,
+                'spotlight_id' => $spotlight?->id,
+                'total_votes' => $nominee->total_vote_count,
+                'data' => $data,
             ];
         }
 
