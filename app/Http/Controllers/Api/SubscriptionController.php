@@ -137,7 +137,7 @@ class SubscriptionController extends Controller
      */
     public function resume(Request $request): JsonResponse
     {
-        $user = $request->user();
+        $user = auth('api')->user();
         $subscription = $user->subscription('default');
 
         if (!$subscription || !$subscription->onGracePeriod()) {
@@ -164,7 +164,7 @@ class SubscriptionController extends Controller
             'pricing_plan_id' => ['required', 'exists:pricing_plans,id'],
         ]);
 
-        $user = $request->user();
+        $user = auth('api')->user();
         $subscription = $user->subscription('default');
 
         if (!$subscription || !$subscription->valid()) {
