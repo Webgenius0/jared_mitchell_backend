@@ -74,15 +74,15 @@ class SubscriptionController extends Controller
         $subscription = $user->subscription('default');
         // dd($subscription);
 
-        // if (!$subscription) {
-        //     return response()->json([
-        //         'status' => 'success',
-        //         'data' => [
-        //             'is_subscribed' => false,
-        //             'details' => null,
-        //         ],
-        //     ]);
-        // }
+        if (!$subscription) {
+            return response()->json([
+                'status' => 'success',
+                'data' => [
+                    'is_subscribed' => false,
+                    'details' => null,
+                ],
+            ]);
+        }
 
         return response()->json([
             'status' => 'success',
