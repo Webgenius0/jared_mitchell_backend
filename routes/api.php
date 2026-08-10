@@ -352,173 +352,174 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::get('/stats', [\App\Http\Controllers\Api\ArtistDashboardController::class, 'stats']);
             Route::get('/analytics', [\App\Http\Controllers\Api\ArtistDashboardController::class, 'analytics']);
         });
+    });
 
-        /*
-        |--------------------------------------------------------------------------
-        | Member Route (protected by member role) - Member Dashboard
-        |--------------------------------------------------------------------------
-        */
-        Route::middleware('role:member,api')->group(function () {
-            // Profile manage
-            Route::group(['prefix' => 'member'], function () {
-                Route::post('/profile/store', [MemberProfileController::class, 'store']);
-                Route::post('/profile/update', [MemberProfileController::class, 'update']);
-            });
-        });
-
-        /*
-        |--------------------------------------------------------------------------
-        | Sponsor Route (protected by sponsor role) - Sponsor Dashboard
-        |--------------------------------------------------------------------------
-        */
-        Route::middleware('role:sponsor,api')->prefix('sponsor')->group(function () {
-            Route::post('/profile/store', [SponsorProfileController::class, 'store']);
-            Route::post('/profile/update', [SponsorProfileController::class, 'update']);
-        });
-
-        // Artist interactions
-        Route::prefix('artists')->group(function () {
-            Route::post('/{id}/like', [ArtistController::class, 'toggleLike']);
-            Route::post('/{id}/bookmark', [ArtistController::class, 'toggleBookmark']);
-
-        });
-
-        // Event interactions
-        Route::prefix('events')->group(function () {
-            Route::post('/{id}/like', [EventController::class, 'toggleLike']);
-            Route::post('/{id}/bookmark', [EventController::class, 'toggleBookmark']);
-            Route::post('/{id}/share', [EventController::class, 'recordShare']);
-        });
-
-        // Business Spotlight interactions
-        Route::prefix('business-spotlight')->group(function () {
-            Route::post('/{id}/like', [BusinessSpotlightController::class, 'toggleLike']);
-            Route::post('/{id}/bookmark', [BusinessSpotlightController::class, 'toggleBookmark']);
-            Route::post('/{id}/share', [BusinessSpotlightController::class, 'recordShare']);
-        });
-
-        // Artist Spotlight interactions
-        Route::prefix('artist-spotlight')->group(function () {
-            Route::post('/{id}/like', [ArtistSpotlightController::class, 'toggleLike']);
-            Route::post('/{id}/bookmark', [ArtistSpotlightController::class, 'toggleBookmark']);
-            Route::post('/{id}/share', [ArtistSpotlightController::class, 'recordShare']);
-        });
-
-        /*
-        |--------------------------------------------------------------------------
-        | E-commerce: Wishlist, Cart & Orders
-        |--------------------------------------------------------------------------
-        */
-        // Wishlist
-        Route::prefix('wishlist')->group(function () {
-            Route::get('/', [WishlistController::class, 'index']); // DONE: get all wishlist product
-            Route::post('/toggle/{product}', [WishlistController::class, 'toggle']); // DONE: toggle wishlist product
-            Route::delete('/{product}', [WishlistController::class, 'destroy']); // DONE: delete wishlist product
-            Route::delete('/', [WishlistController::class, 'clear']); // DONE: clear wishlist product
-        });
-
-        // Cart
-        Route::prefix('cart')->group(function () {
-            Route::get('/', [CartController::class, 'index']); // DONE: get all cart product
-            Route::post('/add', [CartController::class, 'add']); // DONE: add product to cart
-            Route::post('/{cart}/update', [CartController::class, 'update']); // DONE: update product in cart
-            Route::delete('/{cart}/delete', [CartController::class, 'destroy']); // DONE: delete product from cart
-            Route::delete('/clear', [CartController::class, 'clear']); // DONE: clear cart
-        });
-
-        // Order
-        Route::prefix('orders')->group(function () {
-            Route::get('/', [OrderController::class, 'index']); // DONE: get all order
-            Route::post('/place', [OrderController::class, 'place']); // DONE: place a new oeder
-            Route::post('/buy-now', [OrderController::class, 'buyNow']); // DONE: buy now
-            Route::get('/{order}', [OrderController::class, 'show']); // DONE: show order
-            Route::post('/{order}/cancel', [OrderController::class, 'cancel']); // DONE: cancel order
-        });
-
-        // Notifications
-        Route::prefix('notifications')->group(function () {
-            Route::get('/', [NotificationController::class, 'index']);
-            Route::get('/unread-count', [NotificationController::class, 'unreadCount']);
-            Route::post('/mark-as-read', [NotificationController::class, 'markAsRead']);
-            Route::post('/mark-all-as-read', [NotificationController::class, 'markAllAsRead']);
-            Route::post('/{id}/mark-read', [NotificationController::class, 'markOneAsRead']);
-        });
-
-        // Event Registrations (Dashboard)
-        Route::prefix('event-registrations')->group(function () {
-            Route::get('/', [EventController::class, 'myRegistrations']);
-            Route::get('/{id}/ticket', [EventController::class, 'downloadTicket']);
-            Route::post('/{id}/cancel', [EventController::class, 'cancelRegistration']);
-        });
-
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Contest — Voting, Submissions & Leaderboard
-        |--------------------------------------------------------------------------
-        */
-        Route::prefix('contest')->group(function () {
-            //My contest
-            Route::get('/my-contests', [ContestApplicationController::class, 'myContests']); // DONE: get all my contest
-            Route::get('/my-rounds', [RoundWiseBusinessController::class, 'myBusiness']); // DONE: my business(es) round-wise journey (auth only)
-
-            // Submissions
-            Route::post('/rounds/{round}/submissions', [RoundSubmissionController::class, 'store']); // DONE: round wise media file submission
-            // Route::post('/rounds/{round}/submissions/draft', [RoundSubmissionController::class, 'saveDraft']); // DONE: save draft submission
-            Route::get('/rounds/{round}/submissions/my', [RoundSubmissionController::class, 'mySubmission']); // DONE: my submission for a round
-            Route::get('/rounds/{round}/submissions/{submission}', [RoundSubmissionController::class, 'show']); // DONE: get submission detail
-            Route::post('/rounds/{round}/submissions/{submission}/update', [RoundSubmissionController::class, 'update']); // DONE: update submission
-
-            // Votes
-            Route::post('/rounds/{round}/votes', [VoteController::class, 'store']); // DONE: round voting
-            Route::get('/rounds/{round}/votes/my', [VoteController::class, 'myVotes']); // DONE: my votes for a round
-            Route::get('/rounds/{round}/votes/check/{contestant}', [VoteController::class, 'check']);
-        });
-
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Messaging/Conversation
-        |--------------------------------------------------------------------------
-        */
-        Route::prefix('conversations')->group(function () {
-            Route::get('/', [ConversationController::class, 'index']);
-            Route::post('/', [ConversationController::class, 'store']);
-            Route::get('/{conversation}', [ConversationController::class, 'show']);
-            Route::post('/{conversation}', [ConversationController::class, 'update']);
-            Route::delete('/{conversation}', [ConversationController::class, 'destroy']);
-
-            // Group management
-            Route::post('/{conversation}/add-user', [ConversationController::class, 'addUser']);
-            Route::post('/{conversation}/remove-user', [ConversationController::class, 'removeUser']);
-            Route::post('/{conversation}/make-admin', [ConversationController::class, 'makeAdmin']);
-
-            // Conversation settings
-            Route::post('/{conversation}/toggle-mute', [ConversationController::class, 'toggleMute']);
-            Route::post('/{conversation}/toggle-archive', [ConversationController::class, 'toggleArchive']);
-
-            // Messages in conversation
-            Route::get('/{conversation}/messages', [MessageController::class, 'index']);
-
-            // Typing indicators
-            Route::post('/{conversation}/typing', [TypingController::class, 'typing']);
-            Route::post('/{conversation}/stop-typing', [TypingController::class, 'stopTyping']);
-            Route::get('/{conversation}/typing-users', [TypingController::class, 'getCurrentlyTyping']);
-        });
-
-        // Message routes
-        Route::prefix('messages')->group(function () {
-            Route::post('/', [MessageController::class, 'store']);
-            Route::get('/unread-count', [MessageController::class, 'unreadCount']);
-            Route::post('/mark-as-read', [MessageController::class, 'markAsRead']);
-            Route::get('/{message}', [MessageController::class, 'show']);
-            Route::put('/{message}', [MessageController::class, 'update']);
-            Route::delete('/{message}', [MessageController::class, 'destroy']);
-            Route::post('/{message}/reaction', [MessageController::class, 'toggleReaction']);
+    /*
+    |--------------------------------------------------------------------------
+    | Member Route (protected by member role) - Member Dashboard
+    |--------------------------------------------------------------------------
+    */
+    Route::middleware('role:member,api')->group(function () {
+        // Profile manage
+        Route::group(['prefix' => 'member'], function () {
+            Route::post('/profile/store', [MemberProfileController::class, 'store']);
+            Route::post('/profile/update', [MemberProfileController::class, 'update']);
         });
     });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Sponsor Route (protected by sponsor role) - Sponsor Dashboard
+    |--------------------------------------------------------------------------
+    */
+    Route::middleware('role:sponsor,api')->prefix('sponsor')->group(function () {
+        Route::post('/profile/store', [SponsorProfileController::class, 'store']);
+        Route::post('/profile/update', [SponsorProfileController::class, 'update']);
+    });
+
+    // Artist interactions
+    Route::prefix('artists')->group(function () {
+        Route::post('/{id}/like', [ArtistController::class, 'toggleLike']);
+        Route::post('/{id}/bookmark', [ArtistController::class, 'toggleBookmark']);
+
+    });
+
+    // Event interactions
+    Route::prefix('events')->group(function () {
+        Route::post('/{id}/like', [EventController::class, 'toggleLike']);
+        Route::post('/{id}/bookmark', [EventController::class, 'toggleBookmark']);
+        Route::post('/{id}/share', [EventController::class, 'recordShare']);
+    });
+
+    // Business Spotlight interactions
+    Route::prefix('business-spotlight')->group(function () {
+        Route::post('/{id}/like', [BusinessSpotlightController::class, 'toggleLike']);
+        Route::post('/{id}/bookmark', [BusinessSpotlightController::class, 'toggleBookmark']);
+        Route::post('/{id}/share', [BusinessSpotlightController::class, 'recordShare']);
+    });
+
+    // Artist Spotlight interactions
+    Route::prefix('artist-spotlight')->group(function () {
+        Route::post('/{id}/like', [ArtistSpotlightController::class, 'toggleLike']);
+        Route::post('/{id}/bookmark', [ArtistSpotlightController::class, 'toggleBookmark']);
+        Route::post('/{id}/share', [ArtistSpotlightController::class, 'recordShare']);
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | E-commerce: Wishlist, Cart & Orders
+    |--------------------------------------------------------------------------
+    */
+    // Wishlist
+    Route::prefix('wishlist')->group(function () {
+        Route::get('/', [WishlistController::class, 'index']); // DONE: get all wishlist product
+        Route::post('/toggle/{product}', [WishlistController::class, 'toggle']); // DONE: toggle wishlist product
+        Route::delete('/{product}', [WishlistController::class, 'destroy']); // DONE: delete wishlist product
+        Route::delete('/', [WishlistController::class, 'clear']); // DONE: clear wishlist product
+    });
+
+    // Cart
+    Route::prefix('cart')->group(function () {
+        Route::get('/', [CartController::class, 'index']); // DONE: get all cart product
+        Route::post('/add', [CartController::class, 'add']); // DONE: add product to cart
+        Route::post('/{cart}/update', [CartController::class, 'update']); // DONE: update product in cart
+        Route::delete('/{cart}/delete', [CartController::class, 'destroy']); // DONE: delete product from cart
+        Route::delete('/clear', [CartController::class, 'clear']); // DONE: clear cart
+    });
+
+    // Order
+    Route::prefix('orders')->group(function () {
+        Route::get('/', [OrderController::class, 'index']); // DONE: get all order
+        Route::post('/place', [OrderController::class, 'place']); // DONE: place a new oeder
+        Route::post('/buy-now', [OrderController::class, 'buyNow']); // DONE: buy now
+        Route::get('/{order}', [OrderController::class, 'show']); // DONE: show order
+        Route::post('/{order}/cancel', [OrderController::class, 'cancel']); // DONE: cancel order
+    });
+
+    // Notifications
+    Route::prefix('notifications')->group(function () {
+        Route::get('/', [NotificationController::class, 'index']);
+        Route::get('/unread-count', [NotificationController::class, 'unreadCount']);
+        Route::post('/mark-as-read', [NotificationController::class, 'markAsRead']);
+        Route::post('/mark-all-as-read', [NotificationController::class, 'markAllAsRead']);
+        Route::post('/{id}/mark-read', [NotificationController::class, 'markOneAsRead']);
+    });
+
+    // Event Registrations (Dashboard)
+    Route::prefix('event-registrations')->group(function () {
+        Route::get('/', [EventController::class, 'myRegistrations']);
+        Route::get('/{id}/ticket', [EventController::class, 'downloadTicket']);
+        Route::post('/{id}/cancel', [EventController::class, 'cancelRegistration']);
+    });
+
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Contest — Voting, Submissions & Leaderboard
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('contest')->group(function () {
+        //My contest
+        Route::get('/my-contests', [ContestApplicationController::class, 'myContests']); // DONE: get all my contest
+        Route::get('/my-rounds', [RoundWiseBusinessController::class, 'myBusiness']); // DONE: my business(es) round-wise journey (auth only)
+
+        // Submissions
+        Route::post('/rounds/{round}/submissions', [RoundSubmissionController::class, 'store']); // DONE: round wise media file submission
+        // Route::post('/rounds/{round}/submissions/draft', [RoundSubmissionController::class, 'saveDraft']); // DONE: save draft submission
+        Route::get('/rounds/{round}/submissions/my', [RoundSubmissionController::class, 'mySubmission']); // DONE: my submission for a round
+        Route::get('/rounds/{round}/submissions/{submission}', [RoundSubmissionController::class, 'show']); // DONE: get submission detail
+        Route::post('/rounds/{round}/submissions/{submission}/update', [RoundSubmissionController::class, 'update']); // DONE: update submission
+
+        // Votes
+        Route::post('/rounds/{round}/votes', [VoteController::class, 'store']); // DONE: round voting
+        Route::get('/rounds/{round}/votes/my', [VoteController::class, 'myVotes']); // DONE: my votes for a round
+        Route::get('/rounds/{round}/votes/check/{contestant}', [VoteController::class, 'check']);
+    });
+
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Messaging/Conversation
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('conversations')->group(function () {
+        Route::get('/', [ConversationController::class, 'index']);
+        Route::post('/', [ConversationController::class, 'store']);
+        Route::get('/{conversation}', [ConversationController::class, 'show']);
+        Route::post('/{conversation}', [ConversationController::class, 'update']);
+        Route::delete('/{conversation}', [ConversationController::class, 'destroy']);
+
+        // Group management
+        Route::post('/{conversation}/add-user', [ConversationController::class, 'addUser']);
+        Route::post('/{conversation}/remove-user', [ConversationController::class, 'removeUser']);
+        Route::post('/{conversation}/make-admin', [ConversationController::class, 'makeAdmin']);
+
+        // Conversation settings
+        Route::post('/{conversation}/toggle-mute', [ConversationController::class, 'toggleMute']);
+        Route::post('/{conversation}/toggle-archive', [ConversationController::class, 'toggleArchive']);
+
+        // Messages in conversation
+        Route::get('/{conversation}/messages', [MessageController::class, 'index']);
+
+        // Typing indicators
+        Route::post('/{conversation}/typing', [TypingController::class, 'typing']);
+        Route::post('/{conversation}/stop-typing', [TypingController::class, 'stopTyping']);
+        Route::get('/{conversation}/typing-users', [TypingController::class, 'getCurrentlyTyping']);
+    });
+
+    // Message routes
+    Route::prefix('messages')->group(function () {
+        Route::post('/', [MessageController::class, 'store']);
+        Route::get('/unread-count', [MessageController::class, 'unreadCount']);
+        Route::post('/mark-as-read', [MessageController::class, 'markAsRead']);
+        Route::get('/{message}', [MessageController::class, 'show']);
+        Route::put('/{message}', [MessageController::class, 'update']);
+        Route::delete('/{message}', [MessageController::class, 'destroy']);
+        Route::post('/{message}/reaction', [MessageController::class, 'toggleReaction']);
+    });
+
 
 
     /*
@@ -600,9 +601,6 @@ Route::group(['prefix' => 'v1'], function ($router) {
         Route::post('/swap', [SubscriptionController::class, 'swap']); // DONE: Swap subscription
         Route::post('/billing-portal', [SubscriptionController::class, 'billingPortal']); // DONE: Get billing portal
     });
-
-
-
 
 
 });

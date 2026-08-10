@@ -425,9 +425,7 @@ class RoundWiseBusinessController extends Controller
             'total_points'             => (int) ($contestable?->total_points ?? 0),
 
             // Media / avatar
-            'avatar_url'               => $contestant->avatar_url
-                ? asset('storage/' . $contestant->avatar_url)
-                : ($media['primary_image'] ?? asset('admin/default/user.jpg')),
+            'avatar_url'               => $this->formatAvatar($contestant->avatar_url ?? $contestable?->getContestantAvatar()),
             'media'                    => $media,
 
             // Contest progress
@@ -435,6 +433,21 @@ class RoundWiseBusinessController extends Controller
             'current_round_number'     => $contestant->currentRound?->round_number,
             'eliminated_in_round_number' => $contestant->eliminatedInRound?->round_number,
         ];
+    }
+
+    private function formatAvatar(?string $path): string
+    {
+        if (!$path) {
+            return asset('admin/default/user.jpg');
+        }
+
+        if (filter_var($path, FILTER_VALIDATE_URL)) {
+            return $path;
+        }
+
+        $path = preg_replace('#^storage/#', '', $path);
+
+        return Storage::disk('public')->url($path);
     }
 
     private function formatMedia($contestable): array
@@ -585,9 +598,7 @@ class RoundWiseBusinessController extends Controller
             'business_id'                  => $contestable?->id ?? null,
             'business_name'                => $entry['contestable_name'],
             'display_name'                 => $entry['display_name'],
-            'avatar_url'                   => $contestant->avatar_url
-                ? asset('storage/' . $contestant->avatar_url)
-                : asset('admin/default/user.jpg'),
+            'avatar_url'                   => $this->formatAvatar($contestant->avatar_url ?? $contestable?->getContestantAvatar()),
             'points'                       => $entry['total_score'],
             'rank'                         => $entry['rank'],
             'status'                       => $entry['status'],

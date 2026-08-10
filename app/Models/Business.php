@@ -83,9 +83,24 @@ class Business extends Model implements Contestable
      */
     public function getContestantAvatar(): ?string
     {
-        $firstMedia = $this->media()->first();
+        // Prefer an image file for the avatar — never a video. Use the loaded
+        // relation when available to avoid an extra query per entry.
+        if ($this->relationLoaded('media')) {
+            $image = $this->media->first(
+                fn ($m) => $m->mime_type === null || str_starts_with((string) $m->mime_type, 'image/')
+            );
 
-        return $firstMedia?->file_path;
+            return $image?->file_path ?? $this->media->first()?->file_path;
+        }
+
+        $image = $this->media()
+            ->where(function ($q) {
+                $q->where('mime_type', 'like', 'image/%')
+                    ->orWhereNull('mime_type');
+            })
+            ->first();
+
+        return $image?->file_path ?? $this->media()->first()?->file_path;
     }
 
     /**

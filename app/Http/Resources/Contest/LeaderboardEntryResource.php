@@ -4,6 +4,7 @@ namespace App\Http\Resources\Contest;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class LeaderboardEntryResource extends JsonResource
 {
@@ -49,7 +50,7 @@ class LeaderboardEntryResource extends JsonResource
                 'business_id' => $contestable?->id ?? null,
                 'display_name' => $contestant->display_name,
                 'slug' => $contestant->slug,
-                'avatar_url' => $contestant->avatar_url ? asset('storage/' . $contestant->avatar_url) : asset('admin/default/user.jpg'),
+                'avatar_url' => $this->formatAvatar($this['avatar_url'] ?? ($contestable ? $contestable->getContestantAvatar() : null)),
                 'status' => $contestant->status,
 
                 // You can uncomment the fields below if you need them:
@@ -88,7 +89,7 @@ class LeaderboardEntryResource extends JsonResource
 
             'contestant_id' => $this['contestant_id'],
             'display_name' => $this['display_name'],
-            'avatar_url' => $this['avatar_url'],
+            'avatar_url' => $this->formatAvatar($this['avatar_url'] ?? null),
             'contestable_name' => $this['contestable_name'],
             'total_score' => $this['total_score'],
             'votes_count' => $this['votes_count'],
@@ -99,5 +100,26 @@ class LeaderboardEntryResource extends JsonResource
             'trend' => $this['trend'] ?? 'neutral',
             'rank' => $this['rank'],
         ];
+    }
+
+    /**
+     * Convert a storage path or URL to a public avatar URL.
+     *
+     * Strips a leading 'storage/' (Storage::disk('public')->url() already adds
+     * it), keeps absolute URLs as-is and falls back to the default avatar.
+     */
+    private function formatAvatar(?string $path): string
+    {
+        if (!$path) {
+            return asset('admin/default/user.jpg');
+        }
+
+        if (filter_var($path, FILTER_VALIDATE_URL)) {
+            return $path;
+        }
+
+        $path = preg_replace('#^storage/#', '', $path);
+
+        return Storage::disk('public')->url($path);
     }
 }

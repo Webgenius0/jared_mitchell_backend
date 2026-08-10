@@ -120,6 +120,14 @@ class ContestantProfileController extends Controller
             'trend'                => $trend,
         ];
 
+        // Round score computed the same way the leaderboard does it, so the
+        // profile never shows a stale 0 when the leaderboard already counts
+        // this contestant's votes. Round 1 scores come from THIS round's
+        // clap/save/share points; later rounds come from vote scores.
+        $computedScore = $currentRound && $currentRound->round_number === 1
+            ? $this->roundInteractionPoints($contestant, $currentRound->id)
+            : (float) ($voteAggregates->total_weighted_score ?? 0);
+
         // --- Current round (contest-specific) ---
         $currentRoundData = $currentRound ? [
             'id'                => $currentRound->id,
@@ -158,11 +166,12 @@ class ContestantProfileController extends Controller
                 'season_id'                 => $contestant->season_id,
                 'display_name'              => $contestant->display_name,
                 'slug'                      => $contestant->slug,
-                'avatar_url'                => $contestant->avatar_url
-                    ? $this->formatImageUrl($contestant->avatar_url)
-                    : asset('admin/default/user.jpg'),
+                'avatar_url'                => $this->formatImageUrl($contestant->avatar_url
+                    ? $contestant->avatar_url
+                    : ($contestable ? $contestable->getContestantAvatar() : null))
+                    ?: asset('admin/default/user.jpg'),
                 'status'                    => $contestant->status,
-                'total_score'               => (float) $contestant->total_score,
+                'total_score'               => $computedScore,
 
                 // Business info (flattened like spotlight)
                 'business_name'             => $contestable?->business_name ?? null,
@@ -261,6 +270,29 @@ class ContestantProfileController extends Controller
         $path = preg_replace('#^storage/#', '', $path);
 
         return Storage::disk('public')->url($path);
+    }
+
+    /**
+     * Round-1 score: total points from THIS round's clap/save/share
+     * interactions only — identical to the round leaderboard, so a business
+     * that registered a new session starts at 0 and ranks dynamically.
+     */
+    private function roundInteractionPoints(Contestant $contestant, int $roundId): float
+    {
+        if (!$contestant->contestable instanceof \App\Models\Business) {
+            return 0.0;
+        }
+
+        $counts = \App\Models\BusinessInteraction::where('business_id', $contestant->contestable_id)
+            ->where('round_id', $roundId)
+            ->whereIn('action_type', ['clap', 'save', 'share'])
+            ->selectRaw('action_type, COUNT(*) as total')
+            ->groupBy('action_type')
+            ->pluck('total', 'action_type');
+
+        return (float) ((int) ($counts['clap'] ?? 0) * \App\Services\BusinessService::POINTS_CLAP
+            + (int) ($counts['save'] ?? 0) * \App\Services\BusinessService::POINTS_SAVE
+            + (int) ($counts['share'] ?? 0) * \App\Services\BusinessService::POINTS_SHARE);
     }
 
     /**
