@@ -40,6 +40,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Web\Admin\SponsorController;
 use App\Http\Controllers\Web\Admin\SponsorApplicationController;
 use App\Http\Controllers\Web\Admin\Spotlight\SpotlightVotePackageController;
+use App\Http\Controllers\Web\Admin\LiveStreamController;
+
 
 Route::get('/', [AdminDashboardController::class, 'index'])->name('show.admin.dashboard'); // show admin dashboard
 
@@ -56,6 +58,14 @@ Route::prefix('profile')->name('admin.profile.')->group(function () {
     Route::post('/password', [AdminProfileController::class, 'updatePassword'])->name('password.update'); // Change password
     Route::post('/cover', [AdminProfileController::class, 'updateCover'])->name('cover.update');  // Upload cover photo
 });
+
+
+// Route::prefix('admin')->name('admin.')->middleware(['auth:web'])->group(function () {
+Route::resource('live-streams', LiveStreamController::class);
+Route::get('live-streams/{id}/broadcast', [LiveStreamController::class, 'broadcast'])->name('live-streams.broadcast');
+Route::post('live-streams/{id}/end', [LiveStreamController::class, 'endStream'])->name('live-streams.end');
+// });
+
 
 /*
 |--------------------------------------------------------------------------
