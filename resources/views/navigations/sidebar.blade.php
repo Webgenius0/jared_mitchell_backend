@@ -421,6 +421,22 @@
                     </a>
                 </li>
 
+                <!-- live stream -->
+                <li class="nav-item">
+                    <a class="nav-link menu-link {{ request()->routeIs('live-streams.*') ? 'active' : '' }}"
+                        href="{{ route('live-streams.index', ) }}">
+                        <i class="ri-live-line"></i>
+                        <span>Live Streams</span>
+                    </a>
+                </li>
+
+
+
+
+
+
+
+
                 {{-- ── Settings group ───────────────────────────────────── --}}
                 <li class="menu-title">
                     <i class="ri-more-fill"></i>
