@@ -167,8 +167,8 @@ class BusinessController extends Controller
         );
 
         $message = $result['is_clapped']
-            ? 'Business clapped successfully.'
-            : 'Business clap removed successfully.';
+            ? 'Business liked successfully.'
+            : 'Business liked removed successfully.';
 
         return $this->success($message, $result);
     }
@@ -190,8 +190,8 @@ class BusinessController extends Controller
         );
 
         $message = $result['is_saved']
-            ? 'Business saved successfully.'
-            : 'Business save removed successfully.';
+            ? 'Business loved successfully.'
+            : 'Business loved removed successfully.';
 
         return $this->success($message, $result);
     }
@@ -213,8 +213,8 @@ class BusinessController extends Controller
         );
 
         $message = $result['is_shared']
-            ? 'Business shared successfully.'
-            : 'Business share removed successfully.';
+            ? 'Business fired successfully.'
+            : 'Business fired removed successfully.';
 
         return $this->success($message, $result);
     }

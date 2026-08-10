@@ -10,6 +10,7 @@ class BusinessInteraction extends Model
     protected $fillable = [
         'user_id',
         'business_id',
+        'round_id',
         'action_type',
         'ip',
         'user_agent',
@@ -27,5 +28,10 @@ class BusinessInteraction extends Model
     public function business(): BelongsTo
     {
         return $this->belongsTo(Business::class);
+    }
+
+    public function round(): BelongsTo
+    {
+        return $this->belongsTo(Round::class);
     }
 }

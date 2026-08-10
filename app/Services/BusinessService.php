@@ -232,12 +232,24 @@ class BusinessService
      * Toggle clap (like/unlike) for a business by a user.
      * Clap: +1 total_claps, +1 total_points
      * Unclap: -1 total_claps, -1 total_points
+     *
+     * The interaction is stored round-wise: when the business is currently
+     * competing in a contest round, the clap is attached to that round so the
+     * round leaderboard counts it. Outside of a round it keeps the legacy
+     * behaviour (round_id = NULL).
      */
     public function toggleClap(Business $business, int $userId, ?string $ip = null, ?string $userAgent = null): array
     {
+        $roundId = $this->currentRoundId($business);
+
         $existing = BusinessInteraction::where('user_id', $userId)
             ->where('business_id', $business->id)
             ->where('action_type', 'clap')
+            ->when(
+                $roundId !== null,
+                fn ($q) => $q->where('round_id', $roundId),
+                fn ($q) => $q->whereNull('round_id')
+            )
             ->first();
 
         if ($existing) {
@@ -249,12 +261,15 @@ class BusinessService
                 'is_clapped' => false,
                 'total_claps' => max(0, $business->fresh()->total_claps),
                 'total_points' => max(0, $business->fresh()->total_points),
+                'round_id' => $roundId,
+                'round_claps' => $this->roundInteractionCount($business->id, $roundId, 'clap'),
             ];
         }
 
         BusinessInteraction::create([
             'user_id' => $userId,
             'business_id' => $business->id,
+            'round_id' => $roundId,
             'action_type' => 'clap',
             'ip' => $ip,
             'user_agent' => $userAgent,
@@ -267,6 +282,8 @@ class BusinessService
             'is_clapped' => true,
             'total_claps' => $business->fresh()->total_claps,
             'total_points' => $business->fresh()->total_points,
+            'round_id' => $roundId,
+            'round_claps' => $this->roundInteractionCount($business->id, $roundId, 'clap'),
         ];
     }
 
@@ -277,9 +294,16 @@ class BusinessService
      */
     public function toggleSave(Business $business, int $userId, ?string $ip = null, ?string $userAgent = null): array
     {
+        $roundId = $this->currentRoundId($business);
+
         $existing = BusinessInteraction::where('user_id', $userId)
             ->where('business_id', $business->id)
             ->where('action_type', 'save')
+            ->when(
+                $roundId !== null,
+                fn ($q) => $q->where('round_id', $roundId),
+                fn ($q) => $q->whereNull('round_id')
+            )
             ->first();
 
         if ($existing) {
@@ -291,12 +315,15 @@ class BusinessService
                 'is_saved' => false,
                 'total_saves' => max(0, $business->fresh()->total_saves),
                 'total_points' => max(0, $business->fresh()->total_points),
+                'round_id' => $roundId,
+                'round_saves' => $this->roundInteractionCount($business->id, $roundId, 'save'),
             ];
         }
 
         BusinessInteraction::create([
             'user_id' => $userId,
             'business_id' => $business->id,
+            'round_id' => $roundId,
             'action_type' => 'save',
             'ip' => $ip,
             'user_agent' => $userAgent,
@@ -309,6 +336,8 @@ class BusinessService
             'is_saved' => true,
             'total_saves' => $business->fresh()->total_saves,
             'total_points' => $business->fresh()->total_points,
+            'round_id' => $roundId,
+            'round_saves' => $this->roundInteractionCount($business->id, $roundId, 'save'),
         ];
     }
 
@@ -319,9 +348,16 @@ class BusinessService
      */
     public function toggleShare(Business $business, int $userId, ?string $ip = null, ?string $userAgent = null): array
     {
+        $roundId = $this->currentRoundId($business);
+
         $existing = BusinessInteraction::where('user_id', $userId)
             ->where('business_id', $business->id)
             ->where('action_type', 'share')
+            ->when(
+                $roundId !== null,
+                fn ($q) => $q->where('round_id', $roundId),
+                fn ($q) => $q->whereNull('round_id')
+            )
             ->first();
 
         if ($existing) {
@@ -333,12 +369,15 @@ class BusinessService
                 'is_shared' => false,
                 'total_shares' => max(0, $business->fresh()->total_shares),
                 'total_points' => max(0, $business->fresh()->total_points),
+                'round_id' => $roundId,
+                'round_shares' => $this->roundInteractionCount($business->id, $roundId, 'share'),
             ];
         }
 
         BusinessInteraction::create([
             'user_id' => $userId,
             'business_id' => $business->id,
+            'round_id' => $roundId,
             'action_type' => 'share',
             'ip' => $ip,
             'user_agent' => $userAgent,
@@ -351,18 +390,75 @@ class BusinessService
             'is_shared' => true,
             'total_shares' => $business->fresh()->total_shares,
             'total_points' => $business->fresh()->total_points,
+            'round_id' => $roundId,
+            'round_shares' => $this->roundInteractionCount($business->id, $roundId, 'share'),
         ];
     }
 
     /**
+     * Resolve the round a business is currently competing in (if any).
+     *
+     * Returns the current_round_id of the business's most recent active
+     * contestant, or null when the business is not competing right now —
+     * interactions then keep the legacy non-round behaviour.
+     */
+    private function currentRoundId(Business $business): ?int
+    {
+        return $business->contestants()
+            ->where('status', 'active')
+            ->whereNotNull('current_round_id')
+            ->latest('entered_at')
+            ->value('current_round_id');
+    }
+
+    /**
      * Get interaction state for the authenticated user.
+     *
+     * Scoped to the business's current contest round (when one exists) so the
+     * reported state always matches what the round leaderboard shows. When the
+     * business is not competing, it falls back to the legacy global state.
      */
     public function getUserInteractionState(Business $business, int $userId): array
     {
+        $roundId = $this->currentRoundId($business);
+
         return [
-            'is_clapped' => BusinessInteraction::where('business_id', $business->id)->where('user_id', $userId)->where('action_type', 'clap')->exists(),
-            'is_saved' => BusinessInteraction::where('business_id', $business->id)->where('user_id', $userId)->where('action_type', 'save')->exists(),
-            'is_shared' => BusinessInteraction::where('business_id', $business->id)->where('user_id', $userId)->where('action_type', 'share')->exists(),
+            'is_clapped' => $this->userHasInteraction($business->id, $userId, 'clap', $roundId),
+            'is_saved' => $this->userHasInteraction($business->id, $userId, 'save', $roundId),
+            'is_shared' => $this->userHasInteraction($business->id, $userId, 'share', $roundId),
         ];
+    }
+
+    /**
+     * Whether a user has a specific interaction for a business, optionally
+     * scoped to one round (falls back to round_id IS NULL interactions).
+     */
+    private function userHasInteraction(int $businessId, int $userId, string $action, ?int $roundId): bool
+    {
+        return BusinessInteraction::where('business_id', $businessId)
+            ->where('user_id', $userId)
+            ->where('action_type', $action)
+            ->when(
+                $roundId !== null,
+                fn ($q) => $q->where('round_id', $roundId),
+                fn ($q) => $q->whereNull('round_id')
+            )
+            ->exists();
+    }
+
+    /**
+     * Total count of an interaction type for a business in one round
+     * (falls back to round_id IS NULL interactions outside of a round).
+     */
+    private function roundInteractionCount(int $businessId, ?int $roundId, string $action): int
+    {
+        return BusinessInteraction::where('business_id', $businessId)
+            ->where('action_type', $action)
+            ->when(
+                $roundId !== null,
+                fn ($q) => $q->where('round_id', $roundId),
+                fn ($q) => $q->whereNull('round_id')
+            )
+            ->count();
     }
 }

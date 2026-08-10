@@ -2,9 +2,12 @@
 
 namespace App\Services\Contest;
 
+use App\Models\Business;
+use App\Models\BusinessInteraction;
 use App\Models\Contest\Contestant;
 use App\Models\Contest\Vote;
 use App\Models\Round;
+use Illuminate\Support\Collection;
 
 class LeaderboardService
 {
@@ -25,6 +28,10 @@ class LeaderboardService
             ->where('status', 'active')
             ->with(['contestable', 'submissions.round'])
             ->get();
+
+        // Clap/save/share counts for THIS round only, so a business that
+        // registered a new session starts at 0 and grows as users interact.
+        $interactionCounts = $this->interactionCountsByBusiness($round->id);
 
         // Get vote aggregates per contestant for this round
         $voteAggregates = Vote::where('round_id', $round->id)
@@ -62,6 +69,7 @@ class LeaderboardService
             $avgScore = $aggregate && $votesCount > 0 ? round((float) $aggregate->avg_score, 2) : null;
 
             $contestable = $contestant->contestable;
+            $roundInteractions = $this->roundInteractionCounts($interactionCounts, $contestable);
 
             $tVotes = $todayVotes->get($contestant->id, 0);
             $yVotes = $yesterdayVotes->get($contestant->id, 0);
@@ -82,9 +90,9 @@ class LeaderboardService
                 'total_score' => $totalScore,
                 'votes_count' => $votesCount,
                 'avg_score' => $avgScore,
-                'claps'  => $contestable->total_claps ?? 0,
-                'shares' => $contestable->total_shares ?? 0,
-                'saves'  => $contestable->total_saves ?? 0,
+                'claps'  => $roundInteractions['claps'],
+                'shares' => $roundInteractions['shares'],
+                'saves'  => $roundInteractions['saves'],
                 'trend' => $trend,
             ];
         }
@@ -132,6 +140,9 @@ class LeaderboardService
             ->with(['contestable', 'submissions.round'])
             ->get();
 
+        // Aggregate interaction counts across ALL rounds for the season view.
+        $interactionCounts = $this->interactionCountsByBusiness(null);
+
         $leaderboard = [];
 
         foreach ($contestants as $contestant) {
@@ -142,6 +153,7 @@ class LeaderboardService
                 ->first();
 
             $contestable = $contestant->contestable;
+            $roundInteractions = $this->roundInteractionCounts($interactionCounts, $contestable);
 
             $leaderboard[] = [
                 'contestant'      => $contestant,
@@ -151,9 +163,9 @@ class LeaderboardService
                 'contestable_name' => $contestable ? $contestable->getContestantName() : null,
                 'total_score'     => (float) ($voteData->total_score ?? 0),
                 'votes_count'     => (int) ($voteData->votes_count ?? 0),
-                'claps'           => $contestable->total_claps ?? 0,
-                'shares'          => $contestable->total_shares ?? 0,
-                'saves'           => $contestable->total_saves ?? 0,
+                'claps'           => $roundInteractions['claps'],
+                'shares'          => $roundInteractions['shares'],
+                'saves'           => $roundInteractions['saves'],
                 'trend'           => 'neutral', // Overall trend can be neutral or calculated later
             ];
         }
@@ -197,9 +209,14 @@ class LeaderboardService
             ->with(['contestable', 'submissions.round'])
             ->get();
 
+        // Round 1 counts come from interactions recorded for THIS round, so a
+        // freshly registered business starts at 0 until users clap/save/share.
+        $interactionCounts = $this->interactionCountsByBusiness($round->id);
+
         $leaderboard = [];
         foreach ($contestants as $contestant) {
             $business = $contestant->contestable; // Business model, could be null
+            $roundInteractions = $this->roundInteractionCounts($interactionCounts, $business);
 
             $leaderboard[] = [
                 'contestant'       => $contestant,
@@ -210,9 +227,9 @@ class LeaderboardService
                 'total_score'      => (float) ($business->total_points ?? 0),
                 'votes_count'      => 0,
                 'avg_score'        => null,
-                'claps'            => $business->total_claps ?? 0,
-                'shares'           => $business->total_shares ?? 0,
-                'saves'            => $business->total_saves ?? 0,
+                'claps'            => $roundInteractions['claps'],
+                'shares'           => $roundInteractions['shares'],
+                'saves'            => $roundInteractions['saves'],
                 'trend'            => 'neutral',
             ];
         }
@@ -238,5 +255,54 @@ class LeaderboardService
         unset($entry);
 
         return $leaderboard;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Round-wise interaction counts (clap / save / share)
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Clap/save/share counts per business, scoped to a single round.
+     *
+     * When $roundId is null every round is aggregated (used by the overall
+     * season leaderboard). Returns business_id → [action_type => count].
+     */
+    private function interactionCountsByBusiness(?int $roundId = null): Collection
+    {
+        $query = BusinessInteraction::whereIn('action_type', ['clap', 'save', 'share']);
+
+        if ($roundId !== null) {
+            $query->where('round_id', $roundId);
+        }
+
+        return $query
+            ->selectRaw('business_id, action_type, COUNT(*) as total')
+            ->groupBy('business_id', 'action_type')
+            ->get()
+            ->groupBy('business_id')
+            ->mapWithKeys(fn ($rows, $businessId) => [$businessId => $rows->pluck('total', 'action_type')]);
+    }
+
+    /**
+     * Extract clap/save/share counts for one contestable entry.
+     *
+     * Only Business contestables carry business interactions; every other
+     * contestable type gets zero counts.
+     */
+    private function roundInteractionCounts(Collection $counts, $contestable): array
+    {
+        if (!$contestable instanceof Business) {
+            return ['claps' => 0, 'saves' => 0, 'shares' => 0];
+        }
+
+        $row = $counts->get($contestable->id, collect());
+
+        return [
+            'claps'  => (int) ($row['clap'] ?? 0),
+            'saves'  => (int) ($row['save'] ?? 0),
+            'shares' => (int) ($row['share'] ?? 0),
+        ];
     }
 }
