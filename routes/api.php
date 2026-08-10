@@ -352,6 +352,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::get('/stats', [\App\Http\Controllers\Api\ArtistDashboardController::class, 'stats']);
             Route::get('/analytics', [\App\Http\Controllers\Api\ArtistDashboardController::class, 'analytics']);
         });
+    });
 
         /*
         |--------------------------------------------------------------------------
@@ -603,9 +604,6 @@ Route::group(['prefix' => 'v1'], function ($router) {
 
 
 
-
-
-});
 
 
 /*
