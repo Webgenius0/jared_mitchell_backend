@@ -19,6 +19,7 @@ class Vote extends Model
         'votable_id',
         'vote_type',
         'weight',
+        'category',
         'metadata',
     ];
 

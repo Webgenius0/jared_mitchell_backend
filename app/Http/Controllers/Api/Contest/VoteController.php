@@ -59,6 +59,48 @@ class VoteController extends Controller
 
     public function store(Request $request, Round $round): JsonResponse
     {
+        // Legacy payload: votable_type + votable_id + vote_type (simple up/down vote)
+        if ($request->filled('votable_type') && $request->filled('votable_id')) {
+            $validated = $request->validate([
+                'votable_type' => 'required|string|max:100',
+                'votable_id'   => 'required|integer',
+                'vote_type'    => 'sometimes|string|in:upvote,downvote,score_1_5,score_1_10',
+            ]);
+
+            // Same guard as the category-score path: a contestant can only be
+            // voted on in the round they are actually competing in.
+            if ($validated['votable_type'] === Contestant::class) {
+                $contestant = Contestant::find($validated['votable_id']);
+                if (!$contestant || $contestant->current_round_id !== $round->id || $contestant->status !== 'active') {
+                    $hint = $contestant?->current_round_id
+                        ? ' Please vote on round ' . ($contestant?->currentRound?->round_number ?? $contestant?->current_round_id) . ' (round id ' . $contestant?->current_round_id . ').'
+                        : ' This contestant is not currently competing in any round.';
+
+                    return $this->error(null, 'This contestant is not active in this round.' . $hint, 422);
+                }
+            }
+
+            $user = auth('api')->user();
+
+            $result = $this->voteService->castVote(
+                user: $user,
+                round: $round,
+                votableType: $validated['votable_type'],
+                votableId: $validated['votable_id'],
+                voteType: $validated['vote_type'] ?? 'upvote',
+            );
+
+            if (!$result['success']) {
+                return $this->error(null, $result['message'], 422);
+            }
+
+            return $this->success($result['message'], [
+                'action' => $result['action'],
+                'vote'   => $result['vote']?->load('votable'),
+            ]);
+        }
+
+        // New payload: contestant_id + category scores
         $validated = $request->validate([
             'contestant_id' => 'required|integer|exists:contestants,id',
             'scores' => 'required|array',

@@ -27,7 +27,7 @@ class LeaderboardService
         $contestants = Contestant::where('season_id', $seasonId)
             ->where('current_round_id', $round->id)
             ->where('status', 'active')
-            ->with(['contestable', 'submissions.round'])
+            ->with(['contestable.media', 'submissions.round'])
             ->get();
 
         // Clap/save/share counts for THIS round only, so a business that
@@ -86,7 +86,7 @@ class LeaderboardService
                 'contestant' => $contestant,
                 'contestant_id' => $contestant->id,
                 'display_name' => $contestant->display_name,
-                'avatar_url' => $contestant->avatar_url,
+                'avatar_url' => $this->avatarFor($contestant),
                 'contestable_name' => $contestable ? $contestable->getContestantName() : null,
                 'total_score' => $totalScore,
                 'votes_count' => $votesCount,
@@ -139,7 +139,7 @@ class LeaderboardService
         // Sum vote scores across all rounds for active contestants
         $contestants = Contestant::where('season_id', $seasonId)
             ->whereIn('status', ['active', 'winner', 'runner_up', 'finalist'])
-            ->with(['contestable', 'submissions.round'])
+            ->with(['contestable.media', 'submissions.round'])
             ->get();
 
         // Aggregate interaction counts across ALL rounds for the season view.
@@ -161,7 +161,7 @@ class LeaderboardService
                 'contestant'      => $contestant,
                 'contestant_id'   => $contestant->id,
                 'display_name'    => $contestant->display_name,
-                'avatar_url'      => $contestant->avatar_url,
+                'avatar_url'      => $this->avatarFor($contestant),
                 'contestable_name' => $contestable ? $contestable->getContestantName() : null,
                 'total_score'     => (float) ($voteData->total_score ?? 0),
                 'votes_count'     => (int) ($voteData->votes_count ?? 0),
@@ -209,7 +209,7 @@ class LeaderboardService
         $contestants = Contestant::where('season_id', $round->season_id)
             ->where('current_round_id', $round->id)
             ->where('status', 'active')
-            ->with(['contestable', 'submissions.round'])
+            ->with(['contestable.media', 'submissions.round'])
             ->get();
 
         // Round 1 counts come from interactions recorded for THIS round, so a
@@ -225,7 +225,7 @@ class LeaderboardService
                 'contestant'       => $contestant,
                 'contestant_id'    => $contestant->id,
                 'display_name'     => $contestant->display_name,
-                'avatar_url'       => $contestant->avatar_url,
+                'avatar_url'       => $this->avatarFor($contestant),
                 'contestable_name' => $business ? $business->getContestantName() : null,
                 // Round 1 scores come from THIS round's interaction points, so a
                 // newly registered business starts at 0 and ranks dynamically.
@@ -289,6 +289,24 @@ class LeaderboardService
             ->get()
             ->groupBy('business_id')
             ->mapWithKeys(fn ($rows, $businessId) => [$businessId => $rows->pluck('total', 'action_type')]);
+    }
+
+    /**
+     * Resolve the avatar for a leaderboard entry.
+     *
+     * Uses the contestant's own avatar_url when set, otherwise falls back to
+     * the contestable's avatar (e.g. the business's first media file) so the
+     * leaderboard never shows an empty avatar for a business with media.
+     */
+    private function avatarFor(Contestant $contestant): ?string
+    {
+        if ($contestant->avatar_url) {
+            return $contestant->avatar_url;
+        }
+
+        $contestable = $contestant->contestable;
+
+        return $contestable ? $contestable->getContestantAvatar() : null;
     }
 
     /**

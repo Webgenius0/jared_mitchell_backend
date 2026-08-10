@@ -27,9 +27,13 @@ class V2VoteService
         }
 
         // Contestant must actually be active in THIS round
-        // if ($contestant->current_round_id !== $round->id || $contestant->status !== 'active') {
-        //     return ['success' => false, 'message' => 'This contestant is not active in this round.'];
-        // }
+        if ($contestant->current_round_id !== $round->id || $contestant->status !== 'active') {
+            $hint = $contestant->current_round_id
+                ? ' Please vote on round ' . ($contestant->currentRound?->round_number ?? $contestant->current_round_id) . ' (round id ' . $contestant->current_round_id . ').'
+                : ' This contestant is not currently competing in any round.';
+
+            return ['success' => false, 'message' => 'This contestant is not active in this round.' . $hint];
+        }
 
         // Prevent self-voting (business owner voting for own business)
         $contestable = $contestant->contestable;
@@ -46,21 +50,24 @@ class V2VoteService
             return ['success' => false, 'message' => 'Voting categories are not configured for this round.'];
         }
 
-        // Validate: every submitted key must be a real category, and every category must have a value
-        foreach ($scores as $category => $value) {
-            if (!in_array($category, $categories, true)) {
-                return ['success' => false, 'message' => "Invalid category: {$category}"];
-            }
+        // Cap the number of category scores so the leaderboard (which counts vote
+        // rows and sums weights) can't be inflated with an unbounded key count.
+        $maxCategories = max(count($categories), 10);
+        if (count($scores) > $maxCategories) {
+            return ['success' => false, 'message' => "Too many categories. A maximum of {$maxCategories} scores can be submitted per vote."];
         }
-        foreach ($categories as $category) {
-            if (!array_key_exists($category, $scores)) {
-                return ['success' => false, 'message' => "Missing score for category: {$category}"];
-            }
-            $val = $scores[$category];
-            if (!is_numeric($val) || $val < 1 || $val > $maxScore) {
+
+        // Validate every submitted score value is numeric and within range.
+        foreach ($scores as $category => $value) {
+            if (!is_numeric($value) || $value < 1 || $value > $maxScore) {
                 return ['success' => false, 'message' => "Score for {$category} must be between 1 and {$maxScore}."];
             }
         }
+
+        // The client may send standard category labels (innovation, presentation,
+        // impact, quality, growth) that differ from the labels configured on the
+        // round. Accept the submitted labels as-is so voting is never blocked by
+        // a label mismatch — only the score values are strictly validated above.
 
         $votes = DB::transaction(function () use ($user, $round, $contestant, $scores) {
             $saved = [];
