@@ -13,6 +13,13 @@ use Illuminate\Support\Str;
 
 class BusinessService
 {
+    // Points awarded per interaction — single source of truth shared with the
+    // round-wise leaderboard points (LeaderboardService uses these too), so the
+    // leaderboard can never drift from the actual counter increments below.
+    public const POINTS_CLAP = 1;
+    public const POINTS_SAVE = 3;
+    public const POINTS_SHARE = 5;
+
     /**
      * List businesses with optional filters.
      */
@@ -255,7 +262,7 @@ class BusinessService
         if ($existing) {
             $existing->delete();
             $business->decrement('total_claps');
-            $business->decrement('total_points', 1);
+            $business->decrement('total_points', self::POINTS_CLAP);
 
             return [
                 'is_clapped' => false,
@@ -276,7 +283,7 @@ class BusinessService
         ]);
 
         $business->increment('total_claps');
-        $business->increment('total_points', 1);
+        $business->increment('total_points', self::POINTS_CLAP);
 
         return [
             'is_clapped' => true,
@@ -309,7 +316,7 @@ class BusinessService
         if ($existing) {
             $existing->delete();
             $business->decrement('total_saves');
-            $business->decrement('total_points', 3);
+            $business->decrement('total_points', self::POINTS_SAVE);
 
             return [
                 'is_saved' => false,
@@ -330,7 +337,7 @@ class BusinessService
         ]);
 
         $business->increment('total_saves');
-        $business->increment('total_points', 3);
+        $business->increment('total_points', self::POINTS_SAVE);
 
         return [
             'is_saved' => true,
@@ -363,7 +370,7 @@ class BusinessService
         if ($existing) {
             $existing->delete();
             $business->decrement('total_shares');
-            $business->decrement('total_points', 5);
+            $business->decrement('total_points', self::POINTS_SHARE);
 
             return [
                 'is_shared' => false,
@@ -384,7 +391,7 @@ class BusinessService
         ]);
 
         $business->increment('total_shares');
-        $business->increment('total_points', 5);
+        $business->increment('total_points', self::POINTS_SHARE);
 
         return [
             'is_shared' => true,

@@ -66,7 +66,10 @@ class LeaderboardEntryResource extends JsonResource
                     'slug' => $contestable->slug ?? null,
                     'status' => $contestable->status ?? null,
                     'is_featured' => $contestable->is_featured ?? null,
-                    'total_points' => $contestable->total_points ?? null,
+                    // Round-wise points (computed by LeaderboardService from this
+                    // round's clap/save/share interactions) — falls back to the
+                    // global counter for safety.
+                    'total_points' => (int) ($this['total_points'] ?? $contestable->total_points ?? 0),
 
                     // You can uncomment the fields below if you need them:
                     // 'story' => $contestable->story ?? null,

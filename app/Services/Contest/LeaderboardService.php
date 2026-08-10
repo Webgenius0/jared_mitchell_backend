@@ -7,6 +7,7 @@ use App\Models\BusinessInteraction;
 use App\Models\Contest\Contestant;
 use App\Models\Contest\Vote;
 use App\Models\Round;
+use App\Services\BusinessService;
 use Illuminate\Support\Collection;
 
 class LeaderboardService
@@ -93,6 +94,7 @@ class LeaderboardService
                 'claps'  => $roundInteractions['claps'],
                 'shares' => $roundInteractions['shares'],
                 'saves'  => $roundInteractions['saves'],
+                'total_points' => $roundInteractions['total_points'],
                 'trend' => $trend,
             ];
         }
@@ -166,6 +168,7 @@ class LeaderboardService
                 'claps'           => $roundInteractions['claps'],
                 'shares'          => $roundInteractions['shares'],
                 'saves'           => $roundInteractions['saves'],
+                'total_points'    => $roundInteractions['total_points'],
                 'trend'           => 'neutral', // Overall trend can be neutral or calculated later
             ];
         }
@@ -224,12 +227,15 @@ class LeaderboardService
                 'display_name'     => $contestant->display_name,
                 'avatar_url'       => $contestant->avatar_url,
                 'contestable_name' => $business ? $business->getContestantName() : null,
-                'total_score'      => (float) ($business->total_points ?? 0),
+                // Round 1 scores come from THIS round's interaction points, so a
+                // newly registered business starts at 0 and ranks dynamically.
+                'total_score'      => (float) $roundInteractions['total_points'],
                 'votes_count'      => 0,
                 'avg_score'        => null,
                 'claps'            => $roundInteractions['claps'],
                 'shares'           => $roundInteractions['shares'],
                 'saves'            => $roundInteractions['saves'],
+                'total_points'     => $roundInteractions['total_points'],
                 'trend'            => 'neutral',
             ];
         }
@@ -294,15 +300,24 @@ class LeaderboardService
     private function roundInteractionCounts(Collection $counts, $contestable): array
     {
         if (!$contestable instanceof Business) {
-            return ['claps' => 0, 'saves' => 0, 'shares' => 0];
+            return ['claps' => 0, 'saves' => 0, 'shares' => 0, 'total_points' => 0];
         }
 
         $row = $counts->get($contestable->id, collect());
 
+        $claps  = (int) ($row['clap'] ?? 0);
+        $saves  = (int) ($row['save'] ?? 0);
+        $shares = (int) ($row['share'] ?? 0);
+
         return [
-            'claps'  => (int) ($row['clap'] ?? 0),
-            'saves'  => (int) ($row['save'] ?? 0),
-            'shares' => (int) ($row['share'] ?? 0),
+            'claps'  => $claps,
+            'saves'  => $saves,
+            'shares' => $shares,
+            // Same point values the toggle methods use, so round-wise points
+            // always match how the real counters accumulate.
+            'total_points' => $claps * BusinessService::POINTS_CLAP
+                + $saves * BusinessService::POINTS_SAVE
+                + $shares * BusinessService::POINTS_SHARE,
         ];
     }
 }
