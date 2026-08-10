@@ -30,9 +30,9 @@ class BusinessSpotlightController extends Controller
      */
     public function index(): JsonResponse
     {
-        $user = auth()->user();
+        $user = auth()->id();
 
-        $spotlights = BusinessSpotlight::where('user_id', $user->id)
+        $spotlights = BusinessSpotlight::where('user_id', $user)
             ->where('status', '!=', 'draft')
             ->withCount(['likers', 'bookmarkers', 'shares'])
             ->orderBy('submitted_at', 'desc')
@@ -41,7 +41,7 @@ class BusinessSpotlightController extends Controller
         return $this->success('Business spotlights retrieved successfully.', [
             'spotlights' => BusinessSpotlightResource::collection($spotlights->items()),
             'pagination' => [
-                'total'  => $spotlights->total(),
+                'total' => $spotlights->total(),
                 'per_page' => $spotlights->perPage(),
                 'current_page' => $spotlights->currentPage(),
                 'last_page' => $spotlights->lastPage(),
