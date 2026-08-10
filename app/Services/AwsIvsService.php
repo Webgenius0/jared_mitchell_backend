@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use Aws\Ivs\IvsClient;
+use Aws\IVS\IVSClient;
 use Aws\Exception\AwsException;
 use Illuminate\Support\Facades\Log;
 
@@ -12,7 +12,7 @@ class AwsIvsService
 
     public function __construct()
     {
-        $this->client = new IvsClient([
+        $this->client = new IVSClient([
             'version' => 'latest',
             'region'  => env('AWS_DEFAULT_REGION', 'us-east-1'),
             'credentials' => [
