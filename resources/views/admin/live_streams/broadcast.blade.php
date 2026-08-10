@@ -78,12 +78,10 @@
             });
 
             // Add Video Track
-            const videoTrack = mediaStream.getVideoTracks()[0];
-            client.addVideoInputDevice(videoTrack, 'camera1', { index: 0 });
+            await client.addVideoInputDevice(mediaStream, 'camera1', { index: 0 });
 
             // Add Audio Track
-            const audioTrack = mediaStream.getAudioTracks()[0];
-            client.addAudioInputDevice(audioTrack, 'mic1');
+            await client.addAudioInputDevice(mediaStream, 'mic1');
 
             // Attach preview to canvas
             const previewCanvas = document.getElementById('preview-canvas');
@@ -91,13 +89,13 @@
 
             // Ready to broadcast
             document.getElementById('status').innerText = "READY";
-            document.getElementById('status').className = "text-primary fw-bold";
+            document.getElementById('status').className = "text-white bg-success px-2 py-1 rounded fw-bold";
             document.getElementById('btn-start').disabled = false;
 
         } catch (err) {
             console.error("Failed to access camera or microphone", err);
             document.getElementById('status').innerText = "ERROR: NO CAMERA/MIC ACCESS";
-            document.getElementById('status').className = "text-danger fw-bold";
+            document.getElementById('status').className = "text-white bg-danger px-2 py-1 rounded fw-bold";
             alert("Could not access your camera or microphone. Please allow permissions in your browser.");
         }
     }
