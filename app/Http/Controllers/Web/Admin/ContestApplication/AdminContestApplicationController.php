@@ -22,7 +22,7 @@ class AdminContestApplicationController extends Controller
      */
     public function index(Request $request)
     {
-        $query = ContestApplication::with(['business.user.profile', 'season', 'approver']);
+        $query = ContestApplication::with(['business.user.profile', 'season', 'approver', 'latestAiReview']);
 
         // Status filter
         if ($request->filled('status')) {
@@ -99,10 +99,19 @@ class AdminContestApplicationController extends Controller
             'business.user.profile',
             'season',
             'approver.profile',
+            'latestAiReview',
         ]);
 
         $business = $contestApplication->business;
         $profile  = $business?->user?->profile;
+
+        // The AI's actual self-reported confidence (from its response) — this is
+        // the value admins should see. The stored ai_confidence is the engine-
+        // adjusted value used for auto-processing decisions.
+        $rawAiConfidence = $contestApplication->latestAiReview?->parsed_result['confidence'] ?? null;
+        $rawAiConfidencePct = $rawAiConfidence !== null
+            ? round((float) $rawAiConfidence * 100) . '%'
+            : null;
 
         return response()->json([
             'success' => true,
@@ -122,7 +131,13 @@ class AdminContestApplicationController extends Controller
                     ? round((float) $contestApplication->ai_score, 1)
                     : null,
                 'ai_verdict'         => $contestApplication->ai_verdict,
-                'ai_confidence'      => $contestApplication->ai_confidence !== null
+                // Accurate value: the confidence the AI actually reported
+                'ai_confidence'      => $rawAiConfidencePct
+                    ?? ($contestApplication->ai_confidence !== null
+                        ? round((float) $contestApplication->ai_confidence * 100) . '%'
+                        : null),
+                // Engine-adjusted confidence (used for auto-processing) — shown only when it differs
+                'ai_confidence_adjusted' => $contestApplication->ai_confidence !== null
                     ? round((float) $contestApplication->ai_confidence * 100) . '%'
                     : null,
                 'metadata'           => $contestApplication->metadata,

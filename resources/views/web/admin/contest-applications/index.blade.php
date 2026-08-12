@@ -834,11 +834,19 @@
                         return '<span class="badge ' + cls + '">' + esc(s.toFixed(1)) + ' / 100</span>';
                     })()
                     : null;
+                // Accurate confidence (what the AI reported); adjusted value shown when different
+                let aiConfidenceHtml = null;
+                if (d.ai_confidence) {
+                    aiConfidenceHtml = '<strong>' + esc(d.ai_confidence) + '</strong>';
+                    if (d.ai_confidence_adjusted && d.ai_confidence_adjusted !== d.ai_confidence) {
+                        aiConfidenceHtml += ' <small class="text-muted">(adjusted ' + esc(d.ai_confidence_adjusted) + ' for auto-review)</small>';
+                    }
+                }
                 aiHtml = '<div class="row mt-3"><div class="col-12">' + sectionTitle('ri-robot-2-line', 'AI Review') +
                     '<table class="table table-sm table-borderless mb-0">' +
                     detailRow('AI Score', aiScoreBadge) +
                     detailRow('AI Verdict', verdictBadge) +
-                    detailRow('AI Confidence', d.ai_confidence ? '<strong>' + esc(d.ai_confidence) + '</strong>' : null) +
+                    detailRow('AI Confidence', aiConfidenceHtml) +
                     detailRow('AI Reviewed At', esc(d.ai_reviewed_at)) +
                     '</table></div></div>';
             }

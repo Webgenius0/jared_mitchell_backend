@@ -47,11 +47,21 @@
                                 : ($score >= 50
                                     ? 'bg-warning-subtle text-warning'
                                     : 'bg-danger-subtle text-danger');
+                            // Accurate confidence: the value the AI actually reported
+                            $rawConf = $application->latestAiReview?->parsed_result['confidence'] ?? null;
+                            $rawConfPct = $rawConf !== null
+                                ? round((float) $rawConf * 100) . '%'
+                                : ($application->ai_confidence !== null
+                                    ? round((float) $application->ai_confidence * 100) . '%'
+                                    : null);
                         @endphp
                         <span class="badge {{ $scoreClass }}"
                               title="AI reviewed {{ $application->ai_reviewed_at?->format('M d, Y h:i A') ?? '' }}">
                             {{ number_format($score, 1) }}
                         </span>
+                        @if($rawConfPct !== null)
+                            <div><small class="text-muted" title="AI-reported confidence">Conf: {{ $rawConfPct }}</small></div>
+                        @endif
                     @else
                         <span class="text-muted">—</span>
                     @endif

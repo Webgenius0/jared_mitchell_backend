@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Models\Contest\AiReview;
 use App\Models\Contest\Season;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 class ContestApplication extends Model
 {
@@ -64,6 +66,24 @@ class ContestApplication extends Model
     public function approver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    /**
+     * The most recent AI review for this application.
+     */
+    public function latestAiReview(): MorphOne
+    {
+        return $this->morphOne(AiReview::class, 'reviewable')->latestOfMany();
+    }
+
+    /**
+     * Morph type used in the polymorphic ai_reviews table.
+     * AiReviewService stores 'contest_application' as reviewable_type,
+     * so this must match for the morph relationship to resolve.
+     */
+    public function getMorphClass(): string
+    {
+        return 'contest_application';
     }
 
     /*
