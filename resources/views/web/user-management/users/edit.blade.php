@@ -158,7 +158,8 @@
                                         <div class="col-md-6 text-center">
                                             <div class="mb-4">
                                                 @if($user->profile?->avatar)
-                                                    <img src="{{ asset('storage/' . $user->profile->avatar) }}" alt="Avatar"
+                                                    {{-- profiles.avatar already stores the full "storage/..." path --}}
+                                                    <img src="{{ asset($user->profile->avatar) }}" alt="Avatar"
                                                          class="rounded-circle avatar-xl" id="avatarPreview">
                                                     <div class="avatar-xl mx-auto mb-3 d-none" id="avatarPreviewContainer">
                                                         <div class="avatar-title rounded-circle bg-primary-subtle text-primary fs-1">

@@ -58,8 +58,8 @@ class SubscriptionController extends Controller
         // Create the Stripe Checkout Session
         $checkout = $user->newSubscription('default', $plan->stripe_price_id)
             ->checkout([
-                'success_url' => $request->success_url ?? config('app.frontend_url') . '/subscription/success?session_id={CHECKOUT_SESSION_ID}',
-                'cancel_url' => $request->cancel_url ?? config('app.frontend_url') . '/subscription/cancel',
+                'success_url' => $request->success_url ?? 'https://jared-mitchell.vercel.app/payment/success?type=subscription',
+                'cancel_url' => $request->cancel_url ?? 'https://jared-mitchell.vercel.app/payment/cancel?type=subscription',
             ]);
 
         return response()->json([

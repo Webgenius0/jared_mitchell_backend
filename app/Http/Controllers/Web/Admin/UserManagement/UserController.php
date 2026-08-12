@@ -59,8 +59,10 @@ class UserController extends Controller
                 $palette  = ['primary', 'success', 'info', 'warning', 'danger', 'secondary'];
                 $color    = $palette[ord(mb_substr($name, 0, 1) ?: 'A') % count($palette)];
 
+                // NB: profiles.avatar already stores the full "storage/..." path,
+                // so it must be passed to asset() as-is (no extra "storage/" prefix).
                 $avatar = $src
-                    ? '<div class="avatar-sm"><img src="' . asset('storage/' . $src) . '" alt="' . e($name) . '" class="rounded-circle img-thumbnail avatar-sm"></div>'
+                    ? '<div class="avatar-sm"><img src="' . asset($src) . '" alt="' . e($name) . '" class="rounded-circle img-thumbnail avatar-sm"></div>'
                     : '<div class="avatar-sm"><div class="avatar-title rounded-circle bg-' . $color . '-subtle text-' . $color . '">' . e($initials ?: '?') . '</div></div>';
 
                 return '<div class="d-flex align-items-center">'

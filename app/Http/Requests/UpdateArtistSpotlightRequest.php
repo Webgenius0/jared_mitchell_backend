@@ -107,7 +107,7 @@ class UpdateArtistSpotlightRequest extends FormRequest
     {
         throw new HttpResponseException(response()->json([
             'success' => false,
-            'message' => 'Validation failed',
+            'message' => implode(' ', $validator->errors()->all()) ?: 'Validation failed',
             'data'    => null,
             'errors'  => $validator->errors(),
             'code'    => 422,

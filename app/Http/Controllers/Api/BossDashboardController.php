@@ -164,10 +164,13 @@ class BossDashboardController extends Controller
     {
         $userId = auth('api')->id();
 
+        // Businesses owned by this user — used to scope recent activity to "my" data only
+        $businessIds = Business::where('user_id', $userId)->pluck('id');
 
-        // 1. Recent Activity
-        // Business Interactions
+        // 1. Recent Activity (only activities performed BY the authenticated user)
+        // My Business Interactions (clap / save / share / profile_visit I did)
         $businessInteractions = \App\Models\BusinessInteraction::with('user.profile')
+            ->where('user_id', $userId)
             ->latest()
             ->take(10)
             ->get()
@@ -180,8 +183,9 @@ class BossDashboardController extends Controller
                 ];
             });
 
-        // Spotlight Votes
+        // Spotlight Votes I cast
         $spotlightVotes = \App\Models\Spotlight\SpotlightVote::with('user.profile')
+            ->where('user_id', $userId)
             ->latest()
             ->take(10)
             ->get()
@@ -194,8 +198,9 @@ class BossDashboardController extends Controller
                 ];
             });
 
-        // Profile Updates
+        // My Profile Updates
         $profileUpdates = \App\Models\Profile::with('user')
+            ->where('user_id', $userId)
             ->whereColumn('updated_at', '>', 'created_at')
             ->latest('updated_at')
             ->take(10)
@@ -251,8 +256,7 @@ class BossDashboardController extends Controller
         }
 
         // Add profile visits day wise (last 7 days)
-        $businessesIds = Business::where('user_id', $userId)->pluck('id');
-        $visitsByDate = \App\Models\BusinessInteraction::whereIn('business_id', $businessesIds)
+        $visitsByDate = \App\Models\BusinessInteraction::whereIn('business_id', $businessIds)
             ->where('action_type', 'profile_visit')
             ->where('created_at', '>=', now()->subDays(7))
             ->selectRaw('DATE(created_at) as date, COUNT(*) as visit_count')
