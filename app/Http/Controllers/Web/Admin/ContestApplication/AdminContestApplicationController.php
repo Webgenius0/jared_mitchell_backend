@@ -61,7 +61,12 @@ class AdminContestApplicationController extends Controller
             $query->whereDate('created_at', '<=', $request->date_to);
         }
 
-        $applications = $query->latest()->paginate(15);
+        // Sort by AI rating (highest first), null scores last, then newest first
+        $applications = $query
+            ->orderByRaw('ai_score IS NULL')   // reviewed apps first
+            ->orderByDesc('ai_score')          // highest AI rating first
+            ->latest()                         // then newest
+            ->paginate(15);
 
         // For AJAX requests, return only the table partial
         if ($request->ajax()) {
@@ -113,6 +118,9 @@ class AdminContestApplicationController extends Controller
 
                 // ── AI review ────────────────────────────────────────────
                 'ai_reviewed_at'     => $contestApplication->ai_reviewed_at?->format('M d, Y h:i A'),
+                'ai_score'           => $contestApplication->ai_score !== null
+                    ? round((float) $contestApplication->ai_score, 1)
+                    : null,
                 'ai_verdict'         => $contestApplication->ai_verdict,
                 'ai_confidence'      => $contestApplication->ai_confidence !== null
                     ? round((float) $contestApplication->ai_confidence * 100) . '%'
@@ -297,6 +305,7 @@ class AdminContestApplicationController extends Controller
                 'Owner Email',
                 'Season',
                 'Status',
+                'AI Rating',
                 'Applied Date',
                 'Approved Date',
                 'Approved By',
@@ -311,6 +320,7 @@ class AdminContestApplicationController extends Controller
                     $app->business?->user?->email ?? '—',
                     $app->season?->title ?? '—',
                     ucfirst($app->status),
+                    $app->ai_score !== null ? number_format((float) $app->ai_score, 1) : '—',
                     $app->created_at->format('Y-m-d H:i'),
                     $app->approved_at?->format('Y-m-d H:i') ?? '—',
                     $app->approver?->profile?->name ?? $app->approver?->email ?? '—',

@@ -119,6 +119,7 @@
                 <th>Email</th>
                 <th>Season</th>
                 <th>Status</th>
+                <th>AI Rating</th>
                 <th>Applied Date</th>
                 <th>Approved Date</th>
                 <th>Approved By</th>
@@ -133,13 +134,14 @@
                 <td>{{ $app->business?->user?->email ?? '—' }}</td>
                 <td>{{ $app->season?->title ?? '—' }}</td>
                 <td class="status-{{ $app->status }}">{{ ucfirst($app->status) }}</td>
+                <td>{{ $app->ai_score !== null ? number_format((float) $app->ai_score, 1) : '—' }}</td>
                 <td>{{ $app->created_at->format('Y-m-d H:i') }}</td>
                 <td>{{ $app->approved_at?->format('Y-m-d H:i') ?? '—' }}</td>
                 <td>{{ $app->approver?->profile?->name ?? $app->approver?->email ?? '—' }}</td>
             </tr>
             @empty
             <tr>
-                <td colspan="9" style="text-align: center; padding: 20px; color: #999;">
+                <td colspan="10" style="text-align: center; padding: 20px; color: #999;">
                     No records found matching the filters.
                 </td>
             </tr>

@@ -9,6 +9,7 @@
                 <th>Business</th>
                 <th>Owner</th>
                 <th>Season</th>
+                <th class="text-center" style="width: 90px;">AI Rating</th>
                 <th>Status</th>
                 <th>Applied Date</th>
                 <th class="text-center" style="width: 160px;">Action</th>
@@ -37,6 +38,24 @@
                     </div>
                 </td>
                 <td>{{ $application->season?->title ?? '—' }}</td>
+                <td class="text-center">
+                    @if($application->ai_score !== null)
+                        @php
+                            $score = (float) $application->ai_score;
+                            $scoreClass = $score >= 70
+                                ? 'bg-success-subtle text-success'
+                                : ($score >= 50
+                                    ? 'bg-warning-subtle text-warning'
+                                    : 'bg-danger-subtle text-danger');
+                        @endphp
+                        <span class="badge {{ $scoreClass }}"
+                              title="AI reviewed {{ $application->ai_reviewed_at?->format('M d, Y h:i A') ?? '' }}">
+                            {{ number_format($score, 1) }}
+                        </span>
+                    @else
+                        <span class="text-muted">—</span>
+                    @endif
+                </td>
                 <td>
                     @if($application->status == 'pending')
                         <span class="badge bg-warning-subtle text-warning">Pending</span>
@@ -93,7 +112,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="8" class="text-center">No contest applications found.</td>
+                <td colspan="9" class="text-center">No contest applications found.</td>
             </tr>
             @endforelse
         </tbody>

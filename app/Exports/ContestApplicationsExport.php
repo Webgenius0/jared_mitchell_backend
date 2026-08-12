@@ -77,6 +77,7 @@ class ContestApplicationsExport implements FromQuery, WithHeadings, WithMapping,
             'Owner Email',
             'Season',
             'Status',
+            'AI Rating',
             'Applied Date',
             'Approved Date',
             'Approved By',
@@ -93,6 +94,7 @@ class ContestApplicationsExport implements FromQuery, WithHeadings, WithMapping,
             $application->business?->user?->email ?? '—',
             $application->season?->title ?? '—',
             ucfirst($application->status),
+            $application->ai_score !== null ? number_format((float) $application->ai_score, 1) : '—',
             $application->created_at->format('Y-m-d H:i'),
             $application->approved_at?->format('Y-m-d H:i') ?? '—',
             $application->approver?->profile?->name ?? $application->approver?->email ?? '—',
@@ -103,7 +105,7 @@ class ContestApplicationsExport implements FromQuery, WithHeadings, WithMapping,
     public function styles(Worksheet $sheet)
     {
         // Style the header row
-        $sheet->getStyle('A1:J1')->applyFromArray([
+        $sheet->getStyle('A1:K1')->applyFromArray([
             'fill' => [
                 'fillType' => Fill::FILL_SOLID,
                 'startColor' => ['argb' => 'FF1B2A4A'],
@@ -127,7 +129,7 @@ class ContestApplicationsExport implements FromQuery, WithHeadings, WithMapping,
         $lastRow = $sheet->getHighestRow();
         for ($row = 2; $row <= $lastRow; $row++) {
             $rowColor = $row % 2 === 0 ? 'FFF8F9FA' : 'FFFFFFFF';
-            $sheet->getStyle("A{$row}:J{$row}")->applyFromArray([
+            $sheet->getStyle("A{$row}:K{$row}")->applyFromArray([
                 'fill' => [
                     'fillType' => Fill::FILL_SOLID,
                     'startColor' => ['argb' => $rowColor],
@@ -144,7 +146,7 @@ class ContestApplicationsExport implements FromQuery, WithHeadings, WithMapping,
         }
 
         // Add borders to all cells
-        $sheet->getStyle("A1:J{$lastRow}")->applyFromArray([
+        $sheet->getStyle("A1:K{$lastRow}")->applyFromArray([
             'borders' => [
                 'allBorders' => [
                     'borderStyle' => Border::BORDER_THIN,
@@ -166,10 +168,11 @@ class ContestApplicationsExport implements FromQuery, WithHeadings, WithMapping,
             'D' => 30,
             'E' => 20,
             'F' => 14,
-            'G' => 20,
+            'G' => 14,
             'H' => 20,
-            'I' => 25,
-            'J' => 30,
+            'I' => 20,
+            'J' => 25,
+            'K' => 30,
         ];
     }
 }

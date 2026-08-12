@@ -160,7 +160,9 @@ class ContestApplicationService
     {
         return ContestApplication::where('season_id', $season->id)
             ->with(['business.user.profile', 'approver'])
-            ->latest()
+            ->orderByRaw('ai_score IS NULL')   // reviewed apps first
+            ->orderByDesc('ai_score')          // highest AI rating first
+            ->latest()                         // then newest
             ->paginate(15);
     }
 

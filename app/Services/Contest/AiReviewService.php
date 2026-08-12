@@ -79,6 +79,7 @@ class AiReviewService
             // Update the application with AI review data
             $application->update([
                 'ai_reviewed_at' => now(),
+                'ai_score'       => $parsed['score'],
                 'ai_verdict'     => $verdict,
                 'ai_confidence'  => $confidence,
             ]);

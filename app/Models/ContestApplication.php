@@ -15,6 +15,7 @@ class ContestApplication extends Model
         'business_id',
         'season_id',
         'status',
+        'ai_score',
         'ai_reviewed_at',
         'ai_verdict',
         'ai_confidence',
@@ -28,6 +29,7 @@ class ContestApplication extends Model
     protected $casts = [
         'approved_at'     => 'datetime',
         'ai_reviewed_at'  => 'datetime',
+        'ai_score'        => 'float',
         'ai_confidence'   => 'float',
         'created_at'      => 'datetime',
         'updated_at'      => 'datetime',

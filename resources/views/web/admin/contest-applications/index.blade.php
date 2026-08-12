@@ -816,7 +816,7 @@
 
             // AI review block
             let aiHtml = '';
-            if (d.ai_verdict || d.ai_confidence || d.ai_reviewed_at) {
+            if (d.ai_verdict || d.ai_confidence || d.ai_reviewed_at || d.ai_score) {
                 const verdictMap = {
                     'approve': '<span class="badge bg-success-subtle text-success">Approve</span>',
                     'reject': '<span class="badge bg-danger-subtle text-danger">Reject</span>',
@@ -825,8 +825,18 @@
                 const verdictBadge = d.ai_verdict
                     ? (verdictMap[d.ai_verdict] || '<span class="badge bg-secondary-subtle text-secondary">' + esc(d.ai_verdict) + '</span>')
                     : '<span class="text-muted">—</span>';
+                let aiScoreBadge = d.ai_score !== null && d.ai_score !== undefined
+                    ? (function () {
+                        const s = Number(d.ai_score);
+                        const cls = s >= 70
+                            ? 'bg-success-subtle text-success'
+                            : (s >= 50 ? 'bg-warning-subtle text-warning' : 'bg-danger-subtle text-danger');
+                        return '<span class="badge ' + cls + '">' + esc(s.toFixed(1)) + ' / 100</span>';
+                    })()
+                    : null;
                 aiHtml = '<div class="row mt-3"><div class="col-12">' + sectionTitle('ri-robot-2-line', 'AI Review') +
                     '<table class="table table-sm table-borderless mb-0">' +
+                    detailRow('AI Score', aiScoreBadge) +
                     detailRow('AI Verdict', verdictBadge) +
                     detailRow('AI Confidence', d.ai_confidence ? '<strong>' + esc(d.ai_confidence) + '</strong>' : null) +
                     detailRow('AI Reviewed At', esc(d.ai_reviewed_at)) +
