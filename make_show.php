@@ -30,7 +30,7 @@ $content = str_replace('disabled type="hidden"', 'type="hidden"', $content);
 $content = preg_replace('/<input[^>]*type="hidden"[^>]*>/', '', $content);
 
 // Change descriptionEditor ID to something else so Quill doesn't try to initialize it as editable?
-$content = str_replace('id="descriptionEditor" class="snow-editor"', 'class="p-3"', $content);
+$content = str_replace('id="descriptionEditor" class="event-description-editor"', 'class="p-3"', $content);
 
 // Append registrations table
 $registrations_html = <<<HTML

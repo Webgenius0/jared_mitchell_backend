@@ -124,7 +124,8 @@
                         @if($product->description)
                         <div class="row mb-3">
                             <div class="col-md-3 fw-semibold text-muted">Description:</div>
-                            <div class="col-md-9">{!! nl2br(e($product->description)) !!}</div>
+                            {{-- Quill stores HTML — render as-is (same as events show page) --}}
+                            <div class="col-md-9">{!! $product->description !!}</div>
                         </div>
                         @endif
                     </div>

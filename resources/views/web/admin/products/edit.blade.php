@@ -73,7 +73,8 @@
 
                             <div class="mb-3">
                                 <label class="form-label">Full Description</label>
-                                <div id="descriptionEditor" class="snow-editor @error('description') is-invalid @enderror" style="height: 260px;"></div>
+                                {{-- NB: custom class (not .snow-editor) so the theme's auto-init skips it -- we init Quill below with image/video insert removed --}}
+                                <div id="descriptionEditor" class="event-description-editor @error('description') is-invalid @enderror" style="height: 260px;"></div>
                                 <input type="hidden" id="description" name="description" value="{{ old('description', $product->description) }}">
                                 @error('description') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
@@ -318,18 +319,53 @@
             }
         });
 
-        // ── Quill editor ─────────────────────────────────────────────
+        // ── Quill editor (no image/video insert) ──────────────────────
+        // The theme auto-init (form-editor.init.js) only targets .snow-editor;
+        // this editor uses a custom class so we init it manually with the same
+        // toolbar minus the image & video buttons (CDN insert).
+        // NB: bundled Quill is v1.x — use root.innerHTML (getSemanticHTML is Quill 2 API and would throw).
         const descEditorEl = document.getElementById('descriptionEditor');
         const descInput = document.getElementById('description');
-        const descEditor = Quill.find(descEditorEl);
+        let descEditor = null;
 
-        if (descEditor && descInput.value) {
-            descEditor.clipboard.dangerouslyPasteHTML(descInput.value);
+        if (descEditorEl && typeof Quill !== 'undefined') {
+            descEditor = new Quill(descEditorEl, {
+                theme: 'snow',
+                modules: {
+                    toolbar: [
+                        [{ font: [] }, { size: [] }],
+                        ['bold', 'italic', 'underline', 'strike'],
+                        [{ color: [] }, { background: [] }],
+                        [{ script: 'super' }, { script: 'sub' }],
+                        [{ header: [false, 1, 2, 3, 4, 5, 6] }, 'blockquote', 'code-block'],
+                        [{ list: 'ordered' }, { list: 'bullet' }, { indent: '-1' }, { indent: '+1' }],
+                        ['direction', { align: [] }],
+                        ['link'],
+                        ['clean']
+                    ]
+                }
+            });
+
+            // Restore previously-entered content (validation redirect / edit page)
+            if (descInput.value) {
+                descEditor.clipboard.dangerouslyPasteHTML(descInput.value);
+            }
+
+            // Keep hidden input in sync (Quill 1.x compatible)
+            descEditor.on('text-change', function() {
+                const content = descEditor.root.innerHTML;
+                descInput.value = (content === '<p><br></p>' || content === '<p></p>') ? '' : content;
+            });
         }
 
-        if (descEditor) {
-            descEditor.on('text-change', function() {
-                descInput.value = descEditor.getSemanticHTML();
+        // Safety net: capture editor content on form submit
+        const productForm = document.querySelector('form[action*="products"]');
+        if (productForm) {
+            productForm.addEventListener('submit', function() {
+                if (descEditor) {
+                    const content = descEditor.root.innerHTML;
+                    descInput.value = (content === '<p><br></p>' || content === '<p></p>') ? '' : content;
+                }
             });
         }
 

@@ -38,7 +38,8 @@
 
                                     <div class="mb-3">
                                         <label class="form-label">Description</label>
-                                        <div id="descriptionEditor" class="snow-editor" style="height:220px;"></div>
+                                        {{-- NB: custom class (not .snow-editor) so the theme's auto-init skips it -- we init Quill below with image/video insert removed --}}
+                                        <div id="descriptionEditor" class="event-description-editor" style="height:220px;"></div>
                                         <input type="hidden" id="description" name="description"
                                             value="{{ old('description', $event->description) }}">
                                     </div>
@@ -428,6 +429,30 @@
     @endif
 
     document.addEventListener('DOMContentLoaded', function() {
+
+        // ── Quill Editor init (no image/video insert) ───────────────
+        // The theme auto-init (form-editor.init.js) only targets .snow-editor;
+        // this editor uses a custom class so we init it manually with the same
+        // toolbar minus the image & video buttons (CDN insert).
+        const descEditorContainer = document.getElementById('descriptionEditor');
+        if (descEditorContainer && typeof Quill !== 'undefined') {
+            new Quill(descEditorContainer, {
+                theme: 'snow',
+                modules: {
+                    toolbar: [
+                        [{ font: [] }, { size: [] }],
+                        ['bold', 'italic', 'underline', 'strike'],
+                        [{ color: [] }, { background: [] }],
+                        [{ script: 'super' }, { script: 'sub' }],
+                        [{ header: [false, 1, 2, 3, 4, 5, 6] }, 'blockquote', 'code-block'],
+                        [{ list: 'ordered' }, { list: 'bullet' }, { indent: '-1' }, { indent: '+1' }],
+                        ['direction', { align: [] }],
+                        ['link'],
+                        ['clean']
+                    ]
+                }
+            });
+        }
 
         // ── Quill Description Sync ───────────────────────────────
         // Read directly from .ql-editor DOM element — avoids Quill.find() timing issues
