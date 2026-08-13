@@ -30,7 +30,7 @@ class BusinessSpotlightController extends Controller
      */
     public function index(): JsonResponse
     {
-        $user = auth()->user();
+        $user = auth('api')->user();
 
         $spotlights = BusinessSpotlight::where('user_id', $user->id)
             ->where('status', '!=', 'draft')
@@ -86,7 +86,7 @@ class BusinessSpotlightController extends Controller
             $data = $this->handleFileUploads($request, $data);
 
             // Associate with the authenticated user
-            $data['user_id'] = auth()->id();
+            $data['user_id'] = auth('api')->id();
 
             // Set submission tracking
             $data['status'] = 'submitted';
@@ -141,11 +141,11 @@ class BusinessSpotlightController extends Controller
             $data = $this->handleFileUploads($request, $data);
             $data['status'] = 'draft';
             $data['current_step'] = $request->input('current_step', 1);
-            $data['user_id'] = auth()->id();
+            $data['user_id'] = auth('api')->id();
 
             // Find existing draft for this user or create new
             $spotlight = BusinessSpotlight::updateOrCreate(
-                ['user_id' => auth()->id(), 'status' => 'draft'],
+                ['user_id' => auth('api')->id(), 'status' => 'draft'],
                 $data
             );
 
@@ -179,7 +179,7 @@ class BusinessSpotlightController extends Controller
      */
     public function getDraft(Request $request): JsonResponse
     {
-        $spotlight = BusinessSpotlight::where('user_id', auth()->id())
+        $spotlight = BusinessSpotlight::where('user_id', auth('api')->id())
             ->where('status', 'draft')
             ->first();
 
@@ -204,7 +204,7 @@ class BusinessSpotlightController extends Controller
      */
     public function toggleLike($id): JsonResponse
     {
-        $user = auth()->user();
+        $user = auth('api')->user();
         $spotlight = BusinessSpotlight::findOrFail($id);
 
         $exists = $user->likedBusinessSpotlights()->where('business_spotlight_id', $id)->exists();
@@ -230,7 +230,7 @@ class BusinessSpotlightController extends Controller
      */
     public function toggleBookmark($id): JsonResponse
     {
-        $user = auth()->user();
+        $user = auth('api')->user();
         $spotlight = BusinessSpotlight::findOrFail($id);
 
         $exists = $user->bookmarkedBusinessSpotlights()->where('business_spotlight_id', $id)->exists();
@@ -257,7 +257,7 @@ class BusinessSpotlightController extends Controller
      */
     public function recordShare(Request $request, $id): JsonResponse
     {
-        $user = auth()->user();
+        $user = auth('api')->user();
         $spotlight = BusinessSpotlight::findOrFail($id);
 
         $spotlight->shares()->create([
@@ -284,7 +284,7 @@ class BusinessSpotlightController extends Controller
         $spotlight = BusinessSpotlight::findOrFail($id);
 
         // Ensure the authenticated user owns this spotlight
-        if ($spotlight->user_id !== auth()->id()) {
+        if ($spotlight->user_id !== auth('api')->id()) {
             return $this->error(null, 'You are not authorized to update this spotlight.', 403);
         }
 
@@ -378,7 +378,7 @@ class BusinessSpotlightController extends Controller
         $spotlight = BusinessSpotlight::findOrFail($id);
 
         // Ensure the authenticated user owns this spotlight
-        if ($spotlight->user_id !== auth()->id()) {
+        if ($spotlight->user_id !== auth('api')->id()) {
             return $this->error(null, 'You are not authorized to delete this spotlight.', 403);
         }
 
