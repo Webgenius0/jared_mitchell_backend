@@ -103,6 +103,42 @@ class LiveStreamController extends Controller
     }
 
     /**
+     * Get live statistics (viewer count & status) for admin broadcast view
+     */
+    public function stats($id)
+    {
+        $stream = LiveStream::findOrFail($id);
+
+        $activeViewersListKey = "live_stream_{$id}_active_viewers";
+        $activeViewers = \Illuminate\Support\Facades\Cache::get($activeViewersListKey, []);
+        $currentTime = now()->timestamp;
+
+        $activeViewers = array_filter($activeViewers, function ($timestamp) use ($currentTime) {
+            return ($currentTime - $timestamp) <= 30;
+        });
+
+        $heartbeatCount = count($activeViewers);
+        $awsViewerCount = 0;
+
+        if ($stream->channel_arn) {
+            $ivsDetail = $this->ivsService->getStreamDetail($stream->channel_arn);
+            if ($ivsDetail && isset($ivsDetail['viewer_count'])) {
+                $awsViewerCount = (int) $ivsDetail['viewer_count'];
+            }
+        }
+
+        $totalViewers = max($awsViewerCount, $heartbeatCount);
+
+        return response()->json([
+            'status' => true,
+            'viewer_count' => $totalViewers,
+            'aws_viewer_count' => $awsViewerCount,
+            'heartbeat_viewer_count' => $heartbeatCount,
+            'stream_status' => $stream->status,
+        ]);
+    }
+
+    /**
      * Mark the stream as ended.
      */
     public function endStream(Request $request, $id)

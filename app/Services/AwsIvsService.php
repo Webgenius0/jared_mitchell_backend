@@ -61,6 +61,31 @@ class AwsIvsService
     }
 
     /**
+     * Get stream details including viewer count from AWS IVS
+     *
+     * @param string $arn
+     * @return array|null
+     */
+    public function getStreamDetail(string $arn)
+    {
+        try {
+            $result = $this->client->getStream([
+                'channelArn' => $arn,
+            ]);
+
+            $stream = $result->get('stream');
+            return [
+                'viewer_count' => $stream['viewerCount'] ?? 0,
+                'state' => $stream['state'] ?? 'OFFLINE',
+                'health' => $stream['health'] ?? 'UNKNOWN',
+            ];
+        } catch (AwsException $e) {
+            // Stream might be offline or channel not actively broadcasting
+            return null;
+        }
+    }
+
+    /**
      * Delete an IVS Channel
      *
      * @param string $arn

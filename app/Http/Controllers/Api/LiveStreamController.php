@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\LiveStream;
+use App\Services\AwsIvsService;
+use Illuminate\Support\Facades\Cache;
 
 class LiveStreamController extends Controller
 {
@@ -59,6 +61,93 @@ class LiveStreamController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => "Failed to fetch active live stream",
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    // heartbeat - Frontend player sends ping every 10-15 seconds while watching
+    public function heartbeat(Request $request, $id)
+    {
+        try {
+            $liveStream = LiveStream::find($id);
+            if (!$liveStream) {
+                return response()->json([
+                    'status' => false,
+                    'message' => "Live stream not found",
+                ], 404);
+            }
+
+            $viewerKey = $request->input('viewer_id') ?? $request->ip();
+            $activeViewersListKey = "live_stream_{$id}_active_viewers";
+            $activeViewers = Cache::get($activeViewersListKey, []);
+            $activeViewers[md5($viewerKey)] = now()->timestamp;
+
+            $currentTime = now()->timestamp;
+            $activeViewers = array_filter($activeViewers, function ($timestamp) use ($currentTime) {
+                return ($currentTime - $timestamp) <= 30;
+            });
+
+            Cache::put($activeViewersListKey, $activeViewers, 300);
+
+            return response()->json([
+                'status' => true,
+                'message' => "Heartbeat received",
+                'viewer_count' => count($activeViewers),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => "Failed to record heartbeat",
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    // viewers - Return live viewer count
+    public function viewers($id, AwsIvsService $ivsService)
+    {
+        try {
+            $liveStream = LiveStream::find($id);
+            if (!$liveStream) {
+                return response()->json([
+                    'status' => false,
+                    'message' => "Live stream not found",
+                ], 404);
+            }
+
+            $activeViewersListKey = "live_stream_{$id}_active_viewers";
+            $activeViewers = Cache::get($activeViewersListKey, []);
+            $currentTime = now()->timestamp;
+
+            $activeViewers = array_filter($activeViewers, function ($timestamp) use ($currentTime) {
+                return ($currentTime - $timestamp) <= 30;
+            });
+
+            $heartbeatCount = count($activeViewers);
+            $awsViewerCount = 0;
+
+            if ($liveStream->channel_arn) {
+                $ivsDetail = $ivsService->getStreamDetail($liveStream->channel_arn);
+                if ($ivsDetail && isset($ivsDetail['viewer_count'])) {
+                    $awsViewerCount = (int) $ivsDetail['viewer_count'];
+                }
+            }
+
+            $totalViewers = max($awsViewerCount, $heartbeatCount);
+
+            return response()->json([
+                'status' => true,
+                'message' => "Viewer count retrieved successfully",
+                'viewer_count' => $totalViewers,
+                'aws_viewer_count' => $awsViewerCount,
+                'heartbeat_viewer_count' => $heartbeatCount,
+                'stream_status' => $liveStream->status,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => "Failed to fetch viewer count",
                 'error' => $e->getMessage(),
             ], 500);
         }

@@ -608,6 +608,8 @@ Route::group(['prefix' => 'v1'], function ($router) {
         Route::get('/', [LiveStreamController::class, 'index']); // DONE: Get all live streams
         Route::get('/active', [LiveStreamController::class, 'active']); // DONE: Get active live stream
         Route::get('/{id}', [LiveStreamController::class, 'show']); // DONE: Get live stream by id
+        Route::get('/{id}/viewers', [LiveStreamController::class, 'viewers']); // DONE: Get viewer count
+        Route::post('/{id}/heartbeat', [LiveStreamController::class, 'heartbeat']); // DONE: Active viewer heartbeat
         Route::post('/', [LiveStreamController::class, 'store']); // DONE: Create live stream
         Route::put('/{id}', [LiveStreamController::class, 'update']); // DONE: Update live stream
         Route::delete('/{id}', [LiveStreamController::class, 'destroy']); // DONE: Delete live stream

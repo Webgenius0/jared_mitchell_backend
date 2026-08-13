@@ -19,10 +19,13 @@
         <div class="row justify-content-center">
             <div class="col-xl-9 col-lg-10">
                 <div class="card">
-                    <div class="card-header text-center">
+                    <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0">
                             Status: <span id="status" class="text-secondary fw-bold">INITIALIZING...</span>
                         </h5>
+                        <div class="badge bg-primary fs-6 px-3 py-2">
+                            <i class="ri-user-line me-1"></i> Live Viewers: <span id="viewer-count" class="fw-bold">0</span>
+                        </div>
                     </div>
                     <div class="card-body text-center">
                         <div class="ratio ratio-16x9 bg-dark mb-4 mx-auto rounded shadow-sm" style="max-width: 800px;">
@@ -144,6 +147,21 @@
             .then(data => console.log("Backend status updated to ENDED", data))
             .catch(err => console.error("Failed to update backend ended status", err));
     }
+
+    function fetchLiveStats() {
+        fetch("{{ route('live-streams.stats', $stream->id) }}")
+            .then(res => res.json())
+            .then(data => {
+                if (data.status) {
+                    document.getElementById('viewer-count').innerText = data.viewer_count;
+                }
+            })
+            .catch(err => console.error("Failed to fetch viewer count", err));
+    }
+
+    // Auto-poll viewer count every 5 seconds
+    setInterval(fetchLiveStats, 5000);
+    fetchLiveStats();
 
     // Initialize on page load
     window.onload = initBroadcastClient;
