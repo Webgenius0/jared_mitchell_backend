@@ -23,33 +23,28 @@ class BusinessSpotlightController extends Controller
     /**
      * List business spotlights for the authenticated boss user.
      *
-     * Returns all spotlights owned strictly by the currently authenticated
-     * user (boss role), ordered by most recent first.
+     * Returns all non-draft spotlights owned by the currently authenticated
+     * user (boss role), ordered by most recently submitted first.
      *
-     * @param  Request  $request
      * @return JsonResponse
      */
-    public function index(Request $request): JsonResponse
+    public function index(): JsonResponse
     {
-        $userId = auth()->id();
+        $user = auth()->user();
 
-        $query = BusinessSpotlight::where('user_id', $userId);
-
-        if ($request->has('status') && !empty($request->input('status'))) {
-            $query->where('status', $request->input('status'));
-        }
-
-        $spotlights = $query->withCount(['likers', 'bookmarkers', 'shares'])
-            ->orderBy('id', 'desc')
-            ->paginate($request->input('per_page', 15));
+        $spotlights = BusinessSpotlight::where('user_id', $user->id)
+            ->where('status', '!=', 'draft')
+            ->withCount(['likers', 'bookmarkers', 'shares'])
+            ->orderBy('submitted_at', 'desc')
+            ->paginate(15);
 
         return $this->success('Business spotlights retrieved successfully.', [
             'spotlights' => BusinessSpotlightResource::collection($spotlights->items()),
             'pagination' => [
-                'total' => $spotlights->total(),
-                'per_page' => $spotlights->perPage(),
+                'total'        => $spotlights->total(),
+                'per_page'     => $spotlights->perPage(),
                 'current_page' => $spotlights->currentPage(),
-                'last_page' => $spotlights->lastPage(),
+                'last_page'    => $spotlights->lastPage(),
             ],
         ]);
     }
