@@ -458,52 +458,85 @@ class BossDashboardController extends Controller
         }
 
         // ==== ROUND-WISE SUMMARY ====
-        $rounds = Round::orderBy('round_number')->take(5)->get();
+        $seasonId = $contestants->first()?->season_id ?? \App\Models\Contest\Season::where('is_active', true)->value('id');
+        $roundsGrouped = Round::where('season_id', $seasonId)
+            ->orderBy('round_number')
+            ->take(5)
+            ->get()
+            ->keyBy('round_number');
         $roundWiseSummary = [];
 
-        foreach ($rounds as $round) {
-            $roundVotesQuery = ContestVote::where('votable_type', Contestant::class)
-                ->whereIn('votable_id', $contestantIds)
-                ->where('round_id', $round->id);
+        for ($i = 1; $i <= 5; $i++) {
+            $round = $roundsGrouped->get($i);
 
-            if ($round->round_number === 1) {
-                // Find rank
-                $leaderboard = $leaderboardService->getLeaderboard($round);
-                $rank = 0;
-                foreach ($leaderboard as $entry) {
-                    if ($contestantIds->contains($entry['contestant_id'])) {
-                        // Lowest rank (best position) if multiple contestants
-                        if ($rank === 0 || $entry['rank'] < $rank) {
-                            $rank = $entry['rank'];
+            if ($round) {
+                $roundVotesQuery = ContestVote::where('votable_type', Contestant::class)
+                    ->whereIn('votable_id', $contestantIds)
+                    ->where('round_id', $round->id);
+
+                if ($i === 1) {
+                    // Find rank
+                    $leaderboard = $leaderboardService->getLeaderboard($round);
+                    $rank = 0;
+                    foreach ($leaderboard as $entry) {
+                        if ($contestantIds->contains($entry['contestant_id'])) {
+                            // Lowest rank (best position) if multiple contestants
+                            if ($rank === 0 || $entry['rank'] < $rank) {
+                                $rank = $entry['rank'];
+                            }
                         }
                     }
+
+                    $totalClap = Business::whereIn('id', $businessIds)->sum('total_claps');
+                    $totalSave = Business::whereIn('id', $businessIds)->sum('total_saves');
+                    $totalFire = \App\Models\BusinessInteraction::whereIn('business_id', $businessIds)->where('action_type', 'fire')->count();
+
+                    $roundWiseSummary[] = [
+                        'round' => 'Round 1',
+                        'total_votes' => $roundVotesQuery->count(),
+                        'todays_votes' => (clone $roundVotesQuery)->whereDate('created_at', today())->count(),
+                        'weekly_votes' => (clone $roundVotesQuery)->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->count(),
+                        'monthly_votes' => (clone $roundVotesQuery)->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->count(),
+                        'voting_summary' => [
+                            'total_clap' => (int) $totalClap,
+                            'total_save' => (int) $totalSave,
+                            'total_fire' => (int) $totalFire, // Keep original values as requested
+                            'rank' => $rank,
+                        ],
+                    ];
+                } else {
+                    $roundWiseSummary[] = [
+                        'round' => 'Round ' . $i,
+                        'total_points' => (float) (clone $roundVotesQuery)->sum('weight'),
+                        'todays_points' => (float) (clone $roundVotesQuery)->whereDate('created_at', today())->sum('weight'),
+                        'weekly_points' => (float) (clone $roundVotesQuery)->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->sum('weight'),
+                        'monthly_points' => (float) (clone $roundVotesQuery)->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->sum('weight'),
+                    ];
                 }
-
-                $totalClap = Business::whereIn('id', $businessIds)->sum('total_claps');
-                $totalSave = Business::whereIn('id', $businessIds)->sum('total_saves');
-                $totalFire = \App\Models\BusinessInteraction::whereIn('business_id', $businessIds)->where('action_type', 'fire')->count();
-
-                $roundWiseSummary[] = [
-                    'round' => 'Round 1',
-                    'total_votes' => $roundVotesQuery->count(),
-                    'todays_votes' => (clone $roundVotesQuery)->whereDate('created_at', today())->count(),
-                    'weekly_votes' => (clone $roundVotesQuery)->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->count(),
-                    'monthly_votes' => (clone $roundVotesQuery)->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->count(),
-                    'voting_summary' => [
-                        'total_clap' => (int) $totalClap,
-                        'total_save' => (int) $totalSave,
-                        'total_fire' => (int) $totalFire, // Keep original values as requested
-                        'rank' => $rank,
-                    ],
-                ];
             } else {
-                $roundWiseSummary[] = [
-                    'round' => 'Round ' . $round->round_number,
-                    'total_points' => (float) (clone $roundVotesQuery)->sum('weight'),
-                    'todays_points' => (float) (clone $roundVotesQuery)->whereDate('created_at', today())->sum('weight'),
-                    'weekly_points' => (float) (clone $roundVotesQuery)->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->sum('weight'),
-                    'monthly_points' => (float) (clone $roundVotesQuery)->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->sum('weight'),
-                ];
+                if ($i === 1) {
+                    $roundWiseSummary[] = [
+                        'round' => 'Round 1',
+                        'total_votes' => 0,
+                        'todays_votes' => 0,
+                        'weekly_votes' => 0,
+                        'monthly_votes' => 0,
+                        'voting_summary' => [
+                            'total_clap' => 0,
+                            'total_save' => 0,
+                            'total_fire' => 0,
+                            'rank' => 0,
+                        ],
+                    ];
+                } else {
+                    $roundWiseSummary[] = [
+                        'round' => 'Round ' . $i,
+                        'total_points' => 0.0,
+                        'todays_points' => 0.0,
+                        'weekly_points' => 0.0,
+                        'monthly_points' => 0.0,
+                    ];
+                }
             }
         }
 
