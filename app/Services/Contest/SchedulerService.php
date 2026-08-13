@@ -14,7 +14,10 @@ class SchedulerService
 {
     public function __construct(
         protected ContestNotificationService $notificationService,
-    ) {}
+        protected ?AutoSeasonBuilderService $autoSeasonBuilder = null,
+    ) {
+        $this->autoSeasonBuilder ??= app(AutoSeasonBuilderService::class);
+    }
 
     /**
      * Run a full scheduler check across all seasons and rounds.
@@ -25,6 +28,9 @@ class SchedulerService
     public function run(): array
     {
         $actions = [];
+
+        // ── 0. Seasons: Auto-create upcoming season if needed ──
+        $actions = array_merge($actions, $this->checkAutoSeasonCreation());
 
         // ── 1. Seasons: Open for applications ──
         $actions = array_merge($actions, $this->checkSeasonApplicationOpenings());
@@ -268,6 +274,35 @@ class SchedulerService
                 'type'      => 'season_completed',
                 'season_id' => $season->id,
                 'title'     => $season->title,
+            ];
+        }
+
+        return $actions;
+    }
+
+    /**
+     * Ensure an upcoming Boss Beginnings season is scheduled automatically.
+     */
+    public function checkAutoSeasonCreation(): array
+    {
+        $actions = [];
+
+        $createdSeason = $this->autoSeasonBuilder->ensureUpcomingSeasonExists();
+
+        if ($createdSeason) {
+            Log::info('Scheduler: Upcoming season auto-created', [
+                'season_id' => $createdSeason->id,
+                'title'     => $createdSeason->title,
+                'starts_at' => $createdSeason->starts_at?->toIso8601String(),
+                'ends_at'   => $createdSeason->ends_at?->toIso8601String(),
+            ]);
+
+            $actions[] = [
+                'type'      => 'season_auto_created',
+                'season_id' => $createdSeason->id,
+                'title'     => $createdSeason->title,
+                'starts_at' => $createdSeason->starts_at?->toIso8601String(),
+                'ends_at'   => $createdSeason->ends_at?->toIso8601String(),
             ];
         }
 

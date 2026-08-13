@@ -35,38 +35,63 @@ class SpotlightSchedulerService
     }
 
     /**
-     * Create one spotlight week for the upcoming Monday–Sunday cycle
-     * if it doesn't exist yet (manages both artist and business spotlights).
-     * Typically triggered Monday 12:00 AM by the scheduler.
+     * Create spotlight weeks for the current week AND the upcoming (next) week
+     * if they don't exist yet (manages both artist and business spotlights).
      */
     public function checkAndCreateWeeks(): array
     {
         $actions = [];
         $now     = now();
 
-        // Determine current week's Monday 12:00 AM → Sunday 11:59:59 PM
-        $monday  = $now->copy()->startOfWeek(Carbon::MONDAY)->startOfDay();
-        $sunday  = $now->copy()->endOfWeek(Carbon::SUNDAY)->endOfDay();
+        // 1. Current Week (Monday 12:00 AM → Sunday 11:59:59 PM)
+        $currentMonday = $now->copy()->startOfWeek(Carbon::MONDAY)->startOfDay();
+        $currentSunday = $now->copy()->endOfWeek(Carbon::SUNDAY)->endOfDay();
 
-        $weekNumber = (int) $monday->isoWeek();
-        $year       = (int) $monday->year;
+        $currentWeekNumber = (int) $currentMonday->isoWeek();
+        $currentYear       = (int) $currentMonday->year;
 
-        $exists = SpotlightWeek::where('week_number', $weekNumber)
-            ->where('year', $year)
+        $currentExists = SpotlightWeek::where('week_number', $currentWeekNumber)
+            ->where('year', $currentYear)
             ->exists();
 
-        if (! $exists) {
-            $week = $this->weekService->createWeek($monday->copy(), $sunday->copy());
+        if (! $currentExists) {
+            $week = $this->weekService->createWeek($currentMonday->copy(), $currentSunday->copy());
 
-            Log::info('SpotlightSchedulerService: Week auto-created', [
+            Log::info('SpotlightSchedulerService: Current week auto-created', [
                 'week_id' => $week->id,
-                'week'    => "{$year}-W{$weekNumber}",
+                'week'    => "{$currentYear}-W{$currentWeekNumber}",
             ]);
 
             $actions[] = [
                 'type'    => 'spotlight_week_created',
                 'week_id' => $week->id,
-                'week'    => "{$year}-W{$weekNumber}",
+                'week'    => "{$currentYear}-W{$currentWeekNumber}",
+            ];
+        }
+
+        // 2. Upcoming Week (Next Monday 12:00 AM → Next Sunday 11:59:59 PM)
+        $nextMonday = $currentMonday->copy()->addWeek();
+        $nextSunday = $currentSunday->copy()->addWeek();
+
+        $nextWeekNumber = (int) $nextMonday->isoWeek();
+        $nextYear       = (int) $nextMonday->year;
+
+        $nextExists = SpotlightWeek::where('week_number', $nextWeekNumber)
+            ->where('year', $nextYear)
+            ->exists();
+
+        if (! $nextExists) {
+            $nextWeek = $this->weekService->createWeek($nextMonday->copy(), $nextSunday->copy());
+
+            Log::info('SpotlightSchedulerService: Upcoming week auto-created', [
+                'week_id' => $nextWeek->id,
+                'week'    => "{$nextYear}-W{$nextWeekNumber}",
+            ]);
+
+            $actions[] = [
+                'type'    => 'spotlight_upcoming_week_created',
+                'week_id' => $nextWeek->id,
+                'week'    => "{$nextYear}-W{$nextWeekNumber}",
             ];
         }
 

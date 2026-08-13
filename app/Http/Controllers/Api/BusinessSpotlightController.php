@@ -23,20 +23,28 @@ class BusinessSpotlightController extends Controller
     /**
      * List business spotlights for the authenticated boss user.
      *
-     * Returns all non-draft spotlights owned by the currently authenticated
+     * Returns spotlights owned strictly by the currently authenticated
      * user (boss role), ordered by most recently submitted first.
      *
+     * @param  Request  $request
      * @return JsonResponse
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $user = auth()->id();
+        $userId = auth()->id();
 
-        $spotlights = BusinessSpotlight::where('user_id', $user)
-            ->where('status', '!=', 'draft')
-            ->withCount(['likers', 'bookmarkers', 'shares'])
+        $query = BusinessSpotlight::where('user_id', $userId);
+
+        if ($request->has('status') && !empty($request->input('status'))) {
+            $query->where('status', $request->input('status'));
+        } elseif (!$request->boolean('include_draft') && !$request->boolean('all')) {
+            $query->where('status', '!=', 'draft');
+        }
+
+        $spotlights = $query->withCount(['likers', 'bookmarkers', 'shares'])
             ->orderBy('submitted_at', 'desc')
-            ->paginate(15);
+            ->orderBy('id', 'desc')
+            ->paginate($request->input('per_page', 15));
 
         return $this->success('Business spotlights retrieved successfully.', [
             'spotlights' => BusinessSpotlightResource::collection($spotlights->items()),
