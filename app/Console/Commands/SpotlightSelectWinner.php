@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Spotlight\SpotlightWeek;
 use App\Services\Spotlight\SpotlightWeekService;
 use Illuminate\Console\Command;
+use Illuminate\Support\Collection;
 
 class SpotlightSelectWinner extends Command
 {
@@ -23,7 +24,7 @@ class SpotlightSelectWinner extends Command
     /**
      * The console command description.
      */
-    protected $description = 'Close voting for a spotlight week and select the winner based on votes';
+    protected $description = 'Close voting and select the winner for every spotlight week that needs one';
 
     public function handle(SpotlightWeekService $weekService): int
     {
@@ -32,30 +33,121 @@ class SpotlightSelectWinner extends Command
 
         if ($weekId) {
             $week = SpotlightWeek::find($weekId);
+
             if (! $week) {
                 $this->error("Spotlight Week #{$weekId} not found.");
                 return self::FAILURE;
             }
-        } else {
-            // Find current active voting week
-            $week = SpotlightWeek::where('status', 'voting')->latest()->first();
 
-            if (! $week) {
-                // Fallback to latest week in nominating or pending status
-                $week = SpotlightWeek::whereIn('status', ['nominating', 'pending'])->latest()->first();
-            }
+            return $this->finalizeWeek($weekService, $week, $force);
+        }
 
-            if (! $week) {
-                $this->error('No active or pending spotlight week found.');
-                return self::FAILURE;
+        return $this->finalizeAllWeeks($weekService, $force);
+    }
+
+    /**
+     * Finalize every week that still needs a winner:
+     *   - voting weeks whose voting period has ended
+     *   - completed weeks whose nominees were never finalized (no rank/winner)
+     *
+     * @param  SpotlightWeekService  $weekService
+     * @param  bool  $force
+     * @return int
+     */
+    private function finalizeAllWeeks(SpotlightWeekService $weekService, bool $force): int
+    {
+        $weeks = $this->resolveWeeksNeedingWinner($force);
+
+        if ($weeks->isEmpty()) {
+            $this->info('No spotlight weeks need winner selection — everything is up to date.');
+            return self::SUCCESS;
+        }
+
+        $this->info("Found {$weeks->count()} week(s) needing winner selection.");
+
+        $successCount = 0;
+
+        foreach ($weeks as $week) {
+            $this->newLine();
+
+            if ($this->finalizeWeek($weekService, $week, $force) === self::SUCCESS) {
+                $successCount++;
             }
         }
 
-        $this->info("Selected Spotlight Week #{$week->id} (Year {$week->year}, Week {$week->week_number})");
+        $this->newLine();
+        $this->info("Done. Winners selected for {$successCount} of {$weeks->count()} week(s).");
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * Resolve all weeks that need a winner selected.
+     *
+     * @param  bool  $force
+     * @return Collection<int, SpotlightWeek>
+     */
+    private function resolveWeeksNeedingWinner(bool $force): Collection
+    {
+        return SpotlightWeek::with('nominees')
+            ->where(function ($q) use ($force) {
+                // Voting weeks — only process them once their voting has ended
+                // (or immediately when --force is passed)
+                $q->where('status', 'voting');
+
+                if (! $force) {
+                    $q->where(function ($q2) {
+                        $q2->whereNull('voting_ends_at')
+                            ->orWhere('voting_ends_at', '<=', now());
+                    });
+                }
+            })
+            ->orWhere(function ($q) {
+                // Completed weeks that were marked completed without ever
+                // finalizing their nominees (no rank / winner assigned)
+                $q->where('status', 'completed')
+                    ->whereHas('nominees', function ($q2) {
+                        $q2->whereNull('rank')->orWhereNull('is_winner');
+                    });
+            })
+            ->orderBy('id')
+            ->get();
+    }
+
+    /**
+     * Close voting for a single week and select its winner.
+     *
+     * @param  SpotlightWeekService  $weekService
+     * @param  SpotlightWeek  $week
+     * @param  bool  $force
+     * @return int
+     */
+    private function finalizeWeek(SpotlightWeekService $weekService, SpotlightWeek $week, bool $force): int
+    {
+        $this->info("Processing Spotlight Week #{$week->id} (Year {$week->year}, Week {$week->week_number})");
         $this->line("Current Status: {$week->status}");
         $this->line("Voting Window: {$week->voting_starts_at} → {$week->voting_ends_at}");
 
-        // If week status is pending or nominating, prompt or transition
+        // A completed week whose nominees were never finalized (no rank / winner)
+        $needsFinalization = $week->status === 'completed'
+            && $week->nominees()->whereNull('rank')->orWhereNull('is_winner')->exists();
+
+        if ($week->status === 'completed' && ! $needsFinalization) {
+            $this->warn("Week #{$week->id} has already been completed.");
+
+            $winner = $week->nominees()->where('is_winner', true)->first();
+
+            if ($winner) {
+                $wName = $winner->spotlightable?->business_name
+                    ?? $winner->spotlightable?->artist_stage_name
+                    ?? "Nominee #{$winner->id}";
+                $this->info("Winner: {$wName} ({$winner->total_vote_count} votes)");
+            }
+
+            return self::SUCCESS;
+        }
+
+        // If week status is pending or nominating, require --force to proceed
         if (in_array($week->status, ['pending', 'nominating'])) {
             if ($force) {
                 $week->update(['status' => 'voting']);
@@ -66,16 +158,10 @@ class SpotlightSelectWinner extends Command
             }
         }
 
-        if ($week->status === 'completed') {
-            $this->warn("Week #{$week->id} has already been completed.");
-            $winner = $week->nominees()->where('is_winner', true)->first();
-            if ($winner) {
-                $wName = $winner->spotlightable?->business_name
-                    ?? $winner->spotlightable?->artist_stage_name
-                    ?? "Nominee #{$winner->id}";
-                $this->info("Winner: {$wName} ({$winner->total_vote_count} votes)");
-            }
-            return self::SUCCESS;
+        // Reopen a completed-but-unfinalized week so closeVoting can finalize it
+        if ($week->status === 'completed' && $needsFinalization) {
+            $week->update(['status' => 'voting']);
+            $this->info("Week was completed without a finalized winner — reopening to select the winner.");
         }
 
         // Check time condition unless --force is passed
@@ -110,6 +196,7 @@ class SpotlightSelectWinner extends Command
 
             $this->newLine();
             $this->info('Leaderboard Overview:');
+
             foreach ($result['leaderboard'] as $nominee) {
                 $nName = $nominee->spotlightable?->business_name
                     ?? $nominee->spotlightable?->artist_stage_name
