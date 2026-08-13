@@ -84,9 +84,28 @@ class LiveStreamController extends Controller
     }
 
     /**
+     * Mark the stream as live.
+     */
+    public function startLive(Request $request, $id)
+    {
+        $stream = LiveStream::findOrFail($id);
+        $stream->update(['status' => 'live']);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'status' => true,
+                'message' => 'Stream is now live.',
+                'data' => $stream,
+            ]);
+        }
+
+        return back()->with('success', 'Stream is now marked as LIVE.');
+    }
+
+    /**
      * Mark the stream as ended.
      */
-    public function endStream($id)
+    public function endStream(Request $request, $id)
     {
         $stream = LiveStream::findOrFail($id);
 
@@ -96,10 +115,31 @@ class LiveStreamController extends Controller
             
             if ($deleted) {
                 $stream->update(['status' => 'ended']);
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json([
+                        'status' => true,
+                        'message' => 'Stream has been ended and the AWS channel was deleted.',
+                        'data' => $stream,
+                    ]);
+                }
                 return back()->with('success', 'Stream has been ended and the AWS channel was deleted. The video will be saved as VOD if recording was enabled.');
             } else {
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Failed to delete AWS IVS Channel.',
+                    ], 500);
+                }
                 return back()->with('error', 'Failed to delete AWS IVS Channel.');
             }
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'status' => true,
+                'message' => 'Stream is already ended.',
+                'data' => $stream,
+            ]);
         }
 
         return back();

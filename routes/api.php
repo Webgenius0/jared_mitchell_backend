@@ -62,6 +62,7 @@ use App\Http\Controllers\Api\StripeWebhookController;
 use App\Http\Controllers\Api\SubscriptionController;
 use App\Http\Controllers\Api\WishlistController;
 use App\Http\Controllers\Api\SponsorApplicationController;
+use App\Http\Controllers\Api\LiveStreamController;
 use Illuminate\Support\Facades\Route;
 
 // health check
@@ -602,6 +603,21 @@ Route::group(['prefix' => 'v1'], function ($router) {
         Route::post('/billing-portal', [SubscriptionController::class, 'billingPortal']); // DONE: Get billing portal
     });
 
+    // live streams
+    Route::prefix('live-streams')->group(function () {
+        Route::get('/', [LiveStreamController::class, 'index']); // DONE: Get all live streams
+        Route::get('/active', [LiveStreamController::class, 'active']); // DONE: Get active live stream
+        Route::get('/{id}', [LiveStreamController::class, 'show']); // DONE: Get live stream by id
+        Route::post('/', [LiveStreamController::class, 'store']); // DONE: Create live stream
+        Route::put('/{id}', [LiveStreamController::class, 'update']); // DONE: Update live stream
+        Route::delete('/{id}', [LiveStreamController::class, 'destroy']); // DONE: Delete live stream
+        Route::post('/{id}/start', [LiveStreamController::class, 'start']); // DONE: Start live stream
+        Route::post('/{id}/stop', [LiveStreamController::class, 'stop']); // DONE: Stop live stream
+        Route::post('/{id}/pause', [LiveStreamController::class, 'pause']); // DONE: Pause live stream
+        Route::post('/{id}/resume', [LiveStreamController::class, 'resume']); // DONE: Resume live stream
+        Route::post('/{id}/restart', [LiveStreamController::class, 'restart']); // DONE: Restart live stream
+        Route::post('/{id}/end', [LiveStreamController::class, 'end']); // DONE: End live stream
+    });
 
 });
 

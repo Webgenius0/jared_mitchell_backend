@@ -53,6 +53,17 @@
 <script>
     let client;
 
+    function updateBackendStatus(url) {
+        return fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        }).then(res => res.json());
+    }
+
     async function initBroadcastClient() {
         if (!window.IVSBroadcastClient) {
             console.error("IVS Web Broadcast SDK not loaded");
@@ -65,8 +76,6 @@
         // The SDK expects a valid RTMPS or HTTPS URL (e.g. 'rtmps://<ingest-server>')
         client = IVSBroadcastClient.create({
             streamConfig: IVSBroadcastClient.STANDARD_LANDSCAPE,
-            // $stream->ingest_endpoint is saved as "rtmps://something:443/app/" 
-            // The SDK expects "rtmps://something" or "https://something"
             ingestEndpoint: "{{ $stream->ingest_endpoint }}", 
         });
 
@@ -109,6 +118,11 @@
                 document.getElementById('status').className = "text-success fw-bold";
                 document.getElementById('btn-start').classList.add('d-none');
                 document.getElementById('btn-stop').classList.remove('d-none');
+
+                // Sync status with backend database
+                updateBackendStatus("{{ route('live-streams.start-live', $stream->id) }}")
+                    .then(data => console.log("Backend status updated to LIVE", data))
+                    .catch(err => console.error("Failed to update backend live status", err));
             })
             .catch((err) => {
                 console.error("Failed to start broadcast", err);
@@ -120,10 +134,15 @@
         if (!client) return;
 
         client.stopBroadcast();
-        document.getElementById('status').innerText = "STOPPED";
+        document.getElementById('status').innerText = "STOPPED / ENDED";
         document.getElementById('status').className = "text-danger fw-bold";
         document.getElementById('btn-stop').classList.add('d-none');
         document.getElementById('btn-start').classList.remove('d-none');
+
+        // Sync status with backend database
+        updateBackendStatus("{{ route('live-streams.end', $stream->id) }}")
+            .then(data => console.log("Backend status updated to ENDED", data))
+            .catch(err => console.error("Failed to update backend ended status", err));
     }
 
     // Initialize on page load
