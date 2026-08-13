@@ -39,8 +39,19 @@ class V2VoteService
         $contestable = $contestant->contestable;
         if ($contestable && method_exists($contestable, 'user_id') === false && isset($contestable->user_id)) {
             if ($contestable->user_id === $user->id) {
-                return ['success' => false, 'message' => 'You cannot vote for your own entry.'];
+                return ['success' => false, 'message' => 'You cannot vote for your own business.'];
             }
+        }
+
+        // Prevent double voting for the same business in the same round
+        $alreadyVoted = Vote::where('user_id', $user->id)
+            ->where('round_id', $round->id)
+            ->where('votable_type', Contestant::class)
+            ->where('votable_id', $contestant->id)
+            ->exists();
+
+        if ($alreadyVoted) {
+            return ['success' => false, 'message' => 'You have already voted for this business in this round.'];
         }
 
         $categories = $round->advancement_config['categories'] ?? [];

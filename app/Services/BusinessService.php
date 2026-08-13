@@ -161,6 +161,15 @@ class BusinessService
             }
         }
 
+        // Delete existing media files when new files are uploaded
+        if (request()->hasFile('photo_video')) {
+            $existingMedia = BusinessMedia::where('business_id', $business->id)->get();
+            foreach ($existingMedia as $media) {
+                Storage::disk('public')->delete($media->file_path);
+                $media->delete();
+            }
+        }
+
         // Append newly uploaded files
         $this->storeMediaFiles($business);
 

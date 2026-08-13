@@ -62,6 +62,48 @@ class VoteService
             ];
         }
 
+        // Prevent self-voting (business owner voting for own business)
+        if ($votableType === \App\Models\Contest\Contestant::class) {
+            $contestant = \App\Models\Contest\Contestant::find($votableId);
+            if ($contestant) {
+                $contestable = $contestant->contestable;
+                if ($contestable && isset($contestable->user_id) && $contestable->user_id === $user->id) {
+                    return [
+                        'success' => false,
+                        'message' => 'You cannot vote for your own business.',
+                        'vote'    => null,
+                        'action'  => 'none',
+                    ];
+                }
+            }
+        } elseif ($votableType === \App\Models\Business::class) {
+            $business = \App\Models\Business::find($votableId);
+            if ($business && isset($business->user_id) && $business->user_id === $user->id) {
+                return [
+                    'success' => false,
+                    'message' => 'You cannot vote for your own business.',
+                    'vote'    => null,
+                    'action'  => 'none',
+                ];
+            }
+        }
+
+        // Prevent double voting for the same business in the same round
+        $alreadyVoted = Vote::where('user_id', $user->id)
+            ->where('round_id', $round->id)
+            ->where('votable_type', $votableType)
+            ->where('votable_id', $votableId)
+            ->exists();
+
+        if ($alreadyVoted) {
+            return [
+                'success' => false,
+                'message' => 'You have already voted for this business in this round.',
+                'vote'    => null,
+                'action'  => 'none',
+            ];
+        }
+
         // 4. Check per-user vote limit for this round
         $userVoteCount = Vote::where('user_id', $user->id)
             ->where('round_id', $round->id)
