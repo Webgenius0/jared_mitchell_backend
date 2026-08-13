@@ -239,6 +239,8 @@ class SpotlightWeekController extends Controller
         $perPage = $validated['per_page'] ?? 10;
         $sixMonthsAgo = now()->subMonths(6);
 
+        // Note: the type filter is intentionally not applied so that
+        // ?type=artist and ?type=business return the exact same winner list.
         $query = SpotlightWeekNominee::where('is_winner', true)
             ->whereHas('week', function ($q) use ($sixMonthsAgo) {
                 $q->where('status', 'completed')
@@ -247,12 +249,6 @@ class SpotlightWeekController extends Controller
                             ->orWhereNull('voting_ends_at');
                     });
             });
-
-        if ($type === 'artist') {
-            $query->where('spotlightable_type', ArtistSpotlight::class);
-        } elseif ($type === 'business') {
-            $query->where('spotlightable_type', BusinessSpotlight::class);
-        }
 
         $winners = $query->with(['spotlightable', 'week', 'user.profile'])
             ->orderByRaw('(SELECT voting_ends_at FROM spotlight_weeks WHERE id = spotlight_week_nominees.spotlight_week_id LIMIT 1) DESC')
@@ -504,41 +500,30 @@ class SpotlightWeekController extends Controller
      */
     private function formatSpotlightMedia($spotlight, bool $isArtist): array
     {
-        $media = [];
-
         if ($isArtist) {
-            if ($spotlight->headshot_path) {
-                $media['headshot'] = $this->formatImageUrl($spotlight->headshot_path);
-            }
-            if ($spotlight->artwork_photo_paths && is_array($spotlight->artwork_photo_paths)) {
-                $media['artwork_photos'] = array_values(
-                    array_filter(array_map([$this, 'formatImageUrl'], $spotlight->artwork_photo_paths))
-                );
-            }
-            if ($spotlight->behind_scenes_photo_path) {
-                $media['behind_scenes_photo'] = $this->formatImageUrl($spotlight->behind_scenes_photo_path);
-            }
-            if ($spotlight->intro_video_path) {
-                $media['intro_video'] = $this->formatImageUrl($spotlight->intro_video_path);
-            }
+            $headshot        = $spotlight->headshot_path ? $this->formatImageUrl($spotlight->headshot_path) : null;
+            $artworkPhotos   = $spotlight->artwork_photo_paths && is_array($spotlight->artwork_photo_paths)
+                ? array_values(array_filter(array_map([$this, 'formatImageUrl'], $spotlight->artwork_photo_paths)))
+                : [];
+            $behindScenes    = $spotlight->behind_scenes_photo_path ? $this->formatImageUrl($spotlight->behind_scenes_photo_path) : null;
+            $introVideo      = $spotlight->intro_video_path ? $this->formatImageUrl($spotlight->intro_video_path) : null;
         } else {
-            if ($spotlight->portrait_photo_path) {
-                $media['portrait_photo'] = $this->formatImageUrl($spotlight->portrait_photo_path);
-            }
-            if ($spotlight->storefront_workspace_photo_path) {
-                $media['storefront_workspace_photo'] = $this->formatImageUrl($spotlight->storefront_workspace_photo_path);
-            }
-            if ($spotlight->product_service_photo_paths && is_array($spotlight->product_service_photo_paths)) {
-                $media['product_service_photos'] = array_values(
-                    array_filter(array_map([$this, 'formatImageUrl'], $spotlight->product_service_photo_paths))
-                );
-            }
-            if ($spotlight->team_photo_path) {
-                $media['team_photo'] = $this->formatImageUrl($spotlight->team_photo_path);
-            }
+            // Map business photos onto the same key names as artist so both
+            // responses have an identical structure.
+            $headshot        = $spotlight->portrait_photo_path ? $this->formatImageUrl($spotlight->portrait_photo_path) : null;
+            $artworkPhotos   = $spotlight->product_service_photo_paths && is_array($spotlight->product_service_photo_paths)
+                ? array_values(array_filter(array_map([$this, 'formatImageUrl'], $spotlight->product_service_photo_paths)))
+                : [];
+            $behindScenes    = $spotlight->storefront_workspace_photo_path ? $this->formatImageUrl($spotlight->storefront_workspace_photo_path) : null;
+            $introVideo      = null;
         }
 
-        return $media;
+        return [
+            'headshot'            => $headshot,
+            'artwork_photos'      => $artworkPhotos,
+            'behind_scenes_photo' => $behindScenes,
+            'intro_video'         => $introVideo,
+        ];
     }
 
     /**
