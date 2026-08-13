@@ -288,7 +288,7 @@ class LiveStreamController extends Controller
                 ], 404);
             }
             $liveStream->update([
-                'status' => 'ended',
+                'status' => 'pending',
             ]);
             return response()->json([
                 'status' => true,

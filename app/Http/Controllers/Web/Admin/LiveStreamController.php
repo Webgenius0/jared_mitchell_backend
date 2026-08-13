@@ -103,6 +103,25 @@ class LiveStreamController extends Controller
     }
 
     /**
+     * Mark the stream as pending (stopped broadcast).
+     */
+    public function stopLive(Request $request, $id)
+    {
+        $stream = LiveStream::findOrFail($id);
+        $stream->update(['status' => 'pending']);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'status' => true,
+                'message' => 'Stream broadcast stopped and status marked as pending.',
+                'data' => $stream,
+            ]);
+        }
+
+        return back()->with('success', 'Stream broadcast stopped and status marked as PENDING.');
+    }
+
+    /**
      * Get live statistics (viewer count & status) for admin broadcast view
      */
     public function stats($id)

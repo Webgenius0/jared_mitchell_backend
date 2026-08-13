@@ -137,15 +137,15 @@
         if (!client) return;
 
         client.stopBroadcast();
-        document.getElementById('status').innerText = "STOPPED / ENDED";
-        document.getElementById('status').className = "text-danger fw-bold";
+        document.getElementById('status').innerText = "STOPPED (PENDING)";
+        document.getElementById('status').className = "text-warning fw-bold";
         document.getElementById('btn-stop').classList.add('d-none');
         document.getElementById('btn-start').classList.remove('d-none');
 
         // Sync status with backend database
-        updateBackendStatus("{{ route('live-streams.end', $stream->id) }}")
-            .then(data => console.log("Backend status updated to ENDED", data))
-            .catch(err => console.error("Failed to update backend ended status", err));
+        updateBackendStatus("{{ route('live-streams.stop-live', $stream->id) }}")
+            .then(data => console.log("Backend status updated to PENDING", data))
+            .catch(err => console.error("Failed to update backend pending status", err));
     }
 
     function fetchLiveStats() {

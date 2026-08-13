@@ -65,6 +65,7 @@ Route::resource('live-streams', LiveStreamController::class);
 Route::get('live-streams/{id}/broadcast', [LiveStreamController::class, 'broadcast'])->name('live-streams.broadcast');
 Route::get('live-streams/{id}/stats', [LiveStreamController::class, 'stats'])->name('live-streams.stats');
 Route::post('live-streams/{id}/start-live', [LiveStreamController::class, 'startLive'])->name('live-streams.start-live');
+Route::post('live-streams/{id}/stop-live', [LiveStreamController::class, 'stopLive'])->name('live-streams.stop-live');
 Route::post('live-streams/{id}/end', [LiveStreamController::class, 'endStream'])->name('live-streams.end');
 // });
 
