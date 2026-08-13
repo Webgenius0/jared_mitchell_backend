@@ -390,7 +390,7 @@ class EventController extends Controller
      */
     public function toggleLike($id): JsonResponse
     {
-        $user = auth()->user();
+        $user = auth('api')->user();
         $event = Event::findOrFail($id);
 
         $exists = $user->likedEvents()->where('event_id', $id)->exists();
@@ -413,7 +413,7 @@ class EventController extends Controller
      */
     public function toggleBookmark($id): JsonResponse
     {
-        $user = auth()->user();
+        $user = auth('api')->user();
         $event = Event::findOrFail($id);
 
         $exists = $user->bookmarkedEvents()->where('event_id', $id)->exists();
@@ -436,7 +436,7 @@ class EventController extends Controller
      */
     public function recordShare(Request $request, $id): JsonResponse
     {
-        $user = auth()->user();
+        $user = auth('api')->user();
         $event = Event::findOrFail($id);
 
         $event->shares()->create([
