@@ -58,6 +58,13 @@
                                                 @if($stream->status !== 'ended')
                                                 <a href="{{ route('live-streams.broadcast', $stream->id) }}" class="btn btn-sm btn-success">Web Broadcast</a>
                                                 
+                                                @if($stream->status !== 'live')
+                                                <form action="{{ route('live-streams.start-live', $stream->id) }}" method="POST">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-sm btn-primary">Mark Live</button>
+                                                </form>
+                                                @endif
+
                                                 <form action="{{ route('live-streams.end', $stream->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to end this stream?');">
                                                     @csrf
                                                     <button type="submit" class="btn btn-sm btn-danger">End Stream</button>

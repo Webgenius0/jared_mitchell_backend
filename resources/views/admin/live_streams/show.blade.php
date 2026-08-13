@@ -24,10 +24,38 @@
         @endif
 
         <div class="row mb-4">
-            <div class="col-12">
-                <a href="{{ route('live-streams.broadcast', $stream->id) }}" class="btn btn-success btn-lg shadow-sm">
-                    <i class="ri-vidicon-line me-2 align-middle"></i> Start Web Broadcast (Browser)
-                </a>
+            <div class="col-12 d-flex gap-2 align-items-center justify-content-between flex-wrap">
+                <div class="d-flex gap-2 align-items-center flex-wrap">
+                    @if($stream->status !== 'ended')
+                        <a href="{{ route('live-streams.broadcast', $stream->id) }}" class="btn btn-success btn-lg shadow-sm">
+                            <i class="ri-vidicon-line me-2 align-middle"></i> Start Web Broadcast (Browser)
+                        </a>
+
+                        @if($stream->status !== 'live')
+                            <form action="{{ route('live-streams.start-live', $stream->id) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="btn btn-primary btn-lg shadow-sm">
+                                    <i class="ri-live-line me-2 align-middle"></i> Mark Status as LIVE
+                                </button>
+                            </form>
+                        @else
+                            <span class="badge bg-success fs-6 py-2 px-3 align-middle"><i class="ri-radio-button-line me-1"></i> STATUS: LIVE</span>
+                        @endif
+
+                        <form action="{{ route('live-streams.end', $stream->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to end this stream?');">
+                            @csrf
+                            <button type="submit" class="btn btn-danger btn-lg shadow-sm">
+                                <i class="ri-stop-circle-line me-2 align-middle"></i> End Stream
+                            </button>
+                        </form>
+                    @else
+                        <span class="badge bg-secondary fs-6 py-2 px-3"><i class="ri-checkbox-circle-line me-1"></i> STATUS: ENDED</span>
+                    @endif
+                </div>
+
+                <div class="badge bg-primary fs-6 px-3 py-2 shadow-sm">
+                    <i class="ri-user-line me-1"></i> Live Viewers: <span id="viewer-count" class="fw-bold">0</span>
+                </div>
             </div>
         </div>
 
@@ -107,6 +135,20 @@
             backgroundColor: "linear-gradient(to right, #00b09b, #96c93d)",
         }).showToast();
     }
+
+    function fetchLiveStats() {
+        fetch("{{ route('live-streams.stats', $stream->id) }}")
+            .then(res => res.json())
+            .then(data => {
+                if (data.status) {
+                    document.getElementById('viewer-count').innerText = data.viewer_count;
+                }
+            })
+            .catch(err => console.error("Failed to fetch viewer count", err));
+    }
+
+    setInterval(fetchLiveStats, 5000);
+    fetchLiveStats();
 </script>
 @endpush
 @endsection

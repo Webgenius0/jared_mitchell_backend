@@ -84,9 +84,83 @@ class LiveStreamController extends Controller
     }
 
     /**
+     * Mark the stream as live.
+     */
+    public function startLive(Request $request, $id)
+    {
+        $stream = LiveStream::findOrFail($id);
+        $stream->update(['status' => 'live']);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'status' => true,
+                'message' => 'Stream is now live.',
+                'data' => $stream,
+            ]);
+        }
+
+        return back()->with('success', 'Stream is now marked as LIVE.');
+    }
+
+    /**
+     * Mark the stream as pending (stopped broadcast).
+     */
+    public function stopLive(Request $request, $id)
+    {
+        $stream = LiveStream::findOrFail($id);
+        $stream->update(['status' => 'pending']);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'status' => true,
+                'message' => 'Stream broadcast stopped and status marked as pending.',
+                'data' => $stream,
+            ]);
+        }
+
+        return back()->with('success', 'Stream broadcast stopped and status marked as PENDING.');
+    }
+
+    /**
+     * Get live statistics (viewer count & status) for admin broadcast view
+     */
+    public function stats($id)
+    {
+        $stream = LiveStream::findOrFail($id);
+
+        $activeViewersListKey = "live_stream_{$id}_active_viewers";
+        $activeViewers = \Illuminate\Support\Facades\Cache::get($activeViewersListKey, []);
+        $currentTime = now()->timestamp;
+
+        $activeViewers = array_filter($activeViewers, function ($timestamp) use ($currentTime) {
+            return ($currentTime - $timestamp) <= 30;
+        });
+
+        $heartbeatCount = count($activeViewers);
+        $awsViewerCount = 0;
+
+        if ($stream->channel_arn) {
+            $ivsDetail = $this->ivsService->getStreamDetail($stream->channel_arn);
+            if ($ivsDetail && isset($ivsDetail['viewer_count'])) {
+                $awsViewerCount = (int) $ivsDetail['viewer_count'];
+            }
+        }
+
+        $totalViewers = max($awsViewerCount, $heartbeatCount);
+
+        return response()->json([
+            'status' => true,
+            'viewer_count' => $totalViewers,
+            'aws_viewer_count' => $awsViewerCount,
+            'heartbeat_viewer_count' => $heartbeatCount,
+            'stream_status' => $stream->status,
+        ]);
+    }
+
+    /**
      * Mark the stream as ended.
      */
-    public function endStream($id)
+    public function endStream(Request $request, $id)
     {
         $stream = LiveStream::findOrFail($id);
 
@@ -96,10 +170,31 @@ class LiveStreamController extends Controller
             
             if ($deleted) {
                 $stream->update(['status' => 'ended']);
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json([
+                        'status' => true,
+                        'message' => 'Stream has been ended and the AWS channel was deleted.',
+                        'data' => $stream,
+                    ]);
+                }
                 return back()->with('success', 'Stream has been ended and the AWS channel was deleted. The video will be saved as VOD if recording was enabled.');
             } else {
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Failed to delete AWS IVS Channel.',
+                    ], 500);
+                }
                 return back()->with('error', 'Failed to delete AWS IVS Channel.');
             }
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'status' => true,
+                'message' => 'Stream is already ended.',
+                'data' => $stream,
+            ]);
         }
 
         return back();

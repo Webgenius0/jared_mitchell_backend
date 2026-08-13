@@ -19,10 +19,13 @@
         <div class="row justify-content-center">
             <div class="col-xl-9 col-lg-10">
                 <div class="card">
-                    <div class="card-header text-center">
+                    <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0">
                             Status: <span id="status" class="text-secondary fw-bold">INITIALIZING...</span>
                         </h5>
+                        <div class="badge bg-primary fs-6 px-3 py-2">
+                            <i class="ri-user-line me-1"></i> Live Viewers: <span id="viewer-count" class="fw-bold">0</span>
+                        </div>
                     </div>
                     <div class="card-body text-center">
                         <div class="ratio ratio-16x9 bg-dark mb-4 mx-auto rounded shadow-sm" style="max-width: 800px;">
@@ -53,6 +56,17 @@
 <script>
     let client;
 
+    function updateBackendStatus(url) {
+        return fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        }).then(res => res.json());
+    }
+
     async function initBroadcastClient() {
         if (!window.IVSBroadcastClient) {
             console.error("IVS Web Broadcast SDK not loaded");
@@ -65,8 +79,6 @@
         // The SDK expects a valid RTMPS or HTTPS URL (e.g. 'rtmps://<ingest-server>')
         client = IVSBroadcastClient.create({
             streamConfig: IVSBroadcastClient.STANDARD_LANDSCAPE,
-            // $stream->ingest_endpoint is saved as "rtmps://something:443/app/" 
-            // The SDK expects "rtmps://something" or "https://something"
             ingestEndpoint: "{{ $stream->ingest_endpoint }}", 
         });
 
@@ -109,6 +121,11 @@
                 document.getElementById('status').className = "text-success fw-bold";
                 document.getElementById('btn-start').classList.add('d-none');
                 document.getElementById('btn-stop').classList.remove('d-none');
+
+                // Sync status with backend database
+                updateBackendStatus("{{ route('live-streams.start-live', $stream->id) }}")
+                    .then(data => console.log("Backend status updated to LIVE", data))
+                    .catch(err => console.error("Failed to update backend live status", err));
             })
             .catch((err) => {
                 console.error("Failed to start broadcast", err);
@@ -120,11 +137,31 @@
         if (!client) return;
 
         client.stopBroadcast();
-        document.getElementById('status').innerText = "STOPPED";
-        document.getElementById('status').className = "text-danger fw-bold";
+        document.getElementById('status').innerText = "STOPPED (PENDING)";
+        document.getElementById('status').className = "text-warning fw-bold";
         document.getElementById('btn-stop').classList.add('d-none');
         document.getElementById('btn-start').classList.remove('d-none');
+
+        // Sync status with backend database
+        updateBackendStatus("{{ route('live-streams.stop-live', $stream->id) }}")
+            .then(data => console.log("Backend status updated to PENDING", data))
+            .catch(err => console.error("Failed to update backend pending status", err));
     }
+
+    function fetchLiveStats() {
+        fetch("{{ route('live-streams.stats', $stream->id) }}")
+            .then(res => res.json())
+            .then(data => {
+                if (data.status) {
+                    document.getElementById('viewer-count').innerText = data.viewer_count;
+                }
+            })
+            .catch(err => console.error("Failed to fetch viewer count", err));
+    }
+
+    // Auto-poll viewer count every 5 seconds
+    setInterval(fetchLiveStats, 5000);
+    fetchLiveStats();
 
     // Initialize on page load
     window.onload = initBroadcastClient;
