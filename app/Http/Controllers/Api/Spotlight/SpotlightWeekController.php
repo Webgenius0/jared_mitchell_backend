@@ -225,33 +225,38 @@ class SpotlightWeekController extends Controller
      * Get past 6 months of announced winners, filtered by spotlight type.
      * Public — no auth required.
      *
-     * @queryParam type string Required. Either 'artist' or 'business'. Filter winners by spotlight type.
+     * @queryParam type string Optional. 'artist', 'business', or 'all' (default). Filter winners by spotlight type.
      * @queryParam per_page int Optional. Items per page (default 10).
      */
     public function historicalWinners(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'type'     => ['required', 'string', 'in:artist,business'],
+            'type'     => ['sometimes', 'string', 'in:artist,business,all'],
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:50'],
         ]);
 
-        $type = $validated['type'];
+        $type = $validated['type'] ?? 'all';
         $perPage = $validated['per_page'] ?? 10;
-        $spotlightableType = $type === 'artist'
-            ? ArtistSpotlight::class
-            : BusinessSpotlight::class;
-
         $sixMonthsAgo = now()->subMonths(6);
 
-        $winners = SpotlightWeekNominee::where('is_winner', true)
-            ->where('spotlightable_type', $spotlightableType)
+        $query = SpotlightWeekNominee::where('is_winner', true)
             ->whereHas('week', function ($q) use ($sixMonthsAgo) {
                 $q->where('status', 'completed')
-                    ->whereNotNull('announced_at')
-                    ->where('voting_ends_at', '>=', $sixMonthsAgo);
-            })
-            ->with(['spotlightable', 'week', 'user.profile'])
+                    ->where(function ($w) use ($sixMonthsAgo) {
+                        $w->where('voting_ends_at', '>=', $sixMonthsAgo)
+                            ->orWhereNull('voting_ends_at');
+                    });
+            });
+
+        if ($type === 'artist') {
+            $query->where('spotlightable_type', ArtistSpotlight::class);
+        } elseif ($type === 'business') {
+            $query->where('spotlightable_type', BusinessSpotlight::class);
+        }
+
+        $winners = $query->with(['spotlightable', 'week', 'user.profile'])
             ->orderByRaw('(SELECT voting_ends_at FROM spotlight_weeks WHERE id = spotlight_week_nominees.spotlight_week_id LIMIT 1) DESC')
+            ->orderBy('id', 'desc')
             ->paginate($perPage);
 
         $data = collect($winners->items())->map(function ($nominee) {
@@ -259,9 +264,9 @@ class SpotlightWeekController extends Controller
         });
 
         return $this->success("Past 6 months {$type} spotlight winners retrieved.", [
-            'type'    => $type,
-            'total'   => $winners->total(),
-            'winners' => $data,
+            'type'       => $type,
+            'total'      => $winners->total(),
+            'winners'    => $data,
             'pagination' => [
                 'current_page' => $winners->currentPage(),
                 'per_page'     => (int) $winners->perPage(),
