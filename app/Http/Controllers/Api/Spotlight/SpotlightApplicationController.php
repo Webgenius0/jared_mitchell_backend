@@ -25,42 +25,30 @@ class SpotlightApplicationController extends Controller
      */
     public function openWeeks(): JsonResponse
     {
-        $weeks = SpotlightWeek::whereIn('status', ['pending', 'nominating'])
-            ->where('voting_starts_at', '>', now())
-            ->latest('voting_starts_at')
-            ->get()
-            ->map(fn($week) => [
-                'id' => $week->id,
-                'week_number' => $week->week_number,
-                'year' => $week->year,
-                'status' => $week->status,
-                'is_accepting_applications' => $week->isAcceptingApplications(),
-                'voting_starts_at' => $week->voting_starts_at,
-                'voting_ends_at' => $week->voting_ends_at,
-            ]);
+        // Get the single current week open for nominations/applications right now
+        $week = SpotlightWeek::where('status', 'nominating')
+            ->orderBy('id', 'asc')
+            ->first();
 
-        // $activeEvent = \App\Models\Event::where('status', 'published')
-        //     ->with('sponsors')
-        //     ->latest('starts_at')
-        //     ->first();
+        if (! $week) {
+            $week = SpotlightWeek::where('status', 'pending')
+                ->orderBy('id', 'asc')
+                ->first();
+        }
 
-        // $eventData = null;
-        // if ($activeEvent) {
-        //     $eventData = [
-        //         'id' => $activeEvent->id,
-        //         'title' => $activeEvent->title,
-        //         'sponsors' => $activeEvent->sponsors->map(fn($sponsor) => [
-        //             'id' => $sponsor->id,
-        //             'name' => $sponsor->name,
-        //             'logo' => $sponsor->logo ? asset($sponsor->logo) : null,
-        //             'url' => $sponsor->url,
-        //         ])
-        //     ];
-        // }
+        $weekData = $week ? [
+            'id'                        => $week->id,
+            'week_number'               => $week->week_number,
+            'year'                      => $week->year,
+            'status'                    => $week->status,
+            'is_accepting_applications' => $week->isAcceptingApplications(),
+            'voting_starts_at'          => $week->voting_starts_at,
+            'voting_ends_at'            => $week->voting_ends_at,
+        ] : null;
 
-        return $this->success('Open spotlight weeks retrieved.', [
-            'weeks' => $weeks,
-            // 'active_event' => $eventData
+        return $this->success('Open spotlight week retrieved.', [
+            'week'  => $weekData,
+            'weeks' => $weekData ? [$weekData] : [],
         ]);
     }
 

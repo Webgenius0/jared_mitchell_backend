@@ -94,6 +94,9 @@ class EliminationService
             $round->update(['is_active' => false]);
 
             $nextRound = $this->findNextRound($round);
+            if ($nextRound) {
+                $nextRound->update(['is_active' => true]);
+            }
 
             foreach ($result['advanced'] as $data) {
                 $contestant = Contestant::find($data['contestant_id']);

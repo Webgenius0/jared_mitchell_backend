@@ -4,6 +4,7 @@ namespace App\Services\Contest;
 
 use App\Models\Contest\Season;
 use App\Models\Round;
+use App\Models\Setting;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -108,9 +109,12 @@ class AutoSeasonBuilderService
                 ->first();
 
             $now = Carbon::now();
+            $adminStartDate = Setting::current()?->boss_beginnings_start_date;
 
             if ($latestSeason && $latestSeason->ends_at && $latestSeason->ends_at->isAfter($now)) {
                 $seasonStartsAt = $latestSeason->ends_at->copy();
+            } elseif ($adminStartDate && $adminStartDate->isAfter($now)) {
+                $seasonStartsAt = $adminStartDate->copy();
             } else {
                 $seasonStartsAt = $now->copy();
             }

@@ -37,6 +37,8 @@ class GeneralSettingsController extends Controller
             'author_url'  => ['nullable', 'url', 'max:255'],
             'copyright'   => ['nullable', 'string', 'max:255'],
             'about'       => ['nullable', 'string', 'max:1000'],
+            'boss_beginnings_start_date' => ['nullable', 'date'],
+            'spotlight_start_date'       => ['nullable', 'date'],
         ], [
             'app_name.required' => 'Application name is required.',
             'author_url.url'    => 'Author URL must be a valid URL.',
@@ -52,6 +54,8 @@ class GeneralSettingsController extends Controller
             'author_url',
             'copyright',
             'about',
+            'boss_beginnings_start_date',
+            'spotlight_start_date',
         ]));
 
         return $this->success('General settings updated successfully.');

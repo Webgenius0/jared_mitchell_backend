@@ -41,11 +41,13 @@ class SpotlightSchedulerService
     public function checkAndCreateWeeks(): array
     {
         $actions = [];
-        $now     = now();
+        $now = now();
+        $adminSpotlightStart = \App\Models\Setting::current()?->spotlight_start_date;
+        $baseDate = ($adminSpotlightStart && $adminSpotlightStart->isAfter($now)) ? $adminSpotlightStart->copy() : $now->copy();
 
         // 1. Current Week (Monday 12:00 AM → Sunday 11:59:59 PM)
-        $currentMonday = $now->copy()->startOfWeek(Carbon::MONDAY)->startOfDay();
-        $currentSunday = $now->copy()->endOfWeek(Carbon::SUNDAY)->endOfDay();
+        $currentMonday = $baseDate->copy()->startOfWeek(Carbon::MONDAY)->startOfDay();
+        $currentSunday = $baseDate->copy()->endOfWeek(Carbon::SUNDAY)->endOfDay();
 
         $currentWeekNumber = (int) $currentMonday->isoWeek();
         $currentYear       = (int) $currentMonday->year;
@@ -115,13 +117,15 @@ class SpotlightSchedulerService
             ->get();
 
         foreach ($overdueNominating as $week) {
-            Log::warning('SpotlightSchedulerService: Week is overdue for nominee selection', [
+            $week->update(['status' => 'voting']);
+
+            Log::info('SpotlightSchedulerService: Week automatically opened for voting', [
                 'week_id' => $week->id,
                 'started' => $week->voting_starts_at,
             ]);
 
             $actions[] = [
-                'type'    => 'spotlight_week_overdue_nominating',
+                'type'    => 'spotlight_week_opened_for_voting',
                 'week_id' => $week->id,
             ];
         }
@@ -160,9 +164,9 @@ class SpotlightSchedulerService
             ->get();
 
         foreach ($expiredWeeks as $week) {
-            CloseSpotlightVoting::dispatch($week->id);
+            CloseSpotlightVoting::dispatchSync($week->id);
 
-            Log::info('SpotlightSchedulerService: Closing voting dispatched', [
+            Log::info('SpotlightSchedulerService: Closing voting dispatched and executed', [
                 'week_id' => $week->id,
             ]);
 

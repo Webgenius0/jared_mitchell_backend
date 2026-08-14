@@ -36,37 +36,61 @@ class ContestApplicationController extends Controller
      */
     public function activeRoundSession(): JsonResponse
     {
-        $season = $this->contestApplicationService->nextUpcomingSeason();
+        $now = now();
 
+        // 1. Find a season whose application window is currently open (now <= applications_ends_at / starts_at)
+        $season = Season::query()
+            ->where(function ($q) use ($now) {
+                $q->where('status', 'open')
+                  ->orWhere(function ($q2) use ($now) {
+                      $q2->where('is_active', true)
+                         ->where(function ($q3) use ($now) {
+                             $q3->where('applications_ends_at', '>=', $now)
+                                ->orWhere('starts_at', '>', $now);
+                         });
+                  });
+            })
+            ->where(function ($q) use ($now) {
+                $q->where('status', 'open')
+                  ->orWhereNull('applications_starts_at')
+                  ->orWhere('applications_starts_at', '<=', $now);
+            })
+            ->orderBy('starts_at', 'asc')
+            ->first();
+
+        // 2. If application window for current season has passed, get next upcoming season
         if (!$season) {
-            return $this->error(null, 'No upcoming session found.', 200);
+            $season = $this->contestApplicationService->nextUpcomingSeason();
         }
 
-        $now = now();
+        // 3. Fallback to active season if no upcoming season exists
+        if (!$season) {
+            $season = Season::active();
+        }
+
+        if (!$season) {
+            return $this->error(null, 'No active or upcoming session found.', 200);
+        }
 
         $rounds = $season->rounds()
             ->orderBy('round_number')
             ->get()
             ->map(function ($round) use ($now) {
+                $isOpen = (bool) ($round->is_active || ($round->starts_at && $round->ends_at && $now->between($round->starts_at, $round->ends_at)));
+
                 return [
                     'id' => $round->id,
                     'round_number' => $round->round_number,
                     'title' => $round->title,
-                    'is_active' => $round->is_active,
-                    // A round session is "open" when it is active AND its time
-                    // window currently covers now().
-                    'is_open' => $round->is_active
-                        && $round->starts_at
-                        && $round->ends_at
-                        && $now->between($round->starts_at, $round->ends_at),
+                    'is_active' => (bool) $round->is_active,
+                    'is_open' => $isOpen,
                     'starts_at' => $round->starts_at,
                     'ends_at' => $round->ends_at,
                     'voting_ends_at' => $round->voting_ends_at,
                 ];
             });
 
-        // Only an actually-open round is reported as current — a future session
-        // has no running round yet, so this stays null until one opens.
+        // Currently running / open round session
         $currentRound = $rounds->firstWhere('is_open', true);
 
         return $this->success(
@@ -83,7 +107,6 @@ class ContestApplicationController extends Controller
                 'applications_ends_at' => $season->applications_ends_at,
                 'starts_at' => $season->starts_at,
                 'ends_at' => $season->ends_at,
-                // Currently running / open round session (like spotlight weeks/open).
                 'current_round' => $currentRound,
                 'rounds' => $rounds->all(),
             ]

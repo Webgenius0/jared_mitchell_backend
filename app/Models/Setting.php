@@ -21,6 +21,8 @@ class Setting extends Model
         'maintenance_mode'            => 'boolean',
         'registration_enabled'        => 'boolean',
         'email_verification_required' => 'boolean',
+        'boss_beginnings_start_date'  => 'datetime',
+        'spotlight_start_date'        => 'datetime',
     ];
 
     /*

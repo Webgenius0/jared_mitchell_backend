@@ -194,9 +194,14 @@ class SchedulerService
             ->get();
 
         foreach ($rounds as $round) {
-            OpenRoundForSubmissions::dispatch($round);
+            $round->update([
+                'is_active' => true,
+                'starts_at' => $round->starts_at ?? now(),
+            ]);
 
-            Log::info('Scheduler: Round opening dispatched', [
+            OpenRoundForSubmissions::dispatchSync($round);
+
+            Log::info('Scheduler: Round opening dispatched and activated', [
                 'round_id'     => $round->id,
                 'round_number' => $round->round_number,
             ]);
@@ -218,21 +223,22 @@ class SchedulerService
     {
         $actions = [];
 
-        $endedRounds = Round::ended()->get();
+        // Find active rounds whose ends_at time has passed (ends_at <= now)
+        $endedRounds = Round::where('is_active', true)
+            ->whereNotNull('ends_at')
+            ->where('ends_at', '<=', now())
+            ->get();
 
-        if ($endedRounds->isNotEmpty()) {
-            // Dispatch the batch elimination job which handles individual round transitions
-            AutoProcessEliminations::dispatch();
+        foreach ($endedRounds as $round) {
+            // Process elimination for this specific round: sets current round is_active=false and activates next round
+            ProcessRoundTransition::dispatchSync($round);
 
-            Log::info('Scheduler: Ended rounds found, dispatching eliminations', [
-                'round_count' => $endedRounds->count(),
-                'round_ids'   => $endedRounds->pluck('id')->toArray(),
-            ]);
+            Log::info("Scheduler: Processed elimination for round {$round->id} (Round {$round->round_number})");
 
             $actions[] = [
-                'type'             => 'round_eliminations_dispatched',
-                'round_count'      => $endedRounds->count(),
-                'round_ids'        => $endedRounds->pluck('id')->toArray(),
+                'type'          => 'round_elimination_processed',
+                'round_id'      => $round->id,
+                'round_number'  => $round->round_number,
             ];
         }
 

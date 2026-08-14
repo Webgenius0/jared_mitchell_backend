@@ -74,8 +74,8 @@ class WinnerController extends Controller
             // A winner exists when a candidate actually carries the winner status.
             $hasWinner = collect($candidates)->contains(fn ($c) => $c['status'] === 'winner');
 
-            // Confirming/choosing a winner only makes sense with 2+ finalists.
-            $canConfirm = count($candidates) >= 2;
+            // Confirming/choosing a winner requires at least 1 finalist.
+            $canConfirm = count($candidates) >= 1;
 
             foreach ($candidates as $candidate) {
                 $rows[] = [
@@ -179,10 +179,10 @@ class WinnerController extends Controller
 
         $candidates = $this->candidatesForFinalRound($season, $finalRound);
 
-        if (count($candidates) < 2) {
+        if (count($candidates) < 1) {
             return response()->json([
                 'success' => false,
-                'message' => 'At least 2 finalists are required before a winner can be confirmed.',
+                'message' => 'At least 1 finalist is required before a winner can be confirmed.',
             ], 422);
         }
 

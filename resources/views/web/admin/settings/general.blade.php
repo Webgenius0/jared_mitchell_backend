@@ -79,6 +79,20 @@
                                         <div class="text-danger small mt-1 field-error" id="error-copyright"></div>
                                     </div>
 
+                                    <div class="col-lg-6">
+                                        <label for="boss_beginnings_start_date" class="form-label">Boss Beginnings Initial Start Date</label>
+                                        <input type="datetime-local" class="form-control" id="boss_beginnings_start_date" name="boss_beginnings_start_date"
+                                            value="{{ $s->boss_beginnings_start_date ? $s->boss_beginnings_start_date->format('Y-m-d\TH:i') : '' }}">
+                                        <div class="text-danger small mt-1 field-error" id="error-boss_beginnings_start_date"></div>
+                                    </div>
+
+                                    <div class="col-lg-6">
+                                        <label for="spotlight_start_date" class="form-label">Spotlight Initial Start Date</label>
+                                        <input type="datetime-local" class="form-control" id="spotlight_start_date" name="spotlight_start_date"
+                                            value="{{ $s->spotlight_start_date ? $s->spotlight_start_date->format('Y-m-d\TH:i') : '' }}">
+                                        <div class="text-danger small mt-1 field-error" id="error-spotlight_start_date"></div>
+                                    </div>
+
                                     {{-- Quill: About field --}}
                                     {{-- snow-editor class = theme loads Quill JS automatically --}}
                                     <div class="col-12">
@@ -154,6 +168,8 @@
                         author_url: document.getElementById('author_url').value,
                         copyright: document.getElementById('copyright').value,
                         about: document.getElementById('about').value,
+                        boss_beginnings_start_date: document.getElementById('boss_beginnings_start_date').value,
+                        spotlight_start_date: document.getElementById('spotlight_start_date').value,
                     })
                     .then(res => Toast.success(res.data.message))
                     .catch(function(err) {

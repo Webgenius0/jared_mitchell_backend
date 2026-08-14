@@ -111,12 +111,21 @@ class Season extends Model
      */
     public static function active(): ?self
     {
-        return static::query()
-            ->where(function ($query) {
-                $query->where('is_active', true)
-                    ->orWhereIn('status', ['open', 'in_progress']);
-            })
-            ->orderByDesc('id')
+        // 1. Return the currently running season in progress
+        $inProgress = static::where('status', 'in_progress')->first();
+        if ($inProgress) {
+            return $inProgress;
+        }
+
+        // 2. Return season currently open for applications
+        $open = static::where('status', 'open')->first();
+        if ($open) {
+            return $open;
+        }
+
+        // 3. Fallback to active season sorted by nearest starts_at
+        return static::where('is_active', true)
+            ->orderBy('starts_at', 'asc')
             ->first();
     }
 
