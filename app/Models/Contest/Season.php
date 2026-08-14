@@ -188,17 +188,15 @@ class Season extends Model
 
         $now = now();
 
-        // Applications close once the season has started
-        if ($now->gte($this->starts_at)) {
+        // Applications close once the season has started or application window closed
+        $appEndsAt = $this->applications_ends_at ?? $this->starts_at;
+        if ($now->gte($this->starts_at) || $now->gt($appEndsAt)) {
             return false;
         }
 
-        // Respect an explicit application window when configured
-        if ($this->applications_starts_at && $now->lt($this->applications_starts_at)) {
-            return false;
-        }
-
-        if ($this->applications_ends_at && $now->gt($this->applications_ends_at)) {
+        // If status is 'open', accept applications immediately.
+        // Otherwise, if applications_starts_at is configured in the future, respect it.
+        if ($this->status !== 'open' && $this->applications_starts_at && $now->lt($this->applications_starts_at)) {
             return false;
         }
 
@@ -216,7 +214,7 @@ class Season extends Model
     }
 
     /**
-     * Auto-generate slug on creation if not provided.
+     * Auto-generate slug and auto-sync application dates when saving.
      */
     protected static function boot()
     {
@@ -225,6 +223,21 @@ class Season extends Model
         static::creating(function (Season $season) {
             if (empty($season->slug)) {
                 $season->slug = Str::slug($season->title);
+            }
+        });
+
+        static::saving(function (Season $season) {
+            if ($season->starts_at) {
+                // If starts_at changed or applications dates are empty, auto-sync them:
+                // applications_ends_at defaults to starts_at
+                if (empty($season->applications_ends_at) || $season->isDirty('starts_at')) {
+                    $season->applications_ends_at = $season->starts_at;
+                }
+
+                // applications_starts_at defaults to 14 days before starts_at
+                if (empty($season->applications_starts_at) || $season->isDirty('starts_at')) {
+                    $season->applications_starts_at = $season->starts_at->copy()->subDays(14);
+                }
             }
         });
     }
