@@ -166,7 +166,7 @@
                                             @foreach ($artists as $artist)
                                                 <option value="{{ $artist->id }}"
                                                     data-name="{{ $artist->profile->name ?? $artist->email }}"
-                                                    data-image="{{ $artist->profile && $artist->profile->avatar_url ? asset($artist->profile->avatar_url) : asset('assets/images/users/user-dummy-img.jpg') }}">
+                                                    data-image="{{ $artist->profile?->avatar_url ?? asset('assets/images/users/user-dummy-img.jpg') }}">
                                                     {{ $artist->profile->name ?? $artist->email }}
                                                 </option>
                                             @endforeach

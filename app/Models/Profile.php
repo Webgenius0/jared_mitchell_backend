@@ -37,8 +37,18 @@ class Profile extends Model
      */
     public function getAvatarUrlAttribute(): string
     {
-        return $this->avatar
-            ? asset('storage/' . $this->avatar)
-            : asset('admin/default/user.jpg');
+        if (! $this->avatar) {
+            return asset('admin/default/user.jpg');
+        }
+
+        if (str_starts_with($this->avatar, 'http://') || str_starts_with($this->avatar, 'https://')) {
+            return $this->avatar;
+        }
+
+        if (str_starts_with($this->avatar, 'storage/') || str_starts_with($this->avatar, '/storage/')) {
+            return asset(ltrim($this->avatar, '/'));
+        }
+
+        return asset('storage/' . ltrim($this->avatar, '/'));
     }
 }
