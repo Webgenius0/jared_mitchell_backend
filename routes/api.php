@@ -35,6 +35,7 @@ use App\Http\Controllers\Api\Cms\FAQController as ApiFAQController;
 use App\Http\Controllers\Api\Cms\ShopController;
 use App\Http\Controllers\Api\Cms\SponsorsipController;
 use App\Http\Controllers\Api\Common\CommnDataPassController;
+use App\Http\Controllers\Api\Common\UserEventInteractionController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\Contest\BossBeginningSeasonController;
 use App\Http\Controllers\Api\Contest\BossBeginningWinnerController;
@@ -63,6 +64,7 @@ use App\Http\Controllers\Api\SubscriptionController;
 use App\Http\Controllers\Api\WishlistController;
 use App\Http\Controllers\Api\SponsorApplicationController;
 use App\Http\Controllers\Api\LiveStreamController;
+use App\Http\Controllers\Api\MyStatsController;
 use Illuminate\Support\Facades\Route;
 
 // health check
@@ -278,6 +280,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
         Route::post('/logout', [LoginController::class, 'logout']); // DONE: logout
 
         Route::get('/profile', [UserProfileController::class, 'profile']); // DONE: user profile
+        Route::get('/my/stats', [MyStatsController::class, 'stats']); // DONE: my stats (votes given, bossbegging, spotlight, tickets)
         Route::post('/update-profile', [UserProfileController::class, 'updateProfile']); // DONE: update profile
         Route::post('/update-avatar', [UserProfileController::class, 'updateAvatar']); // DONE: update avatar
         Route::delete('/delete-profile', [UserProfileController::class, 'destroy']); // DONE: delete profile
@@ -391,6 +394,9 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::post('/{id}/bookmark', [EventController::class, 'toggleBookmark']);
             Route::post('/{id}/share', [EventController::class, 'recordShare']);
         });
+
+        // Common: all role users with their event bookmarks & shares
+        Route::get('/common/user-event-interactions', [UserEventInteractionController::class, 'index']);
 
         // Business Spotlight interactions
         Route::prefix('business-spotlight')->group(function () {
