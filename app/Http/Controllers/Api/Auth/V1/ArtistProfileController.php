@@ -40,8 +40,8 @@ class ArtistProfileController extends Controller
                     'required',
                     'string',
                     'min:3',
-                    'max:30',
-                    'regex:/^[a-zA-Z0-9_]+$/',
+                    'max:50',
+                    'regex:/^@?[a-zA-Z0-9_\s-]+$/',
                     'unique:profiles,username',
                 ],
                 'email'              => [
@@ -147,8 +147,8 @@ class ArtistProfileController extends Controller
                     'nullable',
                     'string',
                     'min:3',
-                    'max:30',
-                    'regex:/^[a-zA-Z0-9_]+$/',
+                    'max:50',
+                    'regex:/^@?[a-zA-Z0-9_\s-]+$/',
                     Rule::unique('profiles', 'username')->ignore($user->profile->id),
                 ],
                 'email'              => [

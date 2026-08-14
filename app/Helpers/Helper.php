@@ -31,7 +31,8 @@ class Helper
      */
     public static function generateUsername(string $name): string
     {
-        return '@' . strtolower($name) . self::randomAlphaNum(8);
+        $cleanName = preg_replace('/[^a-zA-Z0-9_]/', '', str_replace(' ', '_', $name));
+        return '@' . strtolower($cleanName ?: 'user') . self::randomAlphaNum(8);
     }
 
     /*

@@ -66,6 +66,7 @@ class FileHandle
      */
     public static function generateUsername(string $firstName): string
     {
-        return '@' . strtolower($firstName) . self::randomAlphaNum(8);
+        $cleanName = preg_replace('/[^a-zA-Z0-9_]/', '', str_replace(' ', '_', $firstName));
+        return '@' . strtolower($cleanName ?: 'user') . self::randomAlphaNum(8);
     }
 }
