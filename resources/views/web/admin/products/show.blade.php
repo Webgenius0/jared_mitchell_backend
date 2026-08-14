@@ -258,7 +258,7 @@
                 confirmText: 'Yes, delete it'
             }).then(confirmed => {
                 if (!confirmed) return;
-                axios.delete(`{{ url('admin/products') }}/${id}`)
+                axios.delete(`{{ url('/products') }}/${id}`)
                     .then(res => {
                         Toast.success('Product deleted successfully.');
                         window.location.href = '{{ route('admin.products.index') }}';

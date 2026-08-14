@@ -153,7 +153,7 @@
                                         @foreach($artists as $artist)
                                             <option value="{{ $artist->id }}" 
                                                 data-name="{{ $artist->profile->name ?? $artist->email }}" 
-                                                data-image="{{ $artist->profile && $artist->profile->avatar_url ? asset('storage/' . $artist->profile->avatar_url) : asset('assets/images/users/user-dummy-img.jpg') }}">
+                                                data-image="{{ $artist->profile && $artist->profile->avatar_url ? asset($artist->profile->avatar_url) : asset('assets/images/users/user-dummy-img.jpg') }}">
                                                 {{ $artist->profile->name ?? $artist->email }}
                                             </option>
                                         @endforeach
@@ -167,7 +167,7 @@
                                         <div class="card border shadow-none mb-0">
                                             <div class="card-body text-center p-3">
 
-                                                <img src="{{ $assignedArtist->profile && $assignedArtist->profile->avatar_url ? asset('storage/' . $assignedArtist->profile->avatar_url) : asset('assets/images/users/user-dummy-img.jpg') }}" alt="" class="rounded-circle avatar-md mb-2 object-fit-cover" style="width: 64px; height: 64px;">
+                                                <img src="{{ $assignedArtist->profile && $assignedArtist->profile->avatar_url ? asset($assignedArtist->profile->avatar_url) : asset('assets/images/users/user-dummy-img.jpg') }}" alt="" class="rounded-circle avatar-md mb-2 object-fit-cover" style="width: 64px; height: 64px;">
                                                 <h6 class="mb-2 text-truncate" title="{{ $assignedArtist->profile->name ?? $assignedArtist->email }}">{{ $assignedArtist->profile->name ?? $assignedArtist->email }}</h6>
                                                 
                                             </div>
