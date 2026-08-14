@@ -239,20 +239,25 @@ class SpotlightWeekController extends Controller
         $perPage = $validated['per_page'] ?? 10;
         $sixMonthsAgo = now()->subMonths(6);
 
-        // Note: the type filter is intentionally not applied so that
-        // ?type=artist and ?type=business return the exact same winner list.
         $query = SpotlightWeekNominee::where('is_winner', true)
             ->whereHas('week', function ($q) use ($sixMonthsAgo) {
                 $q->where('status', 'completed')
                     ->where(function ($w) use ($sixMonthsAgo) {
                         $w->where('voting_ends_at', '>=', $sixMonthsAgo)
+                            ->orWhere('updated_at', '>=', $sixMonthsAgo)
                             ->orWhereNull('voting_ends_at');
                     });
             });
 
+        if ($type === 'artist') {
+            $query->where('spotlightable_type', ArtistSpotlight::class);
+        } elseif ($type === 'business') {
+            $query->where('spotlightable_type', BusinessSpotlight::class);
+        }
+
         $winners = $query->with(['spotlightable', 'week', 'user.profile'])
-            ->orderByRaw('(SELECT voting_ends_at FROM spotlight_weeks WHERE id = spotlight_week_nominees.spotlight_week_id LIMIT 1) DESC')
-            ->orderBy('id', 'desc')
+            ->orderByRaw('(SELECT created_at FROM spotlight_weeks WHERE id = spotlight_week_nominees.spotlight_week_id LIMIT 1) DESC')
+            ->orderByDesc('id')
             ->paginate($perPage);
 
         $data = collect($winners->items())->map(function ($nominee) {
@@ -485,13 +490,13 @@ class SpotlightWeekController extends Controller
                 'media' => $this->formatSpotlightMedia($spotlight, $isArtist),
             ] : null,
             'owner'       => [
-                'id'   => $nominee->user->id,
-                'name' => $nominee->user->profile?->name ?? $nominee->user->email ?? '—',
+                'id'   => $nominee->user?->id,
+                'name' => $nominee->user?->profile?->name ?? $nominee->user?->email ?? '—',
             ],
             'total_votes'  => $nominee->total_vote_count,
             'free_votes'   => $nominee->free_vote_count,
             'paid_votes'   => $nominee->paid_vote_count,
-            'announced_at' => $nominee->week?->announced_at,
+            'announced_at' => $nominee->week?->announced_at ?? $nominee->week?->updated_at,
         ];
     }
 

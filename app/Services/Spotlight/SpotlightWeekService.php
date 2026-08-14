@@ -166,6 +166,7 @@ class SpotlightWeekService
                 'status'                     => 'completed',
                 'winner_spotlightable_type'  => $winner?->spotlightable_type,
                 'winner_spotlightable_id'    => $winner?->spotlightable_id,
+                'announced_at'               => $week->announced_at ?? now(),
             ]);
         });
 
@@ -223,24 +224,19 @@ class SpotlightWeekService
      */
     public function getLastWinner(?string $type = null): ?SpotlightWeekNominee
     {
-        $query = SpotlightWeek::where('status', 'completed')
-            ->whereNotNull('announced_at')
-            ->latest('voting_ends_at');
+        $query = SpotlightWeekNominee::where('is_winner', true)
+            ->whereHas('week', function ($q) {
+                $q->where('status', 'completed');
+            });
 
         if ($type === 'artist') {
-            $query->whereHas('nominees', function ($q) {
-                $q->where('is_winner', true)
-                    ->where('spotlightable_type', ArtistSpotlight::class);
-            });
+            $query->where('spotlightable_type', ArtistSpotlight::class);
         } elseif ($type === 'business') {
-            $query->whereHas('nominees', function ($q) {
-                $q->where('is_winner', true)
-                    ->where('spotlightable_type', BusinessSpotlight::class);
-            });
+            $query->where('spotlightable_type', BusinessSpotlight::class);
         }
 
-        $week = $query->first();
-
-        return $week?->nominees()->where('is_winner', true)->with('spotlightable', 'user')->first();
+        return $query->with(['spotlightable', 'user.profile', 'week'])
+            ->orderByDesc('id')
+            ->first();
     }
 }
