@@ -54,11 +54,11 @@ class V2VoteService
             return ['success' => false, 'message' => 'You have already voted for this business in this round.'];
         }
 
-        $categories = $round->advancement_config['categories'] ?? [];
+        $categories = $round->advancement_config['categories'] ?? ['innovation', 'presentation', 'impact'];
         $maxScore   = $round->advancement_config['max_score_per_category'] ?? 10;
 
         if (empty($categories)) {
-            return ['success' => false, 'message' => 'Voting categories are not configured for this round.'];
+            $categories = ['innovation', 'presentation', 'impact'];
         }
 
         // Cap the number of category scores so the leaderboard (which counts vote

@@ -189,6 +189,8 @@ class AutoSeasonBuilderService
                     'elimination_rule' => $config['elimination_rule'],
                     'advancement_config' => [
                         'top_n' => $config['advance_limit'],
+                        'categories' => ['innovation', 'presentation', 'impact'],
+                        'max_score_per_category' => 10,
                         'tiebreakers' => ['total_points', 'community_votes', 'judge_score'],
                     ],
                     'is_active' => false,
