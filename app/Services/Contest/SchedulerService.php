@@ -4,6 +4,7 @@ namespace App\Services\Contest;
 
 use App\Jobs\Contest\AutoProcessEliminations;
 use App\Jobs\Contest\OpenRoundForSubmissions;
+use App\Jobs\Contest\ProcessRoundTransition;
 use App\Models\Contest\Season;
 use App\Models\Round;
 use App\Notifications\Contest\SeasonStartingNotification;
