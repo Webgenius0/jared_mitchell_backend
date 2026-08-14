@@ -53,6 +53,9 @@ class SchedulerService
         // ── 7. Seasons: Auto-close completed seasons ──
         $actions = array_merge($actions, $this->checkSeasonClosings());
 
+        // ── 8. Seasons: Auto-create upcoming season if needed ──
+        $actions = array_merge($actions, $this->checkAutoSeasonCreation());
+
         Log::info('SchedulerService: Run completed', [
             'actions_taken' => count($actions),
             'actions'       => $actions,
