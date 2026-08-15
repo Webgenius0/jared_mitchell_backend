@@ -198,6 +198,11 @@ class WinnerController extends Controller
         $winner = null;
 
         DB::transaction(function () use ($candidates, $validated, $season, &$winner) {
+            // Reset any existing winner/runner_up status for this season first
+            Contestant::where('season_id', $season->id)
+                ->whereIn('status', ['winner', 'runner_up'])
+                ->update(['status' => 'finalist']);
+
             // Selected finalist → winner; best-ranked non-selected → runner up.
             $selectedIndex = null;
             $runnerUpIndex = null;

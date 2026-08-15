@@ -44,6 +44,8 @@ class BossBeginningWinnerController extends Controller
                 'season',
                 'currentRound',
             ])
+            ->orderByDesc('updated_at')
+            ->orderByDesc('id')
             ->first();
 
         if (!$winner) {
@@ -81,6 +83,12 @@ class BossBeginningWinnerController extends Controller
                 'season',
                 'currentRound',
             ])
+            ->orderByDesc(
+                Contestant::select('updated_at')
+                    ->from('seasons')
+                    ->whereColumn('seasons.id', 'contestants.season_id')
+                    ->limit(1)
+            )
             ->orderByDesc(
                 Contestant::select('ends_at')
                     ->from('seasons')
