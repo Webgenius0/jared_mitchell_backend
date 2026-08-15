@@ -121,7 +121,10 @@ class EliminationService
 
             // admin_pick + no next round → mark season as "awaiting admin decision"
             if (!$nextRound && $round->elimination_rule === 'admin_pick') {
-                $round->season()->update(['status' => 'awaiting_final_review']);
+                $season = $round->season;
+                if ($season && $season->status !== 'completed') {
+                    $season->update(['status' => 'awaiting_final_review']);
+                }
 
                 Log::info('Final round ended — awaiting admin manual scoring', [
                     'round_id'  => $round->id,
@@ -348,6 +351,17 @@ class EliminationService
 
     private function finalizeSeason(Round $finalRound, array $rankedFinalists = []): void
     {
+        $season = $finalRound->season;
+
+        // Guard: If admin has already confirmed a winner for this season, do not reset it.
+        if ($season && $season->status === 'completed' && ($season->metadata['winner_confirmed'] ?? false) === true) {
+            Log::info('Season final round already completed and winner confirmed — skipping finalizeSeason reset', [
+                'round_id'  => $finalRound->id,
+                'season_id' => $season->id,
+            ]);
+            return;
+        }
+
         // Build ranked finalists from the leaderboard list (already sorted best → worst).
         $ranked = [];
         foreach ($rankedFinalists as $entry) {
