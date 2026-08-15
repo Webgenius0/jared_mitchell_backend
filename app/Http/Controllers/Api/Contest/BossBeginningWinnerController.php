@@ -21,8 +21,11 @@ class BossBeginningWinnerController extends Controller
      */
     public function currentWinner(): JsonResponse
     {
-        // Find the most recently completed season
+        // Find the most recently completed season that has a confirmed winner
         $season = Season::where('status', 'completed')
+            ->whereHas('contestants', function ($query) {
+                $query->where('status', 'winner');
+            })
             ->orderByDesc('ends_at')
             ->orderByDesc('id')
             ->first();
@@ -65,7 +68,11 @@ class BossBeginningWinnerController extends Controller
         $winners = Contestant::where('status', 'winner')
             ->whereHas('season', function ($query) use ($sixMonthsAgo) {
                 $query->where('status', 'completed')
-                    ->where('ends_at', '>=', $sixMonthsAgo);
+                    ->where(function ($q) use ($sixMonthsAgo) {
+                        $q->where('ends_at', '>=', $sixMonthsAgo)
+                          ->orWhereNull('ends_at')
+                          ->orWhere('updated_at', '>=', $sixMonthsAgo);
+                    });
             })
             ->with([
                 'contestable',
