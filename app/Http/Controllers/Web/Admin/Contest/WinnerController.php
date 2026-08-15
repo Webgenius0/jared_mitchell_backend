@@ -260,6 +260,7 @@ class WinnerController extends Controller
                 'metadata'  => $metadata,
                 'status'    => 'completed',
                 'is_active' => false,
+                'ends_at'   => now(),
             ]);
         });
 

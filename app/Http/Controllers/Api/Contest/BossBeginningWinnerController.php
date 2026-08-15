@@ -26,6 +26,7 @@ class BossBeginningWinnerController extends Controller
             ->whereHas('contestants', function ($query) {
                 $query->where('status', 'winner');
             })
+            ->orderByDesc('updated_at')
             ->orderByDesc('ends_at')
             ->orderByDesc('id')
             ->first();
