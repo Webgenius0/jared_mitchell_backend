@@ -353,8 +353,18 @@ class EliminationService
     {
         $season = $finalRound->season;
 
-        // Guard: If admin has already confirmed a winner for this season, do not reset it.
-        if ($season && $season->status === 'completed' && ($season->metadata['winner_confirmed'] ?? false) === true) {
+        // Guard: If a winner has already been confirmed/assigned for this season,
+        // do not reset it. Checks both the confirmation metadata and the actual
+        // contestant status so a winner that was confirmed on the Winners page is
+        // never demoted back to finalist by a later scheduler pass (which would
+        // also hide it from the public winners API).
+        $winnerAlreadyAssigned = $season
+            && Contestant::where('season_id', $season->id)
+                ->where('status', 'winner')
+                ->exists();
+
+        if ($winnerAlreadyAssigned
+            || ($season && $season->status === 'completed' && ($season->metadata['winner_confirmed'] ?? false) === true)) {
             Log::info('Season final round already completed and winner confirmed — skipping finalizeSeason reset', [
                 'round_id'  => $finalRound->id,
                 'season_id' => $season->id,

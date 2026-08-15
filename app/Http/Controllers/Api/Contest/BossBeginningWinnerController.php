@@ -21,8 +21,13 @@ class BossBeginningWinnerController extends Controller
      */
     public function currentWinner(): JsonResponse
     {
-        // Find the most recently completed season that has a confirmed winner
-        $season = Season::where('status', 'completed')
+        // Find the most recent season that has a confirmed winner.
+        // The winner is set on the contestant (status = 'winner') when the admin
+        // confirms it from the Winners page, so we key off that instead of a
+        // single season status string — a season can be left in either
+        // 'completed' or 'awaiting_final_review' depending on the flow that
+        // finalized it.
+        $season = Season::whereIn('status', ['completed', 'awaiting_final_review'])
             ->whereHas('contestants', function ($query) {
                 $query->where('status', 'winner');
             })
@@ -67,10 +72,12 @@ class BossBeginningWinnerController extends Controller
     {
         $sixMonthsAgo = now()->subMonths(6);
 
-        // Find all winners (contestants with status 'winner') whose season was completed in the last 6 months
+        // Find all winners (contestants with status 'winner') whose season was
+        // finalized in the last 6 months. Same as currentWinner — key off the
+        // winner contestant, not a single season status string.
         $winners = Contestant::where('status', 'winner')
             ->whereHas('season', function ($query) use ($sixMonthsAgo) {
-                $query->where('status', 'completed')
+                $query->whereIn('status', ['completed', 'awaiting_final_review'])
                     ->where(function ($q) use ($sixMonthsAgo) {
                         $q->where('ends_at', '>=', $sixMonthsAgo)
                           ->orWhereNull('ends_at')
