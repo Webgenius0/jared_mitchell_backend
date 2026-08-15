@@ -201,7 +201,10 @@ class WinnerController extends Controller
             // Reset any existing winner/runner_up status for this season first
             Contestant::where('season_id', $season->id)
                 ->whereIn('status', ['winner', 'runner_up'])
-                ->update(['status' => 'finalist']);
+                ->update([
+                    'status'     => 'finalist',
+                    'updated_at' => now(),
+                ]);
 
             // Selected finalist → winner; best-ranked non-selected → runner up.
             $selectedIndex = null;
@@ -237,10 +240,10 @@ class WinnerController extends Controller
                     $status = $index === $runnerUpIndex ? 'runner_up' : 'finalist';
                 }
 
-                $contestant->update([
-                    'status'                 => $status,
-                    'eliminated_in_round_id' => null,
-                ]);
+                $contestant->status                 = $status;
+                $contestant->eliminated_in_round_id = null;
+                $contestant->updated_at             = now();
+                $contestant->save();
             }
 
             $metadata = $season->metadata ?? [];
@@ -256,17 +259,17 @@ class WinnerController extends Controller
                 $candidates,
                 array_keys($candidates)
             );
-            $metadata['winner_confirmed']  = true;
+            $metadata['winner_confirmed']     = true;
             $metadata['winner_contestant_id'] = (int) $validated['contestant_id'];
             $metadata['winner_business_id']   = $winner?->contestable_id;
             $metadata['winner_confirmed_at']  = now()->toISOString();
 
-            $season->update([
-                'metadata'  => $metadata,
-                'status'    => 'completed',
-                'is_active' => false,
-                'ends_at'   => now(),
-            ]);
+            $season->metadata  = $metadata;
+            $season->status    = 'completed';
+            $season->is_active = false;
+            $season->ends_at   = now();
+            $season->updated_at = now();
+            $season->save();
         });
 
         return response()->json([
