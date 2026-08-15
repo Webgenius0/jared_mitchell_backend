@@ -378,7 +378,7 @@ class EliminationService
         // ordered by their stored score so the ranking stays deterministic.
         $already = collect($ranked)->pluck('contestant.id')->all();
         $leftover = Contestant::where('season_id', $finalRound->season_id)
-            ->where('status', 'active')
+            ->whereIn('status', ['active', 'finalist', 'winner', 'runner_up'])
             ->whereNotIn('id', $already)
             ->orderByDesc('total_score')
             ->get();

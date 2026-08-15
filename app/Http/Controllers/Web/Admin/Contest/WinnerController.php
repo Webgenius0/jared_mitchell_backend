@@ -325,9 +325,9 @@ class WinnerController extends Controller
             })->all();
         }
 
-        // 3. Existing finalist-status contestants (legacy seasons).
+        // 3. Existing finalist-status contestants (legacy seasons or fallback).
         return Contestant::where('season_id', $season->id)
-            ->whereIn('status', ['winner', 'runner_up', 'finalist'])
+            ->whereIn('status', ['winner', 'runner_up', 'finalist', 'active', 'eliminated'])
             ->orderByDesc('total_score')
             ->take(3)
             ->get()
