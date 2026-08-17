@@ -64,6 +64,7 @@ use App\Http\Controllers\Api\SubscriptionController;
 use App\Http\Controllers\Api\WishlistController;
 use App\Http\Controllers\Api\SponsorApplicationController;
 use App\Http\Controllers\Api\LiveStreamController;
+use App\Http\Controllers\Api\AwsIvsWebhookController;
 use App\Http\Controllers\Api\MyStatsController;
 use Illuminate\Support\Facades\Route;
 
