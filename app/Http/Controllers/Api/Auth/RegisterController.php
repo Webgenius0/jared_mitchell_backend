@@ -68,7 +68,11 @@ class RegisterController extends Controller
                     'expires_at' => now()->addMinutes(60),
                 ]);
 
-                // Mail::to($user->email)->send(new RegistrationOtpMail($otp, $user, 'Verify Your Email Address'));
+                try {
+                    Mail::to($existingUser->email)->send(new RegistrationOtpMail($otp, $existingUser, 'Verify Your Email Address'));
+                } catch (Exception $mailEx) {
+                    Log::error('Registration OTP mail failed for existing user: ' . $mailEx->getMessage());
+                }
 
                 DB::commit();
 
@@ -116,7 +120,11 @@ class RegisterController extends Controller
                 'expires_at' => now()->addMinutes(60),
             ]);
 
-            // Mail::to($user->email)->send(new RegistrationOtpMail($otp, $user, 'Verify Your Email Address'));
+            try {
+                Mail::to($user->email)->send(new RegistrationOtpMail($otp, $user, 'Verify Your Email Address'));
+            } catch (Exception $mailEx) {
+                Log::error('Registration OTP mail failed: ' . $mailEx->getMessage());
+            }
 
             DB::commit();
 
@@ -232,7 +240,11 @@ class RegisterController extends Controller
                 'expires_at' => now()->addMinutes(60),
             ]);
 
-            // Mail::to($user->email)->queue(new OtpMail($otp, $user, 'Verify Your Email Address'));
+            try {
+                Mail::to($user->email)->send(new RegistrationOtpMail($otp, $user, 'Verify Your Email Address'));
+            } catch (Exception $mailEx) {
+                Log::error('Resend OTP mail failed: ' . $mailEx->getMessage());
+            }
 
             return $this->success(
                 'A new OTP has been sent to your email.',

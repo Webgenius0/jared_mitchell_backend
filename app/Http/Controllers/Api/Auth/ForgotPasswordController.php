@@ -10,6 +10,8 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\Api\RegistrationOtpMail;
 use Illuminate\Support\Str;
 
 class ForgotPasswordController extends Controller
@@ -65,8 +67,11 @@ class ForgotPasswordController extends Controller
                 'expires_at' => now()->addMinutes(60),
             ]);
 
-            // Mail::to($user->email)
-            //     ->queue(new OtpMail($otp, $user, 'Reset Your Password - SecAAX'));
+            try {
+                Mail::to($user->email)->send(new RegistrationOtpMail($otp, $user, 'Reset Your Password'));
+            } catch (Exception $mailEx) {
+                Log::error('Password reset OTP email failed: ' . $mailEx->getMessage());
+            }
 
             return $this->success(
                 'OTP sent successfully.',
