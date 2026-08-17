@@ -37,16 +37,26 @@ class AwsIvsWebhookController extends Controller
                 $payload = json_decode($payload['Message'], true) ?? $payload;
             }
 
-            $channelArn = $payload['detail']['channel_arn'] ?? $payload['channel_arn'] ?? null;
+            $channelArn = $payload['detail']['channel_arn'] ?? $payload['channel_arn'] ?? ($payload['resources'][0] ?? null);
             $recordingStatus = $payload['detail']['recording_status'] ?? $payload['recording_status'] ?? null;
             $streamId = $payload['detail']['stream_id'] ?? $payload['stream_id'] ?? null;
+            $s3Bucket = $payload['detail']['recording_s3_bucket_name'] ?? env('AWS_IVS_S3_BUCKET') ?? null;
+            $s3KeyPrefix = $payload['detail']['recording_s3_key_prefix'] ?? $payload['detail']['recording_s3_key'] ?? null;
             
-            // Extract S3 master playlist URL if provided by AWS EventBridge / Lambda
-            $vodUrl = $payload['detail']['recording_s3_key'] ?? $payload['vod_url'] ?? null;
+            $vodUrl = $payload['vod_url'] ?? $payload['detail']['vod_url'] ?? null;
 
-            if ($vodUrl && !str_starts_with($vodUrl, 'http')) {
-                $s3Domain = env('AWS_IVS_CLOUDFRONT_URL') ?? ('https://' . env('AWS_IVS_S3_BUCKET') . '.s3.' . env('AWS_DEFAULT_REGION', 'us-east-1') . '.amazonaws.com');
-                $vodUrl = rtrim($s3Domain, '/') . '/' . ltrim($vodUrl, '/');
+            if (!$vodUrl && $s3KeyPrefix) {
+                $region = env('AWS_DEFAULT_REGION', 'us-east-1');
+                $masterPlaylistPath = rtrim($s3KeyPrefix, '/') . '/media/hls/master.m3u8';
+                
+                $cloudfront = env('AWS_IVS_CLOUDFRONT_URL');
+                if ($cloudfront) {
+                    $vodUrl = rtrim($cloudfront, '/') . '/' . ltrim($masterPlaylistPath, '/');
+                } elseif ($s3Bucket) {
+                    $vodUrl = "https://{$s3Bucket}.s3.{$region}.amazonaws.com/" . ltrim($masterPlaylistPath, '/');
+                } else {
+                    $vodUrl = "https://s3.{$region}.amazonaws.com/" . ltrim($masterPlaylistPath, '/');
+                }
             }
 
             if ($channelArn) {
