@@ -44,6 +44,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->validateCsrfTokens(except: [
             'stripe/*',
+            'webhooks/aws-ivs',
         ]);
 
         // No named 'login' route exists in this app. Point the guest redirect at a
