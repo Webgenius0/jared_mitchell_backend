@@ -38,6 +38,46 @@
                                 @enderror
                             </div>
 
+                            <div class="mb-3">
+                                <label for="tag_type" class="form-label">Category Tag</label>
+                                <select name="tag_type" id="tag_type" class="form-select" onchange="toggleTagSelectors()">
+                                    <option value="general" {{ old('tag_type') == 'general' ? 'selected' : '' }}>General / Standalone Stream</option>
+                                    <option value="event" {{ old('tag_type') == 'event' ? 'selected' : '' }}>Event Stream</option>
+                                    <option value="artist" {{ old('tag_type') == 'artist' ? 'selected' : '' }}>Artist Spotlight Stream</option>
+                                    <option value="business" {{ old('tag_type') == 'business' ? 'selected' : '' }}>Business Spotlight Stream</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3 d-none" id="selector-event">
+                                <label for="event_id" class="form-label">Related Event</label>
+                                <select name="event_id" id="event_id" class="form-select">
+                                    <option value="">Select Event</option>
+                                    @foreach($events as $event)
+                                        <option value="{{ $event->id }}">{{ $event->title }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="mb-3 d-none" id="selector-artist">
+                                <label for="artist_spotlight_id" class="form-label">Related Artist Spotlight</label>
+                                <select name="artist_spotlight_id" id="artist_spotlight_id" class="form-select">
+                                    <option value="">Select Artist</option>
+                                    @foreach($artistSpotlights as $artist)
+                                        <option value="{{ $artist->id }}">{{ $artist->artist_name }} ({{ $artist->email }})</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="mb-3 d-none" id="selector-business">
+                                <label for="business_spotlight_id" class="form-label">Related Business Spotlight</label>
+                                <select name="business_spotlight_id" id="business_spotlight_id" class="form-select">
+                                    <option value="">Select Business</option>
+                                    @foreach($businessSpotlights as $business)
+                                        <option value="{{ $business->id }}">{{ $business->business_name }} ({{ $business->email }})</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
                             <div class="mb-4">
                                 <label for="description" class="form-label">Description</label>
                                 <textarea name="description" id="description" rows="4" class="form-control @error('description') is-invalid @enderror">{{ old('description') }}</textarea>
@@ -57,3 +97,19 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    function toggleTagSelectors() {
+        const type = document.getElementById('tag_type').value;
+        document.getElementById('selector-event').classList.add('d-none');
+        document.getElementById('selector-artist').classList.add('d-none');
+        document.getElementById('selector-business').classList.add('d-none');
+
+        if (type === 'event') document.getElementById('selector-event').classList.remove('d-none');
+        if (type === 'artist') document.getElementById('selector-artist').classList.remove('d-none');
+        if (type === 'business') document.getElementById('selector-business').classList.remove('d-none');
+    }
+    document.addEventListener('DOMContentLoaded', toggleTagSelectors);
+</script>
+@endpush

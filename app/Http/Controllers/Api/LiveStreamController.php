@@ -15,10 +15,14 @@ class LiveStreamController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = LiveStream::latest();
+            $query = LiveStream::with('streamable')->latest();
 
             if ($request->has('status')) {
                 $query->where('status', $request->query('status'));
+            }
+
+            if ($request->has('tag_type')) {
+                $query->where('tag_type', $request->query('tag_type'));
             }
 
             $liveStreams = $query->get();
@@ -37,10 +41,16 @@ class LiveStreamController extends Controller
     }
 
     // active - Get currently live stream for frontend integration
-    public function active()
+    public function active(Request $request)
     {
         try {
-            $liveStream = LiveStream::where('status', 'live')->latest()->first();
+            $query = LiveStream::with('streamable')->where('status', 'live');
+
+            if ($request->has('tag_type')) {
+                $query->where('tag_type', $request->query('tag_type'));
+            }
+
+            $liveStream = $query->latest()->first();
 
             if (!$liveStream) {
                 return response()->json([
@@ -61,6 +71,34 @@ class LiveStreamController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => "Failed to fetch active live stream",
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    // vods - Get recorded past live streams / VODs for Past Events & Galleries
+    public function vods(Request $request)
+    {
+        try {
+            $query = LiveStream::with('streamable')
+                ->where('status', 'ended')
+                ->whereNotNull('vod_url')
+                ->latest();
+
+            if ($request->has('tag_type')) {
+                $query->where('tag_type', $request->query('tag_type'));
+            }
+
+            $vods = $query->get();
+            return response()->json([
+                'status' => true,
+                'message' => "VODs fetched successfully",
+                'data' => $vods,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => "Failed to fetch VODs",
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -399,9 +437,13 @@ class LiveStreamController extends Controller
                     'message' => "Live stream not found",
                 ], 404);
             }
-            $liveStream->update([
+            $updateData = [
                 'status' => 'ended',
-            ]);
+            ];
+            if (request()->filled('vod_url')) {
+                $updateData['vod_url'] = request()->input('vod_url');
+            }
+            $liveStream->update($updateData);
             return response()->json([
                 'status' => true,
                 'message' => "Live stream ended successfully",

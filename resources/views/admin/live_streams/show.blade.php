@@ -106,6 +106,30 @@
                     </div>
                 </div>
             </div>
+
+            <div class="col-lg-12 mt-4">
+                <div class="card">
+                    <div class="card-header border-bottom">
+                        <h5 class="card-title mb-0">Recorded VOD Settings (Video on Demand)</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ route('live-streams.update', $stream->id) }}" method="POST">
+                            @csrf
+                            @method('PUT')
+                            <input type="hidden" name="title" value="{{ $stream->title }}">
+                            <input type="hidden" name="description" value="{{ $stream->description }}">
+                            <div class="mb-3">
+                                <label for="vod_url" class="form-label fw-bold">VOD Recording URL (S3 / CloudFront Video Link)</label>
+                                <div class="input-group">
+                                    <input type="url" name="vod_url" id="vod_url" value="{{ old('vod_url', $stream->vod_url) }}" placeholder="https://your-bucket.s3.amazonaws.com/.../master.m3u8" class="form-control">
+                                    <button type="submit" class="btn btn-primary">Save VOD URL</button>
+                                </div>
+                                <small class="text-muted">Save the recorded S3 or CloudFront video playback URL here for Past Events & Video Galleries once the stream ends.</small>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
 
     </div>

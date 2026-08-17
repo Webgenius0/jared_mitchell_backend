@@ -21,7 +21,7 @@ class LiveStreamController extends Controller
      */
     public function index()
     {
-        $streams = LiveStream::latest()->get();
+        $streams = LiveStream::with('streamable')->latest()->get();
         return view('admin.live_streams.index', compact('streams'));
     }
 
@@ -30,7 +30,11 @@ class LiveStreamController extends Controller
      */
     public function create()
     {
-        return view('admin.live_streams.create');
+        $events = \App\Models\Event::select('id', 'title')->latest()->get();
+        $artistSpotlights = \App\Models\ArtistSpotlight::select('id', 'full_legal_name', 'email')->latest()->get();
+        $businessSpotlights = \App\Models\BusinessSpotlight::select('id', 'business_name', 'email')->latest()->get();
+
+        return view('admin.live_streams.create', compact('events', 'artistSpotlights', 'businessSpotlights'));
     }
 
     /**
@@ -41,10 +45,28 @@ class LiveStreamController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'tag_type' => 'nullable|in:general,event,artist,business',
+            'event_id' => 'nullable|exists:events,id',
+            'artist_spotlight_id' => 'nullable|exists:artist_spotlights,id',
+            'business_spotlight_id' => 'nullable|exists:business_spotlights,id',
         ]);
 
+        $tagType = $request->input('tag_type', 'general');
+        $streamableType = null;
+        $streamableId = null;
+
+        if ($tagType === 'event' && $request->filled('event_id')) {
+            $streamableType = \App\Models\Event::class;
+            $streamableId = $request->input('event_id');
+        } elseif ($tagType === 'artist' && $request->filled('artist_spotlight_id')) {
+            $streamableType = \App\Models\ArtistSpotlight::class;
+            $streamableId = $request->input('artist_spotlight_id');
+        } elseif ($tagType === 'business' && $request->filled('business_spotlight_id')) {
+            $streamableType = \App\Models\BusinessSpotlight::class;
+            $streamableId = $request->input('business_spotlight_id');
+        }
+
         // Create an IVS channel
-        // Ensure channel name is valid for AWS (alphanumeric, hyphens, no spaces)
         $channelName = 'stream-' . time() . '-' . rand(100, 999);
         $ivsData = $this->ivsService->createChannel($channelName);
 
@@ -59,6 +81,9 @@ class LiveStreamController extends Controller
             'ingest_endpoint' => $ivsData['ingest_endpoint'],
             'stream_key' => $ivsData['stream_key'],
             'playback_url' => $ivsData['playback_url'],
+            'tag_type' => $tagType,
+            'streamable_type' => $streamableType,
+            'streamable_id' => $streamableId,
             'status' => 'pending',
         ]);
 
@@ -70,7 +95,7 @@ class LiveStreamController extends Controller
      */
     public function broadcast($id)
     {
-        $stream = LiveStream::findOrFail($id);
+        $stream = LiveStream::with('streamable')->findOrFail($id);
         return view('admin.live_streams.broadcast', compact('stream'));
     }
 
@@ -79,7 +104,7 @@ class LiveStreamController extends Controller
      */
     public function show($id)
     {
-        $stream = LiveStream::findOrFail($id);
+        $stream = LiveStream::with('streamable')->findOrFail($id);
         return view('admin.live_streams.show', compact('stream'));
     }
 
@@ -169,7 +194,11 @@ class LiveStreamController extends Controller
             $deleted = $this->ivsService->deleteChannel($stream->channel_arn);
             
             if ($deleted) {
-                $stream->update(['status' => 'ended']);
+                $vodUrl = $request->input('vod_url', null);
+                $stream->update([
+                    'status' => 'ended',
+                    'vod_url' => $vodUrl,
+                ]);
                 if ($request->wantsJson() || $request->ajax()) {
                     return response()->json([
                         'status' => true,
@@ -203,6 +232,25 @@ class LiveStreamController extends Controller
     /**
      * Remove the specified resource from storage.
      */
+    public function update(Request $request, $id)
+    {
+        $stream = LiveStream::findOrFail($id);
+
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'vod_url' => 'nullable|string',
+        ]);
+
+        $stream->update([
+            'title' => $request->title,
+            'description' => $request->description,
+            'vod_url' => $request->vod_url,
+        ]);
+
+        return back()->with('success', 'Live stream details updated successfully.');
+    }
+
     public function destroy($id)
     {
         $stream = LiveStream::findOrFail($id);

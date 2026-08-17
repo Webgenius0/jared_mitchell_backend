@@ -614,6 +614,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
     Route::prefix('live-streams')->group(function () {
         Route::get('/', [LiveStreamController::class, 'index']); // DONE: Get all live streams
         Route::get('/active', [LiveStreamController::class, 'active']); // DONE: Get active live stream
+        Route::get('/vods', [LiveStreamController::class, 'vods']); // DONE: Get VODs / recorded past streams
         Route::get('/{id}', [LiveStreamController::class, 'show']); // DONE: Get live stream by id
         Route::get('/{id}/viewers', [LiveStreamController::class, 'viewers']); // DONE: Get viewer count
         Route::post('/{id}/heartbeat', [LiveStreamController::class, 'heartbeat']); // DONE: Active viewer heartbeat
@@ -662,15 +663,8 @@ Route::group(['prefix' => 'v2'], function () {
 
 /*
 |--------------------------------------------------------------------------
-| Stripe Webhook — single entry point
-|--------------------------------------------------------------------------
-| Handles all Stripe events in one place:
-|   - Subscription lifecycle → dispatched to Cashier internally
-|   - Order / event / vote payments → custom handlers
-|
-| Configure this single URL in the Stripe Dashboard.
-| Required events: checkout.session.completed, checkout.session.expired,
-|                  customer.subscription.*, invoice.*, customer.*
+| Webhooks: Stripe & AWS IVS Recording
 |--------------------------------------------------------------------------
 */
 Route::post('/webhooks/stripe', [StripeWebhookController::class, 'handle']);
+Route::post('/webhooks/aws-ivs', [AwsIvsWebhookController::class, 'handle']);

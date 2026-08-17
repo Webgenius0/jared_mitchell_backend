@@ -32,6 +32,7 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th>Title</th>
+                                        <th>Category Tag</th>
                                         <th>Status</th>
                                         <th>Created At</th>
                                         <th>Actions</th>
@@ -41,6 +42,14 @@
                                     @forelse($streams as $stream)
                                     <tr>
                                         <td>{{ $stream->title }}</td>
+                                        <td>
+                                            <span class="badge bg-info text-capitalize">{{ $stream->tag_type ?? 'general' }}</span>
+                                            @if($stream->streamable)
+                                                <small class="d-block text-muted">
+                                                    {{ $stream->streamable->title ?? $stream->streamable->artist_name ?? $stream->streamable->business_name ?? '' }}
+                                                </small>
+                                            @endif
+                                        </td>
                                         <td>
                                             @if($stream->status === 'live')
                                                 <span class="badge bg-success">Live</span>
@@ -75,7 +84,7 @@
                                     </tr>
                                     @empty
                                     <tr>
-                                        <td colspan="4" class="text-center text-muted">No live streams found.</td>
+                                        <td colspan="5" class="text-center text-muted">No live streams found.</td>
                                     </tr>
                                     @endforelse
                                 </tbody>

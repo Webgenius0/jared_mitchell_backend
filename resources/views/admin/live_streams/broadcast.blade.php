@@ -136,6 +136,10 @@
     function stopBroadcast() {
         if (!client) return;
 
+        if (!confirm("Are you sure you want to stop the live broadcast?")) {
+            return;
+        }
+
         client.stopBroadcast();
         document.getElementById('status').innerText = "STOPPED (PENDING)";
         document.getElementById('status').className = "text-warning fw-bold";
