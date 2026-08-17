@@ -15,15 +15,20 @@ class AwsIvsWebhookController extends Controller
     public function handle(Request $request)
     {
         try {
-            Log::info('AWS IVS Webhook received', $request->all());
+            $rawContent = $request->getContent();
+            $payload = json_decode($rawContent, true);
 
-            $payload = $request->all();
+            if (!is_array($payload)) {
+                $payload = $request->all();
+            }
+
+            Log::info('AWS IVS Webhook received', $payload);
 
             // Handle SNS notification wrapper if sent via AWS SNS
             if (isset($payload['Type']) && $payload['Type'] === 'SubscriptionConfirmation') {
-                // Confirm SNS subscription if AWS sends confirmation URL
                 if (isset($payload['SubscribeURL'])) {
-                    file_get_contents($payload['SubscribeURL']);
+                    @file_get_contents($payload['SubscribeURL']);
+                    Log::info('AWS SNS Subscription Confirmed: ' . $payload['SubscribeURL']);
                     return response()->json(['message' => 'Subscription confirmed']);
                 }
             }
