@@ -59,8 +59,20 @@ class AwsIvsWebhookController extends Controller
                 }
             }
 
-            if ($channelArn) {
-                $liveStream = LiveStream::where('channel_arn', $channelArn)->first();
+            if ($channelArn || $s3KeyPrefix) {
+                $liveStream = null;
+
+                if ($channelArn) {
+                    $channelId = basename($channelArn);
+                    $liveStream = LiveStream::where('channel_arn', $channelArn)
+                        ->orWhere('channel_arn', 'LIKE', '%' . $channelId)
+                        ->first();
+                }
+
+                if (!$liveStream) {
+                    // Fallback: match the latest active or pending stream
+                    $liveStream = LiveStream::whereIn('status', ['live', 'pending'])->latest()->first();
+                }
 
                 if ($liveStream) {
                     $updateData = ['status' => 'ended'];
