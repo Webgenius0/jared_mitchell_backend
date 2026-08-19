@@ -96,9 +96,10 @@ jobs:
               echo "⚙️ Setting up default .env..."
               cp .env.example .env
               php artisan key:generate
-              # Create sqlite database file to prevent crash on first deploy
-              touch database/database.sqlite
             fi
+            
+            # Ensure sqlite database file exists to prevent crash
+            touch database/database.sqlite
             
             echo "🚀 Running Laravel deployment commands..."
             php artisan optimize:clear
