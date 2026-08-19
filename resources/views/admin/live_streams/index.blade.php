@@ -43,7 +43,7 @@
                                     <tr>
                                         <td>{{ $stream->title }}</td>
                                         <td>
-                                            <span class="badge bg-info text-capitalize">{{ $stream->tag_type ?? 'general' }}</span>
+                                            <span class="badge bg-info text-capitalize">{{ str_replace('_', ' ', $stream->tag_type ?? 'boss_beginning') }}</span>
                                             @if($stream->streamable)
                                                 <small class="d-block text-muted">
                                                     {{ $stream->streamable->title ?? $stream->streamable->artist_name ?? $stream->streamable->business_name ?? '' }}
