@@ -1,98 +1,119 @@
-name: Deploy Laravel to EC2
+name: Deploy Laravel to EC2 # Name of the GitHub Action
 
 on:
   push:
-    branches: [najim]
-  workflow_dispatch:
+    branches: [najim] # This action runs automatically when you push code to the 'najim' branch
+  workflow_dispatch: # This allows you to run the action manually from the GitHub UI
 
 env:
   # The path on your EC2 server where the app will be deployed
   APP_DIR: "/var/www/backend"
 
 jobs:
+  # ---------------------------------------------------------
+  # JOB 1: BUILD
+  # This job prepares the code and installs dependencies
+  # ---------------------------------------------------------
   build:
     name: 🏗️ Build Application
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest # Runs on a fresh Ubuntu machine provided by GitHub
     steps:
       - name: 📥 Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4 # Downloads your code from the GitHub repository
 
       - name: 🐘 Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@v2 # Installs PHP on the GitHub machine
         with:
-          php-version: '8.4'
-          tools: composer:v2
+          php-version: '8.4' # The PHP version required by your composer.lock
+          tools: composer:v2 # Installs Composer
 
       - name: 📦 Install dependencies
+        # Installs Laravel packages without dev-dependencies and scripts
         run: composer install --prefer-dist --no-interaction --no-dev --optimize-autoloader --no-scripts
 
       - name: 🗜️ Create deployment package
         run: |
           mkdir -p deploy
+          # Copies everything to the 'deploy' folder except useless files like .git and tests
           rsync -av --exclude='.git' --exclude='.github' --exclude='tests' ./ deploy/
+          # Zips the folder into a single file named deploy.tar.gz for easy transfer
           tar -czf deploy.tar.gz -C deploy .
 
       - name: 📤 Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4 # Saves the zip file temporarily in GitHub so the next job can use it
         with:
           name: deployment-package
           path: deploy.tar.gz
           retention-days: 1
 
+  # ---------------------------------------------------------
+  # JOB 2: DEPLOY
+  # This job sends the zipped code to your EC2 server
+  # ---------------------------------------------------------
   deploy:
     name: 🚀 Deploy to EC2
-    needs: build
+    needs: build # Wait for the 'build' job to finish before starting this one
     runs-on: ubuntu-latest
     env:
+      # Loading your secret variables from GitHub settings
       EC2_HOST: ${{ secrets.EC2_HOST }}
       EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
       SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
     steps:
       - name: 📥 Download artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v4 # Gets the zip file created in the 'build' job
         with:
           name: deployment-package
 
       - name: 🔑 Configure SSH Key
         run: |
+          # Creates a temporary .pem file with your secret key so we can log into EC2
           echo "$SSH_PRIVATE_KEY" > private_key.pem
           chmod 600 private_key.pem
 
       - name: 🚚 Upload to EC2
         run: |
+          # Uses SCP to securely copy the zip file from GitHub to your EC2 server's /tmp folder
           scp -i private_key.pem -o StrictHostKeyChecking=no \
             deploy.tar.gz ${EC2_USERNAME}@${EC2_HOST}:/tmp/
 
       - name: ⚙️ Execute Deployment
-        # We use EOF (unquoted) to inject the global $APP_DIR from the workflow env.
-        # We escape remote variables like \$USER so they run properly on the EC2 instance.
+        # Logs into your EC2 server and runs these commands directly on your server
         run: |
           ssh -i private_key.pem -o StrictHostKeyChecking=no ${EC2_USERNAME}@${EC2_HOST} << EOF
             set -e
 
             echo "📁 Setting up directory: $APP_DIR"
+            # Creates the folder if it doesn't exist and fixes ownership
             sudo mkdir -p $APP_DIR
             sudo chown -R \$USER:\$USER $APP_DIR
             cd $APP_DIR
             
+            # --- BACKUP SECTION ---
+            # If there's an existing Laravel project, zip it into a backup file
             if [ -f "artisan" ]; then
               echo "📦 Creating backup..."
               mkdir -p backups
               TIMESTAMP=\$(date +%Y%m%d_%H%M%S)
               tar --exclude='./backups' -czf backups/backup_\${TIMESTAMP}.tar.gz . 2>/dev/null || true
-              # Keep only the latest 5 backups
+              # Keeps only the 5 most recent backups and deletes older ones to save disk space
               ls -t backups/backup_*.tar.gz 2>/dev/null | tail -n +6 | xargs -r rm
             fi
             
+            # --- EXTRACT SECTION ---
             echo "📦 Extracting new release..."
+            # Unzips the new code over the old code
             tar --overwrite -xzf /tmp/deploy.tar.gz -C $APP_DIR
+            # Removes the zip file from /tmp to save space
             rm /tmp/deploy.tar.gz
 
             echo "🔐 Updating permissions..."
             sudo chown -R \$USER:\$USER $APP_DIR
+            # Gives Laravel permission to write to storage and cache folders
             sudo chmod -R 775 storage bootstrap/cache
             
             echo "🚀 Running Laravel deployment commands..."
+            # Clears old cache, runs database migrations, and optimizes the new code
             php artisan optimize:clear
             php artisan migrate --force
             php artisan optimize
@@ -100,11 +121,16 @@ jobs:
 
       - name: 🗑️ Cleanup SSH Key
         if: always()
+        # Deletes the temporary SSH key from GitHub for security
         run: rm -f private_key.pem
 
+  # ---------------------------------------------------------
+  # JOB 3: VERIFY
+  # This job checks if the website is actually working
+  # ---------------------------------------------------------
   verify:
     name: 🔍 Verify Deployment
-    needs: deploy
+    needs: deploy # Waits for 'deploy' to finish
     runs-on: ubuntu-latest
     steps:
       - name: 🌐 Check health status
@@ -113,8 +139,10 @@ jobs:
         run: |
           echo "Waiting for application to start..."
           sleep 10
+          # Tries to access the website 3 times
           for i in {1..3}; do
             STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://${EC2_HOST} 2>/dev/null || echo "000")
+            # If the website returns a success status (200, 301, 302, 500), it passes
             if [[ "$STATUS" =~ ^(200|301|302|500)$ ]]; then
               echo "✅ App is up! (Status: $STATUS)"
               exit 0
@@ -123,12 +151,16 @@ jobs:
             sleep 5
           done
           echo "❌ Verification failed!"
-          exit 1
+          exit 1 # Fails the GitHub Action if the website is down
 
+  # ---------------------------------------------------------
+  # JOB 4: ROLLBACK
+  # This job only runs if something goes wrong in the previous steps
+  # ---------------------------------------------------------
   rollback:
     name: ⏪ Rollback on Failure
     needs: deploy
-    if: failure()
+    if: failure() # Triggered ONLY if the action fails
     runs-on: ubuntu-latest
     env:
       EC2_HOST: ${{ secrets.EC2_HOST }}
@@ -142,16 +174,20 @@ jobs:
 
       - name: 🔄 Execute Rollback
         run: |
+          # Logs back into your EC2 server to restore the backup
           ssh -i private_key.pem -o StrictHostKeyChecking=no ${EC2_USERNAME}@${EC2_HOST} << EOF
             echo "🔄 Starting rollback..."
             cd $APP_DIR
             
+            # Finds the most recent backup zip file
             LATEST_BACKUP=\$(ls -t backups/backup_*.tar.gz 2>/dev/null | head -1)
             
             if [ -n "\$LATEST_BACKUP" ]; then
               echo "📂 Restoring from: \$LATEST_BACKUP"
+              # Extracts the backup, replacing the broken new code
               tar -xzf "\$LATEST_BACKUP" -C $APP_DIR
               
+              # Re-caches the old working code
               php artisan optimize:clear
               php artisan optimize
               
