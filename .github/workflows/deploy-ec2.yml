@@ -92,15 +92,6 @@ jobs:
             sudo chown -R \$USER:\$USER $APP_DIR
             sudo chmod -R 775 storage bootstrap/cache
             
-            if [ ! -f .env ]; then
-              echo "⚙️ Setting up default .env..."
-              cp .env.example .env
-              php artisan key:generate
-            fi
-            
-            # Ensure sqlite database file exists to prevent crash
-            touch database/database.sqlite
-            
             echo "🚀 Running Laravel deployment commands..."
             php artisan optimize:clear
             php artisan migrate --force
