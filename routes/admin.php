@@ -41,6 +41,7 @@ use App\Http\Controllers\Web\Admin\SponsorController;
 use App\Http\Controllers\Web\Admin\SponsorApplicationController;
 use App\Http\Controllers\Web\Admin\Spotlight\SpotlightVotePackageController;
 use App\Http\Controllers\Web\Admin\LiveStreamController;
+use App\Http\Controllers\Web\Admin\VideoChannelController;
 
 
 Route::get('/', [AdminDashboardController::class, 'index'])->name('show.admin.dashboard'); // show admin dashboard
@@ -548,3 +549,16 @@ Route::prefix('spotlight')->name('admin.spotlight.')->group(function () {
     Route::post('/vote-packages/{package}/toggle-active', [SpotlightVotePackageController::class, 'toggleActive'])->name('vote-packages.toggle-active');
     Route::delete('/vote-packages/{package}', [SpotlightVotePackageController::class, 'destroy'])->name('vote-packages.destroy');
 });
+
+/*
+|--------------------------------------------------------------------------
+| Video Channel Management
+|--------------------------------------------------------------------------
+*/
+Route::prefix('video-channels')->name('admin.video-channels.')->group(function () {
+    Route::get('/', [VideoChannelController::class, 'index'])->name('index');
+    Route::post('/', [VideoChannelController::class, 'store'])->name('store');
+    Route::post('/reorder', [VideoChannelController::class, 'reorder'])->name('reorder');
+    Route::delete('/{videoChannel}', [VideoChannelController::class, 'destroy'])->name('destroy');
+});
+

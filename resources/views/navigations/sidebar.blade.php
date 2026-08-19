@@ -430,6 +430,16 @@
                     </a>
                 </li>
 
+                <!-- video channel -->
+                <li class="nav-item">
+                    <a class="nav-link menu-link {{ request()->routeIs('admin.video-channels.*') ? 'active' : '' }}"
+                        href="{{ route('admin.video-channels.index') }}">
+                        <i class="ri-video-line"></i>
+                        <span>Video Channel</span>
+                    </a>
+                </li>
+
+
 
 
 

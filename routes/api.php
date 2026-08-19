@@ -66,6 +66,7 @@ use App\Http\Controllers\Api\SponsorApplicationController;
 use App\Http\Controllers\Api\LiveStreamController;
 use App\Http\Controllers\Api\AwsIvsWebhookController;
 use App\Http\Controllers\Api\MyStatsController;
+use App\Http\Controllers\Api\VideoChannelApiController;
 use Illuminate\Support\Facades\Route;
 
 // health check
@@ -141,6 +142,16 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::get('/sponsorsip', [SponsorsipController::class, 'index']); // Sponsorship page CMS
             Route::get('/osi-rounds', [CmsRoundsController::class, 'index']); // Rounds page CMS
             Route::get('/faq', [ApiFAQController::class, 'index']); // Active FAQs
+        });
+
+        /*
+        |--------------------------------------------------------------------------
+        | Video Channels — Public read-only routes
+        |--------------------------------------------------------------------------
+        */
+        Route::prefix('video-channels')->group(function () {
+            Route::get('/', [VideoChannelApiController::class, 'index']);
+            Route::get('/{category}', [VideoChannelApiController::class, 'getByCategory']);
         });
 
         // Artist Categories - for artist registering
