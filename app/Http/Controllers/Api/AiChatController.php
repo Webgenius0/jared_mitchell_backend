@@ -74,8 +74,10 @@ class AiChatController extends Controller
                 'title' => $conversation->title,
                 'reply' => $replyText,
                 'user_message' => $userMessage,
+                'agent_message' => $botMessage,
                 'bot_reply' => $botMessage,
             ],
+            'code' => 200,
         ]);
     }
 
@@ -91,11 +93,13 @@ class AiChatController extends Controller
                 $query->latest()->limit(1);
             }])
             ->latest('updated_at')
-            ->paginate(20);
+            ->get();
 
         return response()->json([
             'status' => true,
+            'message' => 'AI conversations fetched successfully',
             'data' => $conversations,
+            'code' => 200,
         ]);
     }
 
@@ -110,9 +114,24 @@ class AiChatController extends Controller
             ->with('messages')
             ->firstOrFail();
 
+        $userMessages = $conversation->messages->where('role', 'user')->values();
+        $agentMessages = $conversation->messages->whereIn('role', ['assistant', 'system'])->values();
+
         return response()->json([
             'status' => true,
-            'data' => $conversation,
+            'message' => 'Conversation details fetched successfully',
+            'data' => [
+                'id' => $conversation->id,
+                'user_id' => $conversation->user_id,
+                'title' => $conversation->title,
+                'model' => $conversation->model,
+                'created_at' => $conversation->created_at,
+                'updated_at' => $conversation->updated_at,
+                'user_messages' => $userMessages,
+                'agent_messages' => $agentMessages,
+                'messages' => $conversation->messages,
+            ],
+            'code' => 200,
         ]);
     }
 
@@ -131,6 +150,7 @@ class AiChatController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'Conversation deleted successfully',
+            'code' => 200,
         ]);
     }
 }
