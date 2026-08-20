@@ -65,17 +65,12 @@ class AiChatController extends Controller
         ]);
 
         $conversation->touch(); // Update timestamps
+        $conversation->load('messages');
 
         return response()->json([
             'status' => true,
             'message' => 'AI response generated successfully',
-            'data' => [
-                'conversation_id' => $conversation->id,
-                'title' => $conversation->title,
-                'reply' => $replyText,
-                'user_message' => $userMessage,
-                'bot_reply' => $botMessage,
-            ],
+            'data' => $conversation,
             'code' => 200,
         ]);
     }
