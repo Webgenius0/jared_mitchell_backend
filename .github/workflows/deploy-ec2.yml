@@ -10,13 +10,12 @@ env:
   APP_DIR: "/var/www/backend"
 
 jobs:
-  # ---------------------------------------------------------
-  # JOB 1: BUILD
+
   # This job prepares the code and installs dependencies
-  # ---------------------------------------------------------
+  
   build:
     name: 🏗️ Build Application
-    runs-on: ubuntu-latest # Runs on a fresh Ubuntu machine provided by GitHub
+    runs-on: ubuntu-latest 
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4 # Downloads your code from the GitHub repository
@@ -46,10 +45,9 @@ jobs:
           path: deploy.tar.gz
           retention-days: 1
 
-  # ---------------------------------------------------------
-  # JOB 2: DEPLOY
+
   # This job sends the zipped code to your EC2 server
-  # ---------------------------------------------------------
+  
   deploy:
     name: 🚀 Deploy to EC2
     needs: build # Wait for the 'build' job to finish before starting this one
@@ -126,10 +124,9 @@ jobs:
 
  
 
-  # ---------------------------------------------------------
-  # JOB 4: ROLLBACK
+
   # This job only runs if something goes wrong in the previous steps
-  # ---------------------------------------------------------
+
   rollback:
     name: ⏪ Rollback on Failure
     needs: deploy
