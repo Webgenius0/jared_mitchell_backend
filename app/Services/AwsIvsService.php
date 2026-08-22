@@ -38,8 +38,8 @@ class AwsIvsService
             ];
 
             // If a recording configuration ARN is provided, attach it so streams are recorded as VOD
-            $recordingConfigArn = env('AWS_IVS_RECORDING_CONFIGURATION_ARN');
-            if ($recordingConfigArn) {
+            $recordingConfigArn = trim(env('AWS_IVS_RECORDING_CONFIGURATION_ARN', ''));
+            if (!empty($recordingConfigArn)) {
                 $params['recordingConfigurationArn'] = $recordingConfigArn;
             }
 
