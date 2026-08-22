@@ -30,34 +30,47 @@ class AwsIvsService
      */
     public function createChannel(string $name)
     {
-        try {
-            $params = [
-                'name' => $name,
-                'type' => 'STANDARD', // STANDARD or BASIC
-                'latencyMode' => 'LOW',
-            ];
+        $recordingConfigArn = trim(env('AWS_IVS_RECORDING_CONFIGURATION_ARN', ''));
+        
+        $params = [
+            'name' => $name,
+            'type' => 'STANDARD', // STANDARD or BASIC
+            'latencyMode' => 'LOW',
+        ];
 
-            // If a recording configuration ARN is provided, attach it so streams are recorded as VOD
-            $recordingConfigArn = trim(env('AWS_IVS_RECORDING_CONFIGURATION_ARN', ''));
-            if (!empty($recordingConfigArn)) {
-                $params['recordingConfigurationArn'] = $recordingConfigArn;
-            }
-
-            $result = $this->client->createChannel($params);
-
-            $channel = $result->get('channel');
-            $streamKey = $result->get('streamKey');
-
-            return [
-                'channel_arn' => $channel['arn'],
-                'ingest_endpoint' => 'rtmps://' . $channel['ingestEndpoint'] . ':443/app/',
-                'playback_url' => $channel['playbackUrl'],
-                'stream_key' => $streamKey['value'],
-            ];
-        } catch (AwsException $e) {
-            Log::error('AWS IVS Create Channel Error: ' . $e->getMessage());
-            return null;
+        if (!empty($recordingConfigArn)) {
+            $params['recordingConfigurationArn'] = $recordingConfigArn;
         }
+
+        try {
+            $result = $this->client->createChannel($params);
+        } catch (AwsException $e) {
+            // If recordingConfigurationArn is invalid in AWS, retry creating channel without recording config
+            if (isset($params['recordingConfigurationArn'])) {
+                Log::warning('AWS IVS Recording Config ARN invalid or not found in AWS account: ' . $e->getMessage() . '. Creating channel without recording configuration.');
+                unset($params['recordingConfigurationArn']);
+                
+                try {
+                    $result = $this->client->createChannel($params);
+                } catch (AwsException $retryException) {
+                    Log::error('AWS IVS Create Channel Retry Error: ' . $retryException->getMessage());
+                    return null;
+                }
+            } else {
+                Log::error('AWS IVS Create Channel Error: ' . $e->getMessage());
+                return null;
+            }
+        }
+
+        $channel = $result->get('channel');
+        $streamKey = $result->get('streamKey');
+
+        return [
+            'channel_arn' => $channel['arn'],
+            'ingest_endpoint' => 'rtmps://' . $channel['ingestEndpoint'] . ':443/app/',
+            'playback_url' => $channel['playbackUrl'],
+            'stream_key' => $streamKey['value'],
+        ];
     }
 
     /**
