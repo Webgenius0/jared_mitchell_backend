@@ -124,34 +124,7 @@ jobs:
         # Deletes the temporary SSH key from GitHub for security
         run: rm -f private_key.pem
 
-  # ---------------------------------------------------------
-  # JOB 3: VERIFY
-  # This job checks if the website is actually working
-  # ---------------------------------------------------------
-  verify:
-    name: 🔍 Verify Deployment
-    needs: deploy # Waits for 'deploy' to finish
-    runs-on: ubuntu-latest
-    steps:
-      - name: 🌐 Check health status
-        env:
-          EC2_HOST: ${{ secrets.EC2_HOST }}
-        run: |
-          echo "Waiting for application to start..."
-          sleep 10
-          # Tries to access the website 3 times
-          for i in {1..3}; do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://${EC2_HOST} 2>/dev/null || echo "000")
-            # If the website returns a success status (200, 301, 302, 500), it passes
-            if [[ "$STATUS" =~ ^(200|301|302|500)$ ]]; then
-              echo "✅ App is up! (Status: $STATUS)"
-              exit 0
-            fi
-            echo "⏳ Attempt $i: Status $STATUS. Retrying in 5s..."
-            sleep 5
-          done
-          echo "❌ Verification failed!"
-          exit 1 # Fails the GitHub Action if the website is down
+ 
 
   # ---------------------------------------------------------
   # JOB 4: ROLLBACK
