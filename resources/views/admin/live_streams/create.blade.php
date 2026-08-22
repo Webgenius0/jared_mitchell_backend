@@ -41,10 +41,20 @@
                             <div class="mb-3">
                                 <label for="tag_type" class="form-label">Category Tag</label>
                                 <select name="tag_type" id="tag_type" class="form-select" onchange="toggleTagSelectors()">
-                                    <option value="general" {{ old('tag_type') == 'general' ? 'selected' : '' }}>General / Standalone Stream</option>
+                                    <option value="boss_beginning" {{ old('tag_type', 'boss_beginning') == 'boss_beginning' ? 'selected' : '' }}>Boss Beginning Stream</option>
                                     <option value="event" {{ old('tag_type') == 'event' ? 'selected' : '' }}>Event Stream</option>
                                     <option value="artist" {{ old('tag_type') == 'artist' ? 'selected' : '' }}>Artist Spotlight Stream</option>
                                     <option value="business" {{ old('tag_type') == 'business' ? 'selected' : '' }}>Business Spotlight Stream</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3 d-none" id="selector-boss_beginning">
+                                <label for="season_id" class="form-label">Related Boss Beginning Season (Optional)</label>
+                                <select name="season_id" id="season_id" class="form-select">
+                                    <option value="">Select Season</option>
+                                    @foreach($seasons as $season)
+                                        <option value="{{ $season->id }}">{{ $season->title }}</option>
+                                    @endforeach
                                 </select>
                             </div>
 
@@ -63,7 +73,7 @@
                                 <select name="artist_spotlight_id" id="artist_spotlight_id" class="form-select">
                                     <option value="">Select Artist</option>
                                     @foreach($artistSpotlights as $artist)
-                                        <option value="{{ $artist->id }}">{{ $artist->artist_name }} ({{ $artist->email }})</option>
+                                        <option value="{{ $artist->id }}">{{ $artist->full_legal_name ?? $artist->artist_name }} ({{ $artist->email }})</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -102,10 +112,12 @@
 <script>
     function toggleTagSelectors() {
         const type = document.getElementById('tag_type').value;
+        document.getElementById('selector-boss_beginning').classList.add('d-none');
         document.getElementById('selector-event').classList.add('d-none');
         document.getElementById('selector-artist').classList.add('d-none');
         document.getElementById('selector-business').classList.add('d-none');
 
+        if (type === 'boss_beginning') document.getElementById('selector-boss_beginning').classList.remove('d-none');
         if (type === 'event') document.getElementById('selector-event').classList.remove('d-none');
         if (type === 'artist') document.getElementById('selector-artist').classList.remove('d-none');
         if (type === 'business') document.getElementById('selector-business').classList.remove('d-none');

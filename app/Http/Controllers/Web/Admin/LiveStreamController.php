@@ -33,8 +33,9 @@ class LiveStreamController extends Controller
         $events = \App\Models\Event::select('id', 'title')->latest()->get();
         $artistSpotlights = \App\Models\ArtistSpotlight::select('id', 'full_legal_name', 'email')->latest()->get();
         $businessSpotlights = \App\Models\BusinessSpotlight::select('id', 'business_name', 'email')->latest()->get();
+        $seasons = \App\Models\Contest\Season::select('id', 'title')->latest()->get();
 
-        return view('admin.live_streams.create', compact('events', 'artistSpotlights', 'businessSpotlights'));
+        return view('admin.live_streams.create', compact('events', 'artistSpotlights', 'businessSpotlights', 'seasons'));
     }
 
     /**
@@ -45,17 +46,21 @@ class LiveStreamController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'tag_type' => 'nullable|in:general,event,artist,business',
+            'tag_type' => 'nullable|in:boss_beginning,event,artist,business',
+            'season_id' => 'nullable|exists:seasons,id',
             'event_id' => 'nullable|exists:events,id',
             'artist_spotlight_id' => 'nullable|exists:artist_spotlights,id',
             'business_spotlight_id' => 'nullable|exists:business_spotlights,id',
         ]);
 
-        $tagType = $request->input('tag_type', 'general');
+        $tagType = $request->input('tag_type', 'boss_beginning');
         $streamableType = null;
         $streamableId = null;
 
-        if ($tagType === 'event' && $request->filled('event_id')) {
+        if ($tagType === 'boss_beginning' && $request->filled('season_id')) {
+            $streamableType = \App\Models\Contest\Season::class;
+            $streamableId = $request->input('season_id');
+        } elseif ($tagType === 'event' && $request->filled('event_id')) {
             $streamableType = \App\Models\Event::class;
             $streamableId = $request->input('event_id');
         } elseif ($tagType === 'artist' && $request->filled('artist_spotlight_id')) {

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AiChatController;
 use App\Http\Controllers\Api\ArtistCategoryController;
 use App\Http\Controllers\Api\ArtistController;
 use App\Http\Controllers\Api\ArtistSpotlightController;
@@ -671,6 +672,18 @@ Route::group(['prefix' => 'v2'], function () {
         Route::post('/refresh-token', [LoginController::class, 'refreshToken']); // DONE: refresh token
         Route::post('/logout', [LoginController::class, 'logout']); // DONE: logout
     });
+});
+
+/*
+|--------------------------------------------------------------------------
+| AI Chatbot (OSI AI Content Assistant) Routes
+|--------------------------------------------------------------------------
+*/
+Route::group(['prefix' => 'v1/ai-chat', 'middleware' => 'auth:api'], function () {
+    Route::post('/ask', [AiChatController::class, 'ask']);
+    Route::get('/conversations', [AiChatController::class, 'index']);
+    Route::get('/conversations/{id}', [AiChatController::class, 'show']);
+    Route::delete('/conversations/{id}', [AiChatController::class, 'destroy']);
 });
 
 /*
