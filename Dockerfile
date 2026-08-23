@@ -1,4 +1,4 @@
-FROM php:8.2-fpm
+FROM php:8.4-fpm
 
 # Install system dependencies & PHP extensions
 RUN apt-get update && apt-get install -y \
@@ -32,7 +32,7 @@ WORKDIR /var/www
 COPY . /var/www
 
 # Install Composer dependencies
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+RUN composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs
 
 # Set directory permissions
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache \
