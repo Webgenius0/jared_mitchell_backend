@@ -12,6 +12,9 @@ if [ ! -d "/var/www/public/storage" ]; then
     php artisan storage:link || true
 fi
 
+# Clear stale package and service manifests from bootstrap/cache
+rm -f /var/www/bootstrap/cache/packages.php /var/www/bootstrap/cache/services.php /var/www/bootstrap/cache/config.php /var/www/bootstrap/cache/routes.php
+
 # Clear and optimize cache
 php artisan config:clear || true
 php artisan cache:clear || true
