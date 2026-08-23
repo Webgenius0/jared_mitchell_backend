@@ -42,5 +42,5 @@ RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache \
 RUN chmod +x /var/www/docker-entrypoint.sh
 
 EXPOSE 9000
-ENTRYPOINT ["/var/www/docker-entrypoint.sh"]
+ENTRYPOINT ["sh", "/var/www/docker-entrypoint.sh"]
 CMD ["php-fpm"]
