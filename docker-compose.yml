@@ -6,6 +6,8 @@ services:
     container_name: jared_backend_app
     restart: unless-stopped
     tty: true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       SERVICE_NAME: app
       SERVICE_TAGS: dev
