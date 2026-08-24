@@ -693,3 +693,6 @@ Route::group(['prefix' => 'v1/ai-chat', 'middleware' => 'auth:api'], function ()
 */
 Route::post('/webhooks/stripe', [StripeWebhookController::class, 'handle']);
 Route::post('/webhooks/aws-ivs', [AwsIvsWebhookController::class, 'handle']);
+
+
+Route::post('/webhooks/aws-ivs', [App\Http\Controllers\Api\AwsIvsWebhookController::class, 'handle'])->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
