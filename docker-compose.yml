@@ -50,6 +50,23 @@ services:
     networks:
       - jared-network
 
+  queue:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jared_backend_queue
+    restart: unless-stopped
+    command: php artisan queue:work --tries=3 --timeout=90
+    working_dir: /var/www
+    volumes:
+      - .:/var/www
+      - /var/www/vendor
+    depends_on:
+      - app
+      - db
+    networks:
+      - jared-network
+
 volumes:
   dbdata:
     driver: local
