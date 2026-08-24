@@ -695,4 +695,4 @@ Route::post('/webhooks/stripe', [StripeWebhookController::class, 'handle']);
 Route::post('/webhooks/aws-ivs', [AwsIvsWebhookController::class, 'handle']);
 
 
-Route::post('/webhooks/aws-ivs', [App\Http\Controllers\Api\AwsIvsWebhookController::class, 'handle'])->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
+// Route::post('/webhooks/aws-ivs', [App\Http\Controllers\Api\AwsIvsWebhookController::class, 'handle'])->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
