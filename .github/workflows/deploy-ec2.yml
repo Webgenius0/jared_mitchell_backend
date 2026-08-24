@@ -110,11 +110,12 @@ jobs:
             # Gives Laravel permission to write to storage and cache folders
             sudo chmod -R 775 storage bootstrap/cache
             
-            echo "🚀 Running Laravel deployment commands..."
-            # Clears old cache, runs database migrations, and optimizes the new code
-            php artisan optimize:clear
-            php artisan migrate --force
-            php artisan optimize
+            echo "🚀 Running Docker Compose deployment commands..."
+            # Restart Docker containers and optimize Laravel inside container
+            sudo docker compose up -d --build
+            sudo docker exec -i jared_backend_app php artisan config:clear || true
+            sudo docker exec -i jared_backend_app php artisan cache:clear || true
+            sudo docker exec -i jared_backend_app php artisan migrate --force || true
           EOF
 
       - name: 🗑️ Cleanup SSH Key
@@ -157,9 +158,9 @@ jobs:
               # Extracts the backup, replacing the broken new code
               tar -xzf "\$LATEST_BACKUP" -C $APP_DIR
               
-              # Re-caches the old working code
-              php artisan optimize:clear
-              php artisan optimize
+              # Restart Docker containers on rollback
+              sudo docker compose up -d
+              sudo docker exec -i jared_backend_app php artisan config:clear || true
               
               echo "✅ Rollback successful!"
             else
