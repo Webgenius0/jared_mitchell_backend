@@ -59,41 +59,51 @@ class AwsIvsWebhookController extends Controller
                 }
             }
 
-            if ($channelArn || $s3KeyPrefix) {
-                $liveStream = null;
+            $liveStream = null;
 
-                if ($channelArn) {
-                    $channelId = basename($channelArn);
-                    $liveStream = LiveStream::where('channel_arn', $channelArn)
-                        ->orWhere('channel_arn', 'LIKE', '%' . $channelId)
-                        ->first();
+            if ($channelArn) {
+                $channelId = basename($channelArn);
+                $liveStream = LiveStream::where('channel_arn', $channelArn)
+                    ->orWhere('channel_arn', 'LIKE', '%' . $channelId)
+                    ->first();
+            }
+
+            if (!$liveStream) {
+                // Fallback 1: match the latest active or pending stream
+                $liveStream = LiveStream::whereIn('status', ['live', 'pending'])->latest()->first();
+            }
+
+            if (!$liveStream) {
+                // Fallback 2: match the latest created stream overall (for test payloads or manual requests)
+                $liveStream = LiveStream::latest()->first();
+            }
+
+            if ($liveStream) {
+                $updateData = [];
+                if ($vodUrl) {
+                    $updateData['vod_url'] = $vodUrl;
+                }
+                // Only update status to ended if currently live or pending, or if VOD URL is provided
+                if (in_array($liveStream->status, ['live', 'pending']) || $vodUrl) {
+                    $updateData['status'] = 'ended';
                 }
 
-                if (!$liveStream) {
-                    // Fallback: match the latest active or pending stream
-                    $liveStream = LiveStream::whereIn('status', ['live', 'pending'])->latest()->first();
-                }
-
-                if ($liveStream) {
-                    $updateData = ['status' => 'ended'];
-                    if ($vodUrl) {
-                        $updateData['vod_url'] = $vodUrl;
-                    }
+                if (!empty($updateData)) {
                     $liveStream->update($updateData);
-
-                    Log::info("Live stream {$liveStream->id} updated via AWS IVS Webhook", $updateData);
-
-                    return response()->json([
-                        'status' => true,
-                        'message' => 'Live stream updated successfully',
-                        'data' => $liveStream,
-                    ]);
                 }
+
+                Log::info("Live stream {$liveStream->id} updated via AWS IVS Webhook", $updateData);
+
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Live stream updated successfully',
+                    'data' => $liveStream,
+                ]);
             }
 
             return response()->json([
                 'status' => false,
-                'message' => 'No matching live stream found for channel ARN',
+                'message' => 'No live streams exist in database to update',
             ], 404);
 
         } catch (\Exception $e) {
