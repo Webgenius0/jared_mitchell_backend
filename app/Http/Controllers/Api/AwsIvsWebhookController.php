@@ -40,22 +40,34 @@ class AwsIvsWebhookController extends Controller
             $channelArn = $payload['detail']['channel_arn'] ?? $payload['channel_arn'] ?? ($payload['resources'][0] ?? null);
             $recordingStatus = $payload['detail']['recording_status'] ?? $payload['recording_status'] ?? null;
             $streamId = $payload['detail']['stream_id'] ?? $payload['stream_id'] ?? null;
-            $s3Bucket = $payload['detail']['recording_s3_bucket_name'] ?? env('AWS_IVS_S3_BUCKET') ?? null;
-            $s3KeyPrefix = $payload['detail']['recording_s3_key_prefix'] ?? $payload['detail']['recording_s3_key'] ?? null;
+            
+            $s3Bucket = $payload['detail']['recording_s3_bucket_name'] 
+                ?? $payload['recording_s3_bucket_name'] 
+                ?? ($payload['Records'][0]['s3']['bucket']['name'] ?? null)
+                ?? env('AWS_IVS_S3_BUCKET') 
+                ?? 'oursocialimage-livestreaming-bucket';
+
+            $s3KeyPrefix = $payload['detail']['recording_s3_key_prefix'] 
+                ?? $payload['detail']['recording_s3_key'] 
+                ?? $payload['recording_s3_key_prefix'] 
+                ?? ($payload['Records'][0]['s3']['object']['key'] ?? null);
             
             $vodUrl = $payload['vod_url'] ?? $payload['detail']['vod_url'] ?? null;
 
             if (!$vodUrl && $s3KeyPrefix) {
                 $region = env('AWS_DEFAULT_REGION', 'us-east-1');
-                $masterPlaylistPath = rtrim($s3KeyPrefix, '/') . '/media/hls/master.m3u8';
+                
+                if (str_ends_with($s3KeyPrefix, '.m3u8')) {
+                    $masterPlaylistPath = ltrim($s3KeyPrefix, '/');
+                } else {
+                    $masterPlaylistPath = rtrim($s3KeyPrefix, '/') . '/media/hls/master.m3u8';
+                }
                 
                 $cloudfront = env('AWS_IVS_CLOUDFRONT_URL');
                 if ($cloudfront) {
                     $vodUrl = rtrim($cloudfront, '/') . '/' . ltrim($masterPlaylistPath, '/');
-                } elseif ($s3Bucket) {
-                    $vodUrl = "https://{$s3Bucket}.s3.{$region}.amazonaws.com/" . ltrim($masterPlaylistPath, '/');
                 } else {
-                    $vodUrl = "https://s3.{$region}.amazonaws.com/" . ltrim($masterPlaylistPath, '/');
+                    $vodUrl = "https://{$s3Bucket}.s3.{$region}.amazonaws.com/" . ltrim($masterPlaylistPath, '/');
                 }
             }
 
