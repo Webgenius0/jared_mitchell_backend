@@ -104,11 +104,25 @@ class RegisterController extends Controller
                 'slug' => $slug,
             ]);
 
-            DB::table('model_has_roles')->insert([
-                'role_id' => $request->role,
-                'model_type' => User::class,
-                'model_id' => $user->id,
-            ]);
+            try {
+                $roleModel = \Spatie\Permission\Models\Role::find($request->role);
+                if ($roleModel) {
+                    $user->assignRole($roleModel);
+                } else {
+                    DB::table('model_has_roles')->insert([
+                        'role_id' => $request->role,
+                        'model_type' => User::class,
+                        'model_id' => $user->id,
+                    ]);
+                }
+            } catch (\Throwable $roleEx) {
+                Log::warning('Role assign via Spatie failed, inserting directly: ' . $roleEx->getMessage());
+                DB::table('model_has_roles')->insertOrIgnore([
+                    'role_id' => $request->role,
+                    'model_type' => User::class,
+                    'model_id' => $user->id,
+                ]);
+            }
 
             $otp = rand(1000, 9999);
 
@@ -122,7 +136,7 @@ class RegisterController extends Controller
 
             try {
                 Mail::to($user->email)->send(new RegistrationOtpMail($otp, $user, 'Verify Your Email Address'));
-            } catch (Exception $mailEx) {
+            } catch (\Throwable $mailEx) {
                 Log::error('Registration OTP mail failed: ' . $mailEx->getMessage());
             }
 
@@ -137,13 +151,14 @@ class RegisterController extends Controller
                 ],
                 201
             );
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
 
             DB::rollBack();
+            Log::error('User registration failed error: ' . $e->getMessage(), ['exception' => $e]);
 
             return $this->error(
-                'User registration failed',
                 $e->getMessage(),
+                'User registration failed',
                 500
             );
         }
