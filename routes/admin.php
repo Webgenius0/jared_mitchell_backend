@@ -420,6 +420,10 @@ Route::prefix('winners')->name('admin.winners.')->group(function () {
     Route::get('/', [WinnerController::class, 'index'])->name('index');
     Route::get('/rounds', [WinnerController::class, 'rounds'])->name('rounds');
     Route::post('/{round}/confirm-winner', [WinnerController::class, 'confirmWinner'])->name('confirm-winner');
+    Route::get('/showcase/{contestant}', [WinnerController::class, 'getShowcase'])->name('get-showcase');
+    Route::post('/showcase/{contestant}', [WinnerController::class, 'updateShowcase'])->name('update-showcase');
+    Route::post('/showcase/{contestant}/toggle-media', [WinnerController::class, 'toggleExcludeMedia'])->name('toggle-exclude-media');
+    Route::delete('/showcase/{contestant}/media/{mediaIndex}', [WinnerController::class, 'deleteShowcaseMedia'])->name('delete-showcase-media');
 });
 
 /*

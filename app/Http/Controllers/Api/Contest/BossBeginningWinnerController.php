@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Contest;
 
 use App\Http\Controllers\Controller;
 use App\Models\Contest\Contestant;
+use App\Models\Contest\RoundSubmission;
 use App\Models\Contest\Season;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
@@ -122,6 +123,76 @@ class BossBeginningWinnerController extends Controller
     private function formatWinnerData(Contestant $winner, Season $season): array
     {
         $contestable = $winner->contestable;
+        $showcase = $winner->metadata['showcase'] ?? [];
+        $excludedMediaIds = $showcase['excluded_media_ids'] ?? [];
+
+        $hasCustomShowcase = !empty($showcase['title']) || !empty($showcase['description']) || !empty($showcase['media']) || !empty($excludedMediaIds);
+
+        // 1. Business Profile Media
+        $businessMedia = [];
+        if ($contestable && $contestable->media && $contestable->media->count() > 0) {
+            foreach ($contestable->media as $m) {
+                $id = 'biz_' . $m->id;
+                if (in_array($id, $excludedMediaIds, true)) {
+                    continue;
+                }
+                $filePath = $m->file_path;
+                $mimeType = $m->mime_type ?? '';
+                $isVectorOrVideo = str_contains($mimeType, 'video') || preg_match('#\.(mp4|mov|avi|webm)$#i', $filePath);
+                $businessMedia[] = [
+                    'id'        => $id,
+                    'file_path' => asset('storage/' . preg_replace('#^storage/#', '', $filePath)),
+                    'file_name' => $m->file_name ?? basename($filePath),
+                    'mime_type' => $mimeType,
+                    'type'      => $isVectorOrVideo ? 'video' : 'image',
+                    'source'    => 'Business Profile',
+                ];
+            }
+        }
+
+        // 2. Contest Round Submission Media
+        $submissionMedia = [];
+        $submissions = RoundSubmission::where('contestant_id', $winner->id)->with('round')->get();
+        foreach ($submissions as $sub) {
+            if (!empty($sub->media_urls)) {
+                foreach ($sub->media_urls as $idx => $urlPath) {
+                    $id = 'sub_' . $sub->id . '_' . $idx;
+                    if (in_array($id, $excludedMediaIds, true)) {
+                        continue;
+                    }
+                    $cleanPath = preg_replace('#^storage/#', '', $urlPath);
+                    $isVectorOrVideo = preg_match('#\.(mp4|mov|avi|webm)$#i', $cleanPath);
+                    $roundTitle = $sub->round ? "Round {$sub->round->round_number}" : 'Submission';
+                    $submissionMedia[] = [
+                        'id'        => $id,
+                        'file_path' => asset('storage/' . $cleanPath),
+                        'file_name' => basename($cleanPath),
+                        'mime_type' => $isVectorOrVideo ? 'video/mp4' : 'image/jpeg',
+                        'type'      => $isVectorOrVideo ? 'video' : 'image',
+                        'source'    => $roundTitle,
+                    ];
+                }
+            }
+        }
+
+        // 3. Admin Custom Uploaded Media
+        $customMedia = !empty($showcase['media'])
+            ? array_map(function ($m) {
+                $filePath = $m['file_path'] ?? '';
+                $mimeType = $m['mime_type'] ?? '';
+                $isVectorOrVideo = ($m['type'] ?? '') === 'video' || str_contains($mimeType, 'video') || preg_match('#\.(mp4|mov|avi|webm)$#i', $filePath);
+                return [
+                    'id'        => $m['id'] ?? null,
+                    'file_path' => isset($m['file_path']) ? asset('storage/' . preg_replace('#^storage/#', '', $m['file_path'])) : null,
+                    'file_name' => $m['file_name'] ?? null,
+                    'mime_type' => $m['mime_type'] ?? null,
+                    'type'      => $isVectorOrVideo ? 'video' : 'image',
+                    'source'    => 'Admin Uploaded',
+                ];
+            }, $showcase['media'])
+            : [];
+
+        $allMedia = array_values(array_merge($businessMedia, $submissionMedia, $customMedia));
 
         return [
             'id' => $winner->id,
@@ -135,6 +206,14 @@ class BossBeginningWinnerController extends Controller
             'entered_at' => $winner->entered_at?->toIso8601String(),
             'created_at' => $winner->created_at?->toIso8601String(),
 
+            // Admin Custom Showcase Details (if configured by admin)
+            'showcase' => [
+                'has_custom_info' => $hasCustomShowcase,
+                'title' => $showcase['title'] ?? $winner->display_name,
+                'description' => $showcase['description'] ?? ($contestable?->story ?? $contestable?->why_they_deserve_to_compete),
+                'media' => $allMedia,
+            ],
+
             // Business / contestable entity details
             'contestable' => $contestable ? [
                 'id' => $contestable->id,
@@ -142,7 +221,7 @@ class BossBeginningWinnerController extends Controller
                 'business_name' => $contestable->business_name ?? null,
                 'owner_founder_name' => $contestable->owner_founder_name ?? null,
                 'slug' => $contestable->slug ?? null,
-                'story' => $contestable->story ?? null,
+                'story' => $showcase['description'] ?? ($contestable->story ?? null),
                 'mission' => $contestable->mission ?? null,
                 'website_social_media' => $contestable->website_social_media ?? null,
                 'community_impact_statement' => $contestable->community_impact_statement ?? null,
@@ -153,14 +232,7 @@ class BossBeginningWinnerController extends Controller
                 'total_saves' => (int) ($contestable->total_saves ?? 0),
                 'total_shares' => (int) ($contestable->total_shares ?? 0),
                 'total_points' => (int) ($contestable->total_points ?? 0),
-                'media' => $contestable->media && $contestable->media->count() > 0
-                    ? $contestable->media->map(fn($m) => [
-                        'id' => $m->id,
-                        'file_path' => asset('storage/' . $m->file_path),
-                        'file_name' => $m->file_name,
-                        'mime_type' => $m->mime_type,
-                    ])
-                    : [],
+                'media' => $allMedia,
             ] : null,
 
             // Season information

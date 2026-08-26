@@ -4,12 +4,14 @@ namespace App\Http\Controllers\Web\Admin\Contest;
 
 use App\Http\Controllers\Controller;
 use App\Models\Contest\Contestant;
+use App\Models\Contest\RoundSubmission;
 use App\Models\Contest\Season;
 use App\Models\Round;
 use App\Services\Contest\LeaderboardService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Yajra\DataTables\Facades\DataTables;
 
 class WinnerController extends Controller
@@ -409,24 +411,238 @@ class WinnerController extends Controller
     }
 
     /**
-     * Action cell: confirm / change winner button.
+     * Action cell: confirm / change winner button + edit showcase button.
      */
     private function actionCell(array $row): string
     {
-        // With fewer than 2 finalists there is nothing to choose between.
+        $showcaseBtn = '<button type="button" class="btn btn-sm btn-soft-warning edit-showcase-btn ms-1"
+                    data-contestant-id="' . $row['contestant_id'] . '"
+                    data-business="' . e($row['business']) . '"
+                    title="Edit Showcase Title, Description & Media">
+                    <i class="ri-edit-box-line me-1"></i>Edit Showcase
+                </button>';
+
         if (!$row['can_confirm']) {
-            return '<span class="text-muted small">—</span>';
+            return $showcaseBtn;
         }
 
         $label = $row['has_winner'] ? 'Change Winner' : 'Confirm Winner';
         $class = $row['has_winner'] ? 'btn-soft-info' : 'btn-soft-success';
         $icon  = $row['has_winner'] ? 'ri-refresh-line' : 'ri-check-double-line';
 
-        return '<button type="button" class="btn btn-sm ' . $class . ' confirm-winner-btn"
+        $confirmBtn = '<button type="button" class="btn btn-sm ' . $class . ' confirm-winner-btn"
                     data-round-id="' . $row['round_id'] . '"
                     data-contestant-id="' . $row['contestant_id'] . '"
                     data-business="' . e($row['business']) . '">
                     <i class="' . $icon . ' me-1"></i>' . $label . '
                 </button>';
+
+        return '<div class="d-inline-flex align-items-center gap-1">' . $confirmBtn . $showcaseBtn . '</div>';
+    }
+
+    /**
+     * Get showcase details for a contestant.
+     */
+    public function getShowcase(Contestant $contestant): JsonResponse
+    {
+        $contestable = $contestant->contestable;
+        $showcase = $contestant->metadata['showcase'] ?? [];
+        $excludedMediaIds = $showcase['excluded_media_ids'] ?? [];
+
+        // 1. Business Profile Media
+        $businessMedia = [];
+        if ($contestable && $contestable->media && $contestable->media->count() > 0) {
+            foreach ($contestable->media as $m) {
+                $filePath = $m->file_path;
+                $mimeType = $m->mime_type ?? '';
+                $isVectorOrVideo = str_contains($mimeType, 'video') || preg_match('#\.(mp4|mov|avi|webm)$#i', $filePath);
+                $businessMedia[] = [
+                    'id'          => 'biz_' . $m->id,
+                    'file_path'   => asset('storage/' . preg_replace('#^storage/#', '', $filePath)),
+                    'file_name'   => $m->file_name ?? basename($filePath),
+                    'mime_type'   => $mimeType,
+                    'type'        => $isVectorOrVideo ? 'video' : 'image',
+                    'source'      => 'Business Profile',
+                    'is_excluded' => in_array('biz_' . $m->id, $excludedMediaIds, true),
+                ];
+            }
+        }
+
+        // 2. Contest Round Submission Media
+        $submissionMedia = [];
+        $submissions = RoundSubmission::where('contestant_id', $contestant->id)->with('round')->get();
+        foreach ($submissions as $sub) {
+            if (!empty($sub->media_urls)) {
+                foreach ($sub->media_urls as $idx => $urlPath) {
+                    $cleanPath = preg_replace('#^storage/#', '', $urlPath);
+                    $isVectorOrVideo = preg_match('#\.(mp4|mov|avi|webm)$#i', $cleanPath);
+                    $roundTitle = $sub->round ? "Round {$sub->round->round_number}" : 'Submission';
+                    $id = 'sub_' . $sub->id . '_' . $idx;
+                    $submissionMedia[] = [
+                        'id'          => $id,
+                        'file_path'   => asset('storage/' . $cleanPath),
+                        'file_name'   => basename($cleanPath),
+                        'mime_type'   => $isVectorOrVideo ? 'video/mp4' : 'image/jpeg',
+                        'type'        => $isVectorOrVideo ? 'video' : 'image',
+                        'source'      => $roundTitle,
+                        'is_excluded' => in_array($id, $excludedMediaIds, true),
+                    ];
+                }
+            }
+        }
+
+        $allOriginalMedia = array_merge($businessMedia, $submissionMedia);
+
+        // 3. Custom Uploaded Media by Admin
+        $customMedia = ! empty($showcase['media'])
+            ? array_map(function ($m, $index) {
+                $filePath = $m['file_path'] ?? '';
+                $mimeType = $m['mime_type'] ?? '';
+                $isVectorOrVideo = ($m['type'] ?? '') === 'video' || str_contains($mimeType, 'video') || preg_match('#\.(mp4|mov|avi|webm)$#i', $filePath);
+                return [
+                    'index'     => $index,
+                    'id'        => $m['id'] ?? ('sc_' . $index),
+                    'file_path' => asset('storage/' . preg_replace('#^storage/#', '', $filePath)),
+                    'file_name' => $m['file_name'] ?? 'file',
+                    'mime_type' => $mimeType,
+                    'type'      => $isVectorOrVideo ? 'video' : 'image',
+                    'source'    => 'Admin Uploaded',
+                    'is_custom' => true,
+                ];
+            }, $showcase['media'], array_keys($showcase['media']))
+            : [];
+
+        return response()->json([
+            'success' => true,
+            'data'    => [
+                'contestant_id'      => $contestant->id,
+                'display_name'       => $contestant->display_name,
+                'title'              => $showcase['title'] ?? $contestant->display_name,
+                'description'        => $showcase['description'] ?? ($contestable?->story ?? ''),
+                'custom_media'       => $customMedia,
+                'original_media'     => $allOriginalMedia,
+                'excluded_media_ids' => $excludedMediaIds,
+            ],
+        ]);
+    }
+
+    /**
+     * Toggle exclude/hide status for an original media item.
+     */
+    public function toggleExcludeMedia(Request $request, Contestant $contestant): JsonResponse
+    {
+        $validated = $request->validate([
+            'media_id' => 'required|string',
+        ]);
+
+        $metadata = $contestant->metadata ?? [];
+        $showcase = $metadata['showcase'] ?? [];
+        $excluded = $showcase['excluded_media_ids'] ?? [];
+
+        $mediaId = $validated['media_id'];
+
+        if (in_array($mediaId, $excluded, true)) {
+            $excluded = array_values(array_diff($excluded, [$mediaId]));
+            $message = 'Media restored to showcase.';
+        } else {
+            $excluded[] = $mediaId;
+            $message = 'Media hidden from showcase.';
+        }
+
+        $showcase['excluded_media_ids'] = array_values(array_unique($excluded));
+        $metadata['showcase'] = $showcase;
+        $contestant->metadata = $metadata;
+        $contestant->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+            'data'    => $this->getShowcase($contestant)->getData()->data,
+        ]);
+    }
+
+    /**
+     * Update showcase details (title, description, and upload new media).
+     */
+    public function updateShowcase(Request $request, Contestant $contestant): JsonResponse
+    {
+        $validated = $request->validate([
+            'title'         => 'nullable|string|max:255',
+            'description'   => 'nullable|string',
+            'media_files'   => 'nullable|array',
+            'media_files.*' => 'file|mimes:jpeg,jpg,png,gif,webp,mp4,mov,avi,webm|max:51200',
+        ]);
+
+        $metadata = $contestant->metadata ?? [];
+        $showcase = $metadata['showcase'] ?? [];
+
+        if ($request->has('title')) {
+            $showcase['title'] = $validated['title'];
+        }
+
+        if ($request->has('description')) {
+            $showcase['description'] = $validated['description'];
+        }
+
+        // Handle uploaded media files
+        if ($request->hasFile('media_files')) {
+            $uploadedMedia = $showcase['media'] ?? [];
+
+            foreach ($request->file('media_files') as $file) {
+                $path = $file->store('showcase_media', 'public');
+                $mimeType = $file->getClientMimeType();
+                $isVectorOrVideo = str_contains($mimeType, 'video');
+
+                $uploadedMedia[] = [
+                    'id'        => uniqid('sc_'),
+                    'file_path' => $path,
+                    'file_name' => $file->getClientOriginalName(),
+                    'mime_type' => $mimeType,
+                    'type'      => $isVectorOrVideo ? 'video' : 'image',
+                    'created_at'=> now()->toISOString(),
+                ];
+            }
+
+            $showcase['media'] = array_values($uploadedMedia);
+        }
+
+        $metadata['showcase'] = $showcase;
+        $contestant->metadata = $metadata;
+        $contestant->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Winner showcase information updated successfully.',
+            'data'    => $this->getShowcase($contestant)->getData()->data,
+        ]);
+    }
+
+    /**
+     * Delete a specific custom media item from the showcase.
+     */
+    public function deleteShowcaseMedia(Contestant $contestant, int $mediaIndex): JsonResponse
+    {
+        $metadata = $contestant->metadata ?? [];
+        $showcase = $metadata['showcase'] ?? [];
+        $media    = $showcase['media'] ?? [];
+
+        if (isset($media[$mediaIndex])) {
+            $fileToDelete = $media[$mediaIndex]['file_path'] ?? null;
+            if ($fileToDelete) {
+                Storage::disk('public')->delete(preg_replace('#^storage/#', '', $fileToDelete));
+            }
+
+            unset($media[$mediaIndex]);
+            $showcase['media'] = array_values($media);
+
+            $metadata['showcase'] = $showcase;
+            $contestant->metadata = $metadata;
+            $contestant->save();
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Media deleted successfully.',
+        ]);
     }
 }

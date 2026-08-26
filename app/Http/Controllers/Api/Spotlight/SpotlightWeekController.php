@@ -11,6 +11,7 @@ use App\Models\Spotlight\SpotlightWeekNominee;
 use App\Services\Spotlight\SpotlightVoteService;
 use App\Services\Spotlight\SpotlightWeekService;
 use App\Traits\ApiResponse;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -550,5 +551,168 @@ class SpotlightWeekController extends Controller
         $path = preg_replace('#^storage/#', '', $path);
 
         return Storage::disk('public')->url($path);
+    }
+
+    /**
+     * GET /api/v1/spotlight/weeks/upcoming-countdown
+     * GET /api/v1/spotlight/upcoming-countdown
+     *
+     * Simple countdown to when the upcoming spotlight week's voting starts.
+     * Guaranteed to return the next future week after the currently running week.
+     */
+    public function upcomingCountdown(Request $request): JsonResponse
+    {
+        $now = now();
+
+        // 1. Get running week ID so we exclude it from upcoming query
+        $runningWeek = SpotlightWeek::query()
+            ->where(function ($q) use ($now) {
+                $q->where('status', 'voting')
+                  ->orWhere('status', 'nominating');
+            })
+            ->where('voting_starts_at', '<=', $now)
+            ->first();
+
+        $runningWeekId = $runningWeek?->id;
+
+        // 2. Find upcoming week whose voting starts in the future, excluding current running week
+        $week = SpotlightWeek::query()
+            ->where('voting_starts_at', '>', $now)
+            ->when($runningWeekId, fn ($q) => $q->where('id', '!=', $runningWeekId))
+            ->orderBy('voting_starts_at', 'asc')
+            ->first();
+
+        if (! $week) {
+            // Fallback: any pending week in the future
+            $week = SpotlightWeek::where('status', 'pending')
+                ->when($runningWeekId, fn ($q) => $q->where('id', '!=', $runningWeekId))
+                ->orderBy('voting_starts_at', 'asc')
+                ->first();
+        }
+
+        if (! $week) {
+            return $this->error(null, 'No upcoming spotlight week found.', 404);
+        }
+
+        $countdown = $this->calculateWeekCountdown($week->voting_starts_at, $now);
+
+        return $this->success('Upcoming spotlight week countdown retrieved successfully.', [
+            'id'                        => $week->id,
+            'week_number'               => $week->week_number,
+            'year'                      => $week->year,
+            'name'                      => "Spotlight Week {$week->week_number} ({$week->year})",
+            'status'                    => $week->status,
+            'phase'                     => 'upcoming',
+            'is_accepting_applications' => $week->isAcceptingApplications(),
+            'is_voting_open'            => $week->isVotingOpen(),
+            'voting_starts_at'          => $week->voting_starts_at?->toIso8601String(),
+            'voting_ends_at'            => $week->voting_ends_at?->toIso8601String(),
+            'target_date'               => $week->voting_starts_at?->toIso8601String(),
+            'countdown'                 => $countdown,
+        ]);
+    }
+
+    /**
+     * GET /api/v1/spotlight/weeks/running-countdown
+     * GET /api/v1/spotlight/running-countdown
+     *
+     * Returns the currently active/running spotlight week (voting or nominating)
+     * with countdown until voting ends or voting starts.
+     */
+    public function runningCountdown(Request $request): JsonResponse
+    {
+        $now = now();
+
+        // 1. Try to find active voting week
+        $week = SpotlightWeek::query()
+            ->where('status', 'voting')
+            ->where('voting_starts_at', '<=', $now)
+            ->where('voting_ends_at', '>=', $now)
+            ->first();
+
+        // 2. If no voting week is active, find the current nominating week currently in progress
+        if (! $week) {
+            $week = SpotlightWeek::query()
+                ->where('status', 'nominating')
+                ->where('voting_starts_at', '<=', $now)
+                ->first();
+        }
+
+        // 3. Fallback: most recent voting week
+        if (! $week) {
+            $week = SpotlightWeek::where('status', 'voting')
+                ->orderBy('voting_starts_at', 'desc')
+                ->first();
+        }
+
+        if (! $week) {
+            return $this->error(null, 'No running spotlight week found.', 404);
+        }
+
+        $isVotingOpen = $week->isVotingOpen();
+        $isAcceptingApplications = $week->isAcceptingApplications();
+
+        if ($isVotingOpen) {
+            $phase = 'voting';
+        } elseif ($isAcceptingApplications) {
+            $phase = 'nomination';
+        } else {
+            $phase = $week->status;
+        }
+
+        // Target Date Logic:
+        // If voting_starts_at is in the future -> target is voting_starts_at
+        // If voting_starts_at has passed -> target is voting_ends_at (count down until week ends)
+        if ($week->voting_starts_at && $week->voting_starts_at > $now) {
+            $targetDate = $week->voting_starts_at;
+        } else {
+            $targetDate = $week->voting_ends_at;
+        }
+
+        $countdown = $this->calculateWeekCountdown($targetDate, $now);
+
+        return $this->success('Running spotlight week retrieved successfully.', [
+            'id'                        => $week->id,
+            'week_number'               => $week->week_number,
+            'year'                      => $week->year,
+            'name'                      => "Spotlight Week {$week->week_number} ({$week->year})",
+            'status'                    => $week->status,
+            'phase'                     => $phase,
+            'is_accepting_applications' => $isAcceptingApplications,
+            'is_voting_open'            => $isVotingOpen,
+            'voting_starts_at'          => $week->voting_starts_at?->toIso8601String(),
+            'voting_ends_at'            => $week->voting_ends_at?->toIso8601String(),
+            'target_date'               => $targetDate?->toIso8601String(),
+            'countdown'                 => $countdown,
+        ]);
+    }
+
+    /**
+     * Calculate difference formatted as days, hours, minutes, seconds.
+     */
+    private function calculateWeekCountdown(?Carbon $targetDate, Carbon $now): array
+    {
+        if (! $targetDate || $targetDate <= $now) {
+            return [
+                'formatted'       => '00 Days : 00 Hours : 00 Minutes : 00 Seconds',
+                'formatted_short' => '0d 0h 0m 0s',
+            ];
+        }
+
+        $diff    = $now->diff($targetDate);
+        $days    = (int) $diff->days;
+        $hours   = (int) $diff->h;
+        $minutes = (int) $diff->i;
+        $seconds = (int) $diff->s;
+
+        $paddedDays    = sprintf('%02d', $days);
+        $paddedHours   = sprintf('%02d', $hours);
+        $paddedMinutes = sprintf('%02d', $minutes);
+        $paddedSeconds = sprintf('%02d', $seconds);
+
+        return [
+            'formatted'       => "{$paddedDays} Days : {$paddedHours} Hours : {$paddedMinutes} Minutes : {$paddedSeconds} Seconds",
+            'formatted_short' => "{$days}d {$hours}h {$minutes}m {$seconds}s",
+        ];
     }
 }
