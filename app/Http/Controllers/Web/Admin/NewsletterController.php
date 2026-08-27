@@ -41,7 +41,9 @@ class NewsletterController extends Controller
     public function create(): View
     {
         $activeSubscribersCount = Newsletter::where('status', 'active')->count();
-        return view('web.admin.newsletter.create', compact('activeSubscribersCount'));
+        $customTemplates = \App\Models\EmailTemplate::where('is_active', true)->latest()->get();
+
+        return view('web.admin.newsletter.create', compact('activeSubscribersCount', 'customTemplates'));
     }
 
     /**

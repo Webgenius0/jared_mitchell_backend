@@ -61,6 +61,25 @@ class NewsletterBroadcastMail extends Mailable
      */
     public function content(): Content
     {
+        if (str_starts_with($this->templateStyle, 'custom_')) {
+            $templateId = (int) str_replace('custom_', '', $this->templateStyle);
+            $customTemplate = \App\Models\EmailTemplate::find($templateId);
+
+            if ($customTemplate) {
+                // Render custom HTML email layout
+                $customHtml = $customTemplate->html_content;
+                
+                // Append AI generated content if not present
+                if (!str_contains($customHtml, $this->htmlContent)) {
+                    $customHtml = str_replace('</body>', "<div style='padding: 20px;'>{$this->htmlContent}</div></body>", $customHtml);
+                }
+
+                return new Content(
+                    htmlString: $customHtml
+                );
+            }
+        }
+
         $viewName = match ($this->templateStyle) {
             'minimalist'  => 'emails.templates.minimalist_clean',
             'dark'        => 'emails.templates.dark_cyber',

@@ -438,6 +438,12 @@
                                     <i class="ri-magic-line text-warning"></i> ✨ AI Studio Generator
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a href="{{ route('admin.email-templates.index') }}"
+                                    class="nav-link {{ request()->routeIs('admin.email-templates.*') ? 'active' : '' }}">
+                                    <i class="ri-layout-3-line text-info"></i> 🎨 Drag & Drop Templates
+                                </a>
+                            </li>
                         </ul>
                     </div>
                 </li>

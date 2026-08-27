@@ -509,6 +509,16 @@ Route::prefix('newsletters')->name('admin.newsletters.')->group(function () {
     Route::post('/broadcast', [WebNewsletterController::class, 'sendBroadcast'])->name('broadcast');
 });
 
+Route::get('email-templates/{emailTemplate}/preview', [\App\Http\Controllers\Web\Admin\EmailTemplateController::class, 'preview'])->name('admin.email-templates.preview');
+Route::resource('email-templates', \App\Http\Controllers\Web\Admin\EmailTemplateController::class)->names([
+    'index'   => 'admin.email-templates.index',
+    'create'  => 'admin.email-templates.create',
+    'store'   => 'admin.email-templates.store',
+    'edit'    => 'admin.email-templates.edit',
+    'update'  => 'admin.email-templates.update',
+    'destroy' => 'admin.email-templates.destroy',
+]);
+
 /*
 |--------------------------------------------------------------------------
 | Spotlight Voting — Week Management & Vote Purchases
