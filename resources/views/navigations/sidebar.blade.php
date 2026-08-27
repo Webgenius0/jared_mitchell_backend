@@ -413,12 +413,33 @@
                 </li>
 
                 {{-- Newsletter --}}
+                @php
+                    $newsletterOpen = request()->routeIs('admin.newsletters.*');
+                @endphp
                 <li class="nav-item">
-                    <a class="nav-link menu-link {{ request()->routeIs('admin.newsletters.*') ? 'active' : '' }}"
-                        href="{{ route('admin.newsletters.index') }}">
+                    <a class="nav-link menu-link {{ $newsletterOpen ? 'active' : '' }}" href="#sidebarNewsletter"
+                        data-bs-toggle="collapse" role="button" aria-expanded="{{ $newsletterOpen ? 'true' : 'false' }}"
+                        aria-controls="sidebarNewsletter">
                         <i class="ri-newspaper-line"></i>
                         <span>Newsletter</span>
                     </a>
+
+                    <div class="collapse menu-dropdown {{ $newsletterOpen ? 'show' : '' }}" id="sidebarNewsletter">
+                        <ul class="nav nav-sm flex-column">
+                            <li class="nav-item">
+                                <a href="{{ route('admin.newsletters.index') }}"
+                                    class="nav-link {{ request()->routeIs('admin.newsletters.index') ? 'active' : '' }}">
+                                    <i class="ri-contacts-line"></i> Subscribers & History
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('admin.newsletters.create') }}"
+                                    class="nav-link {{ request()->routeIs('admin.newsletters.create') ? 'active' : '' }}">
+                                    <i class="ri-magic-line text-warning"></i> ✨ AI Studio Generator
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
                 </li>
 
                 <!-- live stream -->
