@@ -503,6 +503,9 @@ Route::prefix('contacts')->name('admin.contacts.')->group(function () {
 Route::prefix('newsletters')->name('admin.newsletters.')->group(function () {
     Route::get('/', [WebNewsletterController::class, 'index'])->name('index');
     Route::delete('/{newsletter}', [WebNewsletterController::class, 'destroy'])->name('destroy');
+    Route::post('/generate-ai', [WebNewsletterController::class, 'generateAiContent'])->name('generate-ai');
+    Route::post('/test-mail', [WebNewsletterController::class, 'sendTestMail'])->name('test-mail');
+    Route::post('/broadcast', [WebNewsletterController::class, 'sendBroadcast'])->name('broadcast');
 });
 
 /*

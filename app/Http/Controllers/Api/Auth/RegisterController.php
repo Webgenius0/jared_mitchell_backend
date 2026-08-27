@@ -38,7 +38,7 @@ class RegisterController extends Controller
         if ($validator->fails()) {
             return $this->validationError(
                 $validator->errors()->toArray(),
-                'Validation failed',
+                'Validation failed', 
                 422
             );
         }
