@@ -36,6 +36,15 @@ class NewsletterController extends Controller
     }
 
     /**
+     * Show the dedicated AI Newsletter Studio page.
+     */
+    public function create(): View
+    {
+        $activeSubscribersCount = Newsletter::where('status', 'active')->count();
+        return view('web.admin.newsletter.create', compact('activeSubscribersCount'));
+    }
+
+    /**
      * Remove the specified newsletter subscriber from storage.
      */
     public function destroy(Newsletter $newsletter)
