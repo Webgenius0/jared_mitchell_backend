@@ -8,9 +8,9 @@
         <div class="row mb-3">
             <div class="col-12 d-flex align-items-center justify-content-between flex-wrap gap-2">
                 <h4 class="mb-0">Newsletter & AI Broadcast Management</h4>
-                <button type="button" class="btn btn-primary bg-gradient" data-bs-toggle="modal" data-bs-target="#aiNewsletterModal">
+                <a href="{{ route('admin.newsletters.create') }}" class="btn btn-primary bg-gradient shadow-sm fw-bold">
                     <i class="ri-magic-line me-1 align-middle"></i> ✨ Generate AI Newsletter
-                </button>
+                </a>
             </div>
         </div>
 
