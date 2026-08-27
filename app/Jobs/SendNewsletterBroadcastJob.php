@@ -55,7 +55,8 @@ class SendNewsletterBroadcastJob implements ShouldQueue
                             ctaButtonText: $broadcast->cta_button_text,
                             ctaButtonUrl: $broadcast->cta_button_url,
                             primaryColor: $broadcast->primary_color ?? '#6366f1',
-                            recipientEmail: $subscriber->email
+                            recipientEmail: $subscriber->email,
+                            templateStyle: $broadcast->template_style ?? 'modern'
                         ));
 
                         $sentCount++;

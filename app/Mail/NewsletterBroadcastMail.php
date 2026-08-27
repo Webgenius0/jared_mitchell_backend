@@ -19,6 +19,7 @@ class NewsletterBroadcastMail extends Mailable
     public ?string $ctaButtonUrl;
     public string $primaryColor;
     public string $unsubscribeUrl;
+    public string $templateStyle;
 
     /**
      * Create a new message instance.
@@ -30,7 +31,8 @@ class NewsletterBroadcastMail extends Mailable
         ?string $ctaButtonText = null,
         ?string $ctaButtonUrl = null,
         string $primaryColor = '#6366f1',
-        ?string $recipientEmail = null
+        ?string $recipientEmail = null,
+        string $templateStyle = 'modern'
     ) {
         $this->emailSubject   = $emailSubject;
         $this->htmlContent    = $htmlContent;
@@ -38,6 +40,7 @@ class NewsletterBroadcastMail extends Mailable
         $this->ctaButtonText  = $ctaButtonText;
         $this->ctaButtonUrl   = $ctaButtonUrl;
         $this->primaryColor   = $primaryColor;
+        $this->templateStyle  = $templateStyle;
 
         $baseUrl = config('app.url', 'https://admin.oursocialimage.net');
         $this->unsubscribeUrl = $baseUrl . '/api/v1/newsletters/unsubscribe?email=' . urlencode($recipientEmail ?? '');
@@ -58,8 +61,15 @@ class NewsletterBroadcastMail extends Mailable
      */
     public function content(): Content
     {
+        $viewName = match ($this->templateStyle) {
+            'minimalist'  => 'emails.templates.minimalist_clean',
+            'dark'        => 'emails.templates.dark_cyber',
+            'promotional' => 'emails.templates.promotional_card',
+            default       => 'emails.newsletter_template',
+        };
+
         return new Content(
-            view: 'emails.newsletter_template',
+            view: $viewName,
             with: [
                 'subject'        => $this->emailSubject,
                 'htmlContent'    => $this->htmlContent,
