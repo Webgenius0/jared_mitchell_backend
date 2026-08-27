@@ -8,16 +8,16 @@
         body {
             margin: 0;
             padding: 0;
-            background-color: #f4f6f9;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f1f5f9;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             -webkit-font-smoothing: antialiased;
-            color: #1f2937;
+            color: #1e293b;
         }
         .wrapper {
             width: 100%;
             table-layout: fixed;
-            background-color: #f4f6f9;
-            padding-bottom: 40px;
+            background-color: #f1f5f9;
+            padding: 40px 15px;
         }
         .main-table {
             background-color: #ffffff;
@@ -25,81 +25,135 @@
             width: 100%;
             max-width: 600px;
             border-spacing: 0;
-            font-family: sans-serif;
-            color: #1f2937;
-            border-radius: 12px;
+            border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
         }
+        /* Sleek Gradient Header */
         .header {
-            background-color: #111827;
-            padding: 30px 20px;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            padding: 36px 20px;
             text-align: center;
+            border-bottom: 4px solid {{ $primaryColor ?? '#6366f1' }};
         }
-        .header img {
-            max-height: 48px;
-            width: auto;
-        }
-        .header-title {
+        .brand-badge {
+            display: inline-block;
             color: #ffffff;
-            font-size: 22px;
-            font-weight: 700;
-            margin: 10px 0 0 0;
-            letter-spacing: 0.5px;
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 20px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .header-tagline {
+            color: #94a3b8;
+            font-size: 13px;
+            font-weight: 500;
+            margin-top: 10px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        /* Hero Banner Container */
+        .banner-container {
+            padding: 24px 24px 0 24px;
         }
         .hero-banner {
             width: 100%;
-            max-height: 280px;
+            max-height: 300px;
             object-fit: cover;
             display: block;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
+        /* Content Body */
         .content-body {
-            padding: 35px 30px;
+            padding: 36px 32px;
             font-size: 16px;
-            line-height: 1.6;
-            color: #374151;
+            line-height: 1.75;
+            color: #334155;
         }
         .content-body h1, .content-body h2, .content-body h3 {
-            color: #111827;
-            margin-top: 0;
+            color: #0f172a;
+            font-weight: 700;
+            margin-top: 24px;
+            margin-bottom: 12px;
+            padding-left: 12px;
+            border-left: 4px solid {{ $primaryColor ?? '#6366f1' }};
         }
+        .content-body p {
+            margin-bottom: 18px;
+        }
+        .content-body ul, .content-body ol {
+            padding-left: 20px;
+            margin-bottom: 20px;
+        }
+        .content-body li {
+            margin-bottom: 8px;
+        }
+        .content-body blockquote {
+            background-color: #f8fafc;
+            border-left: 4px solid {{ $primaryColor ?? '#6366f1' }};
+            margin: 20px 0;
+            padding: 16px 20px;
+            font-style: italic;
+            color: #475569;
+            border-radius: 0 8px 8px 0;
+        }
+        /* CTA Button */
         .cta-container {
             text-align: center;
-            margin: 35px 0 20px 0;
+            margin: 36px 0 16px 0;
         }
         .cta-button {
             display: inline-block;
-            background-color: {{ $primaryColor ?? '#6366f1' }};
+            background: linear-gradient(135deg, {{ $primaryColor ?? '#6366f1' }} 0%, #4f46e5 100%);
             color: #ffffff !important;
             font-size: 16px;
-            font-weight: 600;
+            font-weight: 700;
             text-decoration: none;
-            padding: 14px 32px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
-            transition: all 0.3s ease;
+            padding: 16px 38px;
+            border-radius: 50px;
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
+            letter-spacing: 0.5px;
         }
+        /* Footer */
         .footer {
-            background-color: #f9fafb;
-            padding: 30px;
+            background-color: #0f172a;
+            padding: 36px 30px;
             text-align: center;
-            border-top: 1px solid #e5e7eb;
+            color: #94a3b8;
             font-size: 13px;
-            color: #6b7280;
         }
-        .footer a {
-            color: {{ $primaryColor ?? '#6366f1' }};
-            text-decoration: none;
+        .footer-logo {
+            font-size: 16px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 12px;
         }
         .social-links {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
         .social-links a {
             display: inline-block;
-            margin: 0 8px;
-            color: #4b5563;
+            margin: 0 10px;
+            color: #cbd5e1;
             text-decoration: none;
             font-weight: 600;
+            font-size: 14px;
+        }
+        .footer-divider {
+            height: 1px;
+            background-color: #334155;
+            margin: 20px 0;
+        }
+        .footer a.unsubscribe-link {
+            color: #64748b;
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -109,14 +163,15 @@
             <!-- Header -->
             <tr>
                 <td class="header">
-                    <div class="header-title">OUR SOCIAL IMAGE</div>
+                    <div class="brand-badge">OUR SOCIAL IMAGE</div>
+                    <div class="header-tagline">Official Community & Artist Newsletter</div>
                 </td>
             </tr>
 
             <!-- Hero Banner Image (if provided) -->
             @if(!empty($bannerImageUrl))
             <tr>
-                <td>
+                <td class="banner-container">
                     <img src="{{ $bannerImageUrl }}" alt="Newsletter Banner" class="hero-banner">
                 </td>
             </tr>
@@ -131,7 +186,7 @@
                     @if(!empty($ctaButtonText) && !empty($ctaButtonUrl))
                     <div class="cta-container">
                         <a href="{{ $ctaButtonUrl }}" target="_blank" class="cta-button">
-                            {{ $ctaButtonText }}
+                            {{ $ctaButtonText }} →
                         </a>
                     </div>
                     @endif
@@ -141,15 +196,17 @@
             <!-- Footer -->
             <tr>
                 <td class="footer">
+                    <div class="footer-logo">OUR SOCIAL IMAGE</div>
                     <div class="social-links">
-                        <a href="https://oursocialimage.net" target="_blank">Website</a> •
+                        <a href="https://admin.oursocialimage.net" target="_blank">Platform</a> •
                         <a href="https://instagram.com" target="_blank">Instagram</a> •
                         <a href="https://youtube.com" target="_blank">YouTube</a>
                     </div>
-                    <p style="margin: 5px 0;">© {{ date('Y') }} Our Social Image. All rights reserved.</p>
-                    <p style="margin: 5px 0; font-size: 12px; color: #9ca3af;">
-                        You received this email because you subscribed to Our Social Image newsletters.<br>
-                        <a href="{{ $unsubscribeUrl ?? '#' }}" target="_blank">Unsubscribe from this list</a>
+                    <div class="footer-divider"></div>
+                    <p style="margin: 6px 0;">© {{ date('Y') }} Our Social Image. All rights reserved.</p>
+                    <p style="margin: 6px 0; font-size: 12px; color: #64748b;">
+                        You received this email because you subscribed to Our Social Image platform news.<br>
+                        Need to stop receiving these emails? <a href="{{ $unsubscribeUrl ?? '#' }}" target="_blank" class="unsubscribe-link">Unsubscribe here</a>.
                     </p>
                 </td>
             </tr>
