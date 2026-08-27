@@ -469,27 +469,68 @@ class SpotlightWeekController extends Controller
     }
 
     /**
-     * Format a spotlight week nominee winner into a clean response array.
+     * Format a spotlight week nominee winner into a clean response array with showcase data.
      */
     private function formatWinner($nominee): array
     {
         $isArtist = $nominee->spotlightable_type === ArtistSpotlight::class;
         $spotlight = $nominee->spotlightable;
+        $week = $nominee->week;
+
+        $metadata = $week?->metadata ?? [];
+        $showcases = $metadata['showcases'] ?? [];
+        $showcase = $showcases[$nominee->id] ?? [];
+        $excludedMediaIds = $showcase['excluded_media_ids'] ?? [];
+
+        $defaultName = $isArtist
+            ? ($spotlight?->artist_stage_name ?? $spotlight?->full_legal_name)
+            : ($spotlight?->business_name ?? $spotlight?->owner_founder_name);
+
+        $defaultDescription = $isArtist
+            ? ($spotlight?->short_bio ?? $spotlight?->full_artist_story)
+            : ($spotlight?->business_story ?? $spotlight?->products_services);
+
+        $title = $showcase['title'] ?? $defaultName;
+        $description = $showcase['description'] ?? $defaultDescription;
+
+        // Custom uploaded media
+        $customMedia = ! empty($showcase['media'])
+            ? array_map(function ($m) {
+                $path = $m['file_path'] ?? '';
+                return [
+                    'id'        => $m['id'] ?? null,
+                    'file_name' => $m['file_name'] ?? basename($path),
+                    'url'       => $this->formatImageUrl($path),
+                    'mime_type' => $m['mime_type'] ?? null,
+                    'type'      => $m['type'] ?? 'image',
+                ];
+            }, $showcase['media'])
+            : [];
+
+        // Format media respecting excluded IDs
+        $media = $this->formatSpotlightMedia($spotlight, $isArtist, $excludedMediaIds, $customMedia);
 
         return [
             'id'          => $nominee->id,
-            'week_number' => $nominee->week?->week_number,
-            'year'        => $nominee->week?->year,
+            'week_number' => $week?->week_number,
+            'year'        => $week?->year,
+            'title'       => $title,
+            'description' => $description,
             'spotlight'   => $spotlight ? [
-                'id'   => $spotlight->id,
-                'type' => $isArtist ? 'artist' : 'business',
-                'name' => $isArtist
-                    ? ($spotlight->artist_stage_name ?? $spotlight->full_legal_name)
-                    : ($spotlight->business_name ?? $spotlight->owner_founder_name),
-                'city'  => $spotlight->city ?? null,
-                'state' => $spotlight->state ?? null,
-                'media' => $this->formatSpotlightMedia($spotlight, $isArtist),
+                'id'           => $spotlight->id,
+                'type'         => $isArtist ? 'artist' : 'business',
+                'name'         => $title,
+                'default_name' => $defaultName,
+                'city'         => $spotlight->city ?? null,
+                'state'        => $spotlight->state ?? null,
+                'media'        => $media,
             ] : null,
+            'showcase'    => [
+                'title'              => $title,
+                'description'        => $description,
+                'custom_media'       => $customMedia,
+                'excluded_media_ids' => $excludedMediaIds,
+            ],
             'owner'       => [
                 'id'   => $nominee->user?->id,
                 'name' => $nominee->user?->profile?->name ?? $nominee->user?->email ?? '—',
@@ -497,31 +538,71 @@ class SpotlightWeekController extends Controller
             'total_votes'  => $nominee->total_vote_count,
             'free_votes'   => $nominee->free_vote_count,
             'paid_votes'   => $nominee->paid_vote_count,
-            'announced_at' => $nominee->week?->announced_at ?? $nominee->week?->updated_at,
+            'announced_at' => $week?->announced_at ?? $week?->updated_at,
         ];
     }
 
     /**
      * Format spotlight media into full URLs, matching the pattern in SpotlightDetailsController.
      */
-    private function formatSpotlightMedia($spotlight, bool $isArtist): array
+    private function formatSpotlightMedia($spotlight, bool $isArtist, array $excludedMediaIds = [], array $customMedia = []): array
     {
+        if (! $spotlight) {
+            return [
+                'headshot'            => null,
+                'artwork_photos'      => [],
+                'behind_scenes_photo' => null,
+                'intro_video'         => null,
+                'custom_media'        => $customMedia,
+            ];
+        }
+
         if ($isArtist) {
-            $headshot        = $spotlight->headshot_path ? $this->formatImageUrl($spotlight->headshot_path) : null;
-            $artworkPhotos   = $spotlight->artwork_photo_paths && is_array($spotlight->artwork_photo_paths)
-                ? array_values(array_filter(array_map([$this, 'formatImageUrl'], $spotlight->artwork_photo_paths)))
-                : [];
-            $behindScenes    = $spotlight->behind_scenes_photo_path ? $this->formatImageUrl($spotlight->behind_scenes_photo_path) : null;
-            $introVideo      = $spotlight->intro_video_path ? $this->formatImageUrl($spotlight->intro_video_path) : null;
+            $headshot = (! in_array('orig_headshot', $excludedMediaIds, true) && $spotlight->headshot_path)
+                ? $this->formatImageUrl($spotlight->headshot_path)
+                : null;
+
+            $artworkPhotos = [];
+            if ($spotlight->artwork_photo_paths && is_array($spotlight->artwork_photo_paths)) {
+                foreach ($spotlight->artwork_photo_paths as $idx => $path) {
+                    if (! in_array('orig_artwork_' . $idx, $excludedMediaIds, true)) {
+                        $formatted = $this->formatImageUrl($path);
+                        if ($formatted) {
+                            $artworkPhotos[] = $formatted;
+                        }
+                    }
+                }
+            }
+
+            $behindScenes = (! in_array('orig_behind_scenes', $excludedMediaIds, true) && $spotlight->behind_scenes_photo_path)
+                ? $this->formatImageUrl($spotlight->behind_scenes_photo_path)
+                : null;
+
+            $introVideo = (! in_array('orig_intro_video', $excludedMediaIds, true) && $spotlight->intro_video_path)
+                ? $this->formatImageUrl($spotlight->intro_video_path)
+                : null;
         } else {
-            // Map business photos onto the same key names as artist so both
-            // responses have an identical structure.
-            $headshot        = $spotlight->portrait_photo_path ? $this->formatImageUrl($spotlight->portrait_photo_path) : null;
-            $artworkPhotos   = $spotlight->product_service_photo_paths && is_array($spotlight->product_service_photo_paths)
-                ? array_values(array_filter(array_map([$this, 'formatImageUrl'], $spotlight->product_service_photo_paths)))
-                : [];
-            $behindScenes    = $spotlight->storefront_workspace_photo_path ? $this->formatImageUrl($spotlight->storefront_workspace_photo_path) : null;
-            $introVideo      = null;
+            $headshot = (! in_array('orig_portrait', $excludedMediaIds, true) && $spotlight->portrait_photo_path)
+                ? $this->formatImageUrl($spotlight->portrait_photo_path)
+                : null;
+
+            $artworkPhotos = [];
+            if ($spotlight->product_service_photo_paths && is_array($spotlight->product_service_photo_paths)) {
+                foreach ($spotlight->product_service_photo_paths as $idx => $path) {
+                    if (! in_array('orig_product_' . $idx, $excludedMediaIds, true)) {
+                        $formatted = $this->formatImageUrl($path);
+                        if ($formatted) {
+                            $artworkPhotos[] = $formatted;
+                        }
+                    }
+                }
+            }
+
+            $behindScenes = (! in_array('orig_storefront', $excludedMediaIds, true) && $spotlight->storefront_workspace_photo_path)
+                ? $this->formatImageUrl($spotlight->storefront_workspace_photo_path)
+                : null;
+
+            $introVideo = null;
         }
 
         return [
@@ -529,8 +610,10 @@ class SpotlightWeekController extends Controller
             'artwork_photos'      => $artworkPhotos,
             'behind_scenes_photo' => $behindScenes,
             'intro_video'         => $introVideo,
+            'custom_media'        => $customMedia,
         ];
     }
+
 
     /**
      * Convert a storage path or URL to a public URL.

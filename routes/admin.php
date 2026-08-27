@@ -525,9 +525,15 @@ Route::prefix('spotlight')->name('admin.spotlight.')->group(function () {
     Route::post('/weeks/{week}/select-nominees', [WebSpotlightWeekController::class, 'selectNominees'])->name('weeks.select-nominees');
     Route::post('/weeks/{week}/close-voting', [WebSpotlightWeekController::class, 'closeVoting'])->name('weeks.close-voting');
     Route::post('/weeks/{week}/announce-winner', [WebSpotlightWeekController::class, 'announceWinner'])->name('weeks.announce-winner');
+    Route::post('/weeks/{week}/confirm-winner', [WebSpotlightWeekController::class, 'confirmWinner'])->name('weeks.confirm-winner');
+    Route::get('/weeks/{week}/showcase/{nominee}', [WebSpotlightWeekController::class, 'getShowcase'])->name('weeks.get-showcase');
+    Route::post('/weeks/{week}/showcase/{nominee}', [WebSpotlightWeekController::class, 'updateShowcase'])->name('weeks.update-showcase');
+    Route::post('/weeks/{week}/showcase/{nominee}/toggle-media', [WebSpotlightWeekController::class, 'toggleExcludeMedia'])->name('weeks.toggle-exclude-media');
+    Route::delete('/weeks/{week}/showcase/{nominee}/media/{mediaIndex}', [WebSpotlightWeekController::class, 'deleteShowcaseMedia'])->name('weeks.delete-showcase-media');
     Route::patch('/weeks/{week}/status', [WebSpotlightWeekController::class, 'updateStatus'])->name('weeks.update-status');
     Route::patch('/weeks/{week}/cancel', [WebSpotlightWeekController::class, 'cancel'])->name('weeks.cancel');
     Route::delete('/weeks/{week}', [WebSpotlightWeekController::class, 'destroy'])->name('weeks.destroy');
+
 
     // Application Management (all weeks)
     Route::get('/applications', [WebSpotlightApplicationController::class, 'index'])->name('applications.index');

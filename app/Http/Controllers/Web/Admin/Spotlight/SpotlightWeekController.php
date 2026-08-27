@@ -3,12 +3,17 @@
 namespace App\Http\Controllers\Web\Admin\Spotlight;
 
 use App\Http\Controllers\Controller;
+use App\Models\ArtistSpotlight;
+use App\Models\BusinessSpotlight;
 use App\Models\Spotlight\SpotlightApplication;
 use App\Models\Spotlight\SpotlightWeek;
 use App\Models\Spotlight\SpotlightWeekNominee;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Yajra\DataTables\Facades\DataTables;
+
 
 class SpotlightWeekController extends Controller
 {
@@ -341,4 +346,347 @@ class SpotlightWeekController extends Controller
             $rank++;
         }
     }
+
+    /**
+     * Confirm (or change) the winner for a spotlight week.
+     * Idempotent — calling it again with a different nominee switches the winner.
+     */
+    public function confirmWinner(Request $request, SpotlightWeek $week)
+    {
+        $validated = $request->validate([
+            'nominee_id' => 'required|exists:spotlight_week_nominees,id',
+        ]);
+
+        $nominee = $week->nominees()->findOrFail($validated['nominee_id']);
+
+        DB::transaction(function () use ($week, $nominee) {
+            // Mark previous winner(s) as not winner
+            $week->nominees()->where('is_winner', true)->update(['is_winner' => false]);
+
+            // Mark this nominee as winner
+            $nominee->update(['is_winner' => true]);
+
+            // Update week with winner info
+            $week->update([
+                'status' => 'completed',
+                'winner_spotlightable_type' => $nominee->spotlightable_type,
+                'winner_spotlightable_id' => $nominee->spotlightable_id,
+                'announced_at' => now(),
+            ]);
+
+            // Update rank for all nominees
+            $this->updateRanks($week);
+        });
+
+        $spotlight = $nominee->spotlightable;
+        $isArtist = $nominee->spotlightable_type === ArtistSpotlight::class;
+        $name = $isArtist
+            ? ($spotlight?->artist_stage_name ?? $spotlight?->full_legal_name ?? '#' . $nominee->id)
+            : ($spotlight?->business_name ?? $spotlight?->brand_name ?? '#' . $nominee->id);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => "{$name} confirmed as the winner for Week {$week->week_number} ({$week->year}).",
+            ]);
+        }
+
+        return redirect()->route('admin.spotlight.weeks.show', $week->id)
+            ->with('success', "{$name} confirmed as the winner successfully.");
+    }
+
+    /**
+     * Get showcase details for a nominee in a week.
+     */
+    public function getShowcase(SpotlightWeek $week, SpotlightWeekNominee $nominee): JsonResponse
+    {
+        if ((int) $nominee->spotlight_week_id !== (int) $week->id) {
+            return response()->json(['success' => false, 'message' => 'Nominee does not belong to this week.'], 422);
+        }
+
+        $nominee->load(['spotlightable', 'user.profile']);
+        $spotlight = $nominee->spotlightable;
+        $isArtist = $nominee->spotlightable_type === ArtistSpotlight::class;
+
+        $metadata = $week->metadata ?? [];
+        $showcases = $metadata['showcases'] ?? [];
+        $showcase = $showcases[$nominee->id] ?? [];
+        $excludedMediaIds = $showcase['excluded_media_ids'] ?? [];
+
+        $displayName = $isArtist
+            ? ($spotlight?->artist_stage_name ?? $spotlight?->full_legal_name ?? '#' . $nominee->id)
+            : ($spotlight?->business_name ?? $spotlight?->owner_founder_name ?? '#' . $nominee->id);
+
+        $defaultDescription = $isArtist
+            ? ($spotlight?->short_bio ?? $spotlight?->full_artist_story ?? '')
+            : ($spotlight?->business_story ?? $spotlight?->products_services ?? '');
+
+        // Gather original submitted media
+        $originalMedia = [];
+        if ($spotlight) {
+            if ($isArtist) {
+                if ($spotlight->headshot_path) {
+                    $cleanPath = preg_replace('#^storage/#', '', $spotlight->headshot_path);
+                    $originalMedia[] = [
+                        'id'          => 'orig_headshot',
+                        'file_path'   => asset('storage/' . $cleanPath),
+                        'file_name'   => basename($cleanPath),
+                        'mime_type'   => 'image/jpeg',
+                        'type'        => 'image',
+                        'source'      => 'Headshot',
+                        'is_excluded' => in_array('orig_headshot', $excludedMediaIds, true),
+                    ];
+                }
+                if ($spotlight->artwork_photo_paths && is_array($spotlight->artwork_photo_paths)) {
+                    foreach ($spotlight->artwork_photo_paths as $idx => $path) {
+                        $cleanPath = preg_replace('#^storage/#', '', $path);
+                        $id = 'orig_artwork_' . $idx;
+                        $originalMedia[] = [
+                            'id'          => $id,
+                            'file_path'   => asset('storage/' . $cleanPath),
+                            'file_name'   => basename($cleanPath),
+                            'mime_type'   => 'image/jpeg',
+                            'type'        => 'image',
+                            'source'      => 'Artwork Photo ' . ($idx + 1),
+                            'is_excluded' => in_array($id, $excludedMediaIds, true),
+                        ];
+                    }
+                }
+                if ($spotlight->behind_scenes_photo_path) {
+                    $cleanPath = preg_replace('#^storage/#', '', $spotlight->behind_scenes_photo_path);
+                    $originalMedia[] = [
+                        'id'          => 'orig_behind_scenes',
+                        'file_path'   => asset('storage/' . $cleanPath),
+                        'file_name'   => basename($cleanPath),
+                        'mime_type'   => 'image/jpeg',
+                        'type'        => 'image',
+                        'source'      => 'Behind Scenes Photo',
+                        'is_excluded' => in_array('orig_behind_scenes', $excludedMediaIds, true),
+                    ];
+                }
+                if ($spotlight->intro_video_path) {
+                    $cleanPath = preg_replace('#^storage/#', '', $spotlight->intro_video_path);
+                    $originalMedia[] = [
+                        'id'          => 'orig_intro_video',
+                        'file_path'   => asset('storage/' . $cleanPath),
+                        'file_name'   => basename($cleanPath),
+                        'mime_type'   => 'video/mp4',
+                        'type'        => 'video',
+                        'source'      => 'Intro Video',
+                        'is_excluded' => in_array('orig_intro_video', $excludedMediaIds, true),
+                    ];
+                }
+            } else {
+                if ($spotlight->portrait_photo_path) {
+                    $cleanPath = preg_replace('#^storage/#', '', $spotlight->portrait_photo_path);
+                    $originalMedia[] = [
+                        'id'          => 'orig_portrait',
+                        'file_path'   => asset('storage/' . $cleanPath),
+                        'file_name'   => basename($cleanPath),
+                        'mime_type'   => 'image/jpeg',
+                        'type'        => 'image',
+                        'source'      => 'Portrait Photo',
+                        'is_excluded' => in_array('orig_portrait', $excludedMediaIds, true),
+                    ];
+                }
+                if ($spotlight->product_service_photo_paths && is_array($spotlight->product_service_photo_paths)) {
+                    foreach ($spotlight->product_service_photo_paths as $idx => $path) {
+                        $cleanPath = preg_replace('#^storage/#', '', $path);
+                        $id = 'orig_product_' . $idx;
+                        $originalMedia[] = [
+                            'id'          => $id,
+                            'file_path'   => asset('storage/' . $cleanPath),
+                            'file_name'   => basename($cleanPath),
+                            'mime_type'   => 'image/jpeg',
+                            'type'        => 'image',
+                            'source'      => 'Product/Service Photo ' . ($idx + 1),
+                            'is_excluded' => in_array($id, $excludedMediaIds, true),
+                        ];
+                    }
+                }
+                if ($spotlight->storefront_workspace_photo_path) {
+                    $cleanPath = preg_replace('#^storage/#', '', $spotlight->storefront_workspace_photo_path);
+                    $originalMedia[] = [
+                        'id'          => 'orig_storefront',
+                        'file_path'   => asset('storage/' . $cleanPath),
+                        'file_name'   => basename($cleanPath),
+                        'mime_type'   => 'image/jpeg',
+                        'type'        => 'image',
+                        'source'      => 'Storefront Workspace Photo',
+                        'is_excluded' => in_array('orig_storefront', $excludedMediaIds, true),
+                    ];
+                }
+                if ($spotlight->team_photo_path) {
+                    $cleanPath = preg_replace('#^storage/#', '', $spotlight->team_photo_path);
+                    $originalMedia[] = [
+                        'id'          => 'orig_team',
+                        'file_path'   => asset('storage/' . $cleanPath),
+                        'file_name'   => basename($cleanPath),
+                        'mime_type'   => 'image/jpeg',
+                        'type'        => 'image',
+                        'source'      => 'Team Photo',
+                        'is_excluded' => in_array('orig_team', $excludedMediaIds, true),
+                    ];
+                }
+            }
+        }
+
+        // Custom uploaded media
+        $customMedia = ! empty($showcase['media'])
+            ? array_map(function ($m, $index) {
+                $filePath = $m['file_path'] ?? '';
+                $mimeType = $m['mime_type'] ?? '';
+                $isVectorOrVideo = ($m['type'] ?? '') === 'video' || str_contains($mimeType, 'video') || preg_match('#\.(mp4|mov|avi|webm)$#i', $filePath);
+                return [
+                    'index'     => $index,
+                    'id'        => $m['id'] ?? ('sc_' . $index),
+                    'file_path' => asset('storage/' . preg_replace('#^storage/#', '', $filePath)),
+                    'file_name' => $m['file_name'] ?? 'file',
+                    'mime_type' => $mimeType,
+                    'type'      => $isVectorOrVideo ? 'video' : 'image',
+                    'source'    => 'Admin Uploaded',
+                    'is_custom' => true,
+                ];
+            }, $showcase['media'], array_keys($showcase['media']))
+            : [];
+
+        return response()->json([
+            'success' => true,
+            'data'    => [
+                'nominee_id'         => $nominee->id,
+                'display_name'       => $displayName,
+                'title'              => $showcase['title'] ?? $displayName,
+                'description'        => $showcase['description'] ?? $defaultDescription,
+                'custom_media'       => $customMedia,
+                'original_media'     => $originalMedia,
+                'excluded_media_ids' => $excludedMediaIds,
+            ],
+        ]);
+    }
+
+    /**
+     * Toggle exclude/hide status for an original media item in showcase.
+     */
+    public function toggleExcludeMedia(Request $request, SpotlightWeek $week, SpotlightWeekNominee $nominee): JsonResponse
+    {
+        $validated = $request->validate([
+            'media_id' => 'required|string',
+        ]);
+
+        $metadata = $week->metadata ?? [];
+        $showcases = $metadata['showcases'] ?? [];
+        $showcase = $showcases[$nominee->id] ?? [];
+        $excluded = $showcase['excluded_media_ids'] ?? [];
+
+        $mediaId = $validated['media_id'];
+
+        if (in_array($mediaId, $excluded, true)) {
+            $excluded = array_values(array_diff($excluded, [$mediaId]));
+            $message = 'Media restored to showcase.';
+        } else {
+            $excluded[] = $mediaId;
+            $message = 'Media hidden from showcase.';
+        }
+
+        $showcase['excluded_media_ids'] = array_values(array_unique($excluded));
+        $showcases[$nominee->id] = $showcase;
+        $metadata['showcases'] = $showcases;
+        $week->metadata = $metadata;
+        $week->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+            'data'    => $this->getShowcase($week, $nominee)->getData()->data,
+        ]);
+    }
+
+    /**
+     * Update showcase details (title, description, and upload new media).
+     */
+    public function updateShowcase(Request $request, SpotlightWeek $week, SpotlightWeekNominee $nominee): JsonResponse
+    {
+        $validated = $request->validate([
+            'title'         => 'nullable|string|max:255',
+            'description'   => 'nullable|string',
+            'media_files'   => 'nullable|array',
+            'media_files.*' => 'file|mimes:jpeg,jpg,png,gif,webp,mp4,mov,avi,webm|max:51200',
+        ]);
+
+        $metadata = $week->metadata ?? [];
+        $showcases = $metadata['showcases'] ?? [];
+        $showcase = $showcases[$nominee->id] ?? [];
+
+        if ($request->has('title')) {
+            $showcase['title'] = $validated['title'];
+        }
+
+        if ($request->has('description')) {
+            $showcase['description'] = $validated['description'];
+        }
+
+        // Handle uploaded media files
+        if ($request->hasFile('media_files')) {
+            $uploadedMedia = $showcase['media'] ?? [];
+
+            foreach ($request->file('media_files') as $file) {
+                $path = $file->store('spotlight_showcase_media', 'public');
+                $mimeType = $file->getClientMimeType();
+                $isVectorOrVideo = str_contains($mimeType, 'video');
+
+                $uploadedMedia[] = [
+                    'id'        => uniqid('sc_'),
+                    'file_path' => $path,
+                    'file_name' => $file->getClientOriginalName(),
+                    'mime_type' => $mimeType,
+                    'type'      => $isVectorOrVideo ? 'video' : 'image',
+                    'created_at'=> now()->toISOString(),
+                ];
+            }
+
+            $showcase['media'] = array_values($uploadedMedia);
+        }
+
+        $showcases[$nominee->id] = $showcase;
+        $metadata['showcases'] = $showcases;
+        $week->metadata = $metadata;
+        $week->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Showcase details updated successfully.',
+            'data'    => $this->getShowcase($week, $nominee)->getData()->data,
+        ]);
+    }
+
+    /**
+     * Delete a specific custom media item from the showcase.
+     */
+    public function deleteShowcaseMedia(SpotlightWeek $week, SpotlightWeekNominee $nominee, int $mediaIndex): JsonResponse
+    {
+        $metadata = $week->metadata ?? [];
+        $showcases = $metadata['showcases'] ?? [];
+        $showcase = $showcases[$nominee->id] ?? [];
+        $media    = $showcase['media'] ?? [];
+
+        if (isset($media[$mediaIndex])) {
+            $fileToDelete = $media[$mediaIndex]['file_path'] ?? null;
+            if ($fileToDelete) {
+                Storage::disk('public')->delete(preg_replace('#^storage/#', '', $fileToDelete));
+            }
+
+            unset($media[$mediaIndex]);
+            $showcase['media'] = array_values($media);
+            $showcases[$nominee->id] = $showcase;
+            $metadata['showcases'] = $showcases;
+            $week->metadata = $metadata;
+            $week->save();
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Custom media deleted successfully.',
+        ]);
+    }
 }
+
