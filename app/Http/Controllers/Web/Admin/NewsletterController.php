@@ -72,7 +72,8 @@ class NewsletterController extends Controller
 
             $systemPrompt = "You are the Master AI Content Director for 'Our Social Image' (a premier music industry, artist development, and live streaming platform). "
                 . "Your goal is to write a high-converting, engaging newsletter. "
-                . "Respond strictly in JSON format with two keys: 'subject' (a catchy email subject line) and 'html_content' (well-structured HTML body content formatted with <h2>, <p>, <ul>, <li>, <strong>, and callout boxes). Do not include markdown code block ticks outside JSON.";
+                . "Respond strictly in JSON format with two keys: 'subject' (a catchy email subject line) and 'html_content' (well-structured HTML body content formatted with <h2>, <p>, <ul>, <li>, <strong>, and <blockquote> callout boxes). "
+                . "Do NOT include any <img> tags or broken image placeholders in html_content. Do not include markdown code block ticks outside JSON.";
 
             $userPrompt = "Generate a newsletter for the topic: '{$topic}'. Custom admin notes/guidance: {$customNotes}. Format cleanly for HTML email.";
 
@@ -89,10 +90,13 @@ class NewsletterController extends Controller
                 ];
             }
 
+            // Strip any broken <img> placeholders
+            $sanitizedHtml = preg_replace('/<img[^>]*>/i', '', $data['html_content']);
+
             return response()->json([
                 'success'      => true,
                 'subject'      => $data['subject'],
-                'html_content' => $data['html_content'],
+                'html_content' => $sanitizedHtml,
             ]);
         } catch (\Throwable $e) {
             Log::error('AI Newsletter Generation error: ' . $e->getMessage());
