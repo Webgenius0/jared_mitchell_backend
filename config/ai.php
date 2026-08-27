@@ -27,7 +27,7 @@ return [
     'models' => [
         'openai'    => env('AI_OPENAI_MODEL',    'gpt-4o-mini'),
         'anthropic' => env('AI_ANTHROPIC_MODEL', 'claude-3-5-sonnet-20241022'),
-        'gemini'    => env('AI_GEMINI_MODEL',    'gemini-1.5-flash'),
+        'gemini'    => env('AI_GEMINI_MODEL',    'gemini-2.5-flash'),
     ],
 
     /*
