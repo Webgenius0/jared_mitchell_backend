@@ -59,10 +59,19 @@
                         <div class="mb-3">
                             <label class="form-label small fw-semibold mb-1">Select Email Layout Template <span class="text-danger">*</span></label>
                             <select id="inputTemplateStyle" class="form-select fw-semibold text-primary">
-                                <option value="modern" selected>🎨 Modern Gradient & Sleek Accent</option>
-                                <option value="minimalist">📄 Minimalist Clean White</option>
-                                <option value="dark">🌙 Cyber Dark Glow</option>
-                                <option value="promotional">🛍️ Promotional Announcement Card</option>
+                                <optgroup label="System Preset Layouts">
+                                    <option value="modern" selected>🎨 Modern Gradient & Sleek Accent</option>
+                                    <option value="minimalist">📄 Minimalist Clean White</option>
+                                    <option value="dark">🌙 Cyber Dark Glow</option>
+                                    <option value="promotional">🛍️ Promotional Announcement Card</option>
+                                </optgroup>
+                                @if(isset($customTemplates) && $customTemplates->count() > 0)
+                                <optgroup label="Your Custom Saved Drag & Drop Templates">
+                                    @foreach($customTemplates as $ct)
+                                        <option value="custom_{{ $ct->id }}">⭐ {{ $ct->name }} ({{ ucfirst($ct->category) }})</option>
+                                    @endforeach
+                                </optgroup>
+                                @endif
                             </select>
                         </div>
                         <div class="row g-3 mb-3">
