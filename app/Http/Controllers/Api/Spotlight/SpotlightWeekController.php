@@ -11,6 +11,7 @@ use App\Models\Spotlight\SpotlightWeekNominee;
 use App\Services\Spotlight\SpotlightVoteService;
 use App\Services\Spotlight\SpotlightWeekService;
 use App\Traits\ApiResponse;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -468,27 +469,68 @@ class SpotlightWeekController extends Controller
     }
 
     /**
-     * Format a spotlight week nominee winner into a clean response array.
+     * Format a spotlight week nominee winner into a clean response array with showcase data.
      */
     private function formatWinner($nominee): array
     {
         $isArtist = $nominee->spotlightable_type === ArtistSpotlight::class;
         $spotlight = $nominee->spotlightable;
+        $week = $nominee->week;
+
+        $metadata = $week?->metadata ?? [];
+        $showcases = $metadata['showcases'] ?? [];
+        $showcase = $showcases[$nominee->id] ?? [];
+        $excludedMediaIds = $showcase['excluded_media_ids'] ?? [];
+
+        $defaultName = $isArtist
+            ? ($spotlight?->artist_stage_name ?? $spotlight?->full_legal_name)
+            : ($spotlight?->business_name ?? $spotlight?->owner_founder_name);
+
+        $defaultDescription = $isArtist
+            ? ($spotlight?->short_bio ?? $spotlight?->full_artist_story)
+            : ($spotlight?->business_story ?? $spotlight?->products_services);
+
+        $title = $showcase['title'] ?? $defaultName;
+        $description = $showcase['description'] ?? $defaultDescription;
+
+        // Custom uploaded media
+        $customMedia = ! empty($showcase['media'])
+            ? array_map(function ($m) {
+                $path = $m['file_path'] ?? '';
+                return [
+                    'id'        => $m['id'] ?? null,
+                    'file_name' => $m['file_name'] ?? basename($path),
+                    'url'       => $this->formatImageUrl($path),
+                    'mime_type' => $m['mime_type'] ?? null,
+                    'type'      => $m['type'] ?? 'image',
+                ];
+            }, $showcase['media'])
+            : [];
+
+        // Format media respecting excluded IDs
+        $media = $this->formatSpotlightMedia($spotlight, $isArtist, $excludedMediaIds, $customMedia);
 
         return [
             'id'          => $nominee->id,
-            'week_number' => $nominee->week?->week_number,
-            'year'        => $nominee->week?->year,
+            'week_number' => $week?->week_number,
+            'year'        => $week?->year,
+            'title'       => $title,
+            'description' => $description,
             'spotlight'   => $spotlight ? [
-                'id'   => $spotlight->id,
-                'type' => $isArtist ? 'artist' : 'business',
-                'name' => $isArtist
-                    ? ($spotlight->artist_stage_name ?? $spotlight->full_legal_name)
-                    : ($spotlight->business_name ?? $spotlight->owner_founder_name),
-                'city'  => $spotlight->city ?? null,
-                'state' => $spotlight->state ?? null,
-                'media' => $this->formatSpotlightMedia($spotlight, $isArtist),
+                'id'           => $spotlight->id,
+                'type'         => $isArtist ? 'artist' : 'business',
+                'name'         => $title,
+                'default_name' => $defaultName,
+                'city'         => $spotlight->city ?? null,
+                'state'        => $spotlight->state ?? null,
+                'media'        => $media,
             ] : null,
+            'showcase'    => [
+                'title'              => $title,
+                'description'        => $description,
+                'custom_media'       => $customMedia,
+                'excluded_media_ids' => $excludedMediaIds,
+            ],
             'owner'       => [
                 'id'   => $nominee->user?->id,
                 'name' => $nominee->user?->profile?->name ?? $nominee->user?->email ?? '—',
@@ -496,31 +538,71 @@ class SpotlightWeekController extends Controller
             'total_votes'  => $nominee->total_vote_count,
             'free_votes'   => $nominee->free_vote_count,
             'paid_votes'   => $nominee->paid_vote_count,
-            'announced_at' => $nominee->week?->announced_at ?? $nominee->week?->updated_at,
+            'announced_at' => $week?->announced_at ?? $week?->updated_at,
         ];
     }
 
     /**
      * Format spotlight media into full URLs, matching the pattern in SpotlightDetailsController.
      */
-    private function formatSpotlightMedia($spotlight, bool $isArtist): array
+    private function formatSpotlightMedia($spotlight, bool $isArtist, array $excludedMediaIds = [], array $customMedia = []): array
     {
+        if (! $spotlight) {
+            return [
+                'headshot'            => null,
+                'artwork_photos'      => [],
+                'behind_scenes_photo' => null,
+                'intro_video'         => null,
+                'custom_media'        => $customMedia,
+            ];
+        }
+
         if ($isArtist) {
-            $headshot        = $spotlight->headshot_path ? $this->formatImageUrl($spotlight->headshot_path) : null;
-            $artworkPhotos   = $spotlight->artwork_photo_paths && is_array($spotlight->artwork_photo_paths)
-                ? array_values(array_filter(array_map([$this, 'formatImageUrl'], $spotlight->artwork_photo_paths)))
-                : [];
-            $behindScenes    = $spotlight->behind_scenes_photo_path ? $this->formatImageUrl($spotlight->behind_scenes_photo_path) : null;
-            $introVideo      = $spotlight->intro_video_path ? $this->formatImageUrl($spotlight->intro_video_path) : null;
+            $headshot = (! in_array('orig_headshot', $excludedMediaIds, true) && $spotlight->headshot_path)
+                ? $this->formatImageUrl($spotlight->headshot_path)
+                : null;
+
+            $artworkPhotos = [];
+            if ($spotlight->artwork_photo_paths && is_array($spotlight->artwork_photo_paths)) {
+                foreach ($spotlight->artwork_photo_paths as $idx => $path) {
+                    if (! in_array('orig_artwork_' . $idx, $excludedMediaIds, true)) {
+                        $formatted = $this->formatImageUrl($path);
+                        if ($formatted) {
+                            $artworkPhotos[] = $formatted;
+                        }
+                    }
+                }
+            }
+
+            $behindScenes = (! in_array('orig_behind_scenes', $excludedMediaIds, true) && $spotlight->behind_scenes_photo_path)
+                ? $this->formatImageUrl($spotlight->behind_scenes_photo_path)
+                : null;
+
+            $introVideo = (! in_array('orig_intro_video', $excludedMediaIds, true) && $spotlight->intro_video_path)
+                ? $this->formatImageUrl($spotlight->intro_video_path)
+                : null;
         } else {
-            // Map business photos onto the same key names as artist so both
-            // responses have an identical structure.
-            $headshot        = $spotlight->portrait_photo_path ? $this->formatImageUrl($spotlight->portrait_photo_path) : null;
-            $artworkPhotos   = $spotlight->product_service_photo_paths && is_array($spotlight->product_service_photo_paths)
-                ? array_values(array_filter(array_map([$this, 'formatImageUrl'], $spotlight->product_service_photo_paths)))
-                : [];
-            $behindScenes    = $spotlight->storefront_workspace_photo_path ? $this->formatImageUrl($spotlight->storefront_workspace_photo_path) : null;
-            $introVideo      = null;
+            $headshot = (! in_array('orig_portrait', $excludedMediaIds, true) && $spotlight->portrait_photo_path)
+                ? $this->formatImageUrl($spotlight->portrait_photo_path)
+                : null;
+
+            $artworkPhotos = [];
+            if ($spotlight->product_service_photo_paths && is_array($spotlight->product_service_photo_paths)) {
+                foreach ($spotlight->product_service_photo_paths as $idx => $path) {
+                    if (! in_array('orig_product_' . $idx, $excludedMediaIds, true)) {
+                        $formatted = $this->formatImageUrl($path);
+                        if ($formatted) {
+                            $artworkPhotos[] = $formatted;
+                        }
+                    }
+                }
+            }
+
+            $behindScenes = (! in_array('orig_storefront', $excludedMediaIds, true) && $spotlight->storefront_workspace_photo_path)
+                ? $this->formatImageUrl($spotlight->storefront_workspace_photo_path)
+                : null;
+
+            $introVideo = null;
         }
 
         return [
@@ -528,8 +610,10 @@ class SpotlightWeekController extends Controller
             'artwork_photos'      => $artworkPhotos,
             'behind_scenes_photo' => $behindScenes,
             'intro_video'         => $introVideo,
+            'custom_media'        => $customMedia,
         ];
     }
+
 
     /**
      * Convert a storage path or URL to a public URL.
@@ -550,5 +634,168 @@ class SpotlightWeekController extends Controller
         $path = preg_replace('#^storage/#', '', $path);
 
         return Storage::disk('public')->url($path);
+    }
+
+    /**
+     * GET /api/v1/spotlight/weeks/upcoming-countdown
+     * GET /api/v1/spotlight/upcoming-countdown
+     *
+     * Simple countdown to when the upcoming spotlight week's voting starts.
+     * Guaranteed to return the next future week after the currently running week.
+     */
+    public function upcomingCountdown(Request $request): JsonResponse
+    {
+        $now = now();
+
+        // 1. Get running week ID so we exclude it from upcoming query
+        $runningWeek = SpotlightWeek::query()
+            ->where(function ($q) use ($now) {
+                $q->where('status', 'voting')
+                  ->orWhere('status', 'nominating');
+            })
+            ->where('voting_starts_at', '<=', $now)
+            ->first();
+
+        $runningWeekId = $runningWeek?->id;
+
+        // 2. Find upcoming week whose voting starts in the future, excluding current running week
+        $week = SpotlightWeek::query()
+            ->where('voting_starts_at', '>', $now)
+            ->when($runningWeekId, fn ($q) => $q->where('id', '!=', $runningWeekId))
+            ->orderBy('voting_starts_at', 'asc')
+            ->first();
+
+        if (! $week) {
+            // Fallback: any pending week in the future
+            $week = SpotlightWeek::where('status', 'pending')
+                ->when($runningWeekId, fn ($q) => $q->where('id', '!=', $runningWeekId))
+                ->orderBy('voting_starts_at', 'asc')
+                ->first();
+        }
+
+        if (! $week) {
+            return $this->error(null, 'No upcoming spotlight week found.', 404);
+        }
+
+        $countdown = $this->calculateWeekCountdown($week->voting_starts_at, $now);
+
+        return $this->success('Upcoming spotlight week countdown retrieved successfully.', [
+            'id'                        => $week->id,
+            'week_number'               => $week->week_number,
+            'year'                      => $week->year,
+            'name'                      => "Spotlight Week {$week->week_number} ({$week->year})",
+            'status'                    => $week->status,
+            'phase'                     => 'upcoming',
+            'is_accepting_applications' => $week->isAcceptingApplications(),
+            'is_voting_open'            => $week->isVotingOpen(),
+            'voting_starts_at'          => $week->voting_starts_at?->toIso8601String(),
+            'voting_ends_at'            => $week->voting_ends_at?->toIso8601String(),
+            'target_date'               => $week->voting_starts_at?->toIso8601String(),
+            'countdown'                 => $countdown,
+        ]);
+    }
+
+    /**
+     * GET /api/v1/spotlight/weeks/running-countdown
+     * GET /api/v1/spotlight/running-countdown
+     *
+     * Returns the currently active/running spotlight week (voting or nominating)
+     * with countdown until voting ends or voting starts.
+     */
+    public function runningCountdown(Request $request): JsonResponse
+    {
+        $now = now();
+
+        // 1. Try to find active voting week
+        $week = SpotlightWeek::query()
+            ->where('status', 'voting')
+            ->where('voting_starts_at', '<=', $now)
+            ->where('voting_ends_at', '>=', $now)
+            ->first();
+
+        // 2. If no voting week is active, find the current nominating week currently in progress
+        if (! $week) {
+            $week = SpotlightWeek::query()
+                ->where('status', 'nominating')
+                ->where('voting_starts_at', '<=', $now)
+                ->first();
+        }
+
+        // 3. Fallback: most recent voting week
+        if (! $week) {
+            $week = SpotlightWeek::where('status', 'voting')
+                ->orderBy('voting_starts_at', 'desc')
+                ->first();
+        }
+
+        if (! $week) {
+            return $this->error(null, 'No running spotlight week found.', 404);
+        }
+
+        $isVotingOpen = $week->isVotingOpen();
+        $isAcceptingApplications = $week->isAcceptingApplications();
+
+        if ($isVotingOpen) {
+            $phase = 'voting';
+        } elseif ($isAcceptingApplications) {
+            $phase = 'nomination';
+        } else {
+            $phase = $week->status;
+        }
+
+        // Target Date Logic:
+        // If voting_starts_at is in the future -> target is voting_starts_at
+        // If voting_starts_at has passed -> target is voting_ends_at (count down until week ends)
+        if ($week->voting_starts_at && $week->voting_starts_at > $now) {
+            $targetDate = $week->voting_starts_at;
+        } else {
+            $targetDate = $week->voting_ends_at;
+        }
+
+        $countdown = $this->calculateWeekCountdown($targetDate, $now);
+
+        return $this->success('Running spotlight week retrieved successfully.', [
+            'id'                        => $week->id,
+            'week_number'               => $week->week_number,
+            'year'                      => $week->year,
+            'name'                      => "Spotlight Week {$week->week_number} ({$week->year})",
+            'status'                    => $week->status,
+            'phase'                     => $phase,
+            'is_accepting_applications' => $isAcceptingApplications,
+            'is_voting_open'            => $isVotingOpen,
+            'voting_starts_at'          => $week->voting_starts_at?->toIso8601String(),
+            'voting_ends_at'            => $week->voting_ends_at?->toIso8601String(),
+            'target_date'               => $targetDate?->toIso8601String(),
+            'countdown'                 => $countdown,
+        ]);
+    }
+
+    /**
+     * Calculate difference formatted as days, hours, minutes, seconds.
+     */
+    private function calculateWeekCountdown(?Carbon $targetDate, Carbon $now): array
+    {
+        if (! $targetDate || $targetDate <= $now) {
+            return [
+                'formatted'       => '00 Days : 00 Hours : 00 Minutes : 00 Seconds',
+                'formatted_short' => '0d 0h 0m 0s',
+            ];
+        }
+
+        $diff    = $now->diff($targetDate);
+        $days    = (int) $diff->days;
+        $hours   = (int) $diff->h;
+        $minutes = (int) $diff->i;
+        $seconds = (int) $diff->s;
+
+        $paddedDays    = sprintf('%02d', $days);
+        $paddedHours   = sprintf('%02d', $hours);
+        $paddedMinutes = sprintf('%02d', $minutes);
+        $paddedSeconds = sprintf('%02d', $seconds);
+
+        return [
+            'formatted'       => "{$paddedDays} Days : {$paddedHours} Hours : {$paddedMinutes} Minutes : {$paddedSeconds} Seconds",
+            'formatted_short' => "{$days}d {$hours}h {$minutes}m {$seconds}s",
+        ];
     }
 }

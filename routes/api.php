@@ -220,6 +220,8 @@ Route::group(['prefix' => 'v1'], function ($router) {
         Route::prefix('spotlight')->group(function () {
             Route::get('/weeks', [SpotlightWeekController::class, 'index']); // DONE: All spotlight weeks
             Route::get('/weeks/current', [SpotlightWeekController::class, 'current']); // DONE: Current voting week + leaderboard
+            Route::get('/weeks/upcoming-countdown', [SpotlightWeekController::class, 'upcomingCountdown']); // DONE: Upcoming spotlight week countdown
+            Route::get('/weeks/running-countdown', [SpotlightWeekController::class, 'runningCountdown']); // DONE: Running spotlight week countdown
             Route::get('/weeks/spotlight-of-the-week', [SpotlightWeekController::class, 'spotlightOfTheWeek']); // DONE: Spotight of the week
             Route::get('/historical-winners', [SpotlightWeekController::class, 'historicalWinners']); // DONE: Past 6 months winners by type
             Route::get('/weeks/{week}/leaderboard', [SpotlightWeekController::class, 'leaderboard']); // DONE: Real-time leaderboard
@@ -252,6 +254,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
 
             // Active season rounds
             Route::get('/active-season-rounds', [BossBeginningSeasonController::class, 'activeRounds']); // DONE: Active season's round list
+            Route::get('/active-round-countdown', [BossBeginningSeasonController::class, 'activeRoundsCountdown']); // DONE: Active round countdown
 
             // Round-wise businesses (which businesses reached each round) — defaults to active season, ?season_id= to pick one
             Route::get('/season-rounds', [RoundWiseBusinessController::class, 'index']); // DONE: Round-wise business list
