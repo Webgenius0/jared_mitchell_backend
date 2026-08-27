@@ -158,14 +158,31 @@ class AiService
 
         unset($options['model'], $options['max_tokens']);
 
-        $response = OpenAI::chat()->create([
-            'model'      => $model,
-            'max_tokens' => $maxTokens,
-            'messages'   => $messages,
-            ...$options,
-        ]);
+        try {
+            $response = OpenAI::chat()->create([
+                'model'      => $model,
+                'max_tokens' => $maxTokens,
+                'messages'   => $messages,
+                ...$options,
+            ]);
 
-        return $response->choices[0]->message->content ?? '';
+            return $response->choices[0]->message->content ?? '';
+        } catch (\Throwable $e) {
+            // If primary model access is restricted for this key/project, fallback to gpt-3.5-turbo!
+            if (str_contains($e->getMessage(), 'does not have access to model') && $model !== 'gpt-3.5-turbo') {
+                \Illuminate\Support\Facades\Log::warning("OpenAI model [{$model}] access restricted, retrying with gpt-3.5-turbo");
+                $response = OpenAI::chat()->create([
+                    'model'      => 'gpt-3.5-turbo',
+                    'max_tokens' => $maxTokens,
+                    'messages'   => $messages,
+                    ...$options,
+                ]);
+
+                return $response->choices[0]->message->content ?? '';
+            }
+
+            throw $e;
+        }
     }
 
     /**
