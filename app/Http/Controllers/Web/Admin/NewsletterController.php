@@ -139,7 +139,8 @@ class NewsletterController extends Controller
                 ctaButtonText: $request->cta_button_text,
                 ctaButtonUrl: $request->cta_button_url,
                 primaryColor: $request->primary_color ?? '#6366f1',
-                recipientEmail: $request->test_email
+                recipientEmail: $request->test_email,
+                templateStyle: $request->template_style ?? 'modern'
             ));
 
             return response()->json([

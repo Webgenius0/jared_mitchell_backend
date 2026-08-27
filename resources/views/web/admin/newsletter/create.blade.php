@@ -56,6 +56,15 @@
                         <h6 class="card-title mb-0 fw-bold">2. Dynamic Template Customization</h6>
                     </div>
                     <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold mb-1">Select Email Layout Template <span class="text-danger">*</span></label>
+                            <select id="inputTemplateStyle" class="form-select fw-semibold text-primary">
+                                <option value="modern" selected>🎨 Modern Gradient & Sleek Accent</option>
+                                <option value="minimalist">📄 Minimalist Clean White</option>
+                                <option value="dark">🌙 Cyber Dark Glow</option>
+                                <option value="promotional">🛍️ Promotional Announcement Card</option>
+                            </select>
+                        </div>
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
                                 <label class="form-label small fw-semibold mb-1">Theme Accent Color</label>
@@ -181,6 +190,7 @@
                     subject: subject,
                     html_content: htmlContent,
                     primary_color: $('#inputPrimaryColor').val(),
+                    template_style: $('#inputTemplateStyle').val(),
                     banner_image_url: $('#inputBannerUrl').val(),
                     cta_button_text: $('#inputCtaText').val(),
                     cta_button_url: $('#inputCtaUrl').val(),
@@ -229,6 +239,7 @@
                             topic_type: $('#aiTopicSelect').val(),
                             ai_prompt: $('#aiCustomNotes').val(),
                             primary_color: $('#inputPrimaryColor').val(),
+                            template_style: $('#inputTemplateStyle').val(),
                             banner_image_url: $('#inputBannerUrl').val(),
                             cta_button_text: $('#inputCtaText').val(),
                             cta_button_url: $('#inputCtaUrl').val(),
