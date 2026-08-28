@@ -414,7 +414,7 @@
 
                 {{-- Newsletter --}}
                 @php
-                    $newsletterOpen = request()->routeIs('admin.newsletters.*');
+                    $newsletterOpen = request()->routeIs('admin.newsletters.*', 'admin.email-templates.*');
                 @endphp
                 <li class="nav-item">
                     <a class="nav-link menu-link {{ $newsletterOpen ? 'active' : '' }}" href="#sidebarNewsletter"
@@ -435,13 +435,13 @@
                             <li class="nav-item">
                                 <a href="{{ route('admin.newsletters.create') }}"
                                     class="nav-link {{ request()->routeIs('admin.newsletters.create') ? 'active' : '' }}">
-                                    <i class="ri-magic-line text-warning"></i> ✨ AI Studio Generator
+                                    <i class="ri-magic-line text-warning"></i>AI Studio Generator
                                 </a>
                             </li>
                             <li class="nav-item">
                                 <a href="{{ route('admin.email-templates.index') }}"
                                     class="nav-link {{ request()->routeIs('admin.email-templates.*') ? 'active' : '' }}">
-                                    <i class="ri-layout-3-line text-info"></i> 🎨 Drag & Drop Templates
+                                    <i class="ri-layout-3-line text-info"></i>Email Templates
                                 </a>
                             </li>
                         </ul>
