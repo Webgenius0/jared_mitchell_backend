@@ -8,27 +8,20 @@ use Illuminate\Console\Command;
 
 class RunContestScheduler extends Command
 {
-    protected $signature = 'contest:scheduler{--sync : Run synchronously instead of dispatching a job}';
+    protected $signature = 'contest:scheduler {--sync : Run synchronously instead of dispatching a job}';
 
     protected $description = 'Run the contest scheduler — check timing conditions and dispatch needed actions';
 
     public function handle(): int
     {
-        $sync = $this->option('sync');
+        $scheduler = app(SchedulerService::class);
+        $actions = $scheduler->run();
 
-        if ($sync) {
-            $scheduler = app(SchedulerService::class);
-            $actions = $scheduler->run();
+        $this->info('Scheduler ran successfully.');
+        $this->line('Actions taken: ' . count($actions));
 
-            $this->info('Scheduler ran synchronously.');
-            $this->line('Actions taken: ' . count($actions));
-
-            foreach ($actions as $action) {
-                $this->line('  - [' . $action['type'] . '] ' . json_encode($action));
-            }
-        } else {
-            RunScheduler::dispatch();
-            $this->info('Scheduler job dispatched to queue.');
+        foreach ($actions as $action) {
+            $this->line('  - [' . $action['type'] . '] ' . json_encode($action));
         }
 
         return Command::SUCCESS;

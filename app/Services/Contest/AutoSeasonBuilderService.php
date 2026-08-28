@@ -14,18 +14,18 @@ class AutoSeasonBuilderService
 {
     /**
      * Round duration definitions in days:
-     * Round 1: 2 Weeks (14 Days)
-     * Round 2: 3 Weeks (21 Days)
-     * Round 3: 2 Weeks (14 Days)
-     * Round 4: 2 Weeks (14 Days)
+     * Round 1: 1 Week (7 Days)
+     * Round 2: 1 Week (7 Days)
+     * Round 3: 1 Week (7 Days)
+     * Round 4: 1 Week (7 Days)
      * Round 5: 1 Week (7 Days)
-     * Total: 70 Days (~10 Weeks / 3 Months)
+     * Total: 35 Days (5 Weeks)
      */
     protected const ROUND_CONFIGURATIONS = [
         [
             'round_number' => 1,
             'title' => 'Preliminary Round',
-            'duration_days' => 14,
+            'duration_days' => 7,
             'goal' => 'Submit your business pitch deck and a 2-minute introductory video showcasing your products or services.',
             'requirements' => 'Upload a PDF pitch deck (max 20 slides) and a 2-minute intro video. Include revenue projections for the next 12 months and a brief overview of your target market.',
             'voting_strategy' => 'popular_vote',
@@ -37,7 +37,7 @@ class AutoSeasonBuilderService
         [
             'round_number' => 2,
             'title' => 'Qualifiers',
-            'duration_days' => 21,
+            'duration_days' => 7,
             'goal' => 'Present your community impact report and financial sustainability plan to the judging panel.',
             'requirements' => 'Submit a community impact statement (500-1000 words) with supporting evidence. Include financial statements from the last 2 quarters and customer testimonials.',
             'voting_strategy' => 'popular_vote',
@@ -49,7 +49,7 @@ class AutoSeasonBuilderService
         [
             'round_number' => 3,
             'title' => 'Semi-Finals',
-            'duration_days' => 14,
+            'duration_days' => 7,
             'goal' => 'Demonstrate your business growth strategy and competitive advantage in a live presentation.',
             'requirements' => 'Prepare a 5-minute presentation covering business model, growth metrics, and competitive analysis. Submit a detailed growth roadmap for the next 12 months.',
             'voting_strategy' => 'popular_vote',
@@ -61,7 +61,7 @@ class AutoSeasonBuilderService
         [
             'round_number' => 4,
             'title' => 'Finals Preparation',
-            'duration_days' => 14,
+            'duration_days' => 7,
             'goal' => 'Refine your business pitch and participate in a mock judging session with business mentors.',
             'requirements' => 'Submit a refined pitch deck incorporating feedback from previous rounds. Record a 3-minute pitch video. Complete a mentorship feedback form.',
             'voting_strategy' => 'popular_vote',
@@ -86,7 +86,7 @@ class AutoSeasonBuilderService
 
     /**
      * Ensure an upcoming Boss Beginnings season is scheduled.
-     * Creates a new 3-month season + 5 rounds if no upcoming season exists.
+     * Creates a new 5-week season + 5 1-week rounds if no upcoming season exists.
      *
      * @return Season|null
      */
@@ -150,7 +150,7 @@ class AutoSeasonBuilderService
                 'contest_type' => 'business',
                 'title' => $title,
                 'slug' => $slug,
-                'description' => 'Automatic 3-month competition cycle for emerging businesses featuring 5 structured rounds of pitch decks, community impact, growth strategies, and grand finals.',
+                'description' => 'Automatic 5-week competition cycle for emerging businesses featuring 5 structured 1-week rounds of pitch decks, community impact, growth strategies, and grand finals.',
                 'status' => $status,
                 'configuration' => [
                     'max_contestants' => 50,
