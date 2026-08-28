@@ -198,13 +198,49 @@ class BossBeginningWinnerController extends Controller
 
         $allMedia = array_values(array_merge($businessMedia, $submissionMedia, $customMedia));
 
+        // Resolve avatar URL with fallbacks
+        $avatarUrl = null;
+        if (!empty($winner->avatar_url)) {
+            $avatarUrl = str_starts_with($winner->avatar_url, 'http')
+                ? $winner->avatar_url
+                : asset('storage/' . preg_replace('#^storage/#', '', $winner->avatar_url));
+        }
+
+        if (!$avatarUrl && $contestable) {
+            if (isset($contestable->user) && $contestable->user?->profile?->avatar_url) {
+                $avatarUrl = $contestable->user->profile->avatar_url;
+            } elseif (isset($contestable->owner) && $contestable->owner?->profile?->avatar_url) {
+                $avatarUrl = $contestable->owner->profile->avatar_url;
+            }
+        }
+
+        if (!$avatarUrl && $contestable) {
+            if (!empty($contestable->avatar_url)) {
+                $avatarUrl = str_starts_with($contestable->avatar_url, 'http')
+                    ? $contestable->avatar_url
+                    : asset('storage/' . preg_replace('#^storage/#', '', $contestable->avatar_url));
+            } elseif (method_exists($contestable, 'getContestantAvatar') && $contestable->getContestantAvatar()) {
+                $path = $contestable->getContestantAvatar();
+                $avatarUrl = asset('storage/' . preg_replace('#^storage/#', '', $path));
+            }
+        }
+
+        if (!$avatarUrl && !empty($businessMedia)) {
+            $firstImage = array_values(array_filter($businessMedia, fn($m) => ($m['type'] ?? '') === 'image'));
+            if (!empty($firstImage)) {
+                $avatarUrl = $firstImage[0]['file_path'];
+            }
+        }
+
+        if (!$avatarUrl) {
+            $avatarUrl = asset('admin/default/user.jpg');
+        }
+
         return [
             'id'           => $winner->id,
             'display_name' => $winner->display_name,
             'slug'         => $winner->slug,
-            'avatar_url'   => $winner->avatar_url
-                ? asset('storage/' . $winner->avatar_url)
-                : asset('admin/default/user.jpg'),
+            'avatar_url'   => $avatarUrl,
             'status'       => $winner->status,
             'total_score'  => (float) $winner->total_score,
             'title'        => $title,
