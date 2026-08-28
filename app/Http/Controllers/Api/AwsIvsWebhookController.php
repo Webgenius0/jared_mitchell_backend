@@ -131,13 +131,6 @@ class AwsIvsWebhookController extends Controller
                 ]);
             }
 
-            // 3. Fallback for generic VOD notification without explicit start event
-            if ($vodUrl && !$isStreamStartEvent && $liveStream->status === 'live') {
-                // Keep vod_url saved for later when stream ends, but DO NOT change status to ended while streaming!
-                $liveStream->update(['vod_url' => $vodUrl]);
-                Log::info("Live stream {$liveStream->id} saved VOD URL while active: {$vodUrl}");
-            }
-
             return response()->json([
                 'status' => true,
                 'message' => 'Webhook received and logged',
