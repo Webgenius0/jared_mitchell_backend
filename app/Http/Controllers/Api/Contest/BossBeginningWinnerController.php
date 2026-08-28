@@ -275,12 +275,7 @@ class BossBeginningWinnerController extends Controller
                 'total_saves'                => (int) ($contestable->total_saves ?? 0),
                 'total_shares'               => (int) ($contestable->total_shares ?? 0),
                 'total_points'               => (int) ($contestable->total_points ?? 0),
-                'media'                      => [
-                    'business_media'   => $businessMedia,
-                    'submission_media' => $submissionMedia,
-                    'custom_media'     => $customMedia,
-                    'all_media'        => $allMedia,
-                ],
+                'media'                      => $allMedia,
             ] : null,
 
             // Season information
