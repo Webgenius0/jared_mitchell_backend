@@ -93,9 +93,9 @@ jobs:
               echo "📦 Creating backup..."
               mkdir -p backups
               TIMESTAMP=\$(date +%Y%m%d_%H%M%S)
-              tar --exclude='./backups' -czf backups/backup_\${TIMESTAMP}.tar.gz . 2>/dev/null || true
-              # Keeps only the 5 most recent backups and deletes older ones to save disk space
-              ls -t backups/backup_*.tar.gz 2>/dev/null | tail -n +6 | xargs -r rm
+              tar --exclude='./backups' --exclude='./storage' --exclude='./vendor' --exclude='./node_modules' -czf backups/backup_\${TIMESTAMP}.tar.gz . 2>/dev/null || true
+              # Keeps only the 3 most recent backups and deletes older ones to save disk space
+              ls -t backups/backup_*.tar.gz 2>/dev/null | tail -n +4 | xargs -r rm
             fi
             
             # --- EXTRACT SECTION ---
@@ -110,6 +110,10 @@ jobs:
             # Gives Laravel permission to write to storage and cache folders
             sudo chmod -R 775 storage bootstrap/cache
             
+            echo "🧹 Cleaning unused Docker build cache to free disk space..."
+            sudo docker builder prune -af || true
+            sudo docker image prune -f || true
+
             echo "🚀 Running Docker Compose deployment commands..."
             # Restart Docker containers and optimize Laravel inside container
             sudo docker compose up -d --build

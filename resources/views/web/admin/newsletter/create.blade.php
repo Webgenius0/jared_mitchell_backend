@@ -32,11 +32,11 @@
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Preset Category Topic <span class="text-danger">*</span></label>
                             <select id="aiTopicSelect" class="form-select form-select-lg">
-                                <option value="artist_spotlight">🎤 Artist & Business Spotlight Digest</option>
-                                <option value="contest_update">🏆 Contest & Season Announcement (Boss Beginnings)</option>
-                                <option value="royalty_advice">🤖 OSI AI Music Industry & Royalty Advice</option>
-                                <option value="shop_promo">🛒 Merchandise & Shop Promotional Release</option>
-                                <option value="general_news">📢 General Platform Update & News</option>
+                                <option value="artist_spotlight">Artist & Business Spotlight Digest</option>
+                                <option value="contest_update">Contest & Season Announcement (Boss Beginnings)</option>
+                                <option value="royalty_advice">OSI AI Music Industry & Royalty Advice</option>
+                                <option value="shop_promo">Merchandise & Shop Promotional Release</option>
+                                <option value="general_news">General Platform Update & News</option>
                             </select>
                         </div>
                         <div class="mb-3">
@@ -44,7 +44,7 @@
                             <textarea id="aiCustomNotes" class="form-control" rows="3" placeholder="e.g. Highlight winner John Doe, include 10% shop coupon, mention new track release..."></textarea>
                         </div>
                         <button type="button" id="btnGenerateAi" class="btn btn-warning w-100 fw-bold py-2 fs-6 shadow-sm">
-                            <i class="ri-sparkles-line me-1"></i> ✨ Generate Content with AI
+                            <i class="ri-sparkles-line me-1"></i>Generate Content with AI
                         </button>
                     </div>
                 </div>
@@ -60,15 +60,15 @@
                             <label class="form-label small fw-semibold mb-1">Select Email Layout Template <span class="text-danger">*</span></label>
                             <select id="inputTemplateStyle" class="form-select fw-semibold text-primary">
                                 <optgroup label="System Preset Layouts">
-                                    <option value="modern" selected>🎨 Modern Gradient & Sleek Accent</option>
-                                    <option value="minimalist">📄 Minimalist Clean White</option>
-                                    <option value="dark">🌙 Cyber Dark Glow</option>
-                                    <option value="promotional">🛍️ Promotional Announcement Card</option>
+                                    <option value="modern" selected>Modern Gradient & Sleek Accent</option>
+                                    <option value="minimalist">Minimalist Clean White</option>
+                                    <option value="dark">Cyber Dark Glow</option>
+                                    <option value="promotional">Promotional Announcement Card</option>
                                 </optgroup>
                                 @if(isset($customTemplates) && $customTemplates->count() > 0)
                                 <optgroup label="Your Custom Saved Drag & Drop Templates">
                                     @foreach($customTemplates as $ct)
-                                        <option value="custom_{{ $ct->id }}">⭐ {{ $ct->name }} ({{ ucfirst($ct->category) }})</option>
+                                        <option value="custom_{{ $ct->id }}">{{ $ct->name }} ({{ ucfirst($ct->category) }})</option>
                                     @endforeach
                                 </optgroup>
                                 @endif
@@ -127,7 +127,7 @@
                                 </div>
                                 <div class="col-md-6 text-md-end">
                                     <button type="button" id="btnBroadcastNow" class="btn btn-success btn-lg fw-bold w-100 shadow">
-                                        <i class="ri-send-plane-fill me-1"></i> 🚀 Broadcast to {{ $activeSubscribersCount ?? 0 }} Active Subscribers
+                                        <i class="ri-send-plane-fill me-1"></i> Broadcast to {{ $activeSubscribersCount ?? 0 }} Active Subscribers
                                     </button>
                                 </div>
                             </div>
