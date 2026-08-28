@@ -128,6 +128,10 @@ class BossBeginningWinnerController extends Controller
 
         $hasCustomShowcase = !empty($showcase['title']) || !empty($showcase['description']) || !empty($showcase['media']) || !empty($excludedMediaIds);
 
+        $title = $showcase['title'] ?? $winner->display_name;
+        $defaultDescription = $contestable?->story ?? $contestable?->why_they_deserve_to_compete;
+        $description = $showcase['description'] ?? $defaultDescription;
+
         // 1. Business Profile Media
         $businessMedia = [];
         if ($contestable && $contestable->media && $contestable->media->count() > 0) {
@@ -194,57 +198,96 @@ class BossBeginningWinnerController extends Controller
 
         $allMedia = array_values(array_merge($businessMedia, $submissionMedia, $customMedia));
 
-        return [
-            'id' => $winner->id,
-            'display_name' => $winner->display_name,
-            'slug' => $winner->slug,
-            'avatar_url' => $winner->avatar_url
-                ? asset('storage/' . $winner->avatar_url)
-                : asset('admin/default/user.jpg'),
-            'status' => $winner->status,
-            'total_score' => (float) $winner->total_score,
-            'entered_at' => $winner->entered_at?->toIso8601String(),
-            'created_at' => $winner->created_at?->toIso8601String(),
+        // Resolve avatar URL with fallbacks
+        $avatarUrl = null;
+        if (!empty($winner->avatar_url)) {
+            $avatarUrl = str_starts_with($winner->avatar_url, 'http')
+                ? $winner->avatar_url
+                : asset('storage/' . preg_replace('#^storage/#', '', $winner->avatar_url));
+        }
 
-            // Admin Custom Showcase Details (if configured by admin)
+        if (!$avatarUrl && $contestable) {
+            if (isset($contestable->user) && $contestable->user?->profile?->avatar_url) {
+                $avatarUrl = $contestable->user->profile->avatar_url;
+            } elseif (isset($contestable->owner) && $contestable->owner?->profile?->avatar_url) {
+                $avatarUrl = $contestable->owner->profile->avatar_url;
+            }
+        }
+
+        if (!$avatarUrl && $contestable) {
+            if (!empty($contestable->avatar_url)) {
+                $avatarUrl = str_starts_with($contestable->avatar_url, 'http')
+                    ? $contestable->avatar_url
+                    : asset('storage/' . preg_replace('#^storage/#', '', $contestable->avatar_url));
+            } elseif (method_exists($contestable, 'getContestantAvatar') && $contestable->getContestantAvatar()) {
+                $path = $contestable->getContestantAvatar();
+                $avatarUrl = asset('storage/' . preg_replace('#^storage/#', '', $path));
+            }
+        }
+
+        if (!$avatarUrl && !empty($businessMedia)) {
+            $firstImage = array_values(array_filter($businessMedia, fn($m) => ($m['type'] ?? '') === 'image'));
+            if (!empty($firstImage)) {
+                $avatarUrl = $firstImage[0]['file_path'];
+            }
+        }
+
+        if (!$avatarUrl) {
+            $avatarUrl = asset('admin/default/user.jpg');
+        }
+
+        return [
+            'id'           => $winner->id,
+            'display_name' => $winner->display_name,
+            'slug'         => $winner->slug,
+            'avatar_url'   => $avatarUrl,
+            'status'       => $winner->status,
+            'total_score'  => (float) $winner->total_score,
+            'title'        => $title,
+            'description'  => $description,
+            'entered_at'   => $winner->entered_at?->toIso8601String(),
+            'created_at'   => $winner->created_at?->toIso8601String(),
+
+            // Admin Custom Showcase Details
             'showcase' => [
-                'has_custom_info' => $hasCustomShowcase,
-                'title' => $showcase['title'] ?? $winner->display_name,
-                'description' => $showcase['description'] ?? ($contestable?->story ?? $contestable?->why_they_deserve_to_compete),
-                'media' => $allMedia,
+                'has_custom_info'    => $hasCustomShowcase,
+                'title'              => $title,
+                'description'        => $description,
+                'custom_media'       => $customMedia,
+                'excluded_media_ids' => $excludedMediaIds,
             ],
 
             // Business / contestable entity details
             'contestable' => $contestable ? [
-                'id' => $contestable->id,
-                'type' => get_class($contestable),
-                'business_name' => $contestable->business_name ?? null,
-                'owner_founder_name' => $contestable->owner_founder_name ?? null,
-                'slug' => $contestable->slug ?? null,
-                'story' => $showcase['description'] ?? ($contestable->story ?? null),
-                'mission' => $contestable->mission ?? null,
-                'website_social_media' => $contestable->website_social_media ?? null,
+                'id'                         => $contestable->id,
+                'type'                       => get_class($contestable),
+                'business_name'              => $contestable->business_name ?? null,
+                'owner_founder_name'         => $contestable->owner_founder_name ?? null,
+                'slug'                       => $contestable->slug ?? null,
+                'story'                      => $description,
+                'mission'                    => $contestable->mission ?? null,
+                'website_social_media'       => $contestable->website_social_media ?? null,
                 'community_impact_statement' => $contestable->community_impact_statement ?? null,
-                'revenue_stage' => $contestable->revenue_stage ?? null,
-                'why_they_deserve_to_compete' => $contestable->why_they_deserve_to_compete ?? null,
-                'status' => $contestable->status ?? null,
-                'total_claps' => (int) ($contestable->total_claps ?? 0),
-                'total_saves' => (int) ($contestable->total_saves ?? 0),
-                'total_shares' => (int) ($contestable->total_shares ?? 0),
-                'total_points' => (int) ($contestable->total_points ?? 0),
-                'media' => $allMedia,
+                'revenue_stage'              => $contestable->revenue_stage ?? null,
+                'why_they_deserve_to_compete'=> $contestable->why_they_deserve_to_compete ?? null,
+                'status'                     => $contestable->status ?? null,
+                'total_claps'                => (int) ($contestable->total_claps ?? 0),
+                'total_saves'                => (int) ($contestable->total_saves ?? 0),
+                'total_shares'               => (int) ($contestable->total_shares ?? 0),
+                'total_points'               => (int) ($contestable->total_points ?? 0),
+                'media'                      => $allMedia,
             ] : null,
 
             // Season information
             'season' => [
-                'id' => $season->id,
-                'title' => $season->title,
-                'slug' => $season->slug,
+                'id'           => $season->id,
+                'title'        => $season->title,
+                'slug'         => $season->slug,
                 'contest_type' => $season->contest_type,
-                'status' => $season->status,
-                'starts_at' => $season->starts_at?->toIso8601String(),
-                'ends_at' => $season->ends_at?->toIso8601String(),
-                'is_active' => $season->is_active,
+                'status'       => $season->status,
+                'starts_at'    => $season->starts_at?->toIso8601String(),
+                'ends_at'      => $season->ends_at?->toIso8601String(),
+                'is_active'    => $season->is_active,
             ],
         ];
     }

@@ -43,11 +43,14 @@ class SpotlightSchedulerService
         $actions = [];
         $now = now();
         $adminSpotlightStart = \App\Models\Setting::current()?->spotlight_start_date;
-        $baseDate = ($adminSpotlightStart && $adminSpotlightStart->isAfter($now)) ? $adminSpotlightStart->copy() : $now->copy();
 
-        // 1. Current Week (Monday 12:00 AM → Sunday 11:59:59 PM)
-        $currentMonday = $baseDate->copy()->startOfWeek(Carbon::MONDAY)->startOfDay();
-        $currentSunday = $baseDate->copy()->endOfWeek(Carbon::SUNDAY)->endOfDay();
+        if ($adminSpotlightStart && $adminSpotlightStart->isAfter($now)) {
+            $currentMonday = $adminSpotlightStart->copy()->startOfDay();
+            $currentSunday = $currentMonday->copy()->addDays(7)->subSecond();
+        } else {
+            $currentMonday = $now->copy()->startOfWeek(Carbon::MONDAY)->startOfDay();
+            $currentSunday = $currentMonday->copy()->endOfWeek(Carbon::SUNDAY)->endOfDay();
+        }
 
         $currentWeekNumber = (int) $currentMonday->isoWeek();
         $currentYear       = (int) $currentMonday->year;
