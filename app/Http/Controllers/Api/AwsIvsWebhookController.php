@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\LiveStream;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class AwsIvsWebhookController extends Controller
@@ -96,6 +97,12 @@ class AwsIvsWebhookController extends Controller
                 ], 404);
             }
 
+            // Store real AWS S3 VOD URL in Cache for retrieval upon stream end
+            if ($vodUrl) {
+                Cache::put("stream_{$liveStream->id}_recorded_vod_url", $vodUrl, 86400);
+                Log::info("AWS Webhook cached recorded VOD URL for stream {$liveStream->id}: {$vodUrl}");
+            }
+
             // Determine Event Intent
             $isStreamStartEvent = in_array($eventName, ['Stream Start', 'Recording Start', 'SESSION_CREATED'])
                 || ($recordingStatus === 'RECORDING_STARTED');
@@ -114,11 +121,12 @@ class AwsIvsWebhookController extends Controller
                 ]);
             }
 
-            // 2. ONLY IF STREAM HAS TRULY ENDED OR FAILED -> UPDATE STATUS TO ENDED!
+            // 2. ONLY IF STREAM HAS TRULY ENDED OR FAILED VIA AWS -> UPDATE STATUS TO ENDED!
             if ($isStreamEndEvent) {
                 $updateData = ['status' => 'ended'];
-                if ($vodUrl) {
-                    $updateData['vod_url'] = $vodUrl;
+                $finalVodUrl = $vodUrl ?? Cache::get("stream_{$liveStream->id}_recorded_vod_url");
+                if ($finalVodUrl) {
+                    $updateData['vod_url'] = $finalVodUrl;
                 }
                 $liveStream->update($updateData);
 
