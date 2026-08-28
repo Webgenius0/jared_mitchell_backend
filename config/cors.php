@@ -9,6 +9,7 @@ return [
     // 👇 Replace or add your actual frontend domain here
     'allowed_origins'          => [
         'https://jared-mitchell.vercel.app',
+        'https://jared-mitchell-three.vercel.app',
         'http://localhost:3000',
     ],
 
