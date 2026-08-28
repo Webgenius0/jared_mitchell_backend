@@ -15,7 +15,7 @@
             </div>
             <div class="col-md-6 text-md-end mt-2 mt-md-0">
                 <a href="{{ route('admin.email-templates.create') }}" class="btn btn-primary bg-gradient fw-bold shadow">
-                    <i class="ri-add-line me-1 align-middle"></i> ✨ Create New Custom Template
+                    <i class="ri-add-line me-1 align-middle"></i> Create New Custom Template
                 </a>
             </div>
         </div>

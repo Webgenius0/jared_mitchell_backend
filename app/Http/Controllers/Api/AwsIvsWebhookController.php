@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\LiveStream;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class AwsIvsWebhookController extends Controller
@@ -37,9 +38,12 @@ class AwsIvsWebhookController extends Controller
                 $payload = json_decode($payload['Message'], true) ?? $payload;
             }
 
+            $eventName = $payload['detail']['event_name'] 
+                ?? $payload['event_name'] 
+                ?? ($payload['Records'][0]['eventName'] ?? null);
+
             $channelArn = $payload['detail']['channel_arn'] ?? $payload['channel_arn'] ?? ($payload['resources'][0] ?? null);
             $recordingStatus = $payload['detail']['recording_status'] ?? $payload['recording_status'] ?? null;
-            $streamId = $payload['detail']['stream_id'] ?? $payload['stream_id'] ?? null;
             
             $s3Bucket = $payload['detail']['recording_s3_bucket_name'] 
                 ?? $payload['recording_s3_bucket_name'] 
@@ -71,6 +75,10 @@ class AwsIvsWebhookController extends Controller
                 }
             }
 
+<<<<<<< HEAD
+=======
+            // Find matching stream
+>>>>>>> najim
             $liveStream = null;
 
             if ($channelArn) {
@@ -81,11 +89,16 @@ class AwsIvsWebhookController extends Controller
             }
 
             if (!$liveStream) {
+<<<<<<< HEAD
                 // Fallback 1: match the latest active or pending stream
+=======
+                // Fallback: match the latest active or pending stream
+>>>>>>> najim
                 $liveStream = LiveStream::whereIn('status', ['live', 'pending'])->latest()->first();
             }
 
             if (!$liveStream) {
+<<<<<<< HEAD
                 // Fallback 2: match the latest created stream overall (for test payloads or manual requests)
                 $liveStream = LiveStream::latest()->first();
             }
@@ -98,8 +111,48 @@ class AwsIvsWebhookController extends Controller
                 // Only update status to ended if currently live or pending, or if VOD URL is provided
                 if (in_array($liveStream->status, ['live', 'pending']) || $vodUrl) {
                     $updateData['status'] = 'ended';
-                }
+=======
+                return response()->json([
+                    'status' => false,
+                    'message' => 'No matching live stream found for channel ARN',
+                ], 404);
+            }
 
+            // Store real AWS S3 VOD URL in Cache for retrieval upon stream end
+            if ($vodUrl) {
+                Cache::put("stream_{$liveStream->id}_recorded_vod_url", $vodUrl, 86400);
+                Log::info("AWS Webhook cached recorded VOD URL for stream {$liveStream->id}: {$vodUrl}");
+            }
+
+            // Determine Event Intent
+            $isStreamStartEvent = in_array($eventName, ['Stream Start', 'Recording Start', 'SESSION_CREATED'])
+                || ($recordingStatus === 'RECORDING_STARTED');
+
+            $isStreamEndEvent = in_array($eventName, ['Stream End', 'Recording End', 'SESSION_ENDED', 'Stream Failure'])
+                || ($recordingStatus === 'RECORDING_ENDED' || $recordingStatus === 'RECORDING_FAILED');
+
+            // 1. IF STREAM IS STARTING OR RECORDING IS STARTING -> ENSURE STATUS IS LIVE!
+            if ($isStreamStartEvent) {
+                $liveStream->update(['status' => 'live']);
+                Log::info("Live stream {$liveStream->id} marked as LIVE via AWS Webhook ({$eventName})");
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Live stream status updated to live',
+                    'data' => $liveStream,
+                ]);
+            }
+
+            // 2. ONLY IF STREAM HAS TRULY ENDED OR FAILED VIA AWS -> UPDATE STATUS TO ENDED!
+            if ($isStreamEndEvent) {
+                $updateData = ['status' => 'ended'];
+                $finalVodUrl = $vodUrl ?? Cache::get("stream_{$liveStream->id}_recorded_vod_url");
+                if ($finalVodUrl) {
+                    $updateData['vod_url'] = $finalVodUrl;
+>>>>>>> najim
+                }
+                $liveStream->update($updateData);
+
+<<<<<<< HEAD
                 if (!empty($updateData)) {
                     $liveStream->update($updateData);
                 }
@@ -109,14 +162,27 @@ class AwsIvsWebhookController extends Controller
                 return response()->json([
                     'status' => true,
                     'message' => 'Live stream updated successfully',
+=======
+                Log::info("Live stream {$liveStream->id} ended via AWS IVS Webhook ({$eventName})", $updateData);
+
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Live stream ended successfully',
+>>>>>>> najim
                     'data' => $liveStream,
                 ]);
             }
 
             return response()->json([
+<<<<<<< HEAD
                 'status' => false,
                 'message' => 'No live streams exist in database to update',
             ], 404);
+=======
+                'status' => true,
+                'message' => 'Webhook received and logged',
+            ]);
+>>>>>>> najim
 
         } catch (\Exception $e) {
             Log::error('AWS IVS Webhook Error: ' . $e->getMessage());

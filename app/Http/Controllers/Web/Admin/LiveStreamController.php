@@ -195,32 +195,43 @@ class LiveStreamController extends Controller
         $stream = LiveStream::findOrFail($id);
 
         if ($stream->status !== 'ended') {
+            $vodUrl = $request->input('vod_url') 
+                ?? \Illuminate\Support\Facades\Cache::get("stream_{$stream->id}_recorded_vod_url") 
+                ?? $stream->vod_url;
+
+            if (!$vodUrl && $stream->channel_arn) {
+                $channelId = basename($stream->channel_arn);
+                $s3Bucket = env('AWS_IVS_S3_BUCKET', 'oursocialimage-livestreaming-bucket');
+                $region = env('AWS_DEFAULT_REGION', 'us-east-1');
+                $cloudfront = env('AWS_IVS_CLOUDFRONT_URL');
+                $awsAccountId = env('AWS_ACCOUNT_ID', '');
+
+                $path = $awsAccountId ? "ivs/v1/{$awsAccountId}/{$channelId}/media/hls/master.m3u8" : "ivs/v1/{$channelId}/media/hls/master.m3u8";
+                $masterPlaylistPath = preg_replace('#/+#', '/', $path);
+
+                if ($cloudfront) {
+                    $vodUrl = rtrim($cloudfront, '/') . '/' . ltrim($masterPlaylistPath, '/');
+                } else {
+                    $vodUrl = "https://{$s3Bucket}.s3.{$region}.amazonaws.com/" . ltrim($masterPlaylistPath, '/');
+                }
+            }
+
             // Delete the channel from AWS IVS to stop billing for it
             $deleted = $this->ivsService->deleteChannel($stream->channel_arn);
             
-            if ($deleted) {
-                $vodUrl = $request->input('vod_url', null);
-                $stream->update([
-                    'status' => 'ended',
-                    'vod_url' => $vodUrl,
+            $stream->update([
+                'status' => 'ended',
+                'vod_url' => $vodUrl,
+            ]);
+
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Stream has been ended and saved as VOD.',
+                    'data' => $stream,
                 ]);
-                if ($request->wantsJson() || $request->ajax()) {
-                    return response()->json([
-                        'status' => true,
-                        'message' => 'Stream has been ended and the AWS channel was deleted.',
-                        'data' => $stream,
-                    ]);
-                }
-                return back()->with('success', 'Stream has been ended and the AWS channel was deleted. The video will be saved as VOD if recording was enabled.');
-            } else {
-                if ($request->wantsJson() || $request->ajax()) {
-                    return response()->json([
-                        'status' => false,
-                        'message' => 'Failed to delete AWS IVS Channel.',
-                    ], 500);
-                }
-                return back()->with('error', 'Failed to delete AWS IVS Channel.');
             }
+            return back()->with('success', 'Stream has been ended and saved as VOD.');
         }
 
         if ($request->wantsJson() || $request->ajax()) {
