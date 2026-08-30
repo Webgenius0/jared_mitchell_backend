@@ -68,33 +68,46 @@ class NewsletterBroadcastMail extends Mailable
             if ($customTemplate) {
                 $customHtml = $customTemplate->html_content;
 
-                // Smart Injection 1: If custom template contains {{content}} variable
+                // Strip any duplicate headers or footers from the injected content to prevent repetition
+                $aiContent = preg_replace('/<div[^>]*data-type="(?:header|footer)"[^>]*>.*?<\/div>/s', '', $this->htmlContent);
+
+                // 1. Replace {{content}} tag if present in template
                 if (str_contains($customHtml, '{{content}}') || str_contains($customHtml, '{{ content }}')) {
-                    $customHtml = str_replace(['{{content}}', '{{ content }}'], $this->htmlContent, $customHtml);
+                    $customHtml = str_replace(['{{content}}', '{{ content }}'], $aiContent, $customHtml);
                 }
-                // Smart Injection 2: Replace default text block container or paragraph
+                // 2. Replace text block container (data-type="text")
                 elseif (preg_match('/<div[^>]*data-type="text"[^>]*>.*?<\/div>/s', $customHtml)) {
                     $replacement = '<div data-type="text" style="padding: 20px; color: #334155;">'
                         . '<h2 style="color: #0f172a; margin-top:0;">' . e($this->emailSubject) . '</h2>'
-                        . $this->htmlContent
+                        . $aiContent
                         . '</div>';
                     $customHtml = preg_replace('/<div[^>]*data-type="text"[^>]*>.*?<\/div>/s', $replacement, $customHtml, 1);
                 }
-                // Smart Injection 3: Replace "Welcome to Our Latest Update" or "New Feature Highlight" copy
+                // 3. Replace default starter text headings
                 elseif (str_contains($customHtml, 'Welcome to Our Latest Update') || str_contains($customHtml, 'New Feature Highlight')) {
                     $pattern = '/<h3[^>]*>(?:Welcome to Our Latest Update|New Feature Highlight)<\/h3>\s*<p[^>]*>.*?<\/p>/s';
-                    $customHtml = preg_replace($pattern, $this->htmlContent, $customHtml, 1);
+                    $customHtml = preg_replace($pattern, $aiContent, $customHtml, 1);
                 }
-                // Smart Injection 4: Fallback - wrap customHtml inside email layout container
+                // 4. Insert before footer if text block was deleted from template
+                elseif (preg_match('/<div[^>]*data-type="footer"[^>]*>/s', $customHtml)) {
+                    $customHtml = preg_replace(
+                        '/<div[^>]*data-type="footer"[^>]*>/s',
+                        '<div style="padding: 20px; font-family: sans-serif;">' . $aiContent . '</div><div data-type="footer">',
+                        $customHtml,
+                        1
+                    );
+                }
                 else {
-                    $customHtml = '<div style="max-width: 720px; margin: 0 auto; background: #ffffff; padding: 20px; font-family: sans-serif;">'
-                        . $customHtml
-                        . '<div style="padding: 20px 0; border-top: 1px solid #e2e8f0; margin-top: 20px;">' . $this->htmlContent . '</div>'
-                        . '</div>';
+                    $customHtml .= '<div style="padding: 20px; font-family: sans-serif;">' . $aiContent . '</div>';
                 }
 
+                // Wrap cleanly inside container without duplicating outer elements
+                $finalHtml = '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body style="margin:0; padding:20px 0; background:#f4f6f8; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;"><div style="max-width:720px; margin:0 auto; background:#ffffff; border-radius:4px; overflow:hidden; border:1px solid #cbd5e1;">'
+                    . $customHtml
+                    . '</div></body></html>';
+
                 return new Content(
-                    htmlString: $customHtml
+                    htmlString: $finalHtml
                 );
             }
         }
