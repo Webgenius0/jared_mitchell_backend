@@ -36,6 +36,14 @@ class NewsletterController extends Controller
                 }
                 
                 $newsletter->update(['status' => 'active']);
+
+                // Send Automatic Welcome Email
+                try {
+                    \Illuminate\Support\Facades\Mail::to($request->email)->send(new \App\Mail\NewsletterWelcomeMail($request->email));
+                } catch (\Throwable $mErr) {
+                    Log::error('Welcome email dispatch error: ' . $mErr->getMessage());
+                }
+
                 return $this->success('Your subscription has been reactivated successfully.');
             }
 
@@ -43,6 +51,13 @@ class NewsletterController extends Controller
                 'email' => $request->email,
                 'status' => 'active',
             ]);
+
+            // Send Automatic Welcome Email
+            try {
+                \Illuminate\Support\Facades\Mail::to($request->email)->send(new \App\Mail\NewsletterWelcomeMail($request->email));
+            } catch (\Throwable $mErr) {
+                Log::error('Welcome email dispatch error: ' . $mErr->getMessage());
+            }
 
             return $this->success('Thank you for subscribing to our newsletter.');
         } catch (Exception $e) {
