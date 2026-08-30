@@ -244,4 +244,17 @@ class NewsletterController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Handle public unsubscribe requests from email links.
+     */
+    public function unsubscribe(Request $request)
+    {
+        $email = $request->query('email');
+        if ($email) {
+            Newsletter::where('email', $email)->update(['status' => 'unsubscribed']);
+        }
+
+        return response()->view('emails.unsubscribed_success', compact('email'));
+    }
 }
