@@ -77,17 +77,43 @@ class NewsletterController extends Controller
 
             $userPrompt = "Generate a newsletter for the topic: '{$topic}'. Custom admin notes/guidance: {$customNotes}. Format cleanly for HTML email.";
 
-            $rawReply = $this->aiService->ask($userPrompt, $systemPrompt);
+            $rawReply = trim($this->aiService->ask($userPrompt, $systemPrompt));
 
-            // Clean up possible markdown code fences if AI wrapped json
-            $cleanJson = preg_replace('/^```json\s*|\s*```$/i', '', trim($rawReply));
+            // Strip markdown code block wrappers (```json ... ``` or ``` ...)
+            $cleanJson = preg_replace('/^```(?:json)?\s*/i', '', $rawReply);
+            $cleanJson = preg_replace('/\s*```$/i', '', $cleanJson);
+            $cleanJson = trim($cleanJson);
+
             $data = json_decode($cleanJson, true);
 
-            if (!isset($data['subject']) || !isset($data['html_content'])) {
-                $data = [
-                    'subject' => "Exclusive Update from Our Social Image: " . ucfirst(str_replace('_', ' ', $topic)),
-                    'html_content' => "<p>" . nl2br(e($rawReply)) . "</p>",
-                ];
+            // Attempt regex extraction if json_decode failed due to unescaped quotes/newlines from AI
+            if (!$data || !isset($data['subject']) || !isset($data['html_content'])) {
+                $subject = null;
+                $htmlContent = null;
+
+                if (preg_match('/"subject"\s*:\s*"([^"]+)"/s', $cleanJson, $matches)) {
+                    $subject = $matches[1];
+                }
+
+                // If html_content is inside JSON string structure
+                if (preg_match('/"html_content"\s*:\s*"(.*?)"(?:\s*,\s*"|\s*}\s*$)/s', $cleanJson, $matches)) {
+                    $htmlContent = $matches[1];
+                    $htmlContent = str_replace(['\"', '\n', '\r', '\t', '\\/'], ['"', "\n", "\r", "\t", '/'], $htmlContent);
+                }
+
+                if ($htmlContent) {
+                    $data = [
+                        'subject'      => $subject ?? ("Exclusive Update: " . ucfirst(str_replace('_', ' ', $topic))),
+                        'html_content' => $htmlContent,
+                    ];
+                } else {
+                    // Fallback: If AI returned raw HTML or plain text
+                    $cleanBody = preg_replace('/\{\s*"subject".*?\}/s', '', $rawReply);
+                    $data = [
+                        'subject'      => "Exclusive Update: " . ucfirst(str_replace('_', ' ', $topic)),
+                        'html_content' => str_contains($cleanBody, '<') ? $cleanBody : "<p>" . nl2br(e($cleanBody)) . "</p>",
+                    ];
+                }
             }
 
             // Strip any broken <img> placeholders
