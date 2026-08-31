@@ -68,6 +68,7 @@ use App\Http\Controllers\Api\LiveStreamController;
 use App\Http\Controllers\Api\AwsIvsWebhookController;
 use App\Http\Controllers\Api\MyStatsController;
 use App\Http\Controllers\Api\VideoChannelApiController;
+use App\Http\Controllers\Api\Admin\AdminWinnerArticleController;
 use Illuminate\Support\Facades\Route;
 
 // health check
@@ -696,6 +697,21 @@ Route::group(['prefix' => 'v1/ai-chat', 'middleware' => 'auth:api'], function ()
 */
 Route::post('/webhooks/stripe', [StripeWebhookController::class, 'handle']);
 Route::post('/webhooks/aws-ivs', [AwsIvsWebhookController::class, 'handle']);
+
+/*
+|--------------------------------------------------------------------------
+| Admin Winner Articles Management Routes
+|--------------------------------------------------------------------------
+*/
+Route::prefix('v1/admin/winner-articles')->group(function () {
+    Route::get('/', [AdminWinnerArticleController::class, 'index']);
+    Route::post('/', [AdminWinnerArticleController::class, 'store']);
+    Route::get('/{article}', [AdminWinnerArticleController::class, 'show']);
+    Route::post('/{article}', [AdminWinnerArticleController::class, 'update']);
+    Route::delete('/{article}', [AdminWinnerArticleController::class, 'destroy']);
+    Route::delete('/{article}/media/{media}', [AdminWinnerArticleController::class, 'deleteMedia']);
+});
+
 
 
 // Route::post('/webhooks/aws-ivs', [App\Http\Controllers\Api\AwsIvsWebhookController::class, 'handle'])->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
