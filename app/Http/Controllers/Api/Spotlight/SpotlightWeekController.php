@@ -175,29 +175,39 @@ class SpotlightWeekController extends Controller
         $type = $validated['type'] ?? 'all';
         $latestWinner = $this->weekService->getLastWinner($type === 'all' ? null : $type);
 
-        $adminArticles = WinnerArticle::where('type', 'spotlight')
-            ->where('is_active', true)
-            ->with('media')
-            ->latest()
-            ->get()
-            ->map(function ($article) {
-                return [
-                    'id'         => $article->id,
-                    'title'      => $article->title,
-                    'content'    => $article->content,
-                    'created_at' => $article->created_at?->toIso8601String(),
-                    'media'      => $article->media->map(function ($m) {
-                        return [
-                            'id'        => $m->id,
-                            'url'       => $m->url,
-                            'file_name' => $m->file_name,
-                            'file_type' => $m->file_type,
-                            'mime_type' => $m->mime_type,
-                            'file_size' => $m->file_size,
-                        ];
-                    })->values(),
-                ];
-            })->values();
+        $adminArticles = collect();
+        if ($latestWinner) {
+            $adminArticles = WinnerArticle::where('type', 'spotlight')
+                ->where('is_active', true)
+                ->where(function ($q) use ($latestWinner) {
+                    $q->where('spotlight_week_nominee_id', $latestWinner->id)
+                      ->orWhere('spotlight_week_id', $latestWinner->spotlight_week_id)
+                      ->orWhere(function ($sub) {
+                          $sub->whereNull('spotlight_week_nominee_id')->whereNull('spotlight_week_id');
+                      });
+                })
+                ->with('media')
+                ->latest()
+                ->get()
+                ->map(function ($article) {
+                    return [
+                        'id'         => $article->id,
+                        'title'      => $article->title,
+                        'content'    => $article->content,
+                        'created_at' => $article->created_at?->toIso8601String(),
+                        'media'      => $article->media->map(function ($m) {
+                            return [
+                                'id'        => $m->id,
+                                'url'       => $m->url,
+                                'file_name' => $m->file_name,
+                                'file_type' => $m->file_type,
+                                'mime_type' => $m->mime_type,
+                                'file_size' => $m->file_size,
+                            ];
+                        })->values(),
+                    ];
+                })->values();
+        }
 
         return $this->success('Spotlight winners retrieved.', [
             'type'           => $type,
