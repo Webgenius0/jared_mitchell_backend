@@ -61,6 +61,13 @@ class BossBeginningWinnerController extends Controller
 
         $adminArticles = WinnerArticle::where('type', 'boss_beginning')
             ->where('is_active', true)
+            ->where(function ($q) use ($winner, $season) {
+                $q->where('contestant_id', $winner->id)
+                  ->orWhere('season_id', $season->id)
+                  ->orWhere(function ($sub) {
+                      $sub->whereNull('contestant_id')->whereNull('season_id');
+                  });
+            })
             ->with('media')
             ->latest()
             ->get()
