@@ -13,9 +13,12 @@
                 </h4>
                 <p class="text-muted mb-0">Manage and design custom drag-and-drop HTML email templates for your broadcasts.</p>
             </div>
-            <div class="col-md-6 text-md-end mt-2 mt-md-0">
+            <div class="col-md-6 text-md-end mt-2 mt-md-0 d-flex gap-2 justify-content-md-end flex-wrap">
                 <a href="{{ route('admin.email-templates.create') }}" class="btn btn-primary bg-gradient fw-bold shadow">
-                    <i class="ri-add-line me-1 align-middle"></i> Create New Custom Template
+                    <i class="ri-layout-grid-line me-1 align-middle"></i> 🎨 Visual Drag & Drop Builder
+                </a>
+                <a href="{{ route('admin.email-templates.canva') }}" class="btn btn-warning bg-gradient fw-bold text-dark shadow">
+                    <i class="ri-code-box-line me-1 align-middle"></i> 📄 Import Canva HTML Template
                 </a>
             </div>
         </div>
