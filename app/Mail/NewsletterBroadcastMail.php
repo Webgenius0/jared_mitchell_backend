@@ -85,7 +85,18 @@ class NewsletterBroadcastMail extends Mailable
                     $customHtml
                 );
 
-                // Strip any duplicate headers or footers from the injected content to prevent repetition
+                // 🌟 PURE CANVA HTML CHECK: If template is a full standalone document (like Canva HTML export), return 100% PURE CANVA HTML!
+                if (str_contains(strtolower($customHtml), '<!doctype') || str_contains(strtolower($customHtml), '<html')) {
+                    if (str_contains($customHtml, '{{content}}') || str_contains($customHtml, '{{ content }}')) {
+                        $customHtml = str_replace(['{{content}}', '{{ content }}'], $this->htmlContent, $customHtml);
+                    }
+
+                    return new Content(
+                        htmlString: $customHtml
+                    );
+                }
+
+                // Strip any duplicate headers or footers from the injected content for Visual Builder templates
                 $aiContent = preg_replace('/<div[^>]*data-type="(?:header|footer)"[^>]*>.*?<\/div>/s', '', $this->htmlContent);
 
                 // 1. Replace {{content}} tag if present in template
@@ -115,15 +126,10 @@ class NewsletterBroadcastMail extends Mailable
                     );
                 }
 
-                // If template is full standalone document (like Canva HTML export), return directly
-                if (str_contains(strtolower($customHtml), '<!doctype') || str_contains(strtolower($customHtml), '<html')) {
-                    $finalHtml = $customHtml;
-                } else {
-                    // Wrap cleanly inside container without duplicating outer elements
-                    $finalHtml = '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body style="margin:0; padding:20px 0; background:#f4f6f8; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;"><div style="max-width:720px; margin:0 auto; background:#ffffff; border-radius:4px; overflow:hidden; border:1px solid #cbd5e1;">'
-                        . $customHtml
-                        . '</div></body></html>';
-                }
+                // Wrap cleanly inside container without duplicating outer elements
+                $finalHtml = '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body style="margin:0; padding:20px 0; background:#f4f6f8; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;"><div style="max-width:720px; margin:0 auto; background:#ffffff; border-radius:4px; overflow:hidden; border:1px solid #cbd5e1;">'
+                    . $customHtml
+                    . '</div></body></html>';
 
                 return new Content(
                     htmlString: $finalHtml
