@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Contest\Contestant;
 use App\Models\Contest\RoundSubmission;
 use App\Models\Contest\Season;
+use App\Models\WinnerArticle;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 
@@ -58,8 +59,40 @@ class BossBeginningWinnerController extends Controller
             return $this->error(null, 'No winner found for the current season.', 404);
         }
 
+        $adminArticles = WinnerArticle::where('type', 'boss_beginning')
+            ->where('is_active', true)
+            ->where(function ($q) use ($winner, $season) {
+                $q->where('contestant_id', $winner->id)
+                  ->orWhere('season_id', $season->id)
+                  ->orWhere(function ($sub) {
+                      $sub->whereNull('contestant_id')->whereNull('season_id');
+                  });
+            })
+            ->with('media')
+            ->latest()
+            ->get()
+            ->map(function ($article) {
+                return [
+                    'id'         => $article->id,
+                    'title'      => $article->title,
+                    'content'    => $article->content,
+                    'created_at' => $article->created_at?->toIso8601String(),
+                    'media'      => $article->media->map(function ($m) {
+                        return [
+                            'id'        => $m->id,
+                            'url'       => $m->url,
+                            'file_name' => $m->file_name,
+                            'file_type' => $m->file_type,
+                            'mime_type' => $m->mime_type,
+                            'file_size' => $m->file_size,
+                        ];
+                    })->values(),
+                ];
+            })->values();
+
         return $this->success('Current Boss Beginnings winner retrieved successfully.', [
-            'winner' => $this->formatWinnerData($winner, $season),
+            'winner'         => $this->formatWinnerData($winner, $season),
+            'admin_articles' => $adminArticles,
         ]);
     }
 

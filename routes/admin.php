@@ -428,6 +428,20 @@ Route::prefix('winners')->name('admin.winners.')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
+| Winner Articles
+|--------------------------------------------------------------------------
+*/
+Route::prefix('winner-articles')->name('admin.winner-articles.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Web\Admin\WinnerArticleWebController::class, 'index'])->name('index');
+    Route::post('/', [\App\Http\Controllers\Web\Admin\WinnerArticleWebController::class, 'store'])->name('store');
+    Route::get('/{article}', [\App\Http\Controllers\Web\Admin\WinnerArticleWebController::class, 'show'])->name('show');
+    Route::post('/{article}', [\App\Http\Controllers\Web\Admin\WinnerArticleWebController::class, 'update'])->name('update');
+    Route::delete('/{article}', [\App\Http\Controllers\Web\Admin\WinnerArticleWebController::class, 'destroy'])->name('destroy');
+    Route::delete('/{article}/media/{media}', [\App\Http\Controllers\Web\Admin\WinnerArticleWebController::class, 'deleteMedia'])->name('delete-media');
+});
+
+/*
+|--------------------------------------------------------------------------
 | Contest Applications
 |--------------------------------------------------------------------------
 */

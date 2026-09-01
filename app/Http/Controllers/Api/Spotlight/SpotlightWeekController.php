@@ -8,6 +8,7 @@ use App\Models\BusinessSpotlight;
 use App\Models\Spotlight\SpotlightApplication;
 use App\Models\Spotlight\SpotlightWeek;
 use App\Models\Spotlight\SpotlightWeekNominee;
+use App\Models\WinnerArticle;
 use App\Services\Spotlight\SpotlightVoteService;
 use App\Services\Spotlight\SpotlightWeekService;
 use App\Traits\ApiResponse;
@@ -174,49 +175,44 @@ class SpotlightWeekController extends Controller
         $type = $validated['type'] ?? 'all';
         $latestWinner = $this->weekService->getLastWinner($type === 'all' ? null : $type);
 
-        // $archive = SpotlightWeekNominee::whereHas('week', function ($q) {
-        //         $q->where('status', 'completed')
-        //           ->whereNotNull('announced_at');
-        //     })
-        //     ->where('is_winner', true)
-        //     ->with('spotlightable', 'week', 'user.profile')
-        //     ->latest()
-        //     ->paginate($perPage);
-
-        // $archiveData = collect($archive->items())->map(function ($nominee) {
-        //     $isArtist = $nominee->spotlightable_type === ArtistSpotlight::class;
-        //     $spotlight = $nominee->spotlightable;
-
-        //     return [
-        //         'id'              => $nominee->id,
-        //         'week_number'     => $nominee->week?->week_number,
-        //         'year'            => $nominee->week?->year,
-        //         'week_status'     => $nominee->week?->status,
-        //         'spotlight'       => $spotlight ? [
-        //             'id'   => $spotlight->id,
-        //             'type' => $isArtist ? 'artist' : 'business',
-        //             'name' => $isArtist
-        //                 ? ($spotlight->artist_stage_name ?? $spotlight->full_legal_name)
-        //                 : ($spotlight->business_name ?? $spotlight->owner_founder_name),
-        //             'city'  => $spotlight->city ?? null,
-        //             'state' => $spotlight->state ?? null,
-        //         ] : null,
-        //         'total_votes'     => $nominee->total_vote_count,
-        //         'announced_at'    => $nominee->week?->announced_at,
-        //     ];
-        // });
+        $adminArticles = collect();
+        if ($latestWinner) {
+            $adminArticles = WinnerArticle::where('type', 'spotlight')
+                ->where('is_active', true)
+                ->where(function ($q) use ($latestWinner) {
+                    $q->where('spotlight_week_nominee_id', $latestWinner->id)
+                      ->orWhere('spotlight_week_id', $latestWinner->spotlight_week_id)
+                      ->orWhere(function ($sub) {
+                          $sub->whereNull('spotlight_week_nominee_id')->whereNull('spotlight_week_id');
+                      });
+                })
+                ->with('media')
+                ->latest()
+                ->get()
+                ->map(function ($article) {
+                    return [
+                        'id'         => $article->id,
+                        'title'      => $article->title,
+                        'content'    => $article->content,
+                        'created_at' => $article->created_at?->toIso8601String(),
+                        'media'      => $article->media->map(function ($m) {
+                            return [
+                                'id'        => $m->id,
+                                'url'       => $m->url,
+                                'file_name' => $m->file_name,
+                                'file_type' => $m->file_type,
+                                'mime_type' => $m->mime_type,
+                                'file_size' => $m->file_size,
+                            ];
+                        })->values(),
+                    ];
+                })->values();
+        }
 
         return $this->success('Spotlight winners retrieved.', [
             'type'           => $type,
             'current_winner' => $latestWinner ? $this->formatWinner($latestWinner) : null,
-            // 'archive'        => $archiveData,
-            // 'pagination'     => [
-            //     'total'        => $archive->total(),
-            //     'per_page'     => (int) $archive->perPage(),
-            //     'current_page' => $archive->currentPage(),
-            //     'last_page'    => $archive->lastPage(),
-            //     'has_more'     => $archive->hasMorePages(),
-            // ],
+            'admin_articles' => $adminArticles,
         ]);
     }
 

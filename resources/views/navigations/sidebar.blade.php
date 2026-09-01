@@ -81,6 +81,15 @@
                     </a>
                 </li>
 
+                {{-- Direct Top Level Winner Articles --}}
+                <li class="nav-item">
+                    <a class="nav-link menu-link {{ request()->routeIs('admin.winner-articles.*') ? 'active' : '' }}"
+                        href="{{ route('admin.winner-articles.index') }}">
+                        <i class="ri-newspaper-line"></i>
+                        <span>Winner Articles</span>
+                    </a>
+                </li>
+
 
                 {{-- Handle Business --}}
                 @canany(['manage users', 'manage roles', 'manage permissions'])
