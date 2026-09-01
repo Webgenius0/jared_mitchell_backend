@@ -131,7 +131,7 @@
                 </div>
 
                 <div class="cta-container">
-                    <a href="https://admin.oursocialimage.net" target="_blank" class="cta-button">Explore Our Platform →</a>
+                    <a href="https://oursocialimage.net" target="_blank" class="cta-button">Explore Our Platform →</a>
                 </div>
             </td>
         </tr>
@@ -142,7 +142,7 @@
                 <p style="margin: 0 0 12px 0;">© {{ date('Y') }} Our Social Image. All rights reserved.</p>
                 <p style="margin: 0; font-size: 12px; color: #64748b;">
                     You received this email because you subscribed on our platform.<br>
-                    Want to stop receiving emails? <a href="{{ $unsubscribeUrl ?? '#' }}" target="_blank">Unsubscribe here</a>.
+                    Want to stop receiving emails? <a href="https://oursocialimage.net/unsubscribe">Unsubscribe here</a>.
                 </p>
             </td>
         </tr>

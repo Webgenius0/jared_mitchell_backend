@@ -81,6 +81,9 @@
                 <a href="{{ route('admin.email-templates.index') }}" class="btn btn-soft-secondary">
                     <i class="ri-arrow-left-line me-1"></i> Back to Gallery
                 </a>
+                <button type="button" class="btn btn-soft-primary fw-bold" data-bs-toggle="modal" data-bs-target="#modalImportHtml">
+                    <i class="ri-code-s-slash-line me-1"></i> 📄 Import Canva / Raw HTML
+                </button>
                 <button type="button" id="btnTogglePreview" class="btn btn-soft-info">
                     <i class="ri-eye-line me-1"></i> Toggle Live Preview
                 </button>
@@ -359,6 +362,31 @@
         // Toggle Live Preview
         $('#btnTogglePreview').on('click', function() {
             $('.canvas-block').toggleClass('preview-mode');
+        });
+
+        // FileReader for HTML file upload
+        $('#fileHtmlImport').on('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    $('#textareaRawHtml').val(evt.target.result);
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        // Apply raw HTML into canvas
+        $('#btnApplyRawHtml').on('click', function() {
+            const code = $('#textareaRawHtml').val().trim();
+            if (!code) {
+                Alert.warning('Please paste HTML code or upload an HTML file.');
+                return;
+            }
+
+            $canvas.append('<div class="canvas-block raw-html-block" data-type="raw"><div class="block-actions"><button type="button" class="btn btn-sm btn-danger btn-remove"><i class="ri-delete-bin-line"></i></button></div>' + code + '</div>');
+            $('#modalImportHtml').modal('hide');
+            Alert.success('Canva / Raw HTML loaded into builder canvas!');
         });
 
         // Save Template Handler

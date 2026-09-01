@@ -68,6 +68,23 @@ class NewsletterBroadcastMail extends Mailable
             if ($customTemplate) {
                 $customHtml = $customTemplate->html_content;
 
+                // Replace Canva / ESP Merge Tags
+                $customHtml = str_replace(
+                    ['{{ unsubscribe }}', '{{unsubscribe}}', '%7B%7B%20unsubscribe%20%7D%7D', '%7B%7Bunsubscribe%7D%7D', 'href="{{ unsubscribe }}"', 'href="%7B%7B%20unsubscribe%20%7D%7D"'],
+                    $this->unsubscribeUrl,
+                    $customHtml
+                );
+                $customHtml = str_replace(
+                    ['{{ update_preferences }}', '{{update_preferences}}', '%7B%7B%20update_preferences%20%7D%7D', 'href="{{ update_preferences }}"'],
+                    '#',
+                    $customHtml
+                );
+                $customHtml = str_replace(
+                    ['{{ view_in_browser }}', '{{view_in_browser}}', '%7B%7B%20view_in_browser%20%7D%7D', 'href="{{ view_in_browser }}"'],
+                    '#',
+                    $customHtml
+                );
+
                 // Strip any duplicate headers or footers from the injected content to prevent repetition
                 $aiContent = preg_replace('/<div[^>]*data-type="(?:header|footer)"[^>]*>.*?<\/div>/s', '', $this->htmlContent);
 
@@ -97,14 +114,16 @@ class NewsletterBroadcastMail extends Mailable
                         1
                     );
                 }
-                else {
-                    $customHtml .= '<div style="padding: 20px; font-family: sans-serif;">' . $aiContent . '</div>';
-                }
 
-                // Wrap cleanly inside container without duplicating outer elements
-                $finalHtml = '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body style="margin:0; padding:20px 0; background:#f4f6f8; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;"><div style="max-width:720px; margin:0 auto; background:#ffffff; border-radius:4px; overflow:hidden; border:1px solid #cbd5e1;">'
-                    . $customHtml
-                    . '</div></body></html>';
+                // If template is full standalone document (like Canva HTML export), return directly
+                if (str_contains(strtolower($customHtml), '<!doctype') || str_contains(strtolower($customHtml), '<html')) {
+                    $finalHtml = $customHtml;
+                } else {
+                    // Wrap cleanly inside container without duplicating outer elements
+                    $finalHtml = '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body style="margin:0; padding:20px 0; background:#f4f6f8; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;"><div style="max-width:720px; margin:0 auto; background:#ffffff; border-radius:4px; overflow:hidden; border:1px solid #cbd5e1;">'
+                        . $customHtml
+                        . '</div></body></html>';
+                }
 
                 return new Content(
                     htmlString: $finalHtml
