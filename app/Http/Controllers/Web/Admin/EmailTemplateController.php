@@ -27,6 +27,14 @@ class EmailTemplateController extends Controller
     }
 
     /**
+     * Show the dedicated Canva & Raw HTML Template Studio.
+     */
+    public function canva()
+    {
+        return view('web.admin.email_templates.canva');
+    }
+
+    /**
      * Store a newly created custom email template in storage.
      */
     public function store(Request $request)
