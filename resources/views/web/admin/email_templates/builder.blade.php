@@ -262,6 +262,45 @@
         </div>
     </div>
 </div>
+
+<!-- Import Canva / Raw HTML Modal -->
+<div class="modal fade" id="modalImportHtml" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title text-white d-flex align-items-center gap-2">
+                    <i class="ri-code-box-line text-warning fs-4"></i> Import Canva Exported HTML / Custom Code
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="alert alert-info border-0 d-flex align-items-center gap-3 mb-3">
+                    <i class="ri-information-line fs-3 text-info"></i>
+                    <div>
+                        <strong>Canva HTML Export Instructions:</strong><br>
+                        Export your Canva design as <em>HTML Email</em>, then paste the code below or upload the <code>.html</code> file directly!
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Upload <code>.html</code> File</label>
+                    <input type="file" id="fileHtmlImport" class="form-control" accept=".html,.htm">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Or Paste Raw HTML Code</label>
+                    <textarea id="textareaRawHtml" class="form-control font-monospace" rows="10" placeholder="Paste Canva HTML code here (<!DOCTYPE html>...)"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="btnApplyRawHtml" class="btn btn-primary fw-bold px-4">
+                    <i class="ri-checkbox-circle-line me-1"></i> Import & Load into Canvas
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
