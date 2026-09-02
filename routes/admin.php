@@ -516,6 +516,8 @@ Route::prefix('newsletters')->name('admin.newsletters.')->group(function () {
 
 Route::get('email-templates/canva', [\App\Http\Controllers\Web\Admin\EmailTemplateController::class, 'canva'])->name('admin.email-templates.canva');
 Route::get('email-templates/{emailTemplate}/preview', [\App\Http\Controllers\Web\Admin\EmailTemplateController::class, 'preview'])->name('admin.email-templates.preview');
+Route::post('email-templates/{emailTemplate}/broadcast', [\App\Http\Controllers\Web\Admin\EmailTemplateController::class, 'broadcastCanva'])->name('admin.email-templates.broadcast');
+Route::post('email-templates/{emailTemplate}/test-mail', [\App\Http\Controllers\Web\Admin\EmailTemplateController::class, 'testCanva'])->name('admin.email-templates.test-mail');
 Route::resource('email-templates', \App\Http\Controllers\Web\Admin\EmailTemplateController::class)->names([
     'index'   => 'admin.email-templates.index',
     'create'  => 'admin.email-templates.create',

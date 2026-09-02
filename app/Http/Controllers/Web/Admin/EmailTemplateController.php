@@ -118,10 +118,86 @@ class EmailTemplateController extends Controller
     }
 
     /**
-     * Return rendered HTML for template preview modal or iframe.
+     * Render live HTML preview of specified template.
      */
     public function preview(EmailTemplate $emailTemplate)
     {
         return response($emailTemplate->html_content)->header('Content-Type', 'text/html');
+    }
+
+    /**
+     * Send a test email of a Canva / Custom HTML template without AI.
+     */
+    public function testCanva(Request $request, EmailTemplate $emailTemplate)
+    {
+        $request->validate([
+            'test_email' => 'required|email',
+            'subject'    => 'required|string|max:255',
+        ]);
+
+        try {
+            \Illuminate\Support\Facades\Mail::to($request->test_email)->send(new \App\Mail\NewsletterBroadcastMail(
+                emailSubject: '[TEST PREVIEW] ' . $request->subject,
+                htmlContent: $emailTemplate->html_content,
+                recipientEmail: $request->test_email,
+                templateStyle: 'custom_' . $emailTemplate->id
+            ));
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Test Canva email sent successfully to ' . $request->test_email,
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Test Canva email error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to send test email: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Broadcast a Canva / Custom HTML template to all active subscribers without AI.
+     */
+    public function broadcastCanva(Request $request, EmailTemplate $emailTemplate)
+    {
+        $request->validate([
+            'subject' => 'required|string|max:255',
+        ]);
+
+        try {
+            $activeSubscribersCount = \App\Models\Newsletter::where('status', 'active')->count();
+
+            if ($activeSubscribersCount === 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No active subscribers found in database to send Canva newsletter.',
+                ], 422);
+            }
+
+            $broadcast = \App\Models\NewsletterBroadcast::create([
+                'subject'          => $request->subject,
+                'template_style'   => 'custom_' . $emailTemplate->id,
+                'primary_color'    => '#6366f1',
+                'html_content'     => $emailTemplate->html_content,
+                'status'           => 'processing',
+                'sent_count'       => 0,
+                'failed_count'     => 0,
+            ]);
+
+            \App\Jobs\SendNewsletterBroadcastJob::dispatch($broadcast->id);
+
+            return response()->json([
+                'success' => true,
+                'message' => "Canva Template broadcast dispatched successfully to {$activeSubscribersCount} active subscribers with ZERO AI step!",
+                'data'    => $broadcast,
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Canva broadcast error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to dispatch Canva broadcast: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 }

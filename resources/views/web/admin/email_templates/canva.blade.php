@@ -21,8 +21,11 @@
                 <a href="{{ route('admin.email-templates.create') }}" class="btn btn-soft-primary">
                     <i class="ri-layout-grid-line me-1"></i> Switch to Visual Builder
                 </a>
-                <button type="button" id="btnSaveCanvaTemplate" class="btn btn-success fw-bold px-4 shadow">
-                    <i class="ri-save-line me-1"></i> 💾 Save Canva Template
+                <button type="button" id="btnSaveCanvaTemplate" class="btn btn-success fw-bold px-3 shadow">
+                    <i class="ri-save-line me-1"></i> 💾 Save Template
+                </button>
+                <button type="button" id="btnDirectBroadcastCanva" class="btn btn-danger fw-bold px-3 shadow">
+                    <i class="ri-send-plane-fill me-1"></i> 🚀 Direct Broadcast (No AI)
                 </button>
             </div>
         </div>
@@ -32,12 +35,17 @@
             <div class="col-lg-6">
                 <div class="card border-0 shadow-sm mb-4">
                     <div class="card-header bg-dark text-white fw-bold d-flex align-items-center gap-2">
-                        <i class="ri-settings-4-line text-warning"></i> Template Information
+                        <i class="ri-settings-4-line text-warning"></i> Template & Broadcast Details
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
                             <label class="form-label fw-bold">Template Name <span class="text-danger">*</span></label>
                             <input type="text" id="canvaTemplateName" class="form-control" placeholder="e.g. Canva Q4 Performance Newsletter">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Broadcast Subject Line <span class="text-danger">*</span></label>
+                            <input type="text" id="canvaSubject" class="form-control border-primary" placeholder="e.g. 🚨 Exclusive Update from Our Social Image!">
+                            <small class="text-muted">Subject line used when sending this pure Canva email to subscribers.</small>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold">Category <span class="text-danger">*</span></label>
@@ -161,7 +169,7 @@
                     html_content: htmlContent
                 },
                 success: function(res) {
-                    $btn.prop('disabled', false).html('<i class="ri-save-line me-1"></i> 💾 Save Canva Template');
+                    $btn.prop('disabled', false).html('<i class="ri-save-line me-1"></i> 💾 Save Template');
                     if (res.success) {
                         Alert.success('Canva Email Template saved successfully!');
                         setTimeout(() => window.location.href = res.redirect, 1500);
@@ -170,8 +178,83 @@
                     }
                 },
                 error: function(err) {
-                    $btn.prop('disabled', false).html('<i class="ri-save-line me-1"></i> 💾 Save Canva Template');
+                    $btn.prop('disabled', false).html('<i class="ri-save-line me-1"></i> 💾 Save Template');
                     Alert.error(err.responseJSON?.message || 'Failed to save Canva template.');
+                }
+            });
+        });
+
+        // Direct Broadcast Pure Canva Template (ZERO AI STEP REQUIRED!)
+        $('#btnDirectBroadcastCanva').on('click', function() {
+            const name = $('#canvaTemplateName').val().trim();
+            const subject = $('#canvaSubject').val().trim();
+            const category = $('#canvaTemplateCategory').val();
+            const description = $('#canvaTemplateDescription').val().trim();
+            const htmlContent = $textarea.val().trim();
+
+            if (!name) {
+                Alert.warning('Please enter Template Name.');
+                return;
+            }
+
+            if (!subject) {
+                Alert.warning('Please enter Broadcast Subject Line.');
+                return;
+            }
+
+            if (!htmlContent) {
+                Alert.warning('Please upload or paste Canva HTML code.');
+                return;
+            }
+
+            if (!confirm('Are you sure you want to broadcast this 100% pure Canva design directly to ALL active subscribers (NO AI required)?')) {
+                return;
+            }
+
+            const $btn = $(this);
+            $btn.prop('disabled', true).html('<i class="ri-loader-4-line spinner me-1"></i> Broadcasting...');
+
+            $.ajax({
+                url: "{{ route('admin.email-templates.store') }}",
+                type: "POST",
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    name: name,
+                    category: category,
+                    description: description,
+                    html_content: htmlContent
+                },
+                success: function(res) {
+                    if (res.success && res.data?.id) {
+                        $.ajax({
+                            url: "/admin/email-templates/" + res.data.id + "/broadcast",
+                            type: "POST",
+                            data: {
+                                _token: "{{ csrf_token() }}",
+                                subject: subject
+                            },
+                            success: function(bRes) {
+                                $btn.prop('disabled', false).html('<i class="ri-send-plane-fill me-1"></i> 🚀 Direct Broadcast (No AI)');
+                                if (bRes.success) {
+                                    Alert.success(bRes.message);
+                                    setTimeout(() => window.location.href = "{{ route('admin.newsletters.index') }}", 1800);
+                                } else {
+                                    Alert.error(bRes.message);
+                                }
+                            },
+                            error: function(bErr) {
+                                $btn.prop('disabled', false).html('<i class="ri-send-plane-fill me-1"></i> 🚀 Direct Broadcast (No AI)');
+                                Alert.error(bErr.responseJSON?.message || 'Broadcast failed.');
+                            }
+                        });
+                    } else {
+                        $btn.prop('disabled', false).html('<i class="ri-send-plane-fill me-1"></i> 🚀 Direct Broadcast (No AI)');
+                        Alert.error(res.message);
+                    }
+                },
+                error: function(err) {
+                    $btn.prop('disabled', false).html('<i class="ri-send-plane-fill me-1"></i> 🚀 Direct Broadcast (No AI)');
+                    Alert.error(err.responseJSON?.message || 'Failed to save template before broadcast.');
                 }
             });
         });
