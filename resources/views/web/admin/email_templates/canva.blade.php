@@ -74,13 +74,13 @@
                             <strong>Canva Export Instructions:</strong> Export design from Canva as <em>HTML Email</em>, then upload the <code>.html</code> file or paste the raw HTML code below.
                         </div>
 
-                        <div class="mb-3">
+                        <!-- <div class="mb-3">
                             <label class="form-label fw-bold">Option A: Upload <code>.html</code> File</label>
                             <input type="file" id="canvaFileImport" class="form-control" accept=".html,.htm">
-                        </div>
+                        </div> -->
 
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Option B: Paste Raw Canva HTML Code</label>
+                            <label class="form-label fw-bold">Paste Raw Canva HTML Code</label>
                             <textarea id="canvaRawHtml" class="form-control font-monospace" rows="12" placeholder="Paste Canva HTML code here (<!DOCTYPE html>...)"></textarea>
                         </div>
                     </div>
