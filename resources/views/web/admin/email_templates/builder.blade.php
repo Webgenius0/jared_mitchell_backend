@@ -81,9 +81,9 @@
                 <a href="{{ route('admin.email-templates.index') }}" class="btn btn-soft-secondary">
                     <i class="ri-arrow-left-line me-1"></i> Back to Gallery
                 </a>
-                <button type="button" class="btn btn-soft-primary fw-bold" data-bs-toggle="modal" data-bs-target="#modalImportHtml">
+                <!-- <button type="button" class="btn btn-soft-primary fw-bold" data-bs-toggle="modal" data-bs-target="#modalImportHtml">
                     <i class="ri-code-s-slash-line me-1"></i> 📄 Import Canva / Raw HTML
-                </button>
+                </button> -->
                 <button type="button" id="btnTogglePreview" class="btn btn-soft-info">
                     <i class="ri-eye-line me-1"></i> Toggle Live Preview
                 </button>

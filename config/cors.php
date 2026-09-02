@@ -11,6 +11,7 @@ return [
         'https://jared-mitchell.vercel.app',
         'https://jared-mitchell-three.vercel.app',
         'http://localhost:3000',
+        'https://oursocialimage.net'
     ],
 
 
