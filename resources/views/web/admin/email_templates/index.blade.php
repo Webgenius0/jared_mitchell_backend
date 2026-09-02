@@ -17,9 +17,9 @@
                 <a href="{{ route('admin.email-templates.create') }}" class="btn btn-primary bg-gradient fw-bold shadow">
                     <i class="ri-layout-grid-line me-1 align-middle"></i> 🎨 Visual Drag & Drop Builder
                 </a>
-                <a href="{{ route('admin.email-templates.canva') }}" class="btn btn-warning bg-gradient fw-bold text-dark shadow">
+                <!-- <a href="{{ route('admin.email-templates.canva') }}" class="btn btn-warning bg-gradient fw-bold text-dark shadow">
                     <i class="ri-code-box-line me-1 align-middle"></i> 📄 Import Canva HTML Template
-                </a>
+                </a> -->
             </div>
         </div>
 

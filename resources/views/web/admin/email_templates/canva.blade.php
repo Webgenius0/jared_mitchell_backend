@@ -21,9 +21,9 @@
                 <a href="{{ route('admin.email-templates.create') }}" class="btn btn-soft-primary">
                     <i class="ri-layout-grid-line me-1"></i> Switch to Visual Builder
                 </a>
-                <button type="button" id="btnSaveCanvaTemplate" class="btn btn-success fw-bold px-3 shadow">
+                <!-- <button type="button" id="btnSaveCanvaTemplate" class="btn btn-success fw-bold px-3 shadow">
                     <i class="ri-save-line me-1"></i> 💾 Save Template
-                </button>
+                </button> -->
                 <button type="button" id="btnDirectBroadcastCanva" class="btn btn-danger fw-bold px-3 shadow">
                     <i class="ri-send-plane-fill me-1"></i> 🚀 Direct Broadcast (No AI)
                 </button>
