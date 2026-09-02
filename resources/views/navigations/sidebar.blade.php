@@ -449,8 +449,14 @@
                             </li>
                             <li class="nav-item">
                                 <a href="{{ route('admin.email-templates.index') }}"
-                                    class="nav-link {{ request()->routeIs('admin.email-templates.*') ? 'active' : '' }}">
+                                    class="nav-link {{ request()->routeIs('admin.email-templates.index', 'admin.email-templates.create', 'admin.email-templates.edit') ? 'active' : '' }}">
                                     <i class="ri-layout-3-line text-info"></i>Email Templates
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('admin.email-templates.canva') }}"
+                                    class="nav-link {{ request()->routeIs('admin.email-templates.canva') ? 'active' : '' }}">
+                                    <i class="ri-code-box-line text-warning"></i>Canva Email Studio
                                 </a>
                             </li>
                         </ul>
