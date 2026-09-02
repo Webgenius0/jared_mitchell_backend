@@ -514,10 +514,12 @@ Route::prefix('newsletters')->name('admin.newsletters.')->group(function () {
     Route::post('/broadcast', [WebNewsletterController::class, 'sendBroadcast'])->name('broadcast');
 });
 
-Route::get('email-templates/canva', [\App\Http\Controllers\Web\Admin\EmailTemplateController::class, 'canva'])->name('admin.email-templates.canva');
-Route::get('email-templates/{emailTemplate}/preview', [\App\Http\Controllers\Web\Admin\EmailTemplateController::class, 'preview'])->name('admin.email-templates.preview');
-Route::post('email-templates/{emailTemplate}/broadcast', [\App\Http\Controllers\Web\Admin\EmailTemplateController::class, 'broadcastCanva'])->name('admin.email-templates.broadcast');
-Route::post('email-templates/{emailTemplate}/test-mail', [\App\Http\Controllers\Web\Admin\EmailTemplateController::class, 'testCanva'])->name('admin.email-templates.test-mail');
+Route::prefix('email-templates')->name('admin.email-templates.')->group(function () {
+    Route::get('/canva', [\App\Http\Controllers\Web\Admin\EmailTemplateController::class, 'canva'])->name('canva');
+    Route::get('/{emailTemplate}/preview', [\App\Http\Controllers\Web\Admin\EmailTemplateController::class, 'preview'])->name('preview');
+    Route::post('/{emailTemplate}/broadcast', [\App\Http\Controllers\Web\Admin\EmailTemplateController::class, 'broadcastCanva'])->name('broadcast');
+    Route::post('/{emailTemplate}/test-mail', [\App\Http\Controllers\Web\Admin\EmailTemplateController::class, 'testCanva'])->name('test-mail');
+});
 Route::resource('email-templates', \App\Http\Controllers\Web\Admin\EmailTemplateController::class)->names([
     'index'   => 'admin.email-templates.index',
     'create'  => 'admin.email-templates.create',

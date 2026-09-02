@@ -226,8 +226,9 @@
                 },
                 success: function(res) {
                     if (res.success && res.data?.id) {
+                        const broadcastUrl = "{{ route('admin.email-templates.broadcast', ['emailTemplate' => ':id']) }}".replace(':id', res.data.id);
                         $.ajax({
-                            url: "/admin/email-templates/" + res.data.id + "/broadcast",
+                            url: broadcastUrl,
                             type: "POST",
                             data: {
                                 _token: "{{ csrf_token() }}",
