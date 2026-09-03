@@ -31,7 +31,7 @@ class AwsIvsService
     public function createChannel(string $name)
     {
         $recordingConfigArn = preg_replace('/[^a-zA-Z0-9:\/-]/', '', env('AWS_IVS_RECORDING_CONFIGURATION_ARN', ''));
-        
+
         $params = [
             'name' => $name,
             'type' => 'STANDARD', // STANDARD or BASIC
@@ -46,7 +46,7 @@ class AwsIvsService
             $result = $this->client->createChannel($params);
         } catch (AwsException $e) {
             Log::warning('AWS IVS Create Channel with recordingConfigArn failed: ' . $e->getMessage() . '. Retrying without recording configuration.');
-            
+
             // If recordingConfigurationArn was attached and failed, retry creating channel without it
             if (isset($params['recordingConfigurationArn'])) {
                 unset($params['recordingConfigurationArn']);
