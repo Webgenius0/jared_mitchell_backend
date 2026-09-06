@@ -106,7 +106,7 @@ class BusinessSpotlightCmsController extends Controller
         // return $this->success('Business spotlight video updated successfully.', ['cms' => $cms]);
 
         $validator = Validator::make($request->all(), [
-            'video_file' => ['nullable', 'file', 'mimes:mp4,mov,ogg,qt', 'max:20480'],
+            'video_file' => ['nullable', 'file', 'mimes:mp4,mov,ogg,qt', 'max:102400'],
         ]);
 
         if ($validator->fails()) {

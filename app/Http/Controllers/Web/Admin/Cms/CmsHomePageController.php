@@ -85,7 +85,7 @@ class CmsHomePageController extends Controller
             'title' => ['nullable', 'string', 'max:255'],
             'partners' => ['nullable', 'array'],
             'partners.*.link' => ['nullable', 'string', 'max:255'],
-            'partners.*.image_file' => ['nullable', 'file', 'image', 'max:2048'],
+            'partners.*.image_file' => ['nullable', 'file', 'image', 'max:10240'],
             'partners.*.existing_image' => ['nullable', 'string'],
         ]);
 
@@ -189,7 +189,7 @@ class CmsHomePageController extends Controller
             'items.*.title' => ['nullable', 'string', 'max:255'],
             'items.*.sub_title' => ['nullable', 'string', 'max:255'],
             'items.*.description' => ['nullable', 'string'],
-            'items.*.image_file' => ['nullable', 'file', 'image', 'max:2048'],
+            'items.*.image_file' => ['nullable', 'file', 'image', 'max:10240'],
             'items.*.existing_image' => ['nullable', 'string'],
         ]);
 
@@ -256,7 +256,7 @@ class CmsHomePageController extends Controller
             'items.*.title' => ['nullable', 'string', 'max:255'],
             'items.*.sub_title' => ['nullable', 'string', 'max:255'],
             'items.*.description' => ['nullable', 'string'],
-            'items.*.image_file' => ['nullable', 'file', 'image', 'mimes:png', 'max:2048'],
+            'items.*.image_file' => ['nullable', 'file', 'image', 'mimes:png', 'max:10240'],
             'items.*.existing_image' => ['nullable', 'string'],
         ]);
 
@@ -328,7 +328,7 @@ class CmsHomePageController extends Controller
             'sub_title' => ['nullable', 'string', 'max:255'],
             'items' => ['nullable', 'array'],
             'items.*.title' => ['nullable', 'string', 'max:255'],
-            'items.*.image_file' => ['nullable', 'file', 'image', 'mimes:png', 'max:2048'],
+            'items.*.image_file' => ['nullable', 'file', 'image', 'mimes:png', 'max:10240'],
             'items.*.existing_image' => ['nullable', 'string'],
         ]);
 
@@ -736,7 +736,7 @@ class CmsHomePageController extends Controller
             'title' => ['nullable', 'string', 'max:255'],
             'event_sponsors' => ['nullable', 'array'],
             'event_sponsors.*.link' => ['nullable', 'string', 'max:255'],
-            'event_sponsors.*.image_file' => ['nullable', 'file', 'image', 'max:2048'],
+            'event_sponsors.*.image_file' => ['nullable', 'file', 'image', 'max:10240'],
             'event_sponsors.*.existing_image' => ['nullable', 'string'],
         ]);
 

@@ -81,7 +81,7 @@ class BossBeginningWinnerChossenCMSController extends Controller
             'items.*.small_text'       => ['nullable', 'string', 'max:255'],
             'items.*.title'            => ['nullable', 'string', 'max:255'],
             'items.*.description'      => ['nullable', 'string', 'max:1000'],
-            'items.*.icon_image'       => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp,svg', 'max:2048'],
+            'items.*.icon_image'       => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp,svg', 'max:10240'],
         ]);
 
         if ($validator->fails()) {

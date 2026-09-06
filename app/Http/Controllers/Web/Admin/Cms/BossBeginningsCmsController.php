@@ -129,7 +129,7 @@ class BossBeginningsCmsController extends Controller
         $validator = Validator::make($request->all(), [
             'title' => ['nullable', 'string', 'max:500'],
             'sub_title' => ['nullable', 'string', 'max:1000'],
-            'video_file' => ['nullable', 'file', 'mimes:mp4,webm,ogg', 'max:20480'],
+            'video_file' => ['nullable', 'file', 'mimes:mp4,webm,ogg', 'max:102400'],
             'gallery_images.*' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
         ]);
 

@@ -73,7 +73,7 @@ class EventCmsController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'video_url' => ['nullable', 'url', 'max:500'],
-            'video_file' => ['nullable', 'file', 'mimes:mp4,mov,ogg,qt', 'max:20480'],
+            'video_file' => ['nullable', 'file', 'mimes:mp4,mov,ogg,qt', 'max:102400'],
         ]);
 
         if ($validator->fails()) {
