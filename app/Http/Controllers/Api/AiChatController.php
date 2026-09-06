@@ -43,7 +43,7 @@ class AiChatController extends Controller
             $conversation = AiConversation::create([
                 'user_id' => $user->id,
                 'title' => substr($prompt, 0, 40) . (strlen($prompt) > 40 ? '...' : ''),
-                'model' => 'gpt-4o-mini',
+                'model' => config('ai.models.openai'),
             ]);
         }
 

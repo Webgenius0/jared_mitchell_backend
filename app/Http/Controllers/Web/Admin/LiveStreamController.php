@@ -195,8 +195,8 @@ class LiveStreamController extends Controller
         $stream = LiveStream::findOrFail($id);
 
         if ($stream->status !== 'ended') {
-            $vodUrl = $request->input('vod_url') 
-                ?? \Illuminate\Support\Facades\Cache::get("stream_{$stream->id}_recorded_vod_url") 
+            $vodUrl = $request->input('vod_url')
+                ?? \Illuminate\Support\Facades\Cache::get("stream_{$stream->id}_recorded_vod_url")
                 ?? $stream->vod_url;
 
             if (!$vodUrl && $stream->channel_arn) {
@@ -218,7 +218,7 @@ class LiveStreamController extends Controller
 
             // Delete the channel from AWS IVS to stop billing for it
             $deleted = $this->ivsService->deleteChannel($stream->channel_arn);
-            
+
             $stream->update([
                 'status' => 'ended',
                 'vod_url' => $vodUrl,
@@ -270,7 +270,7 @@ class LiveStreamController extends Controller
     public function destroy($id)
     {
         $stream = LiveStream::findOrFail($id);
-        
+
         if ($stream->status !== 'ended') {
             $this->ivsService->deleteChannel($stream->channel_arn);
         }

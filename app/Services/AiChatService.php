@@ -16,7 +16,7 @@ class AiChatService
     public function __construct()
     {
         $this->apiKey = config('services.openai.api_key') ?? env('OPENAI_API_KEY', '');
-        $this->model = env('OPENAI_MODEL', 'gpt-4o-mini');
+        $this->model = config('ai.models.openai');
         $this->defaultSystemPrompt = <<<EOT
 Our Social Image AI Advisor — Master System Instructions
 
@@ -374,8 +374,8 @@ EOT;
             ])->timeout(30)->post('https://api.openai.com/v1/chat/completions', [
                 'model' => $conversation->model ?? $this->model,
                 'messages' => $messagesPayload,
-                'temperature' => 0.7,
-                'max_tokens' => 1500,
+                'temperature' => 1,
+                'max_completion_tokens' => 1500,
             ]);
 
             if ($response->successful()) {

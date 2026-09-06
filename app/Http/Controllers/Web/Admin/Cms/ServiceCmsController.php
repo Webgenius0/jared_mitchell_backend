@@ -35,7 +35,7 @@ class ServiceCmsController extends Controller
         $validator = Validator::make($request->all(), [
             'title' => ['nullable', 'string', 'max:500'],
             'sub_title' => ['nullable', 'string', 'max:500'],
-            'bg_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+            'bg_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
         ]);
 
         if ($validator->fails()) {
@@ -91,7 +91,7 @@ class ServiceCmsController extends Controller
         $validator = Validator::make($request->all(), [
             'title' => ['nullable', 'string', 'max:500'],
             'description' => ['nullable', 'string'],
-            'image_file' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+            'image_file' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
         ]);
 
         if ($validator->fails()) {
@@ -179,7 +179,7 @@ class ServiceCmsController extends Controller
             'description' => ['nullable', 'string'],
             'items' => ['nullable', 'array'],
             'items.*.title' => ['nullable', 'string', 'max:255'],
-            'items.*.image_file' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+            'items.*.image_file' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
         ]);
 
         if ($validator->fails()) {

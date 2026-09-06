@@ -21,9 +21,9 @@
                 <a href="{{ route('admin.email-templates.create') }}" class="btn btn-soft-primary">
                     <i class="ri-layout-grid-line me-1"></i> Switch to Visual Builder
                 </a>
-                <button type="button" id="btnSaveCanvaTemplate" class="btn btn-success fw-bold px-3 shadow">
+                <!-- <button type="button" id="btnSaveCanvaTemplate" class="btn btn-success fw-bold px-3 shadow">
                     <i class="ri-save-line me-1"></i> 💾 Save Template
-                </button>
+                </button> -->
                 <button type="button" id="btnDirectBroadcastCanva" class="btn btn-danger fw-bold px-3 shadow">
                     <i class="ri-send-plane-fill me-1"></i> 🚀 Direct Broadcast (No AI)
                 </button>
@@ -74,13 +74,13 @@
                             <strong>Canva Export Instructions:</strong> Export design from Canva as <em>HTML Email</em>, then upload the <code>.html</code> file or paste the raw HTML code below.
                         </div>
 
-                        <div class="mb-3">
+                        <!-- <div class="mb-3">
                             <label class="form-label fw-bold">Option A: Upload <code>.html</code> File</label>
                             <input type="file" id="canvaFileImport" class="form-control" accept=".html,.htm">
-                        </div>
+                        </div> -->
 
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Option B: Paste Raw Canva HTML Code</label>
+                            <label class="form-label fw-bold">Paste Raw Canva HTML Code</label>
                             <textarea id="canvaRawHtml" class="form-control font-monospace" rows="12" placeholder="Paste Canva HTML code here (<!DOCTYPE html>...)"></textarea>
                         </div>
                     </div>

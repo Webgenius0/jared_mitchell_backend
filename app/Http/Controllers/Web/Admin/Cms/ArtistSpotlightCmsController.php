@@ -67,7 +67,7 @@ class ArtistSpotlightCmsController extends Controller
     public function updateVideo(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'video_file' => ['nullable', 'file', 'mimes:mp4,mov,ogg,qt', 'max:20480'],
+            'video_file' => ['nullable', 'file', 'mimes:mp4,mov,ogg,qt', 'max:102400'],
         ]);
 
         if ($validator->fails()) {
