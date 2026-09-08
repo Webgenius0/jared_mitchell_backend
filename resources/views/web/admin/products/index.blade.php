@@ -79,13 +79,16 @@
 
         $(document).on('click', '.delete-btn', function() {
             const id = $(this).data('id');
+            let deleteUrl = '{{ route("admin.products.destroy", ":id") }}';
+            deleteUrl = deleteUrl.replace(':id', id);
+
             Alert.confirm('This will permanently delete the product and all associated images.', {
                 title: 'Delete Product?',
                 type: 'danger',
                 confirmText: 'Yes, delete it'
             }).then(confirmed => {
                 if (!confirmed) return;
-                axios.delete(`{{ url('admin/products') }}/${id}`)
+                axios.delete(deleteUrl)
                     .then(res => {
                         Toast.success('Product deleted successfully.');
                         table.draw(false);
