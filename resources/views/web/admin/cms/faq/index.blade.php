@@ -28,6 +28,7 @@
                                 <thead>
                                     <tr>
                                         <th>ID</th>
+                                        <th>Category</th>
                                         <th>Question</th>
                                         <th>Status</th>
                                         <th>Actions</th>
@@ -68,6 +69,10 @@
                     {
                         data: 'id',
                         name: 'id'
+                    },
+                    {
+                        data: 'category',
+                        name: 'category'
                     },
                     {
                         data: 'question',

@@ -48,6 +48,21 @@
                             </div>
                             <div class="card-body">
 
+                                {{-- Category --}}
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Category <span class="text-danger">*</span></label>
+                                    <select name="category" class="form-select @error('category') is-invalid @enderror" required>
+                                        @foreach(['home', 'about', 'services', 'shop', 'contact', 'spotlight', 'general'] as $cat)
+                                            <option value="{{ $cat }}" {{ old('category', $faq->category ?? 'general') === $cat ? 'selected' : '' }}>
+                                                {{ ucfirst($cat) }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('category')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
                                 {{-- Question --}}
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Question <span class="text-danger">*</span></label>

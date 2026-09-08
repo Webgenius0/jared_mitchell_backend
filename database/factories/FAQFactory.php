@@ -15,6 +15,7 @@ class FAQFactory extends Factory
             'question' => $this->faker->sentence() . '?',
             'answer' => $this->faker->paragraph(),
             'status' => $this->faker->randomElement(['active', 'inactive']),
+            'category' => $this->faker->randomElement(['home', 'about', 'services', 'shop', 'contact', 'spotlight', 'general']),
         ];
     }
 }

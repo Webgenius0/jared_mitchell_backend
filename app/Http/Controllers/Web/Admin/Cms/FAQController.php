@@ -19,6 +19,7 @@ class FAQController extends Controller
             $query = FAQ::query();
 
             return DataTables::eloquent($query)
+                ->editColumn('category', fn(FAQ $faq) => ucfirst($faq->category))
                 ->editColumn('question', fn(FAQ $faq) => '<strong>' . e($faq->question) . '</strong>')
                 ->editColumn('status', function (FAQ $faq) {
                     $class = $faq->status === 'active' ? 'bg-success' : 'bg-danger';
@@ -51,6 +52,7 @@ class FAQController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'category' => 'required|in:home,about,services,shop,contact,spotlight,general',
             'question' => 'required|string',
             'answer' => 'required|string',
             'status' => 'required|in:active,inactive',
@@ -85,6 +87,7 @@ class FAQController extends Controller
     public function update(Request $request, FAQ $faq)
     {
         $validated = $request->validate([
+            'category' => 'required|in:home,about,services,shop,contact,spotlight,general',
             'question' => 'required|string',
             'answer' => 'required|string',
             'status' => 'required|in:active,inactive',

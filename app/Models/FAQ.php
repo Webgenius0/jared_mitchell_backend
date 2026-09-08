@@ -11,6 +11,7 @@ class FAQ extends Model
     protected $table = 'f_a_q_s';
 
     protected $fillable = [
+        'category',
         'question',
         'answer',
         'status',
