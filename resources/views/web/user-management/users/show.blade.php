@@ -28,8 +28,7 @@
                     <div class="card-body p-4 text-center">
                         <div class="mx-auto mb-4">
                             @if($user->profile?->avatar)
-                                {{-- profiles.avatar already stores the full "storage/..." path --}}
-                                <img src="{{ asset($user->profile->avatar) }}" alt="Avatar"
+                                <img src="{{ $user->profile->avatar_url }}" alt="Avatar"
                                      class="rounded-circle avatar-xl img-thumbnail">
                             @else
                                 @php

@@ -737,6 +737,8 @@
                     e.target.closest('.sponsor-card-item').remove();
                 }
             });
+        }
+
         // Delete Existing Media AJAX Handler
         $(document).on('click', '.delete-existing-media-btn', function() {
             const mediaId = $(this).data('id');
