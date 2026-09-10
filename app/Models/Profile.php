@@ -38,17 +38,14 @@ class Profile extends Model
     public function getAvatarUrlAttribute(): string
     {
         if (! $this->avatar) {
-            return asset('admin/default/user.jpg');
+            return asset('admin/assets/images/users/user-dummy-img.jpg');
         }
 
         if (str_starts_with($this->avatar, 'http://') || str_starts_with($this->avatar, 'https://')) {
             return $this->avatar;
         }
 
-        if (str_starts_with($this->avatar, 'storage/') || str_starts_with($this->avatar, '/storage/')) {
-            return asset(ltrim($this->avatar, '/'));
-        }
-
-        return asset('storage/' . ltrim($this->avatar, '/'));
+        $cleanPath = preg_replace('#^(?:storage/|/storage/)+#i', '', $this->avatar);
+        return asset('storage/' . ltrim($cleanPath, '/'));
     }
 }
