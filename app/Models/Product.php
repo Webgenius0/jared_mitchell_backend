@@ -76,6 +76,19 @@ class Product extends Model
     |--------------------------------------------------------------------------
     */
 
+    public function getThumbnailUrlAttribute(): string
+    {
+        if (! $this->thumbnail) {
+            return asset('admin/assets/images/default/no-img.png');
+        }
+
+        if (str_starts_with($this->thumbnail, 'http://') || str_starts_with($this->thumbnail, 'https://')) {
+            return $this->thumbnail;
+        }
+
+        return asset('/' . ltrim($this->thumbnail, '/'));
+    }
+
     public function getDisplayPriceAttribute(): float
     {
         return $this->sale_price ?: $this->price;

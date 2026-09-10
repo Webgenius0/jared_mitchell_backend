@@ -26,7 +26,7 @@
                 <div class="card">
                     <div class="card-body text-center">
                         @if($product->thumbnail)
-                            <img src="{{ asset('/' . $product->thumbnail) }}" alt="{{ $product->name }}" class="img-fluid rounded" style="max-height: 250px; object-fit: cover;">
+                            <img src="{{ $product->thumbnail_url }}" alt="{{ $product->name }}" class="img-fluid rounded" style="max-height: 250px; object-fit: cover;">
                         @else
                             <div class="py-5 bg-light rounded">
                                 <i class="ri-image-line" style="font-size: 4rem; color: #ccc;"></i>
@@ -208,8 +208,8 @@
                         <div class="row g-2">
                             @foreach($product->images as $image)
                             <div class="col-4 col-md-3">
-                                <a href="{{ asset('/' . $image->image) }}" target="_blank">
-                                    <img src="{{ asset('/' . $image->image) }}" alt="Product Image" class="img-thumbnail" style="height: 120px; width: 100%; object-fit: cover;">
+                                <a href="{{ $image->image_url }}" target="_blank">
+                                    <img src="{{ $image->image_url }}" alt="Product Image" class="img-thumbnail" style="height: 120px; width: 100%; object-fit: cover;">
                                 </a>
                             </div>
                             @endforeach

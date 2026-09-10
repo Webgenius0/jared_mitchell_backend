@@ -38,6 +38,7 @@ class DatabaseSeeder extends Seeder
             // HomePageSeeder::class,
             // BusinessSeeder::class,
             RoundSessionSeeder::class,
+            ProductSeeder::class,
         ]);
     }
 }

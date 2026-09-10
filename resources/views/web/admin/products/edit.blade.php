@@ -210,13 +210,13 @@
                                         <input class="form-control d-none" id="thumbnail" name="thumbnail" type="file" accept="image/png, image/gif, image/jpeg">
                                     </div>
                                     <div class="avatar-xl bg-light rounded shadow">
-                                        <img src="{{ $product->thumbnail ? asset('/' . $product->thumbnail) : asset('admin/assets/images/default/no-img.png') }}" id="thumbnail_preview" class="avatar-xl rounded object-fit-cover" style="width: 150px; height: 150px;">
+                                        <img src="{{ $product->thumbnail_url }}" id="thumbnail_preview" class="avatar-xl rounded object-fit-cover" style="width: 150px; height: 150px;">
                                     </div>
                                 </div>
                                 <p class="text-muted mt-2 small">Recommended: 500x500px (Max 2MB)</p>
                                 @if($product->thumbnail)
                                     <div class="mt-2">
-                                        <a href="{{ asset('/' . $product->thumbnail) }}" target="_blank" class="btn btn-sm btn-soft-primary">View Current</a>
+                                        <a href="{{ $product->thumbnail_url }}" target="_blank" class="btn btn-sm btn-soft-primary">View Current</a>
                                     </div>
                                 @endif
                             </div>
@@ -239,7 +239,7 @@
                                     @foreach($product->images as $image)
                                         <div class="col-4 col-md-3">
                                             <div class="position-relative">
-                                                <img src="{{ asset('/' . $image->image) }}" alt="Gallery Image" class="img-thumbnail" style="height: 100px; width: 100%; object-fit: cover;">
+                                                <img src="{{ $image->image_url }}" alt="Gallery Image" class="img-thumbnail" style="height: 100px; width: 100%; object-fit: cover;">
                                                 <div class="form-check position-absolute top-0 start-0 m-1">
                                                     <input class="form-check-input" type="checkbox" name="delete_images[]" value="{{ $image->id }}" id="delete_img_{{ $image->id }}">
                                                     <label class="form-check-label small text-white" for="delete_img_{{ $image->id }}" style="text-shadow: 0 0 3px rgba(0,0,0,0.8);">Delete</label>

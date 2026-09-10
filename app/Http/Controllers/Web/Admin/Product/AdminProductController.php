@@ -31,9 +31,7 @@ class AdminProductController extends Controller
         return DataTables::of($query)
             ->addIndexColumn()
             ->addColumn('product_info', function ($row) {
-                $img = $row->thumbnail
-                    ? '<img src="' . asset('/' . $row->thumbnail) . '" alt="" class="avatar-xs rounded me-2" style="object-fit: cover; width: 36px; height: 36px;">'
-                    : '<div class="avatar-xs rounded me-2 bg-light d-inline-flex align-items-center justify-content-center"><i class="ri-image-line text-muted"></i></div>';
+                $img = '<img src="' . e($row->thumbnail_url) . '" alt="" class="avatar-xs rounded me-2" style="object-fit: cover; width: 36px; height: 36px;">';
 
                 return '<div class="d-flex align-items-center">' .
                     $img .
