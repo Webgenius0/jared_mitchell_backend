@@ -382,6 +382,7 @@ Route::prefix('events')->name('admin.events.')->group(function () {
     Route::get('/{event}/edit', [EventController::class, 'edit'])->name('edit');
     Route::put('/{event}', [EventController::class, 'update'])->name('update');
     Route::delete('/{event}', [EventController::class, 'destroy'])->name('destroy');
+    Route::delete('/media/{media}', [EventController::class, 'destroyMedia'])->name('media.destroy');
 });
 
 /*

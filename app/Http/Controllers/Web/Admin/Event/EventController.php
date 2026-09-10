@@ -6,6 +6,7 @@ use App\Exports\EventsExport;
 use App\Helpers\FileHandle;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
+use App\Models\EventMedia;
 use App\Models\EventTicketTier;
 use App\Models\Sponsor;
 use App\Models\User;
@@ -457,6 +458,29 @@ class EventController extends Controller
     {
         $event->delete();
         return redirect()->route('admin.events.index')->with('success', 'Event deleted successfully.');
+    }
+
+    /**
+     * Delete an event media item.
+     */
+    public function destroyMedia(EventMedia $media)
+    {
+        try {
+            if ($media->file_path) {
+                FileHandle::fileDelete($media->file_path);
+            }
+            $media->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Event media deleted successfully.',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete event media: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**

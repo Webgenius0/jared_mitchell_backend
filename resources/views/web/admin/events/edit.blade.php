@@ -98,21 +98,26 @@
                         <div class="card-body">
                             <div id="event-media-container">
                                 @if($event->media && $event->media->count() > 0)
-                                    <div class="row mb-4">
-                                        <h6 class="text-muted mb-3">Existing Media</h6>
-                                        @foreach($event->media as $mediaItem)
-                                        <div class="col-md-3 mb-3">
-                                            <div class="border rounded p-2 text-center h-100">
-                                                @if($mediaItem->media_type === 'image')
-                                                    <img src="{{ asset($mediaItem->file_path) }}" class="img-fluid rounded mb-2" style="max-height: 120px; object-fit: contain;">
-                                                @else
-                                                    <video src="{{ asset($mediaItem->file_path) }}" class="rounded mb-2" style="max-height: 120px; max-width: 100%;" controls></video>
-                                                @endif
-                                                <p class="small text-truncate mb-0">{{ $mediaItem->file_name }}</p>
-                                            </div>
-                                        </div>
-                                        @endforeach
-                                    </div>
+                                     <div class="row mb-4" id="existing-media-wrapper">
+                                         <h6 class="text-muted mb-3">Existing Media</h6>
+                                         @foreach($event->media as $mediaItem)
+                                         <div class="col-md-3 mb-3 existing-media-item" id="media-card-{{ $mediaItem->id }}">
+                                             <div class="border rounded p-2 text-center h-100 position-relative d-flex flex-column justify-content-between">
+                                                 <div>
+                                                     @if($mediaItem->media_type === 'image')
+                                                         <img src="{{ asset($mediaItem->file_path) }}" class="img-fluid rounded mb-2" style="max-height: 120px; object-fit: contain;">
+                                                     @else
+                                                         <video src="{{ asset($mediaItem->file_path) }}" class="rounded mb-2" style="max-height: 120px; max-width: 100%;" controls></video>
+                                                     @endif
+                                                     <p class="small text-truncate mb-2" title="{{ $mediaItem->file_name }}">{{ $mediaItem->file_name }}</p>
+                                                 </div>
+                                                 <button type="button" class="btn btn-sm btn-soft-danger w-100 delete-existing-media-btn" data-id="{{ $mediaItem->id }}">
+                                                     <i class="ri-delete-bin-line me-1"></i> Delete
+                                                 </button>
+                                             </div>
+                                         </div>
+                                         @endforeach
+                                     </div>
                                     <hr>
                                     <h6 class="text-muted mb-3">Add New Media</h6>
                                 @endif
@@ -732,8 +737,47 @@
                     e.target.closest('.sponsor-card-item').remove();
                 }
             });
-        }
+        // Delete Existing Media AJAX Handler
+        $(document).on('click', '.delete-existing-media-btn', function() {
+            const mediaId = $(this).data('id');
+            const $mediaCard = $('#media-card-' + mediaId);
 
+            if (!confirm('Are you sure you want to delete this media item?')) {
+                return;
+            }
+
+            const $btn = $(this);
+            $btn.prop('disabled', true).html('<i class="ri-loader-4-line spinner me-1"></i> Deleting...');
+
+            $.ajax({
+                url: '/admin/events/media/' + mediaId,
+                type: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    _method: 'DELETE'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $mediaCard.fadeOut(300, function() {
+                            $(this).remove();
+                            if ($('.existing-media-item').length === 0) {
+                                $('#existing-media-wrapper').fadeOut();
+                            }
+                        });
+                        if (typeof Alert !== 'undefined' && Alert.success) {
+                            Alert.success(response.message);
+                        }
+                    } else {
+                        $btn.prop('disabled', false).html('<i class="ri-delete-bin-line me-1"></i> Delete');
+                        alert(response.message || 'Failed to delete media.');
+                    }
+                },
+                error: function(xhr) {
+                    $btn.prop('disabled', false).html('<i class="ri-delete-bin-line me-1"></i> Delete');
+                    alert(xhr.responseJSON?.message || 'Error occurred while deleting media.');
+                }
+            });
+        });
 
         // Dropify Initialization
         $('.dropify').dropify({
