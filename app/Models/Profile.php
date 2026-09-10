@@ -45,7 +45,9 @@ class Profile extends Model
             return $this->avatar;
         }
 
+        // Clean out any leading slash or redundant storage/ prefixes
         $cleanPath = preg_replace('#^(?:storage/|/storage/)+#i', '', $this->avatar);
+
         return asset('storage/' . ltrim($cleanPath, '/'));
     }
 }
