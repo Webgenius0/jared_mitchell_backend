@@ -27,11 +27,11 @@ trait FormatsProduct
             'type' => $product->type,
             'brand' => $product->brand,
             'is_featured' => $product->is_featured,
-            'thumbnail' => $product->thumbnail ? url('/' . $product->thumbnail) : null,
+            'thumbnail' => $product->thumbnail ? (str_starts_with($product->thumbnail, 'http') ? $product->thumbnail : url('/' . ltrim($product->thumbnail, '/'))) : null,
             'images' => $product->images->map(function ($image) {
                 return [
                     'id' => $image->id,
-                    'image' => url('/' . $image->image),
+                    'image' => str_starts_with($image->image, 'http') ? $image->image : url('/' . ltrim($image->image, '/')),
                 ];
             }),
 
@@ -69,7 +69,7 @@ trait FormatsProduct
         $data['images'] = $product->images->map(function ($image) {
             return [
                 'id' => $image->id,
-                'image' => url('/' . $image->image),
+                'image' => str_starts_with($image->image, 'http') ? $image->image : url('/' . ltrim($image->image, '/')),
                 'sort_order' => $image->sort_order,
             ];
         });
