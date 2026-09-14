@@ -447,6 +447,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
     Route::prefix('cart')->group(function () {
         Route::get('/', [CartController::class, 'index']); // DONE: get all cart product
         Route::post('/add', [CartController::class, 'add']); // DONE: add product to cart
+        Route::post('/checkout', [CartController::class, 'checkout']); // DONE: generate Shopify checkout URL
         Route::post('/{cart}/update', [CartController::class, 'update']); // DONE: update product in cart
         Route::delete('/{cart}/delete', [CartController::class, 'destroy']); // DONE: delete product from cart
         Route::delete('/clear', [CartController::class, 'clear']); // DONE: clear cart

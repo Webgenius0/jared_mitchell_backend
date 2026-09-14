@@ -10,6 +10,7 @@ class Cart extends Model
     protected $fillable = [
         'user_id',
         'product_id',
+        'variant_id',
         'quantity',
     ];
 
@@ -25,9 +26,15 @@ class Cart extends Model
 
     public function getSubtotalAttribute(): float
     {
-        return $this->product
-            ? $this->quantity * $this->product->display_price
-            : 0;
+        if (!$this->product) {
+            return 0;
+        }
+
+        $price = is_array($this->product)
+            ? ($this->product['display_price'] ?? $this->product['price'] ?? 0)
+            : ($this->product->display_price ?? 0);
+
+        return (float) ($this->quantity * $price);
     }
 
     /*

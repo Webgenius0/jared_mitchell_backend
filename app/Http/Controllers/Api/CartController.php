@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Services\CartService;
+use App\Services\ShopifyService;
 use App\Traits\ApiResponse;
 use App\Traits\FormatsProduct;
 use Exception;
@@ -18,7 +19,8 @@ class CartController extends Controller
     use ApiResponse, FormatsProduct;
 
     public function __construct(
-        protected CartService $cartService
+        protected CartService $cartService,
+        protected ShopifyService $shopifyService
     ) {}
 
     /**
@@ -36,9 +38,10 @@ class CartController extends Controller
                 return [
                     'id'        => $item->id,
                     'product_id'=> $item->product_id,
+                    'variant_id'=> $item->variant_id,
                     'quantity'  => $item->quantity,
                     'subtotal'  => (float) $item->subtotal,
-                    'product'   => $this->formatProductBasic($item->product),
+                    'product'   => is_array($item->product) ? $item->product : ($item->product ? $this->formatProductBasic($item->product) : null),
                     'created_at' => $item->created_at->toISOString(),
                 ];
             });
@@ -62,7 +65,8 @@ class CartController extends Controller
     public function add(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'product_id' => 'required|integer|exists:products,id',
+            'product_id' => 'required',
+            'variant_id' => 'nullable',
             'quantity'   => 'required|integer|min:1|max:100',
         ]);
 
@@ -75,20 +79,18 @@ class CartController extends Controller
             $cart = $this->cartService->add(
                 $userId,
                 $request->input('product_id'),
-                (int) $request->input('quantity', 1)
+                (int) $request->input('quantity', 1),
+                $request->input('variant_id')
             );
 
-            return $this->success('Product added to cart.', [
-                'id'        => $cart->id,
-                'product_id'=> $cart->product_id,
-                'quantity'  => $cart->quantity,
-                'subtotal'  => (float) $cart->subtotal,
-                'product'   => $this->formatProductBasic($cart->product),
+            return $this->success('Product added to cart successfully.', [
+                'id'         => $cart->id,
+                'product_id' => $cart->product_id,
+                'variant_id' => $cart->variant_id,
+                'quantity'   => $cart->quantity,
             ], 201);
         } catch (RuntimeException $e) {
             return $this->error(null, $e->getMessage(), 422);
-        } catch (ModelNotFoundException $e) {
-            return $this->notFound('Product not found.');
         } catch (Exception $e) {
             return $this->error(null, 'Failed to add product to cart. Please try again.');
         }
@@ -118,11 +120,12 @@ class CartController extends Controller
             );
 
             return $this->success('Cart updated successfully.', [
-                'id' => $cartItem->id,
-                'product_id'=> $cartItem->product_id,
-                'quantity' => $cartItem->quantity,
-                'subtotal' => (float) $cartItem->subtotal,
-                'product' => $this->formatProductBasic($cartItem->product),
+                'id'         => $cartItem->id,
+                'product_id' => $cartItem->product_id,
+                'variant_id' => $cartItem->variant_id,
+                'quantity'   => $cartItem->quantity,
+                'subtotal'   => (float) $cartItem->subtotal,
+                'product'    => is_array($cartItem->product) ? $cartItem->product : ($cartItem->product ? $this->formatProductBasic($cartItem->product) : null),
             ]);
         } catch (RuntimeException $e) {
             return $this->error(null, $e->getMessage(), 422);
@@ -166,6 +169,67 @@ class CartController extends Controller
             return $this->success('Cart cleared successfully.');
         } catch (Exception $e) {
             return $this->error(null, 'Failed to clear cart. Please try again.');
+        }
+    }
+
+    /**
+     * POST /api/v1/cart/checkout
+     *
+     * Generate Shopify Checkout URL for cart items.
+     */
+    public function checkout(Request $request): JsonResponse
+    {
+        try {
+            $userId = auth('api')->id();
+            if (!$userId) {
+                return $this->error(null, 'Unauthenticated user.', 401);
+            }
+
+            $cartSummary = $this->cartService->summary($userId);
+            $items = [];
+
+            foreach ($cartSummary['items'] as $cartItem) {
+                $variantId = $cartItem->variant_id
+                    ?: ($cartItem->product['variant_id'] ?? ($cartItem->product['variants'][0]['id'] ?? $cartItem->product_id));
+
+                $items[] = [
+                    'variant_id' => $variantId,
+                    'quantity'   => $cartItem->quantity,
+                ];
+            }
+
+            if (empty($items)) {
+                return $this->error(null, 'Your cart is empty. Please add products to your cart before checkout.', 400);
+            }
+
+            // If shipping information is provided, try creating a Draft Order for pre-filled checkout
+            if ($request->has('shipping')) {
+                try {
+                    $draftOrder = $this->shopifyService->createDraftOrder(
+                        $items,
+                        $request->input('shipping', []),
+                        $request->input('shipping.email', auth('api')->user()?->email)
+                    );
+
+                    return $this->success('Shopify checkout URL generated successfully.', [
+                        'checkout_url'   => $draftOrder['invoice_url'],
+                        'draft_order_id' => $draftOrder['id'],
+                        'type'           => 'draft_order',
+                    ]);
+                } catch (Exception $draftException) {
+                    // Fall back to Shopify Cart Permalink if write_draft_orders scope is missing
+                }
+            }
+
+            // Standard Shopify Cart Permalink checkout
+            $checkoutUrl = $this->shopifyService->createCheckoutPermalink($items);
+
+            return $this->success('Shopify checkout URL generated successfully.', [
+                'checkout_url' => $checkoutUrl,
+                'type'         => 'permalink',
+            ]);
+        } catch (Exception $e) {
+            return $this->error(null, 'Failed to generate checkout URL: ' . $e->getMessage());
         }
     }
 }
