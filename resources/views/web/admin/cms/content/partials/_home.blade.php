@@ -93,22 +93,25 @@
                                     </thead>
                                     <tbody>
                                         @forelse($partnerItems as $index => $item)
+                                            @php
+                                                $itemData = is_array($item) ? $item : ['image' => $item, 'link' => ''];
+                                            @endphp
                                             <tr>
                                                 <td>
                                                     <div class="d-flex align-items-center gap-3">
-                                                        @if($item['image'])
-                                                            <img src="{{ asset($item['image']) }}" alt="Partner"
+                                                        @if($itemData['image'])
+                                                            <img src="{{ asset($itemData['image']) }}" alt="Partner"
                                                                 class="rounded border" style="height: 40px; width: auto;">
                                                         @endif
                                                         <input type="file" name="partners[{{ $index }}][image_file]"
                                                             class="form-control form-control-sm" accept="image/*">
                                                         <input type="hidden" name="partners[{{ $index }}][existing_image]"
-                                                            value="{{ $item['image'] }}">
+                                                            value="{{ $itemData['image'] }}">
                                                     </div>
                                                 </td>
                                                 <td>
                                                     <input type="url" name="partners[{{ $index }}][link]"
-                                                        class="form-control form-control-sm" value="{{ $item['link'] }}"
+                                                        class="form-control form-control-sm" value="{{ $itemData['link'] ?? '' }}"
                                                         placeholder="https://...">
                                                 </td>
                                                 <td class="text-center">
@@ -240,8 +243,8 @@
                                                     <input type="file" name="items[{{ $index }}][image_file]"
                                                         class="form-control form-control-sm" accept="image/*">
                                                     <input type="hidden" name="items[{{ $index }}][existing_image]"
-                                                        value="{{ $item['image'] }}">
-                                                    @if($item['image'])
+                                                        value="{{ $item['image'] ?? '' }}">
+                                                    @if($item['image'] ?? false)
                                                         <div class="mt-2 text-center">
                                                             <img src="{{ asset($item['image']) }}" alt="Card Image"
                                                                 class="rounded" style="height: 60px; width: auto;">
@@ -253,20 +256,20 @@
                                                         <label class="form-label">Title</label>
                                                         <input type="text" name="items[{{ $index }}][title]"
                                                             class="form-control form-control-sm"
-                                                            value="{{ $item['title'] }}" placeholder="e.g. Creators">
+                                                            value="{{ $item['title'] ?? '' }}" placeholder="e.g. Creators">
                                                     </div>
                                                     <div class="mb-3">
                                                         <label class="form-label">Subtitle</label>
                                                         <input type="text" name="items[{{ $index }}][sub_title]"
                                                             class="form-control form-control-sm"
-                                                            value="{{ $item['sub_title'] }}"
+                                                            value="{{ $item['sub_title'] ?? '' }}"
                                                             placeholder="e.g. Build exposure...">
                                                     </div>
                                                     <div>
                                                         <label class="form-label">Description</label>
                                                         <textarea name="items[{{ $index }}][description]"
                                                             class="form-control form-control-sm" rows="2"
-                                                            placeholder="Enter card description">{{ $item['description'] }}</textarea>
+                                                            placeholder="Enter card description">{{ $item['description'] ?? '' }}</textarea>
                                                     </div>
                                                 </div>
                                             </div>
@@ -360,21 +363,21 @@
                                                         <label class="form-label">Title</label>
                                                         <input type="text" name="items[{{ $index }}][title]"
                                                             class="form-control form-control-sm"
-                                                            value="{{ $item['title'] }}"
+                                                            value="{{ $item['title'] ?? '' }}"
                                                             placeholder="e.g. Intentional Visibility">
                                                     </div>
                                                     <div class="mb-3">
                                                         <label class="form-label">Subtitle</label>
                                                         <input type="text" name="items[{{ $index }}][sub_title]"
                                                             class="form-control form-control-sm"
-                                                            value="{{ $item['sub_title'] }}"
+                                                            value="{{ $item['sub_title'] ?? '' }}"
                                                             placeholder="e.g. Visibility should be thoughtful...">
                                                     </div>
                                                     <div>
                                                         <label class="form-label">Description</label>
                                                         <textarea name="items[{{ $index }}][description]"
                                                             class="form-control form-control-sm" rows="2"
-                                                            placeholder="Enter value description">{{ $item['description'] }}</textarea>
+                                                            placeholder="Enter value description">{{ $item['description'] ?? '' }}</textarea>
                                                     </div>
                                                 </div>
                                             </div>
@@ -454,7 +457,7 @@
                                                 </div>
                                                 <div class="col-md-7">
                                                     <input type="text" name="items[{{ $index }}][title]"
-                                                        class="form-control form-control-sm" value="{{ $item['title'] }}"
+                                                        class="form-control form-control-sm" value="{{ $item['title'] ?? '' }}"
                                                         placeholder="Title (e.g. Business visibility)">
                                                 </div>
                                                 <div class="col-md-2 text-end">
@@ -924,7 +927,7 @@
                                             <tr>
                                                 <td>
                                                     <div class="d-flex align-items-center gap-3">
-                                                        @if($item['image'])
+                                                        @if($item['image'] ?? false)
                                                             <img src="{{ asset($item['image']) }}" alt="Event Sponsor"
                                                                 class="rounded border" style="height: 40px; width: auto;">
                                                         @endif
@@ -932,12 +935,12 @@
                                                             class="form-control form-control-sm" accept="image/*">
                                                         <input type="hidden"
                                                             name="event_sponsors[{{ $index }}][existing_image]"
-                                                            value="{{ $item['image'] }}">
+                                                            value="{{ $item['image'] ?? '' }}">
                                                     </div>
                                                 </td>
                                                 <td>
                                                     <input type="url" name="event_sponsors[{{ $index }}][link]"
-                                                        class="form-control form-control-sm" value="{{ $item['link'] }}"
+                                                        class="form-control form-control-sm" value="{{ $item['link'] ?? '' }}"
                                                         placeholder="https://...">
                                                 </td>
                                                 <td class="text-center">

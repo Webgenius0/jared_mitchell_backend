@@ -7,6 +7,7 @@ use App\Http\Controllers\Web\Admin\BusinessSpotlight\AdminBusinessSpotlightContr
 use App\Http\Controllers\Web\Admin\Cms\AboutCmsController;
 use App\Http\Controllers\Web\Admin\Cms\AdminArtistCategoryController;
 use App\Http\Controllers\Web\Admin\Cms\ArtistSpotlightCmsController;
+use App\Http\Controllers\Web\Admin\Cms\ContactCmsController;
 use App\Http\Controllers\Web\Admin\Cms\BossBeginningsCmsController;
 use App\Http\Controllers\Web\Admin\Cms\BossBeginningWinnerChossenCMSController;
 use App\Http\Controllers\Web\Admin\Cms\BusinessSpotlightCmsController;
@@ -133,6 +134,14 @@ Route::prefix('cms/about')->name('admin.cms.about.')->group(function () {
     Route::post('/join', [AboutCmsController::class, 'updateJoin'])->name('update.join');
     Route::post('/newsletter', [AboutCmsController::class, 'updateNewsletter'])->name('update.newsletter');
     Route::post('/sponsors', [AboutCmsController::class, 'updateSponsors'])->name('update.sponsors');
+});
+
+// Contact CMS Routes
+Route::prefix('cms/contact')->name('admin.cms.contact.')->group(function () {
+    Route::get('/', [ContactCmsController::class, 'index'])->name('index');
+    Route::post('/hero', [ContactCmsController::class, 'updateHero'])->name('update.hero');
+    Route::post('/spotlight', [ContactCmsController::class, 'updateSpotlight'])->name('update.spotlight');
+    Route::post('/opportunities', [ContactCmsController::class, 'updateOpportunities'])->name('update.opportunities');
 });
 
 // Services CMS Routes

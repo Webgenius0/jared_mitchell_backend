@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\Chat\TypingController;
 use App\Http\Controllers\Api\Cms\BossBeginingsController;
 use App\Http\Controllers\Api\Cms\BossWinnerChosenController;
 use App\Http\Controllers\Api\Cms\CmsAboutController;
+use App\Http\Controllers\Api\Cms\CmsContactController;
 use App\Http\Controllers\Api\Cms\CmsArtistSpotlightController;
 use App\Http\Controllers\Api\Cms\CmsBusinessSpotlightController;
 use App\Http\Controllers\Api\Cms\CmsHomePageController;
@@ -133,6 +134,7 @@ Route::group(['prefix' => 'v1'], function ($router) {
             Route::get('/pricing', [CmsPricingController::class, 'index']); // Visible pricing plans with feature groups
             Route::get('/homepage', [CmsHomePageController::class, 'index']); // Homepage CMS
             Route::get('/about', [CmsAboutController::class, 'index']); // About page CMS
+            Route::get('/contact', [CmsContactController::class, 'index']); // Contact page CMS
             Route::get('/services', [CmsServiceController::class, 'index']); // Services page CMS
             Route::get('/artist-spotlight', [CmsArtistSpotlightController::class, 'index']); // Artist spotlight page CMS
             Route::get('/business-spotlight', [CmsBusinessSpotlightController::class, 'index']); // Business spotlight page CMS

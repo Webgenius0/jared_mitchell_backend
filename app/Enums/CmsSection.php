@@ -124,4 +124,9 @@ enum CmsSection: string
 
     // Rounds Page (container — stores all rounds in metadata['rounds'])
     case ROUNDS = 'rounds';
+
+    // Contact Page
+    case CONTACT_HERO = 'contact_hero';
+    case CONTACT_SPOTLIGHT = 'contact_spotlight';
+    case CONTACT_OPPORTUNITIES = 'contact_opportunities';
 }
