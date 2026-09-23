@@ -17,7 +17,7 @@ class SectionResource extends JsonResource
                     'type'  => $content->field_type,
                     'value' => $content->value,
                     'url'   => in_array($content->field_type, ['image', 'video'], true)
-                        ? asset('storage/' . $content->value)
+                        ? asset($content->value)
                         : null,
                 ];
             }

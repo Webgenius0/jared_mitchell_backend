@@ -37,7 +37,7 @@ class ContestantProfileResource extends JsonResource
             'display_name' => $this->display_name,
             'slug' => $this->slug,
             'avatar_url' => $this->avatar_url
-                ? asset('storage/' . $this->avatar_url)
+                ? asset($this->avatar_url)
                 : asset('admin/default/user.jpg'),
             'status' => $this->status,
             'total_score' => (float) $this->total_score,
@@ -67,7 +67,7 @@ class ContestantProfileResource extends JsonResource
                 'media' => $contestable->media && $contestable->media->count() > 0
                     ? $contestable->media->map(fn($m) => [
                         'id' => $m->id,
-                        'file_path' => asset('storage/' . $m->file_path),
+                        'file_path' => asset($m->file_path),
                         'file_name' => $m->file_name,
                         'mime_type' => $m->mime_type,
                     ])
@@ -110,7 +110,7 @@ class ContestantProfileResource extends JsonResource
                 'title' => $submission->title,
                 'description' => $submission->description,
                 'media_urls' => $submission->media_urls
-                    ? collect($submission->media_urls)->map(fn($url) => asset('storage/' . $url))->toArray()
+                    ? collect($submission->media_urls)->map(fn($url) => asset($url))->toArray()
                     : [],
                 'status' => $submission->status,
                 'score' => $submission->score ? (float) $submission->score : null,

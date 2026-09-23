@@ -16,7 +16,7 @@ class BusinessMediaResource extends JsonResource
     {
         return [
             'id'  => $this->id,
-            'url' => $this->file_path ? asset('storage/'.$this->file_path) : null,
+            'url' => $this->file_path ? asset($this->file_path) : null,
             'file_name' => $this->file_name,
             'mime_type' => $this->mime_type,
             'file_size' => $this->file_size,

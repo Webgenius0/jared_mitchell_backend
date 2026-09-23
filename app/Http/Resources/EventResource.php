@@ -25,8 +25,8 @@ class EventResource extends JsonResource
             'city' => $this->city,
             'state' => $this->state,
             'hosted_by' => $this->hosted_by,
-            'cover_image_url' => $this->cover_image_path ? asset('/' . $this->cover_image_path) : null,
-            'promo_video_url' => $this->promo_video_path ? asset('/' . $this->promo_video_path) : null,
+            'cover_image_url' => $this->cover_image_path ? asset($this->cover_image_path) : null,
+            'promo_video_url' => $this->promo_video_path ? asset($this->promo_video_path) : null,
             'event_type' => $this->event_type,
             'is_featured' => (bool) $this->is_featured,
             'like_count' => (int) $this->like_count,
@@ -49,7 +49,7 @@ class EventResource extends JsonResource
                     return [
                         'id' => $artist->id,
                         'name' => $artist->profile->name ?? '',
-                        'photo' => $artist->profile->avatar ? asset('/' . $artist->profile->avatar) : asset('admin/default/user.jpg'),
+                        'photo' => $artist->profile->avatar ? asset($artist->profile->avatar) : asset('admin/default/user.jpg'),
                         'designation' => $artist->profile->tagline ?? $artist->artistCategory?->name ?? 'Artist',
                     ];
                 });
@@ -59,7 +59,7 @@ class EventResource extends JsonResource
                     return [
                         'id' => $sponsor->id,
                         'name' => $sponsor->name,
-                        'logo' => $sponsor->logo ? asset('/' . ltrim($sponsor->logo, '/')) : null,
+                        'logo' => $sponsor->logo ? asset($sponsor->logo) : null,
                         'url' => $sponsor->website_url,
                         'description' => $sponsor->description,
                     ];
