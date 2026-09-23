@@ -752,7 +752,7 @@
             $btn.prop('disabled', true).html('<i class="ri-loader-4-line spinner me-1"></i> Deleting...');
 
             $.ajax({
-                url: '/admin/events/media/' + mediaId,
+                url: '/events/media/' + mediaId,
                 type: 'POST',
                 data: {
                     _token: '{{ csrf_token() }}',
