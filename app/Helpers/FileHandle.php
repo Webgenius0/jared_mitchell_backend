@@ -21,11 +21,12 @@ class FileHandle
         $fileName = time() . '-' . Str::random(8) . '.' . $file->getClientOriginalExtension();
         $path = 'uploads/' . trim($folder, '/') . '/' . $fileName;
 
-        $disk = config('filesystems.default') === 's3' ? 's3' : 'public';
+        // Fallback to env if config is cached with a wrong value
+        $disk = env('FILESYSTEM_DISK') === 's3' || config('filesystems.default') === 's3' ? 's3' : 'public';
 
         if ($disk === 's3') {
-            // Upload to S3 with public visibility
-            Storage::disk('s3')->put($path, file_get_contents($file), 'public');
+            // Upload to S3
+            $file->storeAs('uploads/' . trim($folder, '/'), $fileName, 's3');
             // Return full S3 URL
             return Storage::disk('s3')->url($path);
         }
