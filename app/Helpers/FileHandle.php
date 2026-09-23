@@ -8,7 +8,8 @@ use Illuminate\Support\Facades\Storage;
 class FileHandle
 {
     /**
-     * Upload file using Laravel Storage (public disk)
+     * Upload file to S3 (production) or local public disk (local env).
+     * Returns the full public URL of the uploaded file.
      */
     public static function fileUpload($file, string $folder): ?string
     {
@@ -18,24 +19,50 @@ class FileHandle
 
         // Generate unique filename
         $fileName = time() . '-' . Str::random(8) . '.' . $file->getClientOriginalExtension();
+        $path = 'uploads/' . trim($folder, '/') . '/' . $fileName;
 
-        // Store file in: storage/app/public/{folder}
-        $path = $file->storeAs(
+        $disk = config('filesystems.default') === 's3' ? 's3' : 'public';
+
+        if ($disk === 's3') {
+            // Upload to S3 with public visibility
+            Storage::disk('s3')->put($path, file_get_contents($file), 'public');
+            // Return full S3 URL
+            return Storage::disk('s3')->url($path);
+        }
+
+        // Local: store in storage/app/public
+        $stored = $file->storeAs(
             'uploads/' . trim($folder, '/'),
             $fileName,
             'public'
         );
 
-          return 'storage/' . $path; // ex: uploads/avatars/abc123.png
+        return 'storage/' . $stored;
     }
 
     /**
-     * Delete file from Laravel Storage (public disk)
+     * Delete file from S3 or local public disk.
      */
     public static function fileDelete(?string $path): void
     {
-        if ($path && Storage::disk('public')->exists($path)) {
-            Storage::disk('public')->delete($path);
+        if (!$path) {
+            return;
+        }
+
+        // If it's a full URL (S3), extract the key and delete from S3
+        if (filter_var($path, FILTER_VALIDATE_URL)) {
+            $awsUrl = env('AWS_URL', '');
+            if ($awsUrl && str_starts_with($path, $awsUrl)) {
+                $key = ltrim(str_replace($awsUrl, '', $path), '/');
+                Storage::disk('s3')->delete($key);
+            }
+            return;
+        }
+
+        // Local: delete from public disk
+        $localPath = str_replace('storage/', '', $path);
+        if (Storage::disk('public')->exists($localPath)) {
+            Storage::disk('public')->delete($localPath);
         }
     }
 
