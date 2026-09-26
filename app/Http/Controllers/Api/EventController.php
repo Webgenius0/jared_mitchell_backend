@@ -461,7 +461,7 @@ class EventController extends Controller
                 return [
                     'id' => $sponsor->id,
                     'name' => $sponsor->name,
-                    'logo' => $sponsor->logo ? asset('/' . ltrim($sponsor->logo, '/')) : null,
+                    'logo' => $sponsor->logo ? asset($sponsor->logo) : null,
                     'url' => $sponsor->website_url,
                     'description' => $sponsor->description,
                 ];
