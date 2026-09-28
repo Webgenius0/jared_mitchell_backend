@@ -266,7 +266,12 @@ class BossBeginningWinnerController extends Controller
         }
 
         if (!$avatarUrl) {
-            $avatarUrl = asset('admin/default/user.jpg');
+            // If no avatar yet, try to use the first custom media image
+            if (!empty($customMedia)) {
+                $avatarUrl = $customMedia[0]['file_path'];
+            } else {
+                $avatarUrl = asset('admin/default/user.jpg');
+            }
         }
 
         return [
