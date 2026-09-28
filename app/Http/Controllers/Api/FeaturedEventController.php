@@ -25,7 +25,7 @@ class FeaturedEventController extends Controller
                 ]
             );
         } catch (Exception $e) {
-            Log::error('Failed to retrieve featured events: ' . $e->getMessage());
+            Log::error('Failed to retrieve featured events: '.$e->getMessage());
 
             return $this->error(
                 'Failed to retrieve events. Please try again later.'
