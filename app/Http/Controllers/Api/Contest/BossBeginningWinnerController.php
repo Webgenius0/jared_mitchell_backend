@@ -274,6 +274,13 @@ class BossBeginningWinnerController extends Controller
             'display_name' => $winner->display_name,
             'slug'         => $winner->slug,
             'avatar_url'   => $avatarUrl,
+            // Owner / user information (if linked)
+            'owner_user_id' => $contestable && ($contestable->user ?? $contestable->owner)
+                ? ($contestable->user ?? $contestable->owner)->id
+                : null,
+            'owner_name'    => $contestable && ($contestable->user ?? $contestable->owner)
+                ? ($contestable->user ?? $contestable->owner)->name
+                : null,
             'status'       => $winner->status,
             'total_score'  => (float) $winner->total_score,
             'title'        => $title,
