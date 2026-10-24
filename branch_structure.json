@@ -1,0 +1,33 @@
+{
+  "default_branch": "master",
+  "branches": [
+    "deploy",
+    "feature/hubspot",
+    "master",
+    "najim",
+    "origin",
+    "rayhan",
+    "reform",
+    "sakhawat"
+  ],
+  "parent": {
+    "deploy": "master",
+    "feature/hubspot": "master",
+    "master": null,
+    "najim": "master",
+    "origin": "master",
+    "rayhan": "master",
+    "reform": "master",
+    "sakhawat": "master"
+  },
+  "order": [
+    "master",
+    "deploy",
+    "feature/hubspot",
+    "najim",
+    "origin",
+    "rayhan",
+    "reform",
+    "sakhawat"
+  ]
+}
